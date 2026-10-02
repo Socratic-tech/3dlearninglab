@@ -117,3 +117,14 @@ describe("upgrading a single-class workbook", () => {
     expect(me.data.cls.pathId).toBe("9-week");
   });
 });
+
+describe("lost replies", () => {
+  it("a retried request with the same requestId does the work only once", () => {
+    const body = JSON.stringify({ action: "createClass", token: "tok:teacher@school.org", requestId: "retry-test-1234", args: { name: "Period 7" } });
+    const a = JSON.parse(env.raw(body));
+    const b = JSON.parse(env.raw(body));
+    expect(b).toEqual(a);
+    const names = env.call("teacher@school.org", "me").data.classes.map((c: { name: string }) => c.name);
+    expect(names.filter((n: string) => n === "Period 7")).toHaveLength(1);
+  });
+});

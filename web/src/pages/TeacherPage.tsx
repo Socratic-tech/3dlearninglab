@@ -291,7 +291,8 @@ function NewClassForm({ apiUrl, onCreated }: { apiUrl: string; onCreated: () => 
       e.preventDefault(); setBusy(true);
       const r = await call<ClassInfo>(apiUrl, "createClass", { name, section, pathId });
       setBusy(false);
-      if (r.ok) { setCurrentClass(r.data.id); setName(""); setSection(""); onCreated(); } else setErr(r.error);
+      if (r.ok) { setCurrentClass(r.data.id); setName(""); setSection(""); onCreated(); }
+      else { setErr(r.error); onCreated(); /* the class may have been saved even though the reply was lost */ }
     }}>
       <Field label="Class name" htmlFor="nc-n"><Input id="nc-n" value={name} onChange={(e) => setName(e.target.value)} required placeholder="3D Design" /></Field>
       <Field label="Section / period" htmlFor="nc-s"><Input id="nc-s" value={section} onChange={(e) => setSection(e.target.value)} placeholder="Period 2" /></Field>

@@ -69,7 +69,19 @@ function handle_(req) {
     ensureClasses_();
     const user = authenticate_(req.token, (req.args || {}).classId);
     if (action.role === "teacher" && user.role !== "teacher") throw userError_("You don't have access to that.");
-    return { ok: true, data: action.run(user, req.args || {}) };
+    // Retries from the site reuse the same requestId: return the first answer instead of doing the work twice.
+    const cache = CacheService.getScriptCache();
+    const rid = typeof req.requestId === "string" && /^[\w-]{8,64}$/.test(req.requestId) ? "rid_" + user.email + "_" + req.requestId : null;
+    if (rid) {
+      const prior = cache.get(rid);
+      if (prior) return JSON.parse(prior);
+    }
+    const out = { ok: true, data: action.run(user, req.args || {}) };
+    if (rid) {
+      const json = JSON.stringify(out);
+      if (json.length < 90000) cache.put(rid, json, 600);
+    }
+    return out;
   } catch (err) {
     if (err && err.userMessage) return { ok: false, error: err.userMessage };
     console.error(err && err.stack ? err.stack : err);

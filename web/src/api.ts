@@ -4,15 +4,41 @@ import { currentToken } from "./auth";
 import { currentClassId } from "./config";
 
 /** POST to the class's Apps Script. text/plain avoids a CORS preflight, which Apps Script can't answer. */
+/**
+ * Calls the class's Apps Script. Each call has a requestId; if the reply is lost (Apps Script occasionally drops
+ * the response after finishing the work), we retry once with the same id and the script returns its saved answer
+ * instead of doing the work twice.
+ */
 export async function call<T>(apiUrl: string, action: string, args: Record<string, unknown> = {}): Promise<ActionResult<T>> {
+  const requestId = crypto.randomUUID();
+  const first = await callOnce<T>(apiUrl, action, args, requestId);
+  if (first.ok || !first.retryable) return strip(first);
+  await new Promise((r) => setTimeout(r, 1500));
+  return strip(await callOnce<T>(apiUrl, action, args, requestId));
+}
+
+type Attempt<T> = ActionResult<T> & { retryable?: boolean };
+function strip<T>(r: Attempt<T>): ActionResult<T> {
+  delete r.retryable;
+  return r;
+}
+
+async function callOnce<T>(apiUrl: string, action: string, args: Record<string, unknown>, requestId: string): Promise<Attempt<T>> {
   const token = currentToken();
   if (!token) return { ok: false, error: "Your sign-in expired. Please sign in again." };
   try {
-    const res = await fetch(apiUrl, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action, token, args: { classId: currentClassId(), ...args } }) });
-    if (!res.ok) return { ok: false, error: "We couldn't reach your class's Google storage. Your answer wasn't lost — try again.", details: `HTTP ${res.status}` };
-    return (await res.json()) as ActionResult<T>;
+    const res = await fetch(apiUrl, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action, token, requestId, args: { classId: currentClassId(), ...args } }) });
+    const text = await res.text();
+    if (!res.ok) return { ok: false, retryable: true, error: `Google storage didn't answer (HTTP ${res.status}). Your work wasn't lost — try again.`, details: text.slice(0, 500) };
+    try {
+      return JSON.parse(text) as ActionResult<T>;
+    } catch {
+      // Apps Script answered with an HTML page (usually a permission or deployment problem)
+      const title = /<title>([^<]*)<\/title>/i.exec(text)?.[1] ?? text.replace(/<[^>]+>/g, " ").trim().slice(0, 160);
+      return { ok: false, retryable: true, error: `Google storage sent an unexpected page: “${title}”. Check the web-app deployment (Execute as: Me · Anyone).`, details: text.slice(0, 500) };
+    }
   } catch (e) {
-    return { ok: false, error: "We couldn't reach your class's Google storage. Check your connection and try again.", details: String(e) };
+    return { ok: false, retryable: true, error: `We couldn't reach your class's Google storage (${String(e).slice(0, 80)}). Check your connection and try again.`, details: String(e) };
   }
 }
 
