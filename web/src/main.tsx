@@ -3,11 +3,10 @@ import { createRoot } from "react-dom/client";
 import "./app.css";
 import { App } from "./App";
 
-// apply saved theme before first paint
-try {
-  const t = localStorage.getItem("academy.theme");
-  if (t === "dark" || t === "light") document.documentElement.dataset.theme = t;
-} catch { /* ignore */ }
+import { applyPrefs, loadPrefs } from "./display";
+
+// apply saved display & reading settings before first paint
+applyPrefs(loadPrefs());
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

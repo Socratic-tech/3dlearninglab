@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { LogOut, Moon } from "lucide-react";
+import { LogOut } from "lucide-react";
+import { DisplayMenu } from "./display";
 import { LogoMark } from "@/components/nav/logo";
 import { Alert } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -57,13 +58,6 @@ export function App() {
 }
 
 function Frame({ children, me, onSignOut, onSwitch }: { children: ReactNode; me?: Me; onSignOut?: () => void; onSwitch?: (classId: string) => void }) {
-  const toggle = () => {
-    const root = document.documentElement;
-    const cur = root.dataset.theme ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-    const next = cur === "dark" ? "light" : "dark";
-    root.dataset.theme = next;
-    try { localStorage.setItem("academy.theme", next); } catch { /* ignore */ }
-  };
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-30 border-b border-border bg-bg/90 backdrop-blur">
@@ -82,7 +76,7 @@ function Frame({ children, me, onSignOut, onSwitch }: { children: ReactNode; me?
           <div className="ml-auto flex items-center gap-1">
             {me?.user.role === "teacher" && <a href="#/teacher" className="rounded-lg px-3 py-2 text-sm font-semibold hover:bg-surface-2">Teacher</a>}
             {me && <a href="#/student" className="rounded-lg px-3 py-2 text-sm font-semibold hover:bg-surface-2">Missions</a>}
-            <button onClick={toggle} className="rounded-lg p-2 text-muted hover:bg-surface-2" aria-label="Switch between light and dark mode"><Moon className="size-5" aria-hidden /></button>
+            <DisplayMenu />
             {onSignOut && me && <button onClick={onSignOut} className="rounded-lg p-2 text-muted hover:bg-surface-2" aria-label="Sign out"><LogOut className="size-5" aria-hidden /></button>}
           </div>
         </div>

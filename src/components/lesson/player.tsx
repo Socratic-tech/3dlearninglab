@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import Link from "next/link";
-import { Award, CircleCheck, Lock } from "lucide-react";
+import { Award, CircleCheck, Lock, Volume2, VolumeX } from "lucide-react";
 import type { Lesson, LessonBlock, ModelAsset } from "@/content/schema";
 import type { BlockEntry } from "./types";
 import { readOnlyApi, defaultLinks, type LessonApi, type LessonLinks } from "./api";
@@ -51,11 +51,16 @@ export function LessonPlayer(p: PlayerProps) {
   const remaining = p.requiredBlockIds.filter((id) => !doneIds.has(id));
   const steps = useMemo(() => buildSteps(p.lesson), [p.lesson]);
   const [step, setStep] = useState(() => {
-    if (p.completed) return 0;
-    const first = steps.findIndex((st) => st.blocks.some((b) => p.requiredBlockIds.includes(b.id) && !doneIds.has(b.id)));
-    return first > 0 ? Math.max(0, first) : 0;
+    // A fresh mission always starts at the hook. Resume only after the student has actually done something:
+    // go to the first screen that still has required work, but never skip past the screen they last worked on.
+    if (p.completed || doneIds.size === 0) return 0;
+    let last = -1;
+    steps.forEach((st, i) => { if (st.blocks.some((b) => doneIds.has(b.id))) last = i; });
+    const firstOpen = steps.findIndex((st) => st.blocks.some((b) => p.requiredBlockIds.includes(b.id) && !doneIds.has(b.id)));
+    return Math.max(0, firstOpen >= 0 ? Math.min(firstOpen, last + 1) : last);
   });
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const stepRef = useRef<HTMLDivElement>(null);
   const go = (n: number) => {
     setStep(Math.max(0, Math.min(n, steps.length + (p.readOnly ? -1 : 0))));
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -212,7 +217,7 @@ export function LessonPlayer(p: PlayerProps) {
           <span className="font-mono text-xs text-muted">{step + 1}/{total}</span>
         </div>
 
-        <div key={step} className="animate-fade-up space-y-4">
+        <div key={step} ref={stepRef} className="animate-fade-up space-y-4">
           {onFinish ? (
             finish
           ) : (
@@ -228,6 +233,7 @@ export function LessonPlayer(p: PlayerProps) {
         {/* Big, thumb-friendly navigation */}
         <div className="sticky bottom-20 z-10 mt-8 flex items-center gap-3 rounded-2xl border border-border bg-surface/95 p-3 shadow-lg backdrop-blur lg:bottom-4">
           <Button variant="secondary" size="lg" disabled={step === 0} onClick={() => go(step - 1)} aria-label="Previous step">← Back</Button>
+          <ReadAloud key={step} target={stepRef} />
           <span className="flex-1 text-center text-sm text-muted" aria-live="polite">
             {openRequired ? "Try this one, or skip and come back." : ""}
           </span>
@@ -240,6 +246,46 @@ export function LessonPlayer(p: PlayerProps) {
         <p className="mt-3 text-center text-sm"><Link href={links.missions} className="text-muted underline">Back to missions</Link></p>
       </div>
     </I.LessonCtx.Provider>
+  );
+}
+
+/**
+ * UDL: hear the current screen read aloud (browser text-to-speech, nothing leaves the device).
+ * Reads the visible text of the screen, including choices, and stops when the student moves on.
+ */
+const noSubscribe = () => () => {};
+function ReadAloud({ target }: { target: React.RefObject<HTMLDivElement | null> }) {
+  const [speaking, setSpeaking] = useState(false);
+  const supported = useSyncExternalStore(noSubscribe, () => "speechSynthesis" in window, () => false);
+  // remounted on every screen change (key), so leaving a screen stops the voice
+  useEffect(() => () => { if ("speechSynthesis" in window) window.speechSynthesis.cancel(); }, []);
+  if (!supported) return null;
+  const toggle = () => {
+    const synth = window.speechSynthesis;
+    if (speaking) { synth.cancel(); setSpeaking(false); return; }
+    const el = target.current;
+    if (!el) return;
+    const clone = el.cloneNode(true) as HTMLElement;
+    clone.querySelectorAll("svg, [aria-hidden='true'], button, input, select, textarea").forEach((n) => {
+      // keep the words on choice buttons/labels, drop icons and form widgets
+      if (n.tagName === "BUTTON" || n.tagName === "svg" || n.getAttribute("aria-hidden") === "true") n.remove();
+      else n.replaceWith(document.createTextNode(" "));
+    });
+    const text = (clone.innerText || clone.textContent || "").replace(/\s+/g, " ").trim();
+    if (!text) return;
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = Number(localStorage.getItem("academy.readRate") ?? "0.95") || 0.95;
+    u.onend = () => setSpeaking(false);
+    u.onerror = () => setSpeaking(false);
+    synth.cancel();
+    synth.speak(u);
+    setSpeaking(true);
+  };
+  return (
+    <Button variant="ghost" size="lg" onClick={toggle} aria-pressed={speaking} aria-label={speaking ? "Stop reading aloud" : "Read this screen aloud"}>
+      {speaking ? <VolumeX className="size-5" aria-hidden /> : <Volume2 className="size-5" aria-hidden />}
+      <span className="hidden sm:inline">{speaking ? "Stop" : "Read aloud"}</span>
+    </Button>
   );
 }
 

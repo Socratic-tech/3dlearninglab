@@ -106,6 +106,36 @@
 :root[data-text="xlarge"] {
   --font-scale: 1.3;
 }
+:root[data-text="xxlarge"] {
+  --font-scale: 1.5;
+}
+/* High contrast (UDL / low vision): stronger text, borders and focus in either theme */
+:root[data-contrast="high"] {
+  --fg: #000000;
+  --muted: #1f2a3a;
+  --border: #4a5a70;
+  --primary: #003f88;
+  --surface-2: #e2e8f0;
+}
+:root[data-contrast="high"][data-theme="dark"] {
+  --bg: #000000;
+  --surface: #0a0f18;
+  --surface-2: #1a2333;
+  --muted: #dbe4f0;
+  --border: #9fb3cc;
+  --primary: #8cc8ff;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-contrast="high"]:not([data-theme="light"]) {
+    --fg: #ffffff;
+    --bg: #000000;
+    --surface: #0a0f18;
+    --surface-2: #1a2333;
+    --muted: #dbe4f0;
+    --border: #9fb3cc;
+    --primary: #8cc8ff;
+  }
+}
 :root[data-readable="true"] {
   --letter-spacing: 0.035em;
   --word-spacing: 0.12em;

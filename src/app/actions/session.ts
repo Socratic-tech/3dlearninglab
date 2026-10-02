@@ -49,6 +49,7 @@ export async function savePrefsAction(formData: FormData) {
       text: formData.get("text") ?? current.text,
       readable: formData.has("readable") ? formData.get("readable") === "on" || formData.get("readable") === "true" : formData.has("_form") ? false : current.readable,
       motion: formData.get("motion") ?? (formData.has("_form") ? "system" : current.motion),
+      contrast: formData.has("contrast") ? true : formData.has("_form") ? false : current.contrast,
     }),
   );
   jar.set(PREFS_COOKIE, JSON.stringify(next), { path: "/", maxAge: 365 * 86400, sameSite: "lax", httpOnly: false });

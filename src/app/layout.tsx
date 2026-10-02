@@ -40,6 +40,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       data-theme={prefs.theme === "system" ? undefined : prefs.theme}
       data-text={prefs.text === "normal" ? undefined : prefs.text}
       data-readable={prefs.readable ? "true" : undefined}
+      data-contrast={prefs.contrast ? "high" : undefined}
       data-motion={prefs.motion === "reduce" ? "reduce" : undefined}
       suppressHydrationWarning
     >

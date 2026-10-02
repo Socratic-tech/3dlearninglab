@@ -32,10 +32,14 @@ export default async function Settings() {
               <option value="normal">Normal</option>
               <option value="large">Large</option>
               <option value="xlarge">Extra large</option>
+              <option value="xxlarge">Largest</option>
             </Select>
           </Field>
           <label className="flex items-center gap-2 text-sm font-semibold">
             <input type="checkbox" name="readable" defaultChecked={prefs.readable} className="size-4" /> Extra letter and line spacing (dyslexia-friendly)
+          </label>
+          <label className="flex items-center gap-2 text-sm font-semibold">
+            <input type="checkbox" name="contrast" defaultChecked={prefs.contrast} className="size-4" /> High contrast
           </label>
           <label className="flex items-center gap-2 text-sm font-semibold">
             <input type="checkbox" name="motion" value="reduce" defaultChecked={prefs.motion === "reduce"} className="size-4" /> Reduce motion
