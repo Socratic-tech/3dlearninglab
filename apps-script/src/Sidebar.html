@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<style>
+  :root { --p:#0b5cad; --ps:#e3effb; --ok:#15803d; --oks:#e6f6ec; --w:#a16207; --ws:#fdf6dc; --b:#cfd8e3; --m:#4a5a70; }
+  body { font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color:#0f1b2d; margin:0; padding:14px; }
+  h1 { font-size:18px; margin:0 0 4px; } h2 { font-size:15px; margin:0; }
+  .muted { color:var(--m); font-size:12.5px; }
+  .step { border:1px solid var(--b); border-radius:12px; padding:12px; margin:12px 0; }
+  .step.done { border-color:var(--ok); background:var(--oks); }
+  .step.todo { border-color:var(--p); }
+  .num { display:inline-grid; place-items:center; width:22px; height:22px; border-radius:50%; background:var(--p); color:#fff; font-weight:700; font-size:12px; margin-right:6px; }
+  .done .num { background:var(--ok); }
+  button, .btn { display:inline-block; border:0; border-radius:9px; background:var(--p); color:#fff; font-weight:700; padding:9px 14px; font-size:14px; cursor:pointer; text-decoration:none; margin-top:8px; }
+  button.secondary, .btn.secondary { background:#fff; color:var(--p); border:2px solid var(--p); padding:7px 12px; }
+  button:disabled { opacity:.5; cursor:default; }
+  ol { padding-left:20px; margin:8px 0; } li { margin:3px 0; }
+  input[type=text], select { width:100%; box-sizing:border-box; border:1px solid var(--b); border-radius:8px; padding:7px; font-size:14px; margin-top:4px; }
+  label { display:block; margin-top:8px; font-weight:600; }
+  .link { word-break:break-all; background:#f4f7fb; border-radius:8px; padding:6px 8px; font-size:12px; margin-top:6px; }
+  .class { border-top:1px solid var(--b); padding-top:10px; margin-top:10px; }
+  .qr { margin-top:8px; }
+  .warn { background:var(--ws); border:1px solid var(--w); border-radius:10px; padding:10px; margin-top:8px; }
+  .hide { display:none; }
+  kbd { background:#eef2f7; border:1px solid var(--b); border-radius:4px; padding:0 4px; font-size:12px; }
+</style>
+</head>
+<body>
+<h1>3D Design Academy</h1>
+<p class="muted" id="who">Loading…</p>
+<div id="app"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+var S = null;
+function $(id) { return document.getElementById(id); }
+function esc(t) { return String(t == null ? "" : t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+function busy(btn, text) { if (btn) { btn.disabled = true; btn.dataset.t = btn.textContent; btn.textContent = text; } }
+function run(fn, arg, btn, text) {
+  busy(btn, text || "Working…");
+  var r = google.script.run.withSuccessHandler(function (s) { S = s; render(); }).withFailureHandler(function (e) { alertBox(e.message || String(e)); if (btn) { btn.disabled = false; btn.textContent = btn.dataset.t; } });
+  arg === undefined ? r[fn]() : r[fn](arg);
+}
+function alertBox(msg) { var d = document.createElement("div"); d.className = "warn"; d.textContent = msg; $("app").prepend(d); }
+
+function render() {
+  $("who").textContent = "Signed in as " + S.owner;
+  var h = "";
+  // 1 — prepare
+  h += '<div class="step ' + (S.ready ? "done" : "todo") + '"><h2><span class="num">1</span>Prepare this Sheet</h2>';
+  h += S.ready ? '<p class="muted">Done. Tabs and settings are ready.</p>' : '<p>Creates the tabs that store your classes and student work.</p><button onclick="run(\'sidebarPrepare\', undefined, this)">Prepare my Sheet</button>';
+  h += "</div>";
+  // 2 — publish
+  h += '<div class="step ' + (S.url ? "done" : S.ready ? "todo" : "") + '"><h2><span class="num">2</span>Turn on the app</h2>';
+  if (S.url) h += '<p class="muted">Done. Your app is live.</p>';
+  else {
+    h += '<p>Google needs you to click this part yourself (one time):</p><ol>' +
+      "<li>Go to <b>Extensions → Apps Script</b>.</li>" +
+      "<li>Click the blue <b>Deploy</b> button → <b>New deployment</b>.</li>" +
+      "<li>Click the gear ⚙ next to “Select type” → <b>Web app</b>.</li>" +
+      "<li>Execute as: <b>Me</b>. Who has access: <b>Anyone</b>.</li>" +
+      "<li>Click <b>Deploy</b>, then <b>Authorize access</b> and allow.</li></ol>" +
+      '<p class="muted">“Anyone” only lets the website reach this Sheet. Students still sign in with Google, and only your roster gets in.</p>' +
+      '<button class="secondary" onclick="run(\'sidebarState\', undefined, this, \'Checking…\')">I did it — check again</button>';
+  }
+  h += "</div>";
+  // 3 — classes + links
+  var live = S.ready && S.url;
+  h += '<div class="step ' + (live && S.classes.length ? "done" : live ? "todo" : "") + '"><h2><span class="num">3</span>Your classes &amp; links</h2>';
+  if (!live) h += '<p class="muted">Finish steps 1 and 2 first.</p>';
+  else {
+    if (!S.site) h += '<div class="warn">This copy doesn’t know the website address. Ask whoever shared it for an updated template.</div>';
+    if (S.teacherLink) h += '<a class="btn" target="_blank" href="' + esc(S.teacherLink) + '">Open my teacher dashboard ↗</a>';
+    h += '<p class="muted">Import rosters from Google Classroom and see progress on the dashboard.</p>';
+    S.classes.forEach(function (c, i) {
+      h += '<div class="class"><b>' + esc(c.name) + "</b>" + (c.link ? '<div class="link">' + esc(c.link) + '</div><button class="secondary" onclick="copy(' + i + ', this)">Copy student link</button><div class="qr" id="qr' + i + '"></div><p class="muted">Post the link in Google Classroom, or show the QR code.</p>' : "") + "</div>";
+    });
+    h += '<div class="class"><b>' + (S.classes.length ? "Add another class" : "Create your first class") + '</b>' +
+      '<label>Name<input type="text" id="cname" placeholder="3D Design"></label>' +
+      '<label>Section (optional)<input type="text" id="csec" placeholder="Period 2"></label>' +
+      '<label>Course length<select id="cpath"><option value="18-week">18 weeks (semester)</option><option value="9-week">9 weeks (quarter)</option></select></label>' +
+      '<button onclick="createClass(this)">Create class</button></div>';
+  }
+  h += "</div>";
+  // 4 — who can sign in
+  if (S.ready) {
+    h += '<div class="step"><h2><span class="num">4</span>Who can sign in</h2>' +
+      '<label>School email domains<input type="text" id="dom" value="' + esc(S.domains) + '" placeholder="district.org, students.district.org"></label>' +
+      '<p class="muted">Add your students’ domain if it’s different from yours.</p>' +
+      '<label>Co-teachers (emails)<input type="text" id="tch" value="' + esc(S.teacherEmails) + '" placeholder="optional"></label>' +
+      '<label style="font-weight:400"><input type="checkbox" id="auto"' + (S.autoEnroll ? " checked" : "") + '> Students who open a class link join that class automatically</label>' +
+      '<button class="secondary" onclick="save(this)">Save</button></div>';
+  }
+  // updates
+  var newer = S.latest && S.latest.version && S.latest.version !== S.version;
+  h += '<div class="step"><h2>Updates</h2><p class="muted">This copy: ' + esc(S.version) + (S.latest ? " · Latest: " + esc(S.latest.version) : "") + "</p>";
+  if (newer) {
+    h += (S.latest.notes ? "<p>" + esc(S.latest.notes) + "</p>" : "") + '<button onclick="update(this)">Update now</button>' +
+      '<p class="muted">Your links and student work stay the same.</p>';
+  } else if (S.latest) h += '<p class="muted">You’re up to date.</p>';
+  h += '<div id="upd"></div></div>';
+  $("app").innerHTML = h;
+  S.classes.forEach(function (c, i) { if (c.link && window.QRCode) new QRCode($("qr" + i), { text: c.link, width: 132, height: 132 }); });
+}
+
+function copy(i, btn) {
+  var t = S.classes[i].link;
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { btn.textContent = "Copied!"; }, function () { prompt("Copy this link:", t); });
+}
+function createClass(btn) {
+  var n = $("cname").value.trim();
+  if (!n) { $("cname").focus(); return; }
+  run("sidebarCreateClass", { name: n, section: $("csec").value.trim(), pathId: $("cpath").value }, btn, "Creating…");
+}
+function save(btn) { run("sidebarSaveSettings", { domains: $("dom").value, teacherEmails: $("tch").value, autoEnroll: $("auto").checked }, btn, "Saving…"); }
+function update(btn) {
+  busy(btn, "Updating…");
+  google.script.run.withSuccessHandler(function (r) {
+    if (r.ok) { $("upd").innerHTML = '<p><b>Updated to ' + esc(r.version) + ".</b> " + (r.redeployed ? "Your app is already using it." : "Deploy → Manage deployments → Edit → New version to finish.") + "</p><p class=\"muted\">If Google asks you to review permissions next time, click Allow.</p>"; btn.remove(); }
+    else if (r.needsApi) { $("upd").innerHTML = '<div class="warn">One-time switch: open <a target="_blank" href="https://script.google.com/home/usersettings">Apps Script settings</a>, turn <b>Google Apps Script API</b> on, then click Update now again.</div>'; btn.disabled = false; btn.textContent = "Update now"; }
+    else { $("upd").innerHTML = '<div class="warn">' + esc(r.error) + "</div>"; btn.disabled = false; btn.textContent = "Update now"; }
+  }).withFailureHandler(function (e) { $("upd").innerHTML = '<div class="warn">' + esc(e.message) + "</div>"; btn.disabled = false; btn.textContent = "Update now"; }).sidebarUpdate();
+}
+google.script.run.withSuccessHandler(function (s) { S = s; render(); }).withFailureHandler(function (e) { $("who").textContent = e.message; }).sidebarState();
+</script>
+</body>
+</html>

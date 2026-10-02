@@ -17,6 +17,11 @@ export function SliderScene({ scene, value }: { scene: Scene; value: number }) {
       {scene === "scale" && <Scale pct={value} />}
       {scene === "layers" && <Layers h={value} />}
       {scene === "infill" && <Infill pct={value} />}
+      {scene === "rotate" && <Rotate angle={value} />}
+      {scene === "lift" && <Lift z={value} />}
+      {scene === "spacing" && <Spacing s={value} />}
+      {scene === "wall" && <Wall t={value} />}
+      {scene === "bridge" && <Bridge legs={value} />}
     </svg>
   );
 }
@@ -32,6 +37,11 @@ export function readout(scene: Scene, v: number): string {
     case "scale": return `Scale: ${v}%`;
     case "layers": return `Layer height: ${v.toFixed(2)} mm`;
     case "infill": return `Infill: ${v}% · about ${infillGrams(v).toFixed(1)} g · ${infillMinutes(v)} min`;
+    case "rotate": return `Turned ${v}°`;
+    case "lift": return `Small cube's bottom: Z = ${v} mm`;
+    case "spacing": return `Tooth spacing: ${v.toFixed(1)} mm`;
+    case "wall": return `Wall: ${v.toFixed(1)} mm`;
+    case "bridge": return `Legs: ${v}`;
   }
 }
 
@@ -177,6 +187,113 @@ function Infill({ pct }: { pct: number }) {
         </g>
       )}
       <text x={x + w / 2} y={y + h + 22} textAnchor="middle" fontSize="13" fill="var(--muted)">walls stay the same · infill fills the inside</text>
+    </g>
+  );
+}
+
+// ── rotate: a bar turning around its corner, with the 22.5° snap marks ──
+function Rotate({ angle }: { angle: number }) {
+  const cx = 150, cy = 200, L = 150;
+  const rad = (a: number) => (a * Math.PI) / 180;
+  return (
+    <g>
+      {Array.from({ length: 9 }, (_, i) => i * 22.5).map((a) => (
+        <line key={a} x1={cx + Math.cos(rad(-a)) * (L + 8)} y1={cy + Math.sin(rad(-a)) * (L + 8)} x2={cx + Math.cos(rad(-a)) * (L + 20)} y2={cy + Math.sin(rad(-a)) * (L + 20)} stroke="var(--muted)" strokeWidth={a % 90 === 0 ? 3 : 1.5} />
+      ))}
+      <path d={`M ${cx + L * 0.35} ${cy} A ${L * 0.35} ${L * 0.35} 0 0 0 ${cx + Math.cos(rad(-angle)) * L * 0.35} ${cy + Math.sin(rad(-angle)) * L * 0.35}`} fill="none" stroke="var(--accent)" strokeWidth={3} />
+      <rect x={cx} y={cy - 12} width={L} height={24} rx={4} fill="var(--border)" opacity={0.6} />
+      <g transform={`rotate(${-angle} ${cx} ${cy})`}>
+        <rect x={cx} y={cy - 12} width={L} height={24} rx={4} fill="var(--primary)" opacity={0.9} />
+      </g>
+      <circle cx={cx} cy={cy} r={6} fill="var(--fg)" />
+      <text x={W - 16} y={30} textAnchor="end" fontSize="13" fill="var(--muted)">grey = where it started</text>
+    </g>
+  );
+}
+
+// ── lift: side view, 20 mm box with a 10 mm cube above it ──
+function Lift({ z }: { z: number }) {
+  const mm = 4.5;
+  const base = H - 20;
+  const boxTop = base - 20 * mm;
+  const cubeBottom = base - z * mm;
+  const overlap = z < 20;
+  return (
+    <g>
+      <line x1={20} y1={base} x2={W - 20} y2={base} stroke="var(--fg)" strokeWidth={2} />
+      <text x={W - 24} y={base + 15} textAnchor="end" fontSize="12" fill="var(--muted)">workplane (Z = 0)</text>
+      <rect x={150} y={boxTop} width={180} height={20 * mm} fill="var(--primary)" opacity={0.75} />
+      <text x={340} y={base - 8} fontSize="13" fill="var(--fg)">box: 20 mm tall</text>
+      <rect x={215} y={cubeBottom - 10 * mm} width={10 * mm} height={10 * mm} fill="var(--accent)" opacity={0.9} />
+      {overlap && <rect x={215} y={Math.max(cubeBottom - 10 * mm, boxTop)} width={10 * mm} height={Math.min(cubeBottom, base) - Math.max(cubeBottom - 10 * mm, boxTop)} fill="var(--danger)" opacity={0.7} />}
+      {z > 20 && <line x1={237} y1={boxTop} x2={237} y2={cubeBottom} stroke="var(--danger)" strokeWidth={2} strokeDasharray="3 3" />}
+      <text x={345} y={Math.max(20, cubeBottom - 20)} fontSize="13" fontWeight="700" fill="var(--danger)">{overlap ? "sunk into the box" : z > 20 ? "floating in the air" : ""}</text>
+      {Array.from({ length: 9 }, (_, i) => i * 5).map((v) => (
+        <g key={v}>
+          <line x1={40} y1={base - v * mm} x2={v % 10 ? 46 : 52} y2={base - v * mm} stroke="var(--fg)" />
+          {v % 10 === 0 && <text x={58} y={base - v * mm + 4} fontSize="11" fill="var(--fg)">{v}</text>}
+        </g>
+      ))}
+    </g>
+  );
+}
+
+// ── spacing: comb teeth repeated along a ruler ──
+function Spacing({ s }: { s: number }) {
+  const mm = 5.6;
+  const x0 = 30;
+  const base = 150;
+  return (
+    <g>
+      <rect x={x0 - 6} y={60} width={78 * mm} height={14} rx={3} fill="var(--border)" />
+      {Array.from({ length: 15 }, (_, i) => (
+        <rect key={i} x={x0 + i * s * mm - 0.75 * mm} y={74} width={1.5 * mm} height={base - 74} fill="var(--primary)" opacity={i === 14 ? 1 : 0.8} />
+      ))}
+      <line x1={x0} y1={base + 12} x2={x0 + 75 * mm} y2={base + 12} stroke="var(--fg)" strokeWidth={2} />
+      {Array.from({ length: 76 }, (_, i) => (
+        <g key={i}>
+          <line x1={x0 + i * mm} y1={base + 12} x2={x0 + i * mm} y2={base + (i % 10 === 0 ? 28 : i % 5 === 0 ? 23 : 18)} stroke="var(--fg)" />
+          {i % 10 === 0 && <text x={x0 + i * mm} y={base + 44} fontSize="12" textAnchor="middle" fill="var(--fg)">{i}</text>}
+        </g>
+      ))}
+      <text x={x0 + 14 * s * mm} y={52} fontSize="12" textAnchor="middle" fill="var(--accent)">last tooth</text>
+    </g>
+  );
+}
+
+// ── wall: cross-section showing how many 0.4 mm nozzle lines fit ──
+function Wall({ t }: { t: number }) {
+  const px = 40; // px per mm
+  const lines = Math.round(t / 0.4);
+  const x0 = (W - t * px) / 2;
+  return (
+    <g>
+      {Array.from({ length: lines }, (_, i) => (
+        <rect key={i} x={x0 + i * 0.4 * px} y={40} width={0.4 * px - 2} height={150} rx={7} fill="var(--primary)" opacity={i % 2 ? 0.7 : 0.9} />
+      ))}
+      <text x={W / 2} y={215} textAnchor="middle" fontSize="13" fill="var(--muted)">each stripe = one 0.4 mm line from the nozzle</text>
+    </g>
+  );
+}
+
+// ── bridge: a 70 mm shelf on evenly spaced legs; longer gaps sag more ──
+function Bridge({ legs }: { legs: number }) {
+  const mm = 5.4;
+  const x0 = (W - 70 * mm) / 2;
+  const top = 80;
+  const n = Math.max(2, Math.round(legs));
+  const gap = 70 / (n - 1);
+  const sag = Math.min(60, (gap * gap) / 40); // px, grows with the square of the span
+  const xs = Array.from({ length: n }, (_, i) => x0 + i * gap * mm);
+  return (
+    <g>
+      <line x1={20} y1={H - 20} x2={W - 20} y2={H - 20} stroke="var(--fg)" strokeWidth={2} />
+      {xs.map((x, i) => <rect key={i} x={x - 5} y={top} width={10} height={H - 20 - top} fill="var(--primary)" opacity={0.85} />)}
+      {xs.slice(1).map((x, i) => {
+        const a = xs[i];
+        return <path key={i} d={`M ${a} ${top} Q ${(a + x) / 2} ${top + sag * 2} ${x} ${top}`} fill="none" stroke="var(--accent)" strokeWidth={6} strokeLinecap="round" />;
+      })}
+      <text x={W / 2} y={36} textAnchor="middle" fontSize="13" fill="var(--muted)">shelf is 70 mm wide · first layer bridges each gap</text>
     </g>
   );
 }

@@ -1,11 +1,15 @@
-import { ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, Printer, RotateCcw } from "lucide-react";
+import { Pill } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { call } from "../api";
 import { MissionPath, StreakCard } from "@/components/student/mission-path";
 import { ProgressRing, ProgressBar } from "@/components/ui/progress";
 import { rank } from "@/lib/mastery";
-import { competencies, domains, pathTitle, type Me } from "../content";
+import { competencies, domains, lessonById, pathTitle, type Me } from "../content";
 import { studentStates } from "../state";
 
-export function StudentHome({ me }: { me: Me }) {
+export function StudentHome({ me, apiUrl, onChange }: { me: Me; apiUrl: string; onChange: () => void }) {
   const { items, states } = studentStates(me);
   const current = items.find((x) => states.get(x.lesson.id) === "in_progress") ?? items.find((x) => states.get(x.lesson.id) === "available");
   const done = items.filter((x) => states.get(x.lesson.id) === "completed").length;
@@ -33,6 +37,8 @@ export function StudentHome({ me }: { me: Me }) {
 
       {me.stats && <StreakCard stats={me.stats} />}
 
+      <ReviewDeck me={me} />
+
       <section aria-labelledby="mis-h">
         <h2 id="mis-h" className="mb-1 text-center font-display text-2xl font-bold">Your path</h2>
         <p className="mb-6 text-center text-sm text-muted">{me.cls ? `${me.cls.name}${me.cls.section ? ` · ${me.cls.section}` : ""} — ${pathTitle(me.cls.pathId)}` : ""}</p>
@@ -40,6 +46,8 @@ export function StudentHome({ me }: { me: Me }) {
           items={items.map((x) => ({ id: x.lesson.id, title: x.lesson.title, kind: x.lesson.kind, state: states.get(x.lesson.id) ?? "locked", href: `#/lesson/${x.lesson.id}`, week: x.week, weekTitle: x.weekTitle }))}
         />
       </section>
+
+      <MyPrints me={me} apiUrl={apiUrl} onChange={onChange} />
 
       <section aria-labelledby="sk-h" className="rounded-3xl border border-border bg-surface p-6">
         <h2 id="sk-h" className="font-display text-2xl font-bold">My skills</h2>
@@ -59,5 +67,99 @@ export function StudentHome({ me }: { me: Me }) {
         </ul>
       </section>
     </div>
+  );
+}
+
+/** Brilliant-style review: questions you tried but haven't got right yet. One tap jumps straight to the screen. */
+function ReviewDeck({ me }: { me: Me }) {
+  const cards: { lessonId: string; blockId: string; title: string; prompt: string; attempts: number }[] = [];
+  for (const [lessonId, p] of Object.entries(me.progress)) {
+    const lesson = lessonById.get(lessonId);
+    if (!lesson) continue;
+    const blocks = lesson.sections.flatMap((s) => s.blocks);
+    for (const [blockId, raw] of Object.entries(p.blockState ?? {})) {
+      const e = raw as { correct?: boolean; attempts?: number; result?: { locked?: boolean } };
+      if (e?.correct !== false || e.result?.locked) continue;
+      const b = blocks.find((x) => x.id === blockId);
+      if (!b || !("prompt" in b)) continue;
+      cards.push({ lessonId, blockId, title: lesson.title, prompt: String(b.prompt).replace(/[*_`#]/g, ""), attempts: e.attempts ?? 1 });
+    }
+  }
+  if (!cards.length) return null;
+  return (
+    <section aria-labelledby="rev-h">
+      <h2 id="rev-h" className="flex items-center gap-2 font-display text-2xl font-bold"><RotateCcw className="size-6 text-accent" aria-hidden /> Review</h2>
+      <p className="mb-3 text-sm text-muted">{cards.length} question{cards.length === 1 ? "" : "s"} to come back to. Each one you fix earns XP.</p>
+      <ul className="flex snap-x gap-3 overflow-x-auto pb-2">
+        {cards.slice(0, 8).map((c) => (
+          <li key={c.lessonId + c.blockId} className="w-64 shrink-0 snap-start">
+            <a href={`#/lesson/${c.lessonId}/${c.blockId}`} className="flex h-full flex-col rounded-2xl border-2 border-border bg-surface p-4 hover:border-primary">
+              <span className="font-mono text-xs font-semibold uppercase tracking-wider text-accent">{c.title}</span>
+              <span className="mt-1 line-clamp-3 flex-1 font-semibold">{c.prompt}</span>
+              <span className="mt-3 text-sm font-bold text-primary">Try again →</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+const PRINT_LABEL: Record<string, { label: string; tone: "neutral" | "primary" | "accent" | "success" | "danger" }> = {
+  requested: { label: "Waiting for teacher", tone: "neutral" },
+  approved: { label: "Approved — in line", tone: "primary" },
+  printing: { label: "Printing now", tone: "accent" },
+  done: { label: "Ready to pick up", tone: "success" },
+  failed: { label: "Print failed", tone: "danger" },
+  cancelled: { label: "Cancelled", tone: "neutral" },
+};
+
+function MyPrints({ me, apiUrl, onChange }: { me: Me; apiUrl: string; onChange: () => void }) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const [msg, setMsg] = useState("");
+  const prints = me.prints ?? [];
+  const asked = new Set(prints.filter((p) => p.status !== "cancelled" && p.status !== "failed").map((p) => p.evidenceId));
+  const stls = me.evidence.filter((e) => e.type === "stl" && !asked.has(e.id));
+  if (!prints.length && !stls.length) return null;
+  return (
+    <section aria-labelledby="pr-h" className="rounded-3xl border border-border bg-surface p-6">
+      <h2 id="pr-h" className="flex items-center gap-2 font-display text-2xl font-bold"><Printer className="size-6 text-primary" aria-hidden /> My prints</h2>
+      {prints.length > 0 && (
+        <ul className="mt-3 space-y-2">
+          {prints.map((p) => {
+            const st = PRINT_LABEL[p.status] ?? PRINT_LABEL.requested;
+            return (
+              <li key={p.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-border p-3">
+                <span className="font-semibold">{p.fileName ?? "Print"}</span>
+                <span className="text-sm text-muted">{lessonById.get(p.lessonId)?.title}</span>
+                <span className="ml-auto"><Pill tone={st.tone}>{st.label}</Pill></span>
+                {p.teacherNote && <p className="w-full text-sm">Teacher: {p.teacherNote}</p>}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {stls.length > 0 && (
+        <>
+          <p className="mt-4 text-sm text-muted">STL files you uploaded that haven&apos;t been sent to the printer:</p>
+          <ul className="mt-2 space-y-2">
+            {stls.map((e) => (
+              <li key={e.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-dashed border-border p-3">
+                <span className="font-semibold">{e.fileName}</span>
+                <span className="text-sm text-muted">{lessonById.get(e.lessonId)?.title}</span>
+                <Button size="sm" className="ml-auto" disabled={busy === e.id} onClick={async () => {
+                  setBusy(e.id);
+                  const r = await call(apiUrl, "requestPrint", { evidenceId: e.id });
+                  setBusy(null);
+                  setMsg(r.ok ? "Sent to your teacher's print queue." : r.error);
+                  if (r.ok) onChange();
+                }}>{busy === e.id ? "Sending…" : "Request a print"}</Button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      <p role="status" className="mt-2 text-sm">{msg}</p>
+    </section>
   );
 }

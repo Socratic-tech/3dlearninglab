@@ -260,3 +260,10 @@ body {
   border-radius: 4px;
   padding: 0.05em 0.35em;
 }
+
+/* Printing handouts: plain black on white, no app chrome */
+@media print {
+  :root, :root[data-theme="dark"], :root:not([data-theme="light"]) { --bg: #fff; --surface: #fff; --surface-2: #fff; --fg: #000; --muted: #333; --border: #000; --grid: rgba(0, 0, 0, 0.08); }
+  body { background: #fff; }
+  .bg-blueprint { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

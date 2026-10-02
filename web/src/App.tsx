@@ -12,6 +12,7 @@ import { StudentHome } from "./pages/StudentHome";
 import { LessonPage } from "./pages/LessonPage";
 import { TeacherPage } from "./pages/TeacherPage";
 import { SetupPage } from "./pages/SetupPage";
+import { HandoutPage } from "./pages/HandoutPage";
 
 function useHash() {
   const [hash, setHash] = useState(() => location.hash || "#/");
@@ -52,9 +53,12 @@ export function App() {
 
   const route = hash.replace(/^#/, "");
   let page: ReactNode;
-  if (route.startsWith("/lesson/")) page = <LessonPage me={me} apiUrl={cfg.apiUrl} lessonId={route.slice(8)} onChange={load} />;
+  if (route.startsWith("/lesson/")) {
+    const [lessonId, focus] = route.slice(8).split("/");
+    page = <LessonPage key={route} me={me} apiUrl={cfg.apiUrl} lessonId={lessonId} focusBlockId={focus} onChange={load} />;
+  } else if (route.startsWith("/print/")) page = <HandoutPage me={me} lessonId={route.slice(7)} />;
   else if (me.user.role === "teacher" && (route.startsWith("/teacher") || route === "/")) page = <TeacherPage me={me} apiUrl={cfg.apiUrl} clientId={cfg.clientId} onChange={load} />;
-  else page = <StudentHome me={me} />;
+  else page = <StudentHome me={me} apiUrl={cfg.apiUrl} onChange={load} />;
 
   return (
     <Frame me={me} onSwitch={(id) => { setCurrentClassId(id); void load(); }} onSignOut={() => { signOut(); setToken(null); setMe(null); }}>
@@ -66,7 +70,7 @@ export function App() {
 function Frame({ children, me, onSignOut, onSwitch }: { children: ReactNode; me?: Me; onSignOut?: () => void; onSwitch?: (classId: string) => void }) {
   return (
     <div className="min-h-dvh">
-      <header className="sticky top-0 z-30 border-b border-border bg-bg/90 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-border bg-bg/90 backdrop-blur print:hidden">
         <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-4">
           <a href="#/" className="flex items-center gap-2 font-display font-bold"><LogoMark /> <span>3D Design <span className="text-primary">Academy</span></span></a>
           {me && me.classes.length > 1 && onSwitch ? (

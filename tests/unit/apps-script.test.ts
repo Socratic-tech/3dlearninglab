@@ -129,4 +129,69 @@ describe("lost replies", () => {
     const names = env.call("teacher@school.org", "me").data.classes.map((c: { name: string }) => c.name);
     expect(names.filter((n: string) => n === "Period 7")).toHaveLength(1);
   });
+
+  it("keeps XP in the Summary tab so loading never re-reads every answer", () => {
+    env.call("teacher@school.org", "addStudents", { classId, students: [{ email: "maya@school.org" }] });
+    const mc = allBlocks(getLesson("holes")!).find((b) => b.type === "multipleChoice")!;
+    if (mc.type !== "multipleChoice") throw new Error();
+    env.call("maya@school.org", "answerBlock", { lessonId: "holes", blockId: mc.id, response: { type: "multipleChoice", optionIds: mc.correctOptionIds } });
+    // wipe the raw answer log: stats must still come from the running summary
+    env.sheets.get("Attempts")!.data.splice(1);
+    expect(env.call("maya@school.org", "me").data.stats.xp).toBe(15);
+    expect(env.sheets.get("Summary")!.data.length).toBe(2);
+  });
+
+  it("shows stuck students and most-missed questions without reading the answer log", () => {
+    env.call("teacher@school.org", "addStudents", { classId, students: [{ email: "maya@school.org" }, { email: "luis@school.org" }] });
+    const mc = allBlocks(getLesson("holes")!).find((b) => b.type === "multipleChoice")!;
+    if (mc.type !== "multipleChoice") throw new Error();
+    const wrong = { type: "multipleChoice", optionIds: [mc.options.find((o) => !mc.correctOptionIds.includes(o.id))!.id] };
+    for (let i = 0; i < 3; i++) env.call("maya@school.org", "answerBlock", { lessonId: "holes", blockId: mc.id, response: wrong });
+    env.call("luis@school.org", "answerBlock", { lessonId: "holes", blockId: mc.id, response: wrong });
+    env.sheets.get("Attempts")!.data.splice(1);
+    const live = env.call("teacher@school.org", "classData", { classId }).data.live;
+    expect(live.stuck).toHaveLength(1);
+    expect(live.stuck[0]).toMatchObject({ email: "maya@school.org", attempts: 3 });
+    expect(live.missed[0]).toMatchObject({ lessonId: "holes", blockId: mc.id, count: 2 });
+    expect(live.activeToday).toBe(2);
+  });
+
+  it("runs a print queue: student requests, teacher moves it along, student sees the status", () => {
+    env.call("teacher@school.org", "addStudents", { classId, students: [{ email: "maya@school.org" }] });
+    const stl = Buffer.from("solid x\nendsolid x").toString("base64");
+    const up = env.call("maya@school.org", "submitEvidence", { lessonId: "holes", blockId: "submit", kind: "stl", file: { name: "box.stl", base64: stl }, requestPrint: true, note: "red please" });
+    expect(up.ok).toBe(true);
+    const cd = env.call("teacher@school.org", "classData", { classId }).data;
+    expect(cd.prints).toHaveLength(1);
+    expect(cd.prints[0]).toMatchObject({ status: "requested", note: "red please", fileName: "box.stl" });
+    // asking twice for the same file doesn't create a duplicate
+    expect(env.call("maya@school.org", "requestPrint", { evidenceId: up.data.id }).data.id).toBe(cd.prints[0].id);
+    expect(env.call("maya@school.org", "updatePrint", { printId: cd.prints[0].id, status: "done" }).ok).toBe(false);
+    env.call("teacher@school.org", "updatePrint", { printId: cd.prints[0].id, status: "done", teacherNote: "Bin 3" });
+    expect(env.call("maya@school.org", "me").data.prints[0]).toMatchObject({ status: "done", teacherNote: "Bin 3" });
+  });
+});
+
+describe("Setup sidebar", () => {
+  it("before deploying: no links yet; after: Workspace URL normalized into class links", () => {
+    const pre = makeEnv("teacher@school.org");
+    expect(pre.run("sidebarState()")).toMatchObject({ ready: true, url: null, teacherLink: null });
+    const live = makeEnv("teacher@school.org", { webAppUrl: "https://script.google.com/a/macros/school.org/s/AKfy123/exec" });
+    const st = live.run("sidebarCreateClass({ name: 'Robotics', section: 'P4', pathId: '9-week' })");
+    expect(st.url).toBe("https://script.google.com/macros/s/AKfy123/exec");
+    expect(st.classes).toHaveLength(1);
+    expect(st.classes[0].link).toContain("?api=https%3A%2F%2Fscript.google.com%2Fmacros%2Fs%2FAKfy123%2Fexec");
+    expect(st.classes[0].link).toContain("&class=");
+    expect(st.teacherLink).toMatch(/#\/teacher$/);
+  });
+
+  it("a copied template starts fresh for the new teacher and fills in their domain", () => {
+    const e = makeEnv("teacher@school.org");
+    e.props.set("UPLOAD_FOLDER_ID", "someone-elses-folder");
+    e.props.set("OWNER", "original@resa.org");
+    e.run("sidebarPrepare()");
+    expect(e.props.get("UPLOAD_FOLDER_ID")).toBeUndefined();
+    expect(e.props.get("OWNER")).toBe("teacher@school.org");
+    expect(e.run("sidebarSaveSettings({ domains: 'School.org  students.school.org', teacherEmails: '', autoEnroll: true })")).toMatchObject({ domains: "school.org,students.school.org", autoEnroll: true });
+  });
 });

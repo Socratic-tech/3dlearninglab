@@ -38,44 +38,59 @@ function shiftDay(day: string, by: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-export function computeStats(events: XpEvent[], opts: { now?: Date; timeZone?: string } = {}): Stats {
-  const tz = opts.timeZone || "America/Detroit";
-  const today = dayKey(opts.now ?? new Date(), tz);
-  const perDay = new Map<string, number>();
-  const byLesson: Record<string, number> = {};
-  const seen = new Set<string>();
-  let xp = 0;
+/**
+ * Running XP summary for one student. Kept in the Sheet's Summary tab and updated as events happen,
+ * so the server never has to re-read every past answer.
+ */
+export type XpSummary = { xp: number; days: Record<string, number>; seen: string[]; byLesson: Record<string, number> };
+export const emptySummary = (): XpSummary => ({ xp: 0, days: {}, seen: [], byLesson: {} });
+
+/** Add events to a summary (idempotent: each first-try / first-correct / submission / lesson counts once). */
+export function applyEvents(summary: XpSummary, events: XpEvent[], timeZone = "America/Detroit"): XpSummary {
+  const out: XpSummary = { xp: summary.xp || 0, days: { ...(summary.days || {}) }, seen: [...(summary.seen || [])], byLesson: { ...(summary.byLesson || {}) } };
+  const seen = new Set(out.seen);
   const sorted = events
     .map((e) => ({ e, t: new Date(e.at).getTime() }))
     .filter((x) => Number.isFinite(x.t))
     .sort((a, b) => a.t - b.t);
   for (const { e, t } of sorted) {
     let gain = 0;
+    const mark = (k: string, pts: number) => { if (!seen.has(k)) { seen.add(k); gain += pts; } };
     if (e.kind === "attempt") {
-      const k = `${e.lessonId}|${e.blockId}`;
-      if (!seen.has("a" + k)) { seen.add("a" + k); gain += XP.firstTry; }
-      if (e.correct === true && !seen.has("c" + k)) { seen.add("c" + k); gain += XP.firstCorrect; }
-    } else if (e.kind === "work") {
-      const k = `w${e.lessonId}|${e.blockId}`;
-      if (!seen.has(k)) { seen.add(k); gain += XP.work; }
-    } else {
-      const k = `l${e.lessonId}`;
-      if (!seen.has(k)) { seen.add(k); gain += XP.lesson; }
-    }
+      mark(`a${e.lessonId}|${e.blockId}`, XP.firstTry);
+      if (e.correct === true) mark(`c${e.lessonId}|${e.blockId}`, XP.firstCorrect);
+    } else if (e.kind === "work") mark(`w${e.lessonId}|${e.blockId}`, XP.work);
+    else mark(`l${e.lessonId}`, XP.lesson);
     if (!gain) continue;
-    xp += gain;
-    byLesson[e.lessonId] = (byLesson[e.lessonId] ?? 0) + gain;
-    const day = dayKey(new Date(t), tz);
-    perDay.set(day, (perDay.get(day) ?? 0) + gain);
+    out.xp += gain;
+    out.byLesson[e.lessonId] = (out.byLesson[e.lessonId] ?? 0) + gain;
+    const day = dayKey(new Date(t), timeZone);
+    out.days[day] = (out.days[day] ?? 0) + gain;
   }
+  out.seen = [...seen];
+  // keep the stored row small: a year of days is plenty for streaks and the week strip
+  const keep = Object.keys(out.days).sort().slice(-370);
+  out.days = Object.fromEntries(keep.map((d) => [d, out.days[d]]));
+  return out;
+}
+
+/** What the student sees, from a summary. */
+export function statsFromSummary(summary: XpSummary, opts: { now?: Date; timeZone?: string } = {}): Stats {
+  const tz = opts.timeZone || "America/Detroit";
+  const today = dayKey(opts.now ?? new Date(), tz);
+  const days = summary.days || {};
   let streak = 0;
-  let d = perDay.has(today) ? today : shiftDay(today, -1);
-  while (perDay.has(d)) { streak++; d = shiftDay(d, -1); }
+  let d = days[today] ? today : shiftDay(today, -1);
+  while (days[d]) { streak++; d = shiftDay(d, -1); }
   const week = Array.from({ length: 7 }, (_, i) => {
     const day = shiftDay(today, i - 6);
-    return { day, xp: perDay.get(day) ?? 0 };
+    return { day, xp: days[day] ?? 0 };
   });
-  return { xp, todayXp: perDay.get(today) ?? 0, goal: DAILY_GOAL, streak, week, byLesson };
+  return { xp: summary.xp || 0, todayXp: days[today] ?? 0, goal: DAILY_GOAL, streak, week, byLesson: summary.byLesson || {} };
+}
+
+export function computeStats(events: XpEvent[], opts: { now?: Date; timeZone?: string } = {}): Stats {
+  return statsFromSummary(applyEvents(emptySummary(), events, opts.timeZone), opts);
 }
 
 /** XP the browser can show right after an answer (mirrors computeStats). */

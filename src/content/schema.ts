@@ -192,7 +192,7 @@ export const measurementBlock = z.object({
   check: z.enum(["practice", "skill"]).default("practice"),
 });
 /** Hands-on: drag a slider and watch a live picture change, then check (Brilliant-style exploration). */
-export const SLIDER_SCENES = ["overhang", "clearance", "scale", "layers", "infill"] as const;
+export const SLIDER_SCENES = ["overhang", "clearance", "scale", "layers", "infill", "rotate", "lift", "spacing", "wall", "bridge"] as const;
 export const sliderBlock = z.object({
   ...base,
   type: z.literal("slider"),

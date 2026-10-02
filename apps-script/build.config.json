@@ -1,0 +1,7 @@
+{
+  "//": "Baked into the Apps Script so teachers never type these. The client ID is public (it's in every page of the site). Env vars GOOGLE_CLIENT_ID / PAGES_URL override.",
+  "site": "https://socratic-tech.github.io/3dlearninglab/",
+  "clientId": "http://101963930275-47ppq2h1b2ad1lipviqjrjrfhd67sjvp.apps.googleusercontent.com/",
+  "templateUrl": "https://docs.google.com/spreadsheets/d/1OnEre-rfKOkN5Dd26ponpNk6bK3ddIxVd9yGuMP_WLY/copy",
+  "//templateUrl": "After you make the master template Sheet, paste its link here ending in /copy (e.g. https://docs.google.com/spreadsheets/d/ID/copy)."
+}

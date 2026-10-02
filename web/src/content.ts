@@ -48,5 +48,6 @@ export type Me = {
   evidence: { id: string; lessonId: string; blockId: string; type: string; url: string | null; fileName: string | null; text: string | null; status: string; rating: number | null; comment: string | null; createdAt: string }[];
   journals: Record<string, Record<string, string>>;
   /** XP / streak / daily goal (older backends don't send it) */
-  stats?: Stats;
+  stats?: Stats | null;
+  prints?: { id: string; lessonId: string; evidenceId: string; fileName: string | null; status: string; note: string; teacherNote: string; createdAt: string; updatedAt: string }[];
 };

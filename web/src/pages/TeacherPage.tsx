@@ -21,10 +21,20 @@ type ClassData = {
   progress: { email: string; lessonId: string; status: string; updatedAt: string }[];
   levels: Record<string, Record<string, Proficiency>>;
   evidence: Ev[];
-  struggles: { email: string; lessonId: string; blockId: string; competencyId: string; attempts: number }[];
+  struggles: { email: string; lessonId: string; blockId: string; attempts: number }[];
+  live?: Live;
+  prints?: PrintJob[];
 };
+type Live = {
+  stuck: { email: string; lessonId: string; blockId: string; attempts: number; since: string }[];
+  quiet: { email: string; lessonId: string; minutes: number }[];
+  missed: { lessonId: string; blockId: string; prompt: string; count: number; students: string[] }[];
+  activeToday: number;
+  at: string;
+};
+export type PrintJob = { id: string; email: string; lessonId: string; fileName: string | null; fileUrl: string | null; status: string; note: string; teacherNote: string; createdAt: string; updatedAt: string };
 
-const TABS = ["Overview", "Heatmap", "Review", "Roster", "Classes"] as const;
+const TABS = ["Overview", "Heatmap", "Review", "Prints", "Roster", "Classes"] as const;
 
 export function TeacherPage({ me, apiUrl, clientId, onChange }: { me: Me; apiUrl: string; clientId: string; onChange: () => void }) {
   if (!me.cls) {
@@ -48,10 +58,17 @@ function ClassView({ apiUrl, clientId, onChange }: { apiUrl: string; clientId: s
     if (r.ok) { setData(r.data); setErr(null); } else setErr(r);
   }, [apiUrl]);
   useEffect(() => { void load(); }, [load]);
+  // keep "Right now" fresh during class (only while the Overview tab is visible)
+  useEffect(() => {
+    if (tab !== "Overview") return;
+    const t = setInterval(() => { if (document.visibilityState === "visible") void load(); }, 60_000);
+    return () => clearInterval(t);
+  }, [tab, load]);
   if (err) return <FriendlyError {...err} integration onRetry={() => void load()} />;
   if (!data) return <p role="status" className="py-20 text-center text-muted">Loading class data from Google Sheets…</p>;
   const name = (email: string) => data.students.find((s) => s.email === email)?.name ?? email;
   const queue = data.evidence.filter((e) => e.status === "submitted");
+  const openPrints = (data.prints ?? []).filter((p) => p.status === "requested" || p.status === "approved" || p.status === "printing").length;
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -62,13 +79,14 @@ function ClassView({ apiUrl, clientId, onChange }: { apiUrl: string; clientId: s
       <nav className="mb-6 flex gap-1 overflow-x-auto border-b border-border" aria-label="Teacher sections">
         {TABS.map((t) => (
           <button key={t} onClick={() => setTab(t)} aria-current={tab === t ? "page" : undefined} className={cn("whitespace-nowrap border-b-2 px-3 py-2 text-sm font-semibold", tab === t ? "border-primary text-primary" : "border-transparent text-muted")}>
-            {t}{t === "Review" && queue.length > 0 ? ` (${queue.length})` : ""}
+            {t}{t === "Review" && queue.length > 0 ? ` (${queue.length})` : ""}{t === "Prints" && openPrints > 0 ? ` (${openPrints})` : ""}
           </button>
         ))}
       </nav>
       {tab === "Overview" && <Overview data={data} name={name} apiUrl={apiUrl} clientId={clientId} />}
       {tab === "Heatmap" && <Heatmap data={data} apiUrl={apiUrl} onSaved={load} />}
       {tab === "Review" && <Review queue={queue} name={name} apiUrl={apiUrl} onSaved={load} />}
+      {tab === "Prints" && <Prints jobs={data.prints ?? []} name={name} apiUrl={apiUrl} onSaved={load} />}
       {tab === "Roster" && <Roster data={data} apiUrl={apiUrl} onSaved={load} onClassesChanged={onChange} />}
       {tab === "Classes" && <Classes data={data} apiUrl={apiUrl} onChange={() => { onChange(); void load(); }} />}
     </div>
@@ -86,7 +104,7 @@ function Overview({ data, name, apiUrl, clientId }: { data: ClassData; name: (e:
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat label="Students" value={data.students.filter((s) => s.status !== "archived").length} />
-        <Stat label="Active today" value={active.size} />
+        <Stat label="Active today" value={data.live?.activeToday ?? active.size} />
         <Stat label="To review" value={data.evidence.filter((e) => e.status === "submitted").length} />
         <Stat label="Missions completed" value={data.progress.filter((p) => p.status === "completed").length} />
       </div>
@@ -98,14 +116,7 @@ function Overview({ data, name, apiUrl, clientId }: { data: ClassData; name: (e:
           <Button variant="secondary" onClick={() => { void navigator.clipboard.writeText(link); setCopied(true); }}><Copy className="size-4" aria-hidden /> {copied ? "Copied" : "Copy"}</Button>
         </div>
       </Card>
-      <Card>
-        <CardTitle>Students who may need help</CardTitle>
-        <ul className="mt-3 space-y-1 text-sm">
-          {data.struggles.map((s, i) => <li key={i}><strong>{name(s.email)}</strong> — {s.attempts} attempts on {competencyTitle[s.competencyId] ?? lessonById.get(s.lessonId)?.title} skill check</li>)}
-          {revisions.map((e) => <li key={e.id}><strong>{name(e.email)}</strong> — {lessonById.get(e.lessonId)?.title}: revision requested</li>)}
-          {!data.struggles.length && !revisions.length && <li className="text-muted">No one flagged right now.</li>}
-        </ul>
-      </Card>
+      <RightNow live={data.live} name={name} revisions={revisions} />
       <Card>
         <CardTitle>Mission completion</CardTitle>
         <ul className="mt-3 max-h-96 space-y-1 overflow-y-auto text-sm">
@@ -354,5 +365,125 @@ function Classes({ data, apiUrl, onChange }: { data: ClassData; apiUrl: string; 
         </Card>
       </div>
     </div>
+  );
+}
+
+/** Who needs the teacher right now: stuck, quiet, and the questions most students have wrong. */
+function RightNow({ live, name, revisions }: { live?: Live; name: (e: string) => string; revisions: Ev[] }) {
+  const title = (lessonId: string) => lessonById.get(lessonId)?.title ?? lessonId;
+  const qLabel = (lessonId: string, blockId: string) => {
+    const l = lessonById.get(lessonId);
+    const b = l?.sections.flatMap((x) => x.blocks).find((x) => x.id === blockId);
+    return b && "prompt" in b ? String(b.prompt).replace(/[*_`#]/g, "").slice(0, 90) : blockId;
+  };
+  if (!live) return null;
+  const empty = !live.stuck.length && !live.quiet.length && !live.missed.length && !revisions.length;
+  return (
+    <section aria-labelledby="now-h" className="rounded-3xl border-2 border-accent bg-surface p-5">
+      <div className="flex flex-wrap items-baseline gap-2">
+        <h2 id="now-h" className="font-display text-xl font-bold">Right now</h2>
+        <span className="text-xs text-muted">updates every minute · {new Date(live.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span>
+      </div>
+      {empty && <p className="mt-2 text-muted">Nobody is stuck right now.</p>}
+      <div className="mt-3 grid gap-4 md:grid-cols-3">
+        {live.stuck.length > 0 && (
+          <div>
+            <h3 className="flex items-center gap-2 font-semibold"><span className="size-3 rounded-full bg-danger" aria-hidden />Stuck ({live.stuck.length})</h3>
+            <p className="text-xs text-muted">3+ tries, still not right</p>
+            <ul className="mt-2 space-y-2 text-sm">
+              {live.stuck.slice(0, 12).map((x, i) => (
+                <li key={i} className="rounded-xl bg-danger-soft p-2"><strong>{name(x.email)}</strong> · {x.attempts} tries<br /><span className="text-muted">{title(x.lessonId)}: “{qLabel(x.lessonId, x.blockId)}”</span></li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {live.quiet.length > 0 && (
+          <div>
+            <h3 className="flex items-center gap-2 font-semibold"><span className="size-3 rounded-full bg-warning" aria-hidden />Quiet ({live.quiet.length})</h3>
+            <p className="text-xs text-muted">In a mission, no answer for 10+ min</p>
+            <ul className="mt-2 space-y-2 text-sm">
+              {live.quiet.map((x) => <li key={x.email} className="rounded-xl bg-warning-soft p-2"><strong>{name(x.email)}</strong> · {x.minutes} min<br /><span className="text-muted">{title(x.lessonId)}</span></li>)}
+            </ul>
+          </div>
+        )}
+        {live.missed.length > 0 && (
+          <div>
+            <h3 className="flex items-center gap-2 font-semibold"><span className="size-3 rounded-full bg-primary" aria-hidden />Most missed</h3>
+            <p className="text-xs text-muted">Worth a 2-minute whole-class reteach</p>
+            <ol className="mt-2 space-y-2 text-sm">
+              {live.missed.map((m) => <li key={m.lessonId + m.blockId} className="rounded-xl bg-primary-soft p-2"><strong>{m.count} student{m.count === 1 ? "" : "s"}</strong> · {title(m.lessonId)}<br /><span className="text-muted">“{m.prompt || qLabel(m.lessonId, m.blockId)}”</span></li>)}
+            </ol>
+          </div>
+        )}
+      </div>
+      {revisions.length > 0 && (
+        <p className="mt-4 text-sm"><strong>Revisions requested:</strong> {revisions.map((e) => `${name(e.email)} (${title(e.lessonId)})`).join(", ")}</p>
+      )}
+    </section>
+  );
+}
+
+const PRINT_STEPS: { status: string; label: string }[] = [
+  { status: "requested", label: "Requested" },
+  { status: "approved", label: "Approved" },
+  { status: "printing", label: "Printing" },
+  { status: "done", label: "Done" },
+  { status: "failed", label: "Failed" },
+  { status: "cancelled", label: "Cancelled" },
+];
+
+function Prints({ jobs, name, apiUrl, onSaved }: { jobs: PrintJob[]; name: (e: string) => string; apiUrl: string; onSaved: () => void }) {
+  const [filter, setFilter] = useState<"open" | "all">("open");
+  const [busy, setBusy] = useState<string | null>(null);
+  const [err, setErr] = useState<{ error: string } | null>(null);
+  const shown = jobs.filter((j) => filter === "all" || ["requested", "approved", "printing"].includes(j.status)).sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
+  const save = async (id: string, patch: { status?: string; teacherNote?: string }) => {
+    setBusy(id);
+    const r = await call(apiUrl, "updatePrint", { printId: id, ...patch });
+    setBusy(null);
+    if (r.ok) { setErr(null); onSaved(); } else setErr(r);
+  };
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-sm text-muted">Students ask for prints when they upload an STL. Oldest first.</p>
+        <div className="ml-auto flex gap-1" role="group" aria-label="Show">
+          {(["open", "all"] as const).map((f) => <Button key={f} size="sm" variant={filter === f ? "primary" : "secondary"} onClick={() => setFilter(f)}>{f === "open" ? "To do" : "All"}</Button>)}
+        </div>
+      </div>
+      {err && <FriendlyError {...err} />}
+      {!shown.length && <EmptyState title={filter === "open" ? "No prints waiting" : "No print requests yet"}>When a student checks “send to the print queue” on an STL upload, it shows up here.</EmptyState>}
+      <ul className="space-y-3">
+        {shown.map((j) => (
+          <li key={j.id}>
+            <Card className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <strong>{name(j.email)}</strong>
+                <span className="text-sm text-muted">{lessonById.get(j.lessonId)?.title} · {new Date(j.createdAt).toLocaleDateString()}</span>
+                <Pill tone={j.status === "done" ? "success" : j.status === "failed" ? "danger" : j.status === "printing" ? "accent" : "neutral"}>{PRINT_STEPS.find((p) => p.status === j.status)?.label ?? j.status}</Pill>
+                {j.fileUrl && <a href={j.fileUrl} target="_blank" rel="noopener noreferrer" className="ml-auto text-sm font-semibold text-primary underline">{j.fileName ?? "Open file"} ↗</a>}
+              </div>
+              {j.note && <p className="rounded-lg bg-surface-2 p-2 text-sm">Student: {j.note}</p>}
+              <div className="flex flex-wrap gap-1" role="group" aria-label="Set status">
+                {PRINT_STEPS.map((p) => (
+                  <Button key={p.status} size="sm" variant={j.status === p.status ? "primary" : "secondary"} disabled={busy === j.id} aria-pressed={j.status === p.status} onClick={() => void save(j.id, { status: p.status })}>{p.label}</Button>
+                ))}
+              </div>
+              <PrintNote job={j} onSave={(t) => void save(j.id, { teacherNote: t })} />
+            </Card>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function PrintNote({ job, onSave }: { job: PrintJob; onSave: (t: string) => void }) {
+  const [t, setT] = useState(job.teacherNote);
+  return (
+    <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); onSave(t); }}>
+      <Input aria-label="Note to student" placeholder="Note to student (e.g. pick up in bin 3)" value={t} onChange={(e) => setT(e.target.value)} />
+      <Button size="sm" variant="secondary" disabled={t === job.teacherNote}>Save</Button>
+    </form>
   );
 }

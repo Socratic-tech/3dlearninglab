@@ -71,6 +71,7 @@ export function googleLessonApi(apiUrl: string, onChange: () => void): LessonApi
         kind: fd.get("kind"),
         url: fd.get("url"),
         note: fd.get("note"),
+        requestPrint: fd.get("requestPrint") === "on",
         file,
       });
       if (r.ok) onChange();

@@ -20,7 +20,7 @@ export function readConfig() {
   const cid = params.get("cid");
   const cls = params.get("class");
   if (cls && /^[\w-]{1,40}$/.test(cls)) safeSet(KEY_CLASS, cls);
-  if (api && /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(api)) safeSet(KEY_API, api);
+  if (api && /^https:\/\/script\.google\.com\/(a\/macros\/[\w.-]+|macros)\/s\/[\w-]+\/exec$/.test(api)) safeSet(KEY_API, api.replace(/\/a\/macros\/[\w.-]+\/s\//, "/macros/s/"));
   if (cid) safeSet(KEY_CID, cid);
   if (api || cid || cls) history.replaceState(null, "", location.pathname + location.hash);
   return {

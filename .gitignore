@@ -50,3 +50,4 @@ next-env.d.ts
 /apps-script/dist
 /web/public/models
 shots/
+/web/public/apps-script

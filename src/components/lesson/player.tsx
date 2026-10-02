@@ -40,6 +40,8 @@ export type PlayerProps = {
   bottomNav?: boolean;
   /** Teacher preview: may move past questions without answering. */
   freeNav?: boolean;
+  /** Open on the screen that holds this block (e.g. from the review deck). */
+  focusBlockId?: string;
 };
 
 export function LessonPlayer(p: PlayerProps) {
@@ -77,6 +79,11 @@ export function LessonPlayer(p: PlayerProps) {
   const [step, setStep] = useState(() => {
     // A fresh mission always starts at the hook. Resume only after the student has actually done something:
     // go to the first screen that still has required work, but never skip past the screen they last worked on.
+    if (p.focusBlockId) {
+      const f = steps.findIndex((st) => st.blocks.some((b) => b.id === p.focusBlockId));
+      const attemptedFocus = doneIds.has(p.focusBlockId);
+      if (f >= 0) return attemptedFocus ? f : Math.min(f, gate);
+    }
     if (p.completed || doneIds.size === 0) return 0;
     let last = -1;
     steps.forEach((st, i) => { if (st.blocks.some((b) => doneIds.has(b.id))) last = i; });
@@ -85,8 +92,15 @@ export function LessonPlayer(p: PlayerProps) {
   });
   const headingRef = useRef<HTMLHeadingElement>(null);
   const stepRef = useRef<HTMLDivElement>(null);
+  // moving forward stops at the next question not tried yet (counted from where you are, so review links work)
+  const nextGate = (from: number) => {
+    if (p.readOnly || p.freeNav) return steps.length;
+    const i = steps.findIndex((st, k) => k >= from && st.blocks.some((b) => isScorable(b) && !doneIds.has(b.id)));
+    return i < 0 ? steps.length : i;
+  };
   const go = (n: number) => {
-    setStep(Math.max(0, Math.min(n, gate, steps.length + (p.readOnly ? -1 : 0))));
+    const target = n > step ? Math.min(n, nextGate(step)) : n;
+    setStep(Math.max(0, Math.min(target, steps.length + (p.readOnly ? -1 : 0))));
     setWhy(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
     requestAnimationFrame(() => headingRef.current?.focus({ preventScroll: true }));

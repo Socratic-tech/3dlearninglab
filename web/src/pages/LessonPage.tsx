@@ -1,4 +1,6 @@
 import { useMemo } from "react";
+import { Printer } from "lucide-react";
+import { offlineChallenges } from "./HandoutPage";
 import { LessonPlayer } from "@/components/lesson/player";
 import { Alert, Pill } from "@/components/ui/card";
 import { buttonClass } from "@/components/ui/button";
@@ -8,7 +10,7 @@ import { assetsFor, competencyTitle, journalPrompts, lessonById, type Me } from 
 import { googleLessonApi } from "../api";
 import { studentStates } from "../state";
 
-export function LessonPage({ me, apiUrl, lessonId, onChange }: { me: Me; apiUrl: string; lessonId: string; onChange: () => void }) {
+export function LessonPage({ me, apiUrl, lessonId, focusBlockId, onChange }: { me: Me; apiUrl: string; lessonId: string; focusBlockId?: string; onChange: () => void }) {
   const lesson = lessonById.get(lessonId);
   const api = useMemo(() => googleLessonApi(apiUrl, onChange), [apiUrl, onChange]);
   if (!lesson) return <Alert tone="warning" title="That mission doesn't exist." />;
@@ -36,6 +38,11 @@ export function LessonPage({ me, apiUrl, lessonId, onChange }: { me: Me; apiUrl:
           {lesson.kind === "boss" && <Pill tone="accent">Boss battle</Pill>}
           <Pill>{lesson.estimatedMinutes} min</Pill>
           {p?.status === "completed" && <Pill tone="success">Completed</Pill>}
+          {offlineChallenges(lesson).length > 0 && (
+            <a href={`#/print/${lesson.id}`} className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-0.5 text-sm font-semibold hover:bg-surface-2">
+              <Printer className="size-4" aria-hidden /> Print handout
+            </a>
+          )}
         </div>
       </header>
       <LessonPlayer
@@ -55,6 +62,7 @@ export function LessonPage({ me, apiUrl, lessonId, onChange }: { me: Me; apiUrl:
         readOnly={false}
         bottomNav={false}
         freeNav={preview}
+        focusBlockId={focusBlockId}
         api={api}
         links={{ lesson: (id) => `#/lesson/${id}`, missions: "#/" }}
       />

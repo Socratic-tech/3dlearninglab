@@ -14,6 +14,8 @@
  */
 
 const API_VERSION = "1";
+// Filled in by scripts/build-pages.ts: the public site, its Google sign-in client ID, and this script's version.
+const BUILD = { version: "dev", site: "", clientId: "" }; // @build
 
 const TABLES = {
   Config: ["key", "value", "notes"],
@@ -26,10 +28,12 @@ const TABLES = {
   History: ["at", "email", "competencyId", "from", "to", "reason", "actor"],
   Evidence: ["id", "email", "lessonId", "blockId", "competencyIds", "type", "url", "fileId", "fileName", "text", "status", "rating", "comment", "reviewedBy", "reviewedAt", "createdAt"],
   Journals: ["email", "projectKey", "entries", "updatedAt"],
+  Summary: ["email", "xp", "days", "seen", "byLesson", "updatedAt"],
+  Prints: ["id", "email", "classId", "lessonId", "evidenceId", "fileId", "fileName", "status", "note", "teacherNote", "createdAt", "updatedAt"],
 };
 
 const DEFAULT_CONFIG = [
-  ["CLIENT_ID", "", "Google OAuth Web client ID used by the Pages site (same value for every class)."],
+  ["CLIENT_ID", "", "Leave blank to use the website's built-in sign-in ID. Only fill in if you run your own copy of the site."],
   ["ALLOWED_DOMAINS", "", "Comma-separated email domains allowed to sign in, e.g. district.org,students.district.org"],
   ["TEACHER_EMAILS", "", "Comma-separated teacher emails (the script owner is always a teacher)."],
   ["AUTO_ENROLL", "FALSE", "TRUE = an allowed-domain student who opens a class link joins that class on first sign-in. FALSE = only students on a class roster."],
@@ -63,6 +67,7 @@ function userError_(message) {
 }
 
 function handle_(req) {
+  MEMO_ = {};
   try {
     const action = ACTIONS[req && req.action];
     if (!action) throw userError_("Unknown request.");
@@ -106,7 +111,8 @@ function authenticate_(token, classId) {
     claims = JSON.parse(res.getContentText());
     cache.put(key, JSON.stringify(claims), 600);
   }
-  if (!cfg.CLIENT_ID || claims.aud !== cfg.CLIENT_ID) throw userError_("This class isn't set up for this website yet (CLIENT_ID).");
+  const clientId = cfg.CLIENT_ID || BUILD.clientId;
+  if (!clientId || claims.aud !== clientId) throw userError_("This class isn't set up for this website yet (CLIENT_ID).");
   if (Number(claims.exp) * 1000 < Date.now()) throw userError_("Your sign-in expired. Please sign in again.");
   if (String(claims.email_verified) !== "true") throw userError_("Your Google account needs a verified email.");
   const email = String(claims.email).toLowerCase();
@@ -217,8 +223,14 @@ function sheet_(name) {
   return sh;
 }
 
+// Each request reads a tab at most once (MEMO_). Inside withLock_ reads are always fresh, and writes clear the memo.
+var MEMO_ = {};
+var LOCK_DEPTH_ = 0;
+
 /** Minimal table API over a sheet: rows as objects keyed by header. */
 function table_(name) {
+  if (LOCK_DEPTH_ === 0 && MEMO_[name]) return MEMO_[name];
+  const inLock = LOCK_DEPTH_ > 0;
   const sh = sheet_(name);
   const headers = TABLES[name];
   const values = sh.getLastRow() > 1 ? sh.getRange(2, 1, sh.getLastRow() - 1, headers.length).getValues() : [];
@@ -228,36 +240,44 @@ function table_(name) {
     return o;
   });
   const toValues = function (obj) { return headers.map(function (h) { return obj[h] === undefined || obj[h] === null ? "" : obj[h]; }); };
-  return {
+  const t = {
     rows: rows,
     find: function (pred) { for (let i = 0; i < rows.length; i++) if (pred(rows[i])) return rows[i]; return null; },
     filter: function (pred) { return rows.filter(pred); },
     append: function (obj) {
       sh.appendRow(toValues(obj));
+      delete MEMO_[name];
+      rows.push(Object.assign({ _row: sh.getLastRow() }, obj));
       return obj;
     },
     /** Insert or merge-update the first row matching pred. Call inside withLock_. */
     upsert: function (pred, obj) {
-      // re-read inside the lock so concurrent writers don't overwrite each other
-      const fresh = table_(name);
+      // inside the lock, this table was read fresh; otherwise re-read so concurrent writers don't overwrite each other
+      const fresh = inLock ? t : table_(name);
       const existing = fresh.find(pred);
+      delete MEMO_[name];
       if (existing) {
         const merged = Object.assign({}, existing, obj);
         sh.getRange(existing._row, 1, 1, headers.length).setValues([toValues(merged)]);
+        Object.assign(existing, obj);
         return merged;
       }
-      sh.appendRow(toValues(obj));
-      return obj;
+      return fresh.append(obj);
     },
   };
+  if (!inLock) MEMO_[name] = t;
+  return t;
 }
 
 function withLock_(fn) {
+  if (LOCK_DEPTH_ > 0) return fn(); // already holding the lock
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(25000)) throw userError_("Lots of people are saving at once. Please try again in a moment.");
+  LOCK_DEPTH_++;
   try {
     return fn();
   } finally {
+    LOCK_DEPTH_--;
     lock.releaseLock();
   }
 }
@@ -338,8 +358,12 @@ function recordLevel_(email, competencyId, level, reason, actor) {
   });
 }
 
-/** XP, streak and daily goal, derived from what's already in the Sheet (see src/lib/streaks.ts). */
-function stats_(email) {
+function tz_() {
+  try { return Session.getScriptTimeZone() || "America/Detroit"; } catch (e) { return "America/Detroit"; }
+}
+
+/** One-time rebuild of a student's XP from history (used the first time we see them after upgrading). */
+function xpEventsFromHistory_(email) {
   const events = [];
   const truthy = function (v) { return v === true || String(v).toUpperCase() === "TRUE"; };
   table_("Attempts").filter(function (r) { return r.email === email; }).forEach(function (r) {
@@ -351,9 +375,92 @@ function stats_(email) {
   table_("Progress").filter(function (r) { return r.email === email && r.completedAt; }).forEach(function (r) {
     events.push({ kind: "lesson", at: r.completedAt, lessonId: r.lessonId });
   });
-  let tz = "America/Detroit";
-  try { tz = Session.getScriptTimeZone() || tz; } catch (e) { /* default */ }
-  return Lib.computeStats(events, { timeZone: tz });
+  return events;
+}
+
+function summaryOf_(row) {
+  return { xp: Number(row.xp) || 0, days: parse_(row.days, {}), seen: parse_(row.seen, []), byLesson: parse_(row.byLesson, {}) };
+}
+
+/** Add XP events to the student's running summary (the Summary tab), so nobody has to re-read every answer. */
+function addXp_(email, events) {
+  return withLock_(function () {
+    const t = table_("Summary");
+    const row = t.find(function (r) { return r.email === email; });
+    const base = row ? summaryOf_(row) : Lib.applyEvents(Lib.emptySummary(), xpEventsFromHistory_(email), tz_());
+    const next = Lib.applyEvents(base, row ? events : [], tz_());
+    t.upsert(function (r) { return r.email === email; }, { email: email, xp: next.xp, days: JSON.stringify(next.days), seen: JSON.stringify(next.seen), byLesson: JSON.stringify(next.byLesson), updatedAt: now_() });
+    return next;
+  });
+}
+
+/** XP, streak and daily goal (see src/lib/streaks.ts). */
+function stats_(email) {
+  const row = table_("Summary").find(function (r) { return r.email === email; });
+  const sum = row ? summaryOf_(row) : addXp_(email, []);
+  return Lib.statsFromSummary(sum, { timeZone: tz_() });
+}
+
+/**
+ * "Who needs me right now" — built from the Progress tab only (no full read of Attempts):
+ * stuck = 3+ tries and still not right; quiet = mid-mission but no answer for 10+ minutes today;
+ * missed = the questions the most students currently have wrong.
+ */
+function liveView_(progressRows) {
+  const now = Date.now();
+  const today = Utilities.formatDate(new Date(), tz_(), "yyyy-MM-dd");
+  const stuck = [];
+  const wrong = {};
+  const last = {};
+  progressRows.forEach(function (r) {
+    const t = new Date(r.updatedAt).getTime();
+    if (t && (!last[r.email] || t > last[r.email].t)) last[r.email] = { t: t, lessonId: r.lessonId, status: r.status };
+    const st = parse_(r.blockState, {});
+    Object.keys(st).forEach(function (bid) {
+      const e = st[bid];
+      if (!e || !e.attempts || e.correct !== false || (e.result && e.result.locked)) return;
+      const k = r.lessonId + "|" + bid;
+      (wrong[k] = wrong[k] || { lessonId: r.lessonId, blockId: bid, students: [] }).students.push(r.email);
+      if (e.attempts >= 3) stuck.push({ email: r.email, lessonId: r.lessonId, blockId: bid, attempts: e.attempts, since: e.updatedAt || r.updatedAt, solved: false });
+    });
+  });
+  const quiet = Object.keys(last).filter(function (email) {
+    const l = last[email];
+    const mins = (now - l.t) / 60000;
+    return l.status !== "completed" && mins >= 10 && mins <= 180 && Utilities.formatDate(new Date(l.t), tz_(), "yyyy-MM-dd") === today;
+  }).map(function (email) { return { email: email, lessonId: last[email].lessonId, minutes: Math.round((now - last[email].t) / 60000) }; });
+  const missed = Object.keys(wrong).map(function (k) {
+    const w = wrong[k];
+    const b = (CONTENT.lessons[w.lessonId] || { blocks: {} }).blocks[w.blockId] || {};
+    return { lessonId: w.lessonId, blockId: w.blockId, prompt: String(b.prompt || "").replace(/[*_`#]/g, "").slice(0, 140), count: w.students.length, students: w.students };
+  }).sort(function (a, b) { return b.count - a.count; }).slice(0, 5);
+  const activeToday = Object.keys(last).filter(function (email) { return Utilities.formatDate(new Date(last[email].t), tz_(), "yyyy-MM-dd") === today; }).length;
+  stuck.sort(function (a, b) { return String(b.since).localeCompare(String(a.since)); });
+  return { stuck: stuck, quiet: quiet, missed: missed, activeToday: activeToday, at: now_() };
+}
+
+// ───────────────────────── Print queue ─────────────────────────
+
+const PRINT_STATUSES = ["requested", "approved", "printing", "done", "failed", "cancelled"];
+
+function printOut_(r) {
+  return {
+    id: r.id, email: r.email, classId: r.classId, lessonId: r.lessonId, evidenceId: r.evidenceId, fileName: r.fileName || null,
+    fileUrl: r.fileId ? "https://drive.google.com/file/d/" + r.fileId + "/view" : null,
+    status: r.status || "requested", note: r.note || "", teacherNote: r.teacherNote || "", createdAt: r.createdAt, updatedAt: r.updatedAt,
+  };
+}
+
+function newPrint_(user, classId, ev, note) {
+  const cls = classFor_(user, classId);
+  return withLock_(function () {
+    const t = table_("Prints");
+    const open = t.find(function (r) { return r.evidenceId === ev.id && ["requested", "approved", "printing"].indexOf(r.status) >= 0; });
+    if (open) return printOut_(open);
+    const row = { id: "p" + Utilities.getUuid().slice(0, 8), email: user.email, classId: cls.classId, lessonId: ev.lessonId, evidenceId: ev.id, fileId: ev.fileId, fileName: ev.fileName, status: "requested", note: String(note || "").slice(0, 500), teacherNote: "", createdAt: now_(), updatedAt: now_() };
+    t.append(row);
+    return printOut_(row);
+  });
 }
 
 // ───────────────────────── Actions ─────────────────────────
@@ -385,7 +492,8 @@ const ACTIONS = {
         levels: levels,
         evidence: evidence,
         journals: journals,
-        stats: stats_(user.email),
+        stats: user.role === "student" ? stats_(user.email) : null,
+        prints: table_("Prints").filter(function (r) { return r.email === user.email; }).map(printOut_),
       };
     },
   },
@@ -406,6 +514,7 @@ const ACTIONS = {
         table_("Attempts").append({ at: now_(), email: user.email, lessonId: a.lessonId, blockId: a.blockId, competencyId: block.competencyId || "", correct: score.correct === null ? "" : score.correct, misconceptionId: score.misconceptionId || "", response: JSON.stringify(a.response).slice(0, 2000) });
       });
       saveBlockEntry_(user.email, a.lessonId, a.blockId, { response: a.response, correct: score.correct === null ? undefined : score.correct, attempts: attempts, done: true, result: result });
+      addXp_(user.email, [{ kind: "attempt", at: now_(), lessonId: a.lessonId, blockId: a.blockId, correct: score.correct }]);
       if (block.competencyId && block.check) {
         recordLevel_(user.email, block.competencyId, Lib.autoLevel({ correct: score.correct === true, check: block.check, autoAssessable: !!CONTENT.autoAssessable[block.competencyId] }), (block.check === "skill" ? "Skill check" : "Practice") + " in " + lesson.title, "");
       }
@@ -432,6 +541,7 @@ const ACTIONS = {
       if (words < block.minWords) throw userError_("Write at least " + block.minWords + " words — you have " + words + ".");
       const ev = newEvidence_(user, a.lessonId, a.blockId, block.competencyIds || [], "written", { text: text });
       saveBlockEntry_(user.email, a.lessonId, a.blockId, { response: { text: text, evidenceId: ev.id }, done: true });
+      addXp_(user.email, [{ kind: "work", at: now_(), lessonId: a.lessonId, blockId: a.blockId }]);
       return { evidenceId: ev.id };
     },
   },
@@ -452,6 +562,8 @@ const ACTIONS = {
       if (a.kind === "physical_test" && !extra.text && !a.file) throw userError_("Describe your test result or add a photo.");
       const ev = newEvidence_(user, a.lessonId, a.blockId, block.competencyIds, a.kind, extra);
       saveBlockEntry_(user.email, a.lessonId, a.blockId, { done: true });
+      addXp_(user.email, [{ kind: "work", at: now_(), lessonId: a.lessonId, blockId: a.blockId }]);
+      if (a.requestPrint && a.kind === "stl" && ev.fileId) newPrint_(user, a.classId, ev, String(a.note || ""));
       return { id: ev.id, type: ev.type, fileName: ev.fileName || null, url: ev.url || null, createdAt: ev.createdAt };
     },
   },
@@ -481,6 +593,7 @@ const ACTIONS = {
       withLock_(function () {
         table_("Progress").upsert(function (r) { return r.email === user.email && r.lessonId === a.lessonId; }, { status: "completed", completedAt: (row && row.completedAt) || now_(), updatedAt: now_() });
       });
+      addXp_(user.email, [{ kind: "lesson", at: now_(), lessonId: a.lessonId }]);
       const path = CONTENT.paths[classOut_(classFor_(user, a.classId)).pathId];
       const i = path.indexOf(a.lessonId);
       const next = i >= 0 && i < path.length - 1 ? path[i + 1] : null;
@@ -503,28 +616,47 @@ const ACTIONS = {
         return { email: r.email, name: r.name, status: r.status || "active", lastSeen: r.lastSeen || null };
       });
       const mine = function (r) { return inClass[r.email]; };
-      const progress = table_("Progress").rows.filter(mine).map(function (r) { return { email: r.email, lessonId: r.lessonId, status: r.status, updatedAt: r.updatedAt }; });
+      const progressRows = table_("Progress").rows.filter(mine);
+      const progress = progressRows.map(function (r) { return { email: r.email, lessonId: r.lessonId, status: r.status, updatedAt: r.updatedAt }; });
       const levels = {};
       table_("Levels").rows.filter(mine).forEach(function (r) { (levels[r.email] = levels[r.email] || {})[r.competencyId] = effective_(r); });
       const evidence = table_("Evidence").rows.filter(mine).map(evidenceOut_);
-      const struggles = {};
-      table_("Attempts").rows.filter(mine).forEach(function (r) {
-        const b = (CONTENT.lessons[r.lessonId] || { blocks: {} }).blocks[r.blockId];
-        if (!b || b.check !== "skill") return;
-        const k = r.email + "|" + r.lessonId + "|" + r.blockId;
-        const s = (struggles[k] = struggles[k] || { email: r.email, lessonId: r.lessonId, blockId: r.blockId, competencyId: r.competencyId, attempts: 0, solved: false });
-        s.attempts++;
-        if (r.correct === true || r.correct === "TRUE") s.solved = true;
-      });
+      const live = liveView_(progressRows);
       return {
+        live: live,
+        prints: table_("Prints").rows.filter(function (r) { return r.classId === cls.classId; }).map(printOut_),
         cls: classOut_(cls),
         classes: activeClasses_().map(classOut_),
         students: students,
         progress: progress,
         levels: levels,
         evidence: evidence,
-        struggles: Object.keys(struggles).map(function (k) { return struggles[k]; }).filter(function (s) { return s.attempts >= 3 && !s.solved; }),
+        struggles: live.stuck,
       };
+    },
+  },
+
+  requestPrint: {
+    run: function (user, a) {
+      const ev = table_("Evidence").find(function (r) { return r.id === a.evidenceId && r.email === user.email; });
+      if (!ev || ev.type !== "stl" || !ev.fileId) throw userError_("Choose one of your uploaded STL files.");
+      return newPrint_(user, a.classId, ev, a.note);
+    },
+  },
+
+  updatePrint: {
+    role: "teacher",
+    run: function (user, a) {
+      if (a.status && PRINT_STATUSES.indexOf(a.status) < 0) throw userError_("Unknown print status.");
+      return withLock_(function () {
+        const t = table_("Prints");
+        const row = t.find(function (r) { return r.id === a.printId; });
+        if (!row) throw userError_("That print request no longer exists.");
+        const patch = { updatedAt: now_() };
+        if (a.status) patch.status = a.status;
+        if (a.teacherNote !== undefined) patch.teacherNote = String(a.teacherNote).slice(0, 500);
+        return printOut_(t.upsert(function (r) { return r.id === a.printId; }, patch));
+      });
     },
   },
 
@@ -715,16 +847,149 @@ function uploadFolder_(email) {
   return it.hasNext() ? it.next() : root.createFolder(email);
 }
 
-// ───────────────────────── Setup (run once from the editor) ─────────────────────────
+// ───────────────────────── Setup (menu + sidebar in the teacher's Sheet) ─────────────────────────
 
+function onOpen() {
+  SpreadsheetApp.getUi().createMenu("3D Design Academy").addItem("Set up & class links", "showSidebar").addToUi();
+}
+
+function showSidebar() {
+  SpreadsheetApp.getUi().showSidebar(HtmlService.createHtmlOutputFromFile("Sidebar").setTitle("3D Design Academy"));
+}
+
+/** Creates tabs and settings. Safe to run again. */
 function setup() {
+  const props = PropertiesService.getScriptProperties();
+  const owner = String(Session.getEffectiveUser().getEmail() || "").toLowerCase();
+  // A copied template carries the original owner's script properties — start clean for the new teacher.
+  if (owner && props.getProperty("OWNER") && props.getProperty("OWNER") !== owner) props.deleteAllProperties();
+  if (owner) props.setProperty("OWNER", owner);
   Object.keys(TABLES).forEach(sheet_);
   const sh = sheet_("Config");
   const existing = config_();
   DEFAULT_CONFIG.forEach(function (row) {
     if (!(row[0] in existing)) sh.appendRow(row);
   });
+  if (!existing.ALLOWED_DOMAINS && owner && owner.indexOf("@gmail.com") < 0) setConfig_("ALLOWED_DOMAINS", owner.split("@")[1]);
   sh.autoResizeColumns(1, 3);
   ensureClasses_();
-  return "Ready. Fill in the Config tab, then Deploy → New deployment → Web app. Create classes from the website.";
+  return "Ready. Open the menu 3D Design Academy → Set up & class links.";
+}
+
+function setConfig_(key, value) {
+  const sh = sheet_("Config");
+  const last = sh.getLastRow();
+  const keys = last > 1 ? sh.getRange(2, 1, last - 1, 1).getValues() : [];
+  for (let i = 0; i < keys.length; i++) {
+    if (String(keys[i][0]).trim() === key) { sh.getRange(i + 2, 2, 1, 1).setValues([[value]]); return; }
+  }
+  sh.appendRow([key, value, ""]);
+}
+
+/** The web app's public address (normalized so it works for students on any domain), or null if not deployed yet. */
+function webAppUrl_() {
+  let url = null;
+  try { url = ScriptApp.getService().getUrl(); } catch (e) { url = null; }
+  if (!url || /\/dev$/.test(url)) return null;
+  return url.replace(/\/a\/macros\/[^/]+\/s\//, "/macros/s/");
+}
+
+function latestVersion_() {
+  if (!BUILD.site) return null;
+  const cache = CacheService.getScriptCache();
+  const hit = cache.get("latest_version");
+  if (hit) return JSON.parse(hit);
+  try {
+    const r = UrlFetchApp.fetch(BUILD.site + "apps-script/version.json?t=" + Date.now(), { muteHttpExceptions: true });
+    if (r.getResponseCode() !== 200) return null;
+    const v = JSON.parse(r.getContentText());
+    cache.put("latest_version", JSON.stringify(v), 1800);
+    return v;
+  } catch (e) {
+    return null;
+  }
+}
+
+/** Everything the setup sidebar shows. */
+function sidebarState() {
+  MEMO_ = {};
+  const ready = !!ss_().getSheetByName("Config") && !!ss_().getSheetByName("Classes");
+  const cfg = ready ? config_() : {};
+  const url = webAppUrl_();
+  const clientId = cfg.CLIENT_ID || BUILD.clientId;
+  const link = function (extra) {
+    if (!url || !BUILD.site) return null;
+    return BUILD.site + "?api=" + encodeURIComponent(url) + (clientId ? "&cid=" + encodeURIComponent(clientId) : "") + (extra || "");
+  };
+  const classes = ready ? activeClasses_().map(classOut_) : [];
+  return {
+    ready: ready,
+    owner: Session.getEffectiveUser().getEmail(),
+    url: url,
+    site: BUILD.site,
+    hasClientId: !!clientId,
+    domains: cfg.ALLOWED_DOMAINS || "",
+    teacherEmails: cfg.TEACHER_EMAILS || "",
+    autoEnroll: String(cfg.AUTO_ENROLL).toUpperCase() === "TRUE",
+    teacherLink: link("#/teacher"),
+    classes: classes.map(function (c) { return { id: c.id, name: c.name + (c.section ? " · " + c.section : ""), link: link("&class=" + encodeURIComponent(c.id)) }; }),
+    version: BUILD.version,
+    latest: latestVersion_(),
+  };
+}
+
+function sidebarPrepare() {
+  setup();
+  return sidebarState();
+}
+
+function sidebarSaveSettings(s) {
+  const clean = function (v) { return String(v || "").toLowerCase().split(/[\s,]+/).filter(String).join(","); };
+  setConfig_("ALLOWED_DOMAINS", clean(s.domains));
+  setConfig_("TEACHER_EMAILS", clean(s.teacherEmails));
+  setConfig_("AUTO_ENROLL", s.autoEnroll ? "TRUE" : "FALSE");
+  return sidebarState();
+}
+
+function sidebarCreateClass(c) {
+  MEMO_ = {};
+  ACTIONS.createClass.run({ email: String(Session.getEffectiveUser().getEmail()).toLowerCase(), role: "teacher" }, { name: c.name, section: c.section, pathId: c.pathId });
+  return sidebarState();
+}
+
+/**
+ * One-click update: downloads the newest script from the website and installs it into this project with the
+ * Apps Script API, then points the existing web app at the new version (same link — nothing to re-share).
+ * Needs "Google Apps Script API" turned on once at https://script.google.com/home/usersettings.
+ */
+function sidebarUpdate() {
+  if (!BUILD.site) return { ok: false, error: "This copy doesn't know where updates come from." };
+  const res = UrlFetchApp.fetch(BUILD.site + "apps-script/update.json?t=" + Date.now(), { muteHttpExceptions: true });
+  if (res.getResponseCode() !== 200) return { ok: false, error: "Couldn't download the update (" + res.getResponseCode() + "). Try again later." };
+  const pack = JSON.parse(res.getContentText());
+  const files = pack.files.map(function (f) {
+    return { name: f.name, type: f.type, source: Utilities.newBlob(Utilities.base64Decode(f.source)).getDataAsString() };
+  });
+  const id = ScriptApp.getScriptId();
+  const api = "https://script.googleapis.com/v1/projects/" + id;
+  const req = function (method, path, body) {
+    const r = UrlFetchApp.fetch(api + path, { method: method, contentType: "application/json", payload: JSON.stringify(body), headers: { Authorization: "Bearer " + ScriptApp.getOAuthToken() }, muteHttpExceptions: true });
+    const text = r.getContentText();
+    if (r.getResponseCode() >= 300) {
+      const needsApi = /usersettings|not enabled|has not been used/i.test(text);
+      throw { needsApi: needsApi, message: needsApi ? "Turn on the Google Apps Script API first." : "Update failed: " + text.slice(0, 200) };
+    }
+    return JSON.parse(text || "{}");
+  };
+  try {
+    req("put", "/content", { files: files });
+    const v = req("post", "/versions", { description: "3D Design Academy " + pack.version });
+    const url = (function () { try { return ScriptApp.getService().getUrl(); } catch (e) { return ""; } })() || "";
+    const m = url.match(/\/s\/([\w-]+)\/exec/);
+    if (m) req("put", "/deployments/" + m[1], { deploymentConfig: { scriptId: id, versionNumber: v.versionNumber, manifestFileName: "appsscript", description: "3D Design Academy " + pack.version } });
+    CacheService.getScriptCache().remove("latest_version");
+    return { ok: true, version: pack.version, redeployed: !!m };
+  } catch (e) {
+    return { ok: false, needsApi: !!e.needsApi, error: e.message || String(e) };
+  }
 }

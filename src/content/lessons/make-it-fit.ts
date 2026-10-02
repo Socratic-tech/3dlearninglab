@@ -96,6 +96,22 @@ export const lesson: LessonInput = {
       title: "Debug the fit",
       blocks: [
         {
+          id: "slide-fit",
+          type: "slider",
+          prompt: "Your class test says **0.15 mm per side** gives a good fit. The peg is 10.0 mm. How big should the hole be?",
+          scene: "clearance",
+          min: 10,
+          max: 11,
+          step: 0.05,
+          start: 10,
+          unit: "mm",
+          answer: 10.3,
+          tolerance: 0.01,
+          hint: "The gap is on BOTH sides of the peg.",
+          explanation: "10.0 + 0.15 + 0.15 = **10.3 mm**.",
+          competencyId: "C8",
+        },
+        {
           id: "mc-loose",
           type: "multipleChoice",
           prompt: "Your test ring for a 22.0 mm PVC fitting was designed at 22.4 mm and is too tight. What should you change?",

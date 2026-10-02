@@ -20,31 +20,42 @@ Students & teachers ──► GitHub Pages (static site: lessons, 3D viewer, dia
 
 1. **Google OAuth client** — console.cloud.google.com → APIs & Services → Credentials → *Create OAuth client ID* →
    *Web application*. **Authorized JavaScript origins:** `https://YOUR-USERNAME.github.io` (and `http://localhost:4173`
-   for local testing). No redirect URI needed. Copy the client ID.
-   OAuth consent screen: *Internal* if everyone is in your Workspace domain.
-2. **GitHub** — push the repo. Settings → Pages → Source: **GitHub Actions**.
-   Settings → Secrets and variables → Actions → **Variables** → add `GOOGLE_CLIENT_ID` = the client ID.
-   Every push to `main` builds and deploys `web/dist` (workflow: `.github/workflows/pages.yml`).
+   for local testing). No redirect URI needed. OAuth consent screen: **External**, publish it (“In production”) —
+   it only asks for name + email, so Google doesn't require verification. Teachers from any district can then use it.
+2. Put the client ID in **`apps-script/build.config.json`** (`clientId`). It's public (every page of the site uses it),
+   so committing it is fine. It gets baked into the site *and* the Apps Script, so teachers never type it.
+3. **GitHub** — Settings → Pages → Source: **GitHub Actions**. Every push to `main` builds and deploys the site,
+   plus `apps-script/update.json` + `version.json` that teachers' sidebars install updates from.
+4. **Make the template Sheet** (once):
+   1. Run `npm run pages:prepare`. Create a blank Google Sheet named “3D Design Academy”. Extensions → **Apps Script**.
+   2. Create files with these exact names and paste from `apps-script/dist/`: script files **Code**, **Lib**, **Content**;
+      HTML file **Sidebar**; and the manifest (Project Settings → “Show appsscript.json” → paste `appsscript.json`). Save.
+   3. Don't deploy it and don't add data — it's only a master.
+   4. Share → *Anyone with the link* → **Viewer**. Copy the link and change the end from `/edit…` to **`/copy`**.
+   5. Put that `/copy` link in `apps-script/build.config.json` → `templateUrl`, commit, push. The site's welcome screen
+      now shows **Make my copy**.
 
-## Per teacher (once — not per class)
+## Per teacher (about 5 minutes, once — not per class)
 
-1. Create one Google Sheet (e.g. “3D Design Academy – Ms. Rivera”). Extensions → **Apps Script**.
-2. On your computer run `npm run pages:prepare`, then copy the four files from `apps-script/dist/` into the editor:
-   `Code.js`, `Lib.js`, `Content.js` (as script files) and `appsscript.json`
-   (Project Settings → “Show appsscript.json manifest file” to edit it).
-3. In the editor, choose `setup` and **Run**. Approve the permissions. This creates the tabs.
-4. In the **Config** tab fill in `CLIENT_ID` (same as above) and `ALLOWED_DOMAINS` (e.g. `district.org,students.district.org`).
-5. **Deploy → New deployment → Web app** · Execute as: **Me** · Who has access: **Anyone** → Deploy. Copy the URL.
-6. Open the Pages site, paste that URL on the Connect screen and sign in. Create your classes (Teacher → **Classes**),
-   or Roster → *Import as new class* straight from Google Classroom. Each class's Overview shows its own **class link** —
-   post it in that class's Google Classroom. Switch classes from the menu at the top.
+See **[teacher-quickstart.md](teacher-quickstart.md)** — the version to send to teachers.
+
+1. Open the site → **Make my copy** (copies the template Sheet, script included, into their Drive).
+2. In the copy: menu **3D Design Academy → Set up & class links** → approve permissions.
+3. The side panel: **Prepare my Sheet** → follow the pictured **Deploy → New deployment → Web app** steps →
+   create classes → copy each class's link (or show its QR code). **Open my teacher dashboard** for the rest.
+
+**Updates:** the side panel shows “Update available” after you push changes to the script or curriculum. **Update now**
+installs the new files into the teacher's own script with the Apps Script API and moves their web app to the new
+version — same links. It needs a one-time switch: script.google.com/home/usersettings → *Google Apps Script API* → On
+(the panel says so if it's off). The update bundle is published on the site; like the repo's lesson files, it contains
+the answer keys in encoded (not plain-text) form — keep the repo private if that matters to you.
 
 A workbook set up before multi-class support upgrades itself on the first request: the old `CLASS_NAME`/`PATH_ID`
 settings become one class and every existing student is enrolled in it. A student in two of your classes keeps one
 set of progress and skills (it's the same student) and sees each class's own course length and settings.
 
-When the curriculum changes: run `npm run pages:prepare` again and replace `Content.js`/`Lib.js`
-(Deploy → Manage deployments → edit → New version), so answer keys match the site.
+When the curriculum changes: push. Teachers click **Update now** in their side panel (or paste the new files from
+`apps-script/dist/` and Deploy → Manage deployments → Edit → New version).
 
 ## Notes and limits
 
@@ -55,5 +66,7 @@ When the curriculum changes: run `npm run pages:prepare` again and replace `Cont
 - Uploads go to a Drive folder owned by the teacher (`MAX_UPLOAD_MB`, default 10).
 - Local try-out without Google: `npm run pages:prepare && npx vite build --config web/vite.config.ts`, then
   `npx tsx scripts/pages-mock-api.ts` and serve `web/dist` (the mock accepts unsigned tokens — never deploy it).
-- Not in this edition yet: print queue, rubric scoring, Classroom assignment publishing/grade sync, design-journal
+- Speed: XP/streaks live in a **Summary** tab updated as students work, each request reads a tab at most once, and the
+  teacher's “Right now” panel is built from the Progress tab — nothing re-reads the whole answer log.
+- Not in this edition yet: rubric scoring, Classroom assignment publishing/grade sync, design-journal
   review screen and teacher guides (use the Next.js edition or the docs).

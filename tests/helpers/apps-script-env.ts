@@ -32,7 +32,7 @@ function fakeSheet() {
   return sh;
 }
 
-export function makeEnv(owner = "teacher@school.org") {
+export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string } = {}) {
   const sheets = new Map<string, ReturnType<typeof fakeSheet>>();
   const book = {
     getSheetByName: (n: string) => sheets.get(n) ?? null,
@@ -48,7 +48,8 @@ export function makeEnv(owner = "teacher@school.org") {
     LockService: { getScriptLock: () => ({ tryLock: () => true, releaseLock: () => {} }) },
     CacheService: { getScriptCache: () => ({ get: (k: string) => cache.get(k) ?? null, put: (k: string, v: string) => cache.set(k, v) }) },
     Session: { getEffectiveUser: () => ({ getEmail: () => owner }), getScriptTimeZone: () => "America/Detroit" },
-    PropertiesService: { getScriptProperties: () => ({ getProperty: (k: string) => props.get(k) ?? null, setProperty: (k: string, v: string) => props.set(k, v) }) },
+    PropertiesService: { getScriptProperties: () => ({ getProperty: (k: string) => props.get(k) ?? null, setProperty: (k: string, v: string) => props.set(k, v), deleteAllProperties: () => props.clear() }) },
+    ScriptApp: { getService: () => ({ getUrl: () => opts.webAppUrl ?? null }), getScriptId: () => "script-1", getOAuthToken: () => "oauth" },
     DriveApp: { getFolderById: () => folder, createFolder: () => folder },
     Utilities: {
       base64EncodeWebSafe: (b: number[]) => Buffer.from(b).toString("base64url"),
@@ -57,6 +58,7 @@ export function makeEnv(owner = "teacher@school.org") {
       getUuid: () => Math.random().toString(36).slice(2),
       base64Decode: (s: string) => [...Buffer.from(s, "base64")].map((b) => (b > 127 ? b - 256 : b)),
       newBlob: (_b: unknown, _t: string, name: string) => ({ name }),
+      formatDate: (d: Date, tz: string) => new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(d),
     },
     UrlFetchApp: {
       // token format for tests: "tok:<email>"
@@ -78,6 +80,7 @@ export function makeEnv(owner = "teacher@school.org") {
   cfg.data.forEach((r) => { if (r[0] === "CLIENT_ID") r[1] = "client-123"; if (r[0] === "ALLOWED_DOMAINS") r[1] = "school.org"; });
   const raw = (body: string) => vm.runInContext(`doPost(${JSON.stringify({ postData: { contents: body } })})`, ctx) as string;
   const call = (email: string, action: string, args: Record<string, unknown> = {}) => JSON.parse(raw(JSON.stringify({ action, token: "tok:" + email, args })));
-  return { call, raw, sheets, files };
+  const run = (code: string) => JSON.parse(vm.runInContext(`JSON.stringify(${code})`, ctx) as string);
+  return { call, raw, run, sheets, files, props };
 }
 

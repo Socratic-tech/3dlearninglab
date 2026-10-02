@@ -5,6 +5,8 @@
  * npm run pages:prepare
  */
 import fs from "node:fs";
+import crypto from "node:crypto";
+import { execSync } from "node:child_process";
 import path from "node:path";
 import { build } from "esbuild";
 import { allBlocks, competencies, isRequiredBlock, journalPrompts, lessons, lessonsInPath } from "../src/content";
@@ -44,7 +46,7 @@ await build({
   logLevel: "warning",
 });
 // esbuild emits `var Lib = ...` which Apps Script shares across files.
-fs.copyFileSync(path.join(root, "apps-script/src/Code.js"), path.join(dist, "Code.js"));
+fs.copyFileSync(path.join(root, "apps-script/src/Sidebar.html"), path.join(dist, "Sidebar.html"));
 fs.writeFileSync(
   path.join(dist, "appsscript.json"),
   JSON.stringify(
@@ -61,6 +63,9 @@ fs.writeFileSync(
         "https://www.googleapis.com/auth/classroom.rosters.readonly",
         "https://www.googleapis.com/auth/classroom.profile.emails",
         "https://www.googleapis.com/auth/userinfo.email",
+        "https://www.googleapis.com/auth/script.container.ui",
+        "https://www.googleapis.com/auth/script.projects",
+        "https://www.googleapis.com/auth/script.deployments",
       ],
       webapp: { executeAs: "USER_DEPLOYING", access: "ANYONE_ANONYMOUS" },
     },
@@ -80,6 +85,52 @@ fs.mkdirSync(gen, { recursive: true });
 fs.writeFileSync(path.join(gen, "lessons.json"), JSON.stringify(publicLessons));
 // Model files are served by the static site too (single source: public/models).
 fs.cpSync(path.join(root, "public/models"), path.join(root, "web/public/models"), { recursive: true });
+
+// 4) Bake the site address + sign-in client ID into Code.js, and publish an update bundle the
+//    teacher's sidebar can install with one click.
+const conf = JSON.parse(fs.readFileSync(path.join(root, "apps-script/build.config.json"), "utf8")) as { site?: string; clientId?: string };
+let site = process.env.PAGES_URL || conf.site || "";
+if (!site && process.env.GITHUB_REPOSITORY) {
+  const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
+  site = `https://${owner.toLowerCase()}.github.io/${repo}/`;
+}
+if (!site) {
+  try {
+    const m = execSync("git config --get remote.origin.url", { stdio: ["ignore", "pipe", "ignore"] }).toString().match(/github\.com[:/]([^/]+)\/([^/.\s]+)/);
+    if (m) site = `https://${m[1].toLowerCase()}.github.io/${m[2]}/`;
+  } catch { /* no git */ }
+}
+if (site && !site.endsWith("/")) site += "/";
+const clientId = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || conf.clientId || "";
+const codeSrc = fs.readFileSync(path.join(root, "apps-script/src/Code.js"), "utf8");
+const files = ["Lib.js", "Content.js", "Sidebar.html", "appsscript.json"].map((f) => fs.readFileSync(path.join(dist, f), "utf8"));
+const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")) as { version: string };
+const hash = crypto.createHash("sha256").update([codeSrc, ...files, site, clientId].join("\0")).digest("hex").slice(0, 7);
+const version = `${pkg.version}-${hash}`;
+const buildLine = /const BUILD = \{[^\n]*\}; \/\/ @build/;
+if (!buildLine.test(codeSrc)) throw new Error("Code.js is missing the BUILD line");
+const code = codeSrc.replace(buildLine, `const BUILD = ${JSON.stringify({ version, site, clientId })}; // @build`);
+fs.writeFileSync(path.join(dist, "Code.js"), code);
+
+const pub = path.join(root, "web/public/apps-script");
+fs.mkdirSync(pub, { recursive: true });
+const asFile = (name: string, type: string, source: string) => ({ name, type, source: Buffer.from(source).toString("base64") });
+fs.writeFileSync(
+  path.join(pub, "update.json"),
+  JSON.stringify({
+    version,
+    files: [
+      asFile("appsscript", "JSON", files[3]),
+      asFile("Code", "SERVER_JS", code),
+      asFile("Lib", "SERVER_JS", files[0]),
+      asFile("Content", "SERVER_JS", files[1]),
+      asFile("Sidebar", "HTML", files[2]),
+    ],
+  }),
+);
+const notes = fs.existsSync(path.join(root, "apps-script/release-notes.txt")) ? fs.readFileSync(path.join(root, "apps-script/release-notes.txt"), "utf8").trim() : "";
+fs.writeFileSync(path.join(pub, "version.json"), JSON.stringify({ version, notes, date: new Date().toISOString().slice(0, 10) }));
+if (!clientId) console.warn("⚠ No Google client ID baked in: set clientId in apps-script/build.config.json (or GOOGLE_CLIENT_ID).");
 }
 
 main().then(() => console.log(`Apps Script → ${path.relative(root, dist)} · public lessons → web/src/generated/lessons.json`));
