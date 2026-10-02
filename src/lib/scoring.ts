@@ -5,8 +5,8 @@ import { nearestHotspot } from "@/components/viewer/geometry";
  * Server-side scoring of interactive blocks, plus redaction so answers are never sent to the browser
  * before a student responds. Pure functions — unit tested.
  */
-export type ScorableType = "prediction" | "multipleChoice" | "ordering" | "matching" | "hotspot" | "measurement";
-export const SCORABLE: ScorableType[] = ["prediction", "multipleChoice", "ordering", "matching", "hotspot", "measurement"];
+export type ScorableType = "prediction" | "multipleChoice" | "ordering" | "matching" | "hotspot" | "measurement" | "slider";
+export const SCORABLE: ScorableType[] = ["prediction", "multipleChoice", "ordering", "matching", "hotspot", "measurement", "slider"];
 export const isScorable = (b: LessonBlock): b is BlockOf<ScorableType> => (SCORABLE as string[]).includes(b.type);
 
 export type BlockResponse =
@@ -15,7 +15,8 @@ export type BlockResponse =
   | { type: "ordering"; order: string[] }
   | { type: "matching"; pairs: Record<string, string> } // leftId -> rightId (pair ids)
   | { type: "hotspot"; point: [number, number, number] }
-  | { type: "measurement"; value: number };
+  | { type: "measurement"; value: number }
+  | { type: "slider"; value: number };
 
 export type ScoreResult = {
   /** null when the block has no right answer (open predictions) */
@@ -125,6 +126,18 @@ export function scoreBlock(block: LessonBlock, response: BlockResponse): ScoreRe
         reveal: correct ? { answer: block.answer } : {},
       };
     }
+    case "slider": {
+      const r = response as Extract<BlockResponse, { type: "slider" }>;
+      if (!Number.isFinite(r.value) || r.value < block.min - 1e-9 || r.value > block.max + 1e-9) throw new Error("Out of range");
+      const correct = Math.abs(r.value - block.answer) <= block.tolerance + 1e-9;
+      return {
+        correct,
+        headline: correct ? "Nailed it!" : r.value < block.answer ? "Not quite — try a bit more." : "Not quite — try a bit less.",
+        feedback: correct ? undefined : block.hint,
+        explanation: correct ? block.explanation : "",
+        reveal: correct ? { answer: block.answer } : {},
+      };
+    }
     default:
       throw new Error(`Block type ${(block as LessonBlock).type} is not scorable`);
   }
@@ -164,6 +177,8 @@ export function redactBlock(block: LessonBlock): LessonBlock {
       return { ...block, explanation: "", hotspots: block.hotspots.map((h) => ({ ...h, correct: false, feedback: "" })) };
     case "measurement":
       return { ...block, answer: 0, tolerance: 0, explanation: "" };
+    case "slider":
+      return { ...block, answer: 0, tolerance: 0, hint: undefined, explanation: "" };
     default:
       return block;
   }
@@ -231,6 +246,7 @@ function scoreBlockAnswerKey(block: LessonBlock): { explanation: string; reveal:
     case "hotspot":
       return { explanation: block.explanation, reveal: { revealedIds: block.hotspots.filter((h) => h.correct).map((h) => h.id) } };
     case "measurement":
+    case "slider":
       return { explanation: block.explanation, reveal: { answer: block.answer } };
     default:
       return { explanation: "", reveal: {} };

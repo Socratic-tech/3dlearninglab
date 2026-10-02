@@ -10,6 +10,7 @@ import { AppError, ForbiddenError, NotFoundError } from "../errors";
 import { studentLessonStates, lessonFor, type Course } from "./courses";
 import { recordCompetencyEvidence } from "./mastery";
 import { getLesson } from "@/content";
+import { studentStats } from "./stats";
 
 export type BlockEntry = BlockState[string] & {
   done?: boolean;
@@ -218,7 +219,7 @@ export async function completeLesson(db: DB, actor: Actor, input: { courseId: st
   const { states, curriculum } = await studentLessonStates(db, actor.id, course);
   const next = curriculum.find((c) => states.get(c.lesson.id) === "available" || states.get(c.lesson.id) === "in_progress");
   const unlocked = curriculum.filter((c) => c.lesson.prerequisites.includes(lesson.id) && states.get(c.lesson.id) === "available").map((c) => c.lesson.id);
-  return { nextLessonId: next?.lesson.id ?? null, unlocked };
+  return { nextLessonId: next?.lesson.id ?? null, unlocked, stats: await studentStats(db, actor.id, input.courseId) };
 }
 
 /** Approximate time on task: the lesson player pings once a minute while visible. */

@@ -49,3 +49,4 @@ next-env.d.ts
 /web/src/generated
 /apps-script/dist
 /web/public/models
+shots/

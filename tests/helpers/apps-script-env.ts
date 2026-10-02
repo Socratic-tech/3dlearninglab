@@ -47,7 +47,7 @@ export function makeEnv(owner = "teacher@school.org") {
     SpreadsheetApp: { getActiveSpreadsheet: () => book },
     LockService: { getScriptLock: () => ({ tryLock: () => true, releaseLock: () => {} }) },
     CacheService: { getScriptCache: () => ({ get: (k: string) => cache.get(k) ?? null, put: (k: string, v: string) => cache.set(k, v) }) },
-    Session: { getEffectiveUser: () => ({ getEmail: () => owner }) },
+    Session: { getEffectiveUser: () => ({ getEmail: () => owner }), getScriptTimeZone: () => "America/Detroit" },
     PropertiesService: { getScriptProperties: () => ({ getProperty: (k: string) => props.get(k) ?? null, setProperty: (k: string, v: string) => props.set(k, v) }) },
     DriveApp: { getFolderById: () => folder, createFolder: () => folder },
     Utilities: {

@@ -1,3 +1,4 @@
+import type { Stats } from "@/lib/streaks";
 import type { ActionResult } from "@/server/errors";
 import type { LessonApi } from "@/components/lesson/api";
 import { currentToken } from "./auth";
@@ -77,7 +78,7 @@ export function googleLessonApi(apiUrl: string, onChange: () => void): LessonApi
     },
     saveJournal: (i) => call(apiUrl, "saveJournal", i),
     completeLesson: async (i) => {
-      const r = await call<{ nextLessonId: string | null; unlocked: string[] }>(apiUrl, "completeLesson", i);
+      const r = await call<{ nextLessonId: string | null; unlocked: string[]; stats?: Stats }>(apiUrl, "completeLesson", i);
       if (r.ok) onChange();
       return r;
     },

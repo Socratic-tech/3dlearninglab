@@ -37,7 +37,13 @@ export function App() {
     else setError(r.error);
   }, [cfg.apiUrl]);
 
-  useEffect(() => { if (token) void load(); }, [token, load]);
+  // load once, then refresh XP, streak and progress whenever a student comes back to their path
+  const atHome = hash === "#/" || hash === "#/student";
+  const loaded = useRef(false);
+  useEffect(() => {
+    if (!token) return;
+    if (atHome || !loaded.current) { loaded.current = true; void load(); }
+  }, [token, atHome, load]);
 
   if (!cfg.apiUrl || !cfg.clientId || hash.startsWith("#/setup")) return <Frame><SetupPage cfg={cfg} onSaved={() => { setCfg(readConfig()); location.hash = "#/"; }} /></Frame>;
   if (!token) return <Frame><SignIn clientId={cfg.clientId} onToken={setToken} /></Frame>;

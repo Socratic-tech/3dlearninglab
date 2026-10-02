@@ -20,6 +20,7 @@ const responseSchema: z.ZodType<BlockResponse> = z.discriminatedUnion("type", [
   z.object({ type: z.literal("matching"), pairs: z.record(z.string().max(40), z.string().max(40)) }),
   z.object({ type: z.literal("hotspot"), point: z.tuple([z.number(), z.number(), z.number()]) }),
   z.object({ type: z.literal("measurement"), value: z.number() }),
+  z.object({ type: z.literal("slider"), value: z.number() }),
 ]);
 
 const ids = z.object({ courseId: z.string().min(1).max(64), lessonId: z.string().regex(/^[a-z0-9-]+$/), blockId: z.string().regex(/^[a-z0-9-]+$/) });

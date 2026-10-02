@@ -49,6 +49,8 @@ describe("Apps Script API", () => {
     expect(env.call("maya@school.org", "completeLesson", { lessonId: "holes" }).error).toMatch(/still open/);
     const me = env.call("maya@school.org", "me");
     expect(me.data.levels.B3).toBe("developing"); // CAD skill: auto check alone never reaches proficient
+    // XP: first try 10 + first correct 5; today counts toward the goal and starts a streak
+    expect(me.data.stats).toMatchObject({ xp: 15, todayXp: 15, streak: 1, goal: 50 });
   });
 
   it("teacher review and override update levels; best level wins", () => {

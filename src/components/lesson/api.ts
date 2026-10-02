@@ -1,6 +1,7 @@
 import type { ActionResult } from "@/server/errors";
 import type { BlockResponse } from "@/lib/scoring";
 import type { ClientResult } from "@/lib/scoring";
+import type { Stats } from "@/lib/streaks";
 
 /**
  * Everything the lesson player needs from a backend. The Next.js edition implements it with Server Actions
@@ -14,7 +15,7 @@ export type LessonApi = {
   /** FormData carries courseId, lessonId, blockId, kind, url, note, file, requestPrint */
   submitEvidence(fd: FormData): Promise<ActionResult<{ id: string; type: string; fileName: string | null; url: string | null; createdAt: string }>>;
   saveJournal(i: { courseId: string; projectKey: string; promptId: string; text: string }): Promise<ActionResult<unknown>>;
-  completeLesson(i: Ids): Promise<ActionResult<{ nextLessonId: string | null; unlocked: string[] }>>;
+  completeLesson(i: Ids): Promise<ActionResult<{ nextLessonId: string | null; unlocked: string[]; stats?: Stats }>>;
   heartbeat(i: Ids): Promise<unknown>;
 };
 

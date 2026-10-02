@@ -53,6 +53,8 @@ export function LessonPage({ me, apiUrl, lessonId, onChange }: { me: Me; apiUrl:
         startedAt={p?.startedAt ?? null}
         completed={p?.status === "completed"}
         readOnly={false}
+        bottomNav={false}
+        freeNav={preview}
         api={api}
         links={{ lesson: (id) => `#/lesson/${id}`, missions: "#/" }}
       />

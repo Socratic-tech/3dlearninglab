@@ -191,6 +191,25 @@ export const measurementBlock = z.object({
   competencyId: z.string().optional(),
   check: z.enum(["practice", "skill"]).default("practice"),
 });
+/** Hands-on: drag a slider and watch a live picture change, then check (Brilliant-style exploration). */
+export const SLIDER_SCENES = ["overhang", "clearance", "scale", "layers", "infill"] as const;
+export const sliderBlock = z.object({
+  ...base,
+  type: z.literal("slider"),
+  prompt: z.string(),
+  scene: z.enum(SLIDER_SCENES),
+  min: z.number(),
+  max: z.number(),
+  step: z.number().positive(),
+  start: z.number(),
+  unit: z.string(),
+  answer: z.number(),
+  tolerance: z.number().nonnegative(),
+  hint: z.string().optional(),
+  explanation: z.string(),
+  competencyId: z.string().optional(),
+  check: z.enum(["practice", "skill"]).default("practice"),
+});
 export const tinkercadLaunchBlock = z.object({
   ...base,
   type: z.literal("tinkercadLaunch"),
@@ -279,6 +298,7 @@ export const lessonBlockSchema = z.discriminatedUnion("type", [
   matchingBlock,
   hotspotBlock,
   measurementBlock,
+  sliderBlock,
   tinkercadLaunchBlock,
   modelDownloadBlock,
   uploadEvidenceBlock,
@@ -446,6 +466,7 @@ const REQUIRED_BY_DEFAULT: LessonBlock["type"][] = [
   "matching",
   "hotspot",
   "measurement",
+  "slider",
   "uploadEvidence",
   "reflection",
 ];

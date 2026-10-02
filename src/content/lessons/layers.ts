@@ -55,6 +55,22 @@ export const lesson: LessonInput = {
       title: "Count the layers",
       blocks: [
         {
+          id: "slide-layers",
+          type: "slider",
+          prompt: "This dome is 20 mm tall. Pick the layer height that prints it in exactly **50 layers**. Watch the print time and the steps as you slide.",
+          scene: "layers",
+          min: 0.1,
+          max: 0.4,
+          step: 0.05,
+          start: 0.1,
+          unit: "mm",
+          answer: 0.4,
+          tolerance: 0.001,
+          hint: "Layers × layer height = total height. What times 50 makes 20?",
+          explanation: "20 ÷ 50 = **0.4 mm**. Thick layers print fast but leave big steps on curves. Thin layers look smooth but take longer.",
+          competencyId: "D1",
+        },
+        {
           id: "count-20",
           type: "measurement",
           prompt: "A 20 mm tall cube prints at 0.2 mm layer height. How many layers?",

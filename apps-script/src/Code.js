@@ -338,6 +338,24 @@ function recordLevel_(email, competencyId, level, reason, actor) {
   });
 }
 
+/** XP, streak and daily goal, derived from what's already in the Sheet (see src/lib/streaks.ts). */
+function stats_(email) {
+  const events = [];
+  const truthy = function (v) { return v === true || String(v).toUpperCase() === "TRUE"; };
+  table_("Attempts").filter(function (r) { return r.email === email; }).forEach(function (r) {
+    events.push({ kind: "attempt", at: r.at, lessonId: r.lessonId, blockId: r.blockId, correct: r.correct === "" ? null : truthy(r.correct) });
+  });
+  table_("Evidence").filter(function (r) { return r.email === email; }).forEach(function (r) {
+    events.push({ kind: "work", at: r.createdAt, lessonId: r.lessonId, blockId: r.blockId });
+  });
+  table_("Progress").filter(function (r) { return r.email === email && r.completedAt; }).forEach(function (r) {
+    events.push({ kind: "lesson", at: r.completedAt, lessonId: r.lessonId });
+  });
+  let tz = "America/Detroit";
+  try { tz = Session.getScriptTimeZone() || tz; } catch (e) { /* default */ }
+  return Lib.computeStats(events, { timeZone: tz });
+}
+
 // ───────────────────────── Actions ─────────────────────────
 
 const ACTIONS = {
@@ -367,6 +385,7 @@ const ACTIONS = {
         levels: levels,
         evidence: evidence,
         journals: journals,
+        stats: stats_(user.email),
       };
     },
   },
@@ -466,7 +485,7 @@ const ACTIONS = {
       const i = path.indexOf(a.lessonId);
       const next = i >= 0 && i < path.length - 1 ? path[i + 1] : null;
       const unlocked = path.filter(function (id) { return (CONTENT.lessons[id].prerequisites || []).indexOf(a.lessonId) >= 0; });
-      return { nextLessonId: next, unlocked: unlocked };
+      return { nextLessonId: next, unlocked: unlocked, stats: stats_(user.email) };
     },
   },
 

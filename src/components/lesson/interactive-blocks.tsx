@@ -15,6 +15,7 @@ import LazyModelViewer from "@/components/viewer/LazyModelViewer";
 import { BlockFrame, Md, Visual } from "./static-blocks";
 import { Diagram } from "@/components/diagrams";
 import { cn } from "@/lib/cn";
+import { SliderScene, readout } from "./slider-scenes";
 
 export type LessonCtxValue = {
   courseId: string;
@@ -24,6 +25,16 @@ export type LessonCtxValue = {
   assets: Record<string, ModelAsset>;
   readOnly: boolean;
   api: LessonApi;
+  /** Step mode: question blocks hand their Check button + result to the player's bottom bar (Brilliant-style). */
+  registerCheck?: (blockId: string, state: CheckState | null) => void;
+};
+export type CheckState = {
+  label: string;
+  ready: boolean;
+  pending: boolean;
+  run: () => void;
+  result?: ClientResult;
+  error?: { error: string; details?: string } | null;
 };
 export const LessonCtx = createContext<LessonCtxValue | null>(null);
 const useLesson = () => useContext(LessonCtx)!;
@@ -46,8 +57,36 @@ function useAnswer(blockId: string) {
   return { result, error, pending, submit, locked: !!result?.locked || ctx.readOnly, prev: ctx.entries[blockId]?.response as BlockResponse | undefined };
 }
 
+/**
+ * The Check button. In step mode it lives in the player's bottom bar (always in the same place, like Brilliant);
+ * in the teacher's scroll preview it renders inline.
+ */
+function CheckButton({ blockId, label, ready, pending, run, result, error, locked }: Omit<CheckState, "run"> & { blockId: string; run: () => void; locked: boolean }) {
+  const ctx = useLesson();
+  const reg = ctx.registerCheck;
+  const runRef = useRef(run);
+  useEffect(() => { runRef.current = run; });
+  useEffect(() => {
+    reg?.(blockId, { label, ready, pending, result, error, run: () => runRef.current() });
+  }, [reg, blockId, label, ready, pending, result, error]);
+  useEffect(() => () => reg?.(blockId, null), [reg, blockId]);
+  if (reg || locked) return null;
+  return (
+    <Button size="lg" className="mt-5" disabled={!ready || pending} onClick={run}>
+      {pending ? "Checking…" : label}
+    </Button>
+  );
+}
+
+function InlineError({ error }: { error: { error: string; details?: string } | null }) {
+  const ctx = useLesson();
+  if (!error || ctx.registerCheck) return null;
+  return <div className="mt-3"><FriendlyError {...error} /></div>;
+}
+
 function ResultPanel({ result }: { result?: ClientResult }) {
-  if (!result) return null;
+  const ctx = useLesson();
+  if (!result || ctx.registerCheck) return null;
   const good = result.correct === true;
   const tone = good ? "border-success bg-success-soft" : result.correct === false ? "border-warning bg-warning-soft" : "border-primary bg-primary-soft";
   return (
@@ -86,12 +125,8 @@ export function PredictionBlock({ b }: { b: BlockOf<"prediction"> }) {
       <Header label="Predict" prompt={b.prompt} />
       {b.visual && <div className="my-3"><Visual {...b.visual} assets={ctx.assets} /></div>}
       <OptionList name={b.id} options={b.options} multiple={false} value={choice ? [choice] : []} onChange={(v) => setChoice(v[0])} disabled={locked} />
-      {!locked && (
-        <Button size="lg" className="mt-5" disabled={!choice || pending} onClick={() => submit({ type: "prediction", optionId: choice })}>
-          {pending ? "Locking in…" : "Lock in my prediction"}
-        </Button>
-      )}
-      {error && <div className="mt-3"><FriendlyError {...error} /></div>}
+      <CheckButton blockId={b.id} label="Lock in" ready={!!choice} pending={pending} run={() => choice && submit({ type: "prediction", optionId: choice })} result={result} error={error} locked={locked} />
+      <InlineError error={error} />
       <ResultPanel result={result} />
     </BlockFrame>
   );
@@ -144,12 +179,8 @@ export function MultipleChoiceBlock({ b }: { b: BlockOf<"multipleChoice"> }) {
       {multiple && <p className="text-sm text-muted">Choose {b.correctOptionIds.length}.</p>}
       {b.visual && <div className="my-3"><Visual {...b.visual} assets={ctx.assets} /></div>}
       <OptionList name={b.id} options={b.options} multiple={multiple} value={value} onChange={setValue} disabled={locked} correctIds={(result?.reveal.correctOptionIds as string[]) ?? undefined} />
-      {!locked && (
-        <Button size="lg" className="mt-5" disabled={!value.length || pending} onClick={() => submit({ type: "multipleChoice", optionIds: value })}>
-          {pending ? "Testing…" : "Test my answer"}
-        </Button>
-      )}
-      {error && <div className="mt-3"><FriendlyError {...error} /></div>}
+      <CheckButton blockId={b.id} label="Check" ready={value.length > 0} pending={pending} run={() => value.length && submit({ type: "multipleChoice", optionIds: value })} result={result} error={error} locked={locked} />
+      <InlineError error={error} />
       <ResultPanel result={result} />
     </BlockFrame>
   );
@@ -192,12 +223,8 @@ export function OrderingBlock({ b }: { b: BlockOf<"ordering"> }) {
         ))}
       </ol>
       <p className="sr-only" aria-live="polite">{announce}</p>
-      {!locked && (
-        <Button size="lg" className="mt-5" disabled={pending} onClick={() => submit({ type: "ordering", order: items.map((i) => i.id) })}>
-          {pending ? "Testing…" : "Test my order"}
-        </Button>
-      )}
-      {error && <div className="mt-3"><FriendlyError {...error} /></div>}
+      <CheckButton blockId={b.id} label="Check" ready pending={pending} run={() => submit({ type: "ordering", order: items.map((i) => i.id) })} result={result} error={error} locked={locked} />
+      <InlineError error={error} />
       <ResultPanel result={result} />
     </BlockFrame>
   );
@@ -232,12 +259,8 @@ export function MatchingBlock({ b }: { b: BlockOf<"matching"> }) {
           </div>
         ))}
       </div>
-      {!locked && (
-        <Button size="lg" className="mt-5" disabled={pending || Object.keys(pairs).length < b.pairs.length} onClick={() => submit({ type: "matching", pairs })}>
-          {pending ? "Testing…" : "Test my matches"}
-        </Button>
-      )}
-      {error && <div className="mt-3"><FriendlyError {...error} /></div>}
+      <CheckButton blockId={b.id} label="Check" ready={b.pairs.every((p) => pairs[p.id])} pending={pending} run={() => submit({ type: "matching", pairs })} result={result} error={error} locked={locked} />
+      <InlineError error={error} />
       <ResultPanel result={result} />
     </BlockFrame>
   );
@@ -278,12 +301,10 @@ export function HotspotBlock({ b }: { b: BlockOf<"hotspot"> }) {
               </button>
             ))}
           </div>
-          <Button size="lg" className="mt-5" disabled={!point || pending} onClick={() => point && submit({ type: "hotspot", point })}>
-            {pending ? "Testing…" : "Test this spot"}
-          </Button>
         </>
       )}
-      {error && <div className="mt-3"><FriendlyError {...error} /></div>}
+      <CheckButton blockId={b.id} label="Check this spot" ready={!!point} pending={pending} run={() => point && submit({ type: "hotspot", point })} result={result} error={error} locked={locked} />
+      <InlineError error={error} />
       <ResultPanel result={result} />
     </BlockFrame>
   );
@@ -311,9 +332,54 @@ export function MeasurementBlock({ b }: { b: BlockOf<"measurement"> }) {
             <span className="font-mono text-muted">{b.unit}</span>
           </div>
         </Field>
-        {!locked && <Button disabled={!v || !Number.isFinite(n) || pending}>{pending ? "Testing…" : "Test"}</Button>}
+        {!locked && !ctx.registerCheck && <Button disabled={!v || !Number.isFinite(n) || pending}>{pending ? "Checking…" : "Check"}</Button>}
       </form>
-      {error && <div className="mt-3"><FriendlyError {...error} /></div>}
+      <CheckButton blockId={b.id} label="Check" ready={!!v && Number.isFinite(n)} pending={pending} run={() => v && Number.isFinite(n) && submit({ type: "measurement", value: n })} result={result} error={error} locked />
+      <InlineError error={error} />
+      <ResultPanel result={result} />
+    </BlockFrame>
+  );
+}
+
+// ───────── Slider (hands-on exploration) ─────────
+
+export function SliderBlock({ b }: { b: BlockOf<"slider"> }) {
+  const { result, error, pending, submit, locked, prev } = useAnswer(b.id);
+  const [v, setV] = useState(prev?.type === "slider" ? prev.value : b.start);
+  const [moved, setMoved] = useState(prev?.type === "slider");
+  const decimals = (String(b.step).split(".")[1] ?? "").length;
+  const set = (x: number) => {
+    const snapped = Math.round((Math.min(b.max, Math.max(b.min, x)) - b.min) / b.step) * b.step + b.min;
+    setV(Number(snapped.toFixed(decimals)));
+    setMoved(true);
+  };
+  const text = readout(b.scene, v);
+  return (
+    <BlockFrame tone="check">
+      <Header label="Try it" prompt={b.prompt} check={b.check} />
+      <div className="mt-4">
+        <SliderScene scene={b.scene} value={v} />
+      </div>
+      <p className="mt-3 text-center font-mono text-lg font-semibold" aria-hidden>{text}</p>
+      <div className="mt-3 flex items-center gap-3">
+        <button type="button" className="grid size-12 shrink-0 place-items-center rounded-full border-2 border-border text-2xl font-bold hover:border-primary disabled:opacity-40" onClick={() => set(v - b.step)} disabled={locked || v <= b.min} aria-label={`Less (${b.step} ${b.unit})`}>−</button>
+        <input
+          type="range"
+          className="h-3 w-full cursor-pointer accent-[var(--primary)]"
+          min={b.min}
+          max={b.max}
+          step={b.step}
+          value={v}
+          disabled={locked}
+          onChange={(e) => set(Number(e.target.value))}
+          aria-label={b.prompt.replace(/[*_`]/g, "")}
+          aria-valuetext={text}
+        />
+        <button type="button" className="grid size-12 shrink-0 place-items-center rounded-full border-2 border-border text-2xl font-bold hover:border-primary disabled:opacity-40" onClick={() => set(v + b.step)} disabled={locked || v >= b.max} aria-label={`More (${b.step} ${b.unit})`}>+</button>
+      </div>
+      {!moved && !locked && <p className="mt-2 text-center text-sm text-muted">Drag the slider (or tap − / +) and watch what changes.</p>}
+      <CheckButton blockId={b.id} label="Check" ready={moved} pending={pending} run={() => submit({ type: "slider", value: v })} result={result} error={error} locked={locked} />
+      <InlineError error={error} />
       <ResultPanel result={result} />
     </BlockFrame>
   );

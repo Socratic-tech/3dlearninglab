@@ -37,6 +37,7 @@ A typical lesson: hook (`hero`) → very short explanation (`text`) → demonstr
 | `ordering`, `matching` | items listed in correct order / correct pairs; UI shuffles | yes |
 | `hotspot` | click a region of a 3D model; positions in model mm, Z-up (see model manifest anchors) | yes |
 | `measurement` | numeric answer ± tolerance | yes |
+| `slider` | drag a slider, watch a live scene (`overhang`, `clearance`, `scale`, `layers`, `infill`), answer ± tolerance | yes |
 | `tinkercadLaunch` | Open Tinkercad (and the class's Tinkercad Classroom link) + steps | — |
 | `modelDownload` | file cards with 3D preview, download, source and license | — |
 | `uploadEvidence` | screenshot / STL / OBJ / share URL for teacher review | teacher |

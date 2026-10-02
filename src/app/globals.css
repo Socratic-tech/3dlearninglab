@@ -230,10 +230,18 @@ body {
 }
 .animate-fade-up { animation: fade-up 280ms ease-out both; }
 
+@keyframes confetti-fall {
+  0% { transform: translate(0, 0) rotate(0); opacity: 1; }
+  100% { transform: translate(var(--dx, 0), 220px) rotate(540deg); opacity: 0; }
+}
+.confetti { animation: confetti-fall 1400ms ease-in both; }
+
 /* Reduced motion: OS preference or user setting */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+:root[data-motion="reduce"] .confetti { display: none; }
+@media (prefers-reduced-motion: reduce) { .confetti { display: none; } }
 :root[data-motion="reduce"] *, :root[data-motion="reduce"] *::before, :root[data-motion="reduce"] *::after {
   animation-duration: 0.01ms !important;
   transition-duration: 0.01ms !important;

@@ -61,6 +61,22 @@ export const lesson: LessonInput = {
       title: "Spot the overhangs",
       blocks: [
         {
+          id: "slide-overhang",
+          type: "slider",
+          prompt: "Lean the wall as far as you can while **every new layer still rests at least halfway** on the layer below. (Layers are 0.2 mm tall and 0.4 mm wide.)",
+          scene: "overhang",
+          min: 0,
+          max: 75,
+          step: 1,
+          start: 10,
+          unit: "°",
+          answer: 45,
+          tolerance: 2,
+          hint: "Watch the orange part of each layer — that's the part hanging over air. Stop when half of each layer is orange.",
+          explanation: "At **45°** each 0.2 mm layer steps out 0.2 mm — exactly half of a 0.4 mm line. Lean further and more than half of every layer is printed on air. That's where the 45° rule of thumb comes from.",
+          competencyId: "D2",
+        },
+        {
           id: "hotspot-fins",
           type: "hotspot",
           prompt: "Click every fin you think is likely to droop on a typical school printer.",
