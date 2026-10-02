@@ -61,15 +61,14 @@ export default async function LessonPage(props: PageProps<"/student/lessons/[les
   const progress = ctx.progress.get(lessonId);
   return (
     <article>
-      <header className="mb-8">
+      <header className="mx-auto mb-6 max-w-3xl">
         <nav aria-label="Breadcrumb" className="text-sm text-muted">
           <Link href="/student/missions" className="hover:text-fg">
             Missions
           </Link>{" "}
           / {base.domain && <span>Domain {base.domain}</span>}
         </nav>
-        <h1 className="mt-1 font-display text-3xl font-bold tracking-tight sm:text-4xl">{base.title}</h1>
-        <p className="mt-1 text-lg text-muted">{base.subtitle}</p>
+        <h1 className="mt-1 font-display text-2xl font-bold tracking-tight sm:text-3xl">{base.title} <span className="text-lg font-normal text-muted">· {base.subtitle}</span></h1>
         <div className="mt-3 flex flex-wrap gap-2">
           {base.kind === "boss" && <Pill tone="accent">Boss battle</Pill>}
           <Pill>{base.estimatedMinutes} min</Pill>
@@ -78,8 +77,8 @@ export default async function LessonPage(props: PageProps<"/student/lessons/[les
           {data.status === "completed" && <Pill tone="success">Completed</Pill>}
         </div>
         {base.vocabulary.length > 0 && (
-          <details className="mt-4 rounded-xl border border-border bg-surface p-3 text-sm">
-            <summary className="cursor-pointer font-semibold">Vocabulary ({base.vocabulary.length})</summary>
+          <details className="mt-3 inline-block rounded-xl border border-border bg-surface px-3 py-1.5 text-sm open:block open:p-3">
+            <summary className="cursor-pointer font-semibold">Key words ({base.vocabulary.length})</summary>
             <dl className="mt-2 grid gap-2 sm:grid-cols-2">
               {base.vocabulary.map((v) => (
                 <div key={v.term}>

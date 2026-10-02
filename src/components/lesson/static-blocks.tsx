@@ -48,7 +48,7 @@ export function BlockFrame({ children, label, icon, tone = "default" }: { childr
 }
 
 export function Visual({ diagram, modelId, assets, alt }: { diagram?: string; modelId?: string; assets: Record<string, ModelAsset>; alt?: string }) {
-  if (diagram) return <Diagram name={diagram} title={alt} className="mx-auto max-w-xl" />;
+  if (diagram) return <Diagram name={diagram} title={alt} className="mx-auto max-h-64 max-w-md" />;
   const a = modelId ? assets[modelId] : undefined;
   if (a?.localFilePath) return <LazyModelViewer src={a.localFilePath} format={a.format} title={a.title} description={alt ?? a.educationalPurpose} height={300} />;
   return null;
@@ -56,22 +56,37 @@ export function Visual({ diagram, modelId, assets, alt }: { diagram?: string; mo
 
 export function HeroBlock({ b, assets }: { b: BlockOf<"hero">; assets: Record<string, ModelAsset> }) {
   return (
-    <section className="bg-blueprint grid gap-6 rounded-3xl border border-border bg-surface p-6 sm:p-8 md:grid-cols-2 md:items-center">
-      <div>
-        <h2 className="font-display text-2xl font-bold sm:text-3xl">{b.title}</h2>
-        <p className="mt-2 text-lg text-muted">{b.hook}</p>
+    <section className="bg-blueprint overflow-hidden rounded-3xl border border-border bg-surface">
+      {b.visual && (
+        <div className="border-b border-border bg-surface/70 p-4 [&_svg]:mx-auto [&_svg]:max-h-56 sm:p-6">
+          <Visual {...b.visual} assets={assets} />
+        </div>
+      )}
+      <div className="p-6 text-center sm:p-8">
+        <h2 className="font-display text-3xl font-bold leading-tight sm:text-4xl">{b.title}</h2>
+        <p className="mx-auto mt-3 max-w-xl text-lg text-muted">{b.hook}</p>
       </div>
-      {b.visual && <Visual {...b.visual} assets={assets} />}
     </section>
   );
 }
 
+const words = (t: string) => t.trim().split(/\s+/).length;
+
+/** Short by default: long explanations show their first sentence and hide the rest behind "Tell me more". */
 export function TextBlock({ b }: { b: BlockOf<"text"> }) {
+  const [open, setOpen] = useState(false);
+  const long = words(b.body) > 30;
+  const first = b.body.split(/(?<=[.!?])\s+/)[0];
   return (
-    <BlockFrame>
-      {b.title && <h3 className="mb-1 font-display text-lg font-semibold">{b.title}</h3>}
-      <Md text={b.body} />
-    </BlockFrame>
+    <section className="rounded-2xl border-l-4 border-primary bg-surface px-5 py-4 text-lg">
+      {b.title && <h3 className="mb-1 font-display text-xl font-semibold">{b.title}</h3>}
+      {long && !open ? <Md text={first} /> : <Md text={b.body} />}
+      {long && (
+        <button onClick={() => setOpen(!open)} aria-expanded={open} className="mt-1 text-sm font-semibold text-primary underline">
+          {open ? "Show less" : "Tell me more"}
+        </button>
+      )}
+    </section>
   );
 }
 
@@ -282,13 +297,15 @@ export function ModelDownloadBlock({ b, assets }: { b: BlockOf<"modelDownload">;
   );
 }
 
-function Elapsed({ since }: { since: string }) {
+/** Elapsed time since this screen opened (for awareness only). */
+function Elapsed() {
+  const [since] = useState(() => Date.now());
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
-  const s = Math.max(0, Math.floor((now - new Date(since).getTime()) / 1000));
+  const s = Math.max(0, Math.floor((now - since) / 1000));
   const fmt = `${Math.floor(s / 3600) ? Math.floor(s / 3600) + "h " : ""}${Math.floor((s % 3600) / 60)}m ${s % 60}s`;
   return (
     <span className="inline-flex items-center gap-1 font-mono text-sm" aria-label={`Time elapsed ${fmt}`}>
@@ -297,41 +314,47 @@ function Elapsed({ since }: { since: string }) {
   );
 }
 
-export function ChallengeBlock({ b, assets, startedAt, skillTitle }: { b: BlockOf<"challenge">; assets: Record<string, ModelAsset>; startedAt: string | null; skillTitle: (id: string) => string }) {
+/** Boss battles and Prove-It tasks get a "mission briefing" look with a tickable requirements checklist. */
+export function ChallengeBlock({ b, assets, skillTitle }: { b: BlockOf<"challenge">; assets: Record<string, ModelAsset>; startedAt?: string | null; skillTitle: (id: string) => string }) {
+  const [ticks, setTicks] = useState<boolean[]>(() => b.requirements.map(() => false));
+  const briefing = b.kind !== "micro";
   const boss = b.kind === "boss";
+  const done = ticks.filter(Boolean).length;
   return (
-    <BlockFrame tone={boss ? "boss" : "check"} label={boss ? "Boss battle" : b.kind === "prove" ? "Prove it" : "Micro challenge"} icon={boss ? <Swords className="size-4" aria-hidden /> : undefined}>
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <h3 className="font-display text-xl font-bold">{b.title}</h3>
-        {b.showTimer && startedAt && (
-          <div className="text-right">
-            <Elapsed since={startedAt} />
-            <p className="text-xs text-muted">For your awareness — speed doesn&apos;t affect your grade.</p>
+    <section className={cn("overflow-hidden rounded-3xl border", briefing ? "border-transparent bg-fg text-bg" : "border-primary/40 bg-surface")}>
+      <div className={cn("flex flex-wrap items-center justify-between gap-2 px-5 py-3", briefing ? (boss ? "bg-accent text-white" : "bg-primary text-primary-fg") : "bg-primary-soft text-primary")}>
+        <p className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-[0.2em]">
+          {boss ? <Swords className="size-4" aria-hidden /> : null}
+          {boss ? "Boss battle" : b.kind === "prove" ? "Prove it · no steps this time" : "Micro challenge"}
+        </p>
+        {b.showTimer && <Elapsed />}
+      </div>
+      <div className="p-5 sm:p-6">
+        <h3 className="font-display text-2xl font-bold sm:text-3xl">{b.title}</h3>
+        <Md text={b.prompt} className={cn("mt-2 text-lg", briefing && "opacity-90")} />
+        {b.visual && <div className="mt-3 rounded-xl bg-surface p-2"><Visual {...b.visual} assets={assets} /></div>}
+        <p className="mt-5 text-xs font-bold uppercase tracking-widest opacity-75">Requirements · {done}/{b.requirements.length} checked</p>
+        <ul className="mt-2 space-y-2">
+          {b.requirements.map((r, i) => (
+            <li key={i}>
+              <label className={cn("flex cursor-pointer items-center gap-3 rounded-xl border p-3 text-base font-semibold", briefing ? "border-white/20 hover:bg-white/10" : "border-border hover:bg-surface-2", ticks[i] && "opacity-70")}>
+                <input type="checkbox" className="size-5 accent-[var(--accent)]" checked={ticks[i]} onChange={() => setTicks(ticks.map((t, j) => (j === i ? !t : t)))} />
+                <span className={cn(ticks[i] && "line-through")}>{r}</span>
+              </label>
+            </li>
+          ))}
+        </ul>
+        {b.skills.length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center gap-1.5" aria-label="Skills you'll use">
+            <span className="text-xs font-bold uppercase tracking-widest opacity-75">Skills:</span>
+            {b.skills.map((s) => (
+              <span key={s} className={cn("rounded-full px-2.5 py-0.5 text-xs font-semibold", briefing ? "bg-white/15" : "bg-primary-soft text-primary")}>✓ {skillTitle(s)}</span>
+            ))}
           </div>
         )}
+        {b.showTimer && <p className="mt-3 text-xs opacity-75">The timer is just for you — speed doesn&apos;t change your grade.</p>}
       </div>
-      <Md text={b.prompt} />
-      {b.visual && <Visual {...b.visual} assets={assets} />}
-      <h4 className="mt-3 text-sm font-semibold">Requirements</h4>
-      <ul className="mt-1 space-y-1">
-        {b.requirements.map((r, i) => (
-          <li key={i} className="flex gap-2">
-            <span aria-hidden className="text-primary">▸</span> {r}
-          </li>
-        ))}
-      </ul>
-      {b.skills.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-1.5" aria-label="Skills used">
-          <span className="text-xs font-semibold uppercase tracking-wide text-muted">Skills detected:</span>
-          {b.skills.map((s) => (
-            <Pill key={s} tone="primary">
-              ✓ {skillTitle(s)}
-            </Pill>
-          ))}
-        </div>
-      )}
-      {(boss || b.kind === "prove") && <p className="mt-3 text-sm text-muted">No step-by-step directions here — decide which tools you need.</p>}
-    </BlockFrame>
+    </section>
   );
 }
 

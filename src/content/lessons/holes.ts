@@ -82,7 +82,7 @@ export const lesson: LessonInput = {
           title: "Build the container",
           steps: [
             "Open Tinkercad and create a new design.",
-            "Follow the four Show Me steps above to build a 40 × 40 × 30 mm container.",
+            "Use the four Show Me steps you just saw to build a 40 × 40 × 30 mm container.",
             "Ungroup it, change the hole height, and regroup. Watch the floor change.",
           ],
         },

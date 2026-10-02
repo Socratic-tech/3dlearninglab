@@ -134,7 +134,7 @@ export const lesson: LessonInput = {
           type: "challenge",
           kind: "micro",
           title: "Three approaches for the coach",
-          prompt: "Using the coach's three constraints above, sketch three approaches that work in different ways: one that clips, one that hangs, one that slides in.",
+          prompt: "Using the coach's three constraints, sketch three approaches that work in different ways: one that clips, one that hangs, one that slides in.",
           requirements: ["Each sketch shows the 230 mm and 40 mm limits", "Three different ways of holding", "One sentence per sketch: which constraint might be hardest?"],
           skills: ["G3", "F3"],
         },

@@ -45,7 +45,7 @@ export const lesson: LessonInput = {
             { id: "c", text: "About a quarter" },
           ],
           expectedOptionId: "c",
-          reveal: "About a quarter. Thin walls around a big empty middle add up to much less than you'd guess. Check the math below.",
+          reveal: "About a quarter. Thin walls around a big empty middle add up to much less than you'd guess. Check the math.",
         },
       ],
     },

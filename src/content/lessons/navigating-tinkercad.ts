@@ -77,7 +77,7 @@ export const lesson: LessonInput = {
           title: "Import the Misplaced Shapes",
           steps: [
             "Open Tinkercad and create a new design in your class.",
-            "Import misplaced-shapes.stl (download it below). It arrives as one combined shape — that's fine for today.",
+            "Import misplaced-shapes.stl (download it on this screen). It arrives as one combined shape — that's fine for today.",
             "Orbit to a low side view. Which shape sits higher than all the others?",
             "Orbit until you are looking up from under the workplane.",
             "Zoom in on the cube. Orbit to a side view to check whether it touches the workplane.",

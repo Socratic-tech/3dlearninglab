@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { Award, CircleCheck, Lock } from "lucide-react";
 import type { Lesson, LessonBlock, ModelAsset } from "@/content/schema";
@@ -29,6 +29,8 @@ export type PlayerProps = {
   completed: boolean;
   nextLessonTitle?: string | null;
   readOnly?: boolean;
+  /** "steps" = one focused screen at a time (students); "scroll" = whole lesson (teacher preview) */
+  mode?: "steps" | "scroll";
 };
 
 export function LessonPlayer(p: PlayerProps) {
@@ -43,6 +45,18 @@ export function LessonPlayer(p: PlayerProps) {
     [entries, p.evidence],
   );
   const remaining = p.requiredBlockIds.filter((id) => !doneIds.has(id));
+  const steps = useMemo(() => buildSteps(p.lesson), [p.lesson]);
+  const [step, setStep] = useState(() => {
+    if (p.completed) return 0;
+    const first = steps.findIndex((st) => st.blocks.some((b) => p.requiredBlockIds.includes(b.id) && !doneIds.has(b.id)));
+    return first > 0 ? Math.max(0, first) : 0;
+  });
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const go = (n: number) => {
+    setStep(Math.max(0, Math.min(n, steps.length + (p.readOnly ? -1 : 0))));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    requestAnimationFrame(() => headingRef.current?.focus({ preventScroll: true }));
+  };
 
   // approximate time on task: one ping per visible minute
   useEffect(() => {
@@ -89,99 +103,175 @@ export function LessonPlayer(p: PlayerProps) {
     }
   };
 
-  return (
-    <I.LessonCtx.Provider value={ctx}>
-      <div className="grid gap-8 lg:grid-cols-[1fr_14rem]">
-        <div className="min-w-0 space-y-10">
+  const finish = (
+    <section aria-label="Finish this mission" className="rounded-3xl border border-border bg-surface p-6 text-center sm:p-10">
+      {completed ? (
+        <div className="animate-unlock">
+          <CircleCheck className="mx-auto size-16 text-success" aria-hidden />
+          <p className="mt-3 font-display text-3xl font-bold">Mission complete!</p>
+          <p className="mx-auto mt-2 max-w-md text-muted">Your skill levels grow when your teacher reviews your work. You can come back and improve any time.</p>
+          {result?.unlocked.length ? (
+            <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-accent-soft px-4 py-1.5 font-semibold text-accent">
+              <Award className="size-5" aria-hidden /> {result.unlocked.length} new mission{result.unlocked.length > 1 ? "s" : ""} unlocked
+            </p>
+          ) : null}
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
+            {result?.nextLessonId && <ButtonLink href={`/student/lessons/${result.nextLessonId}`} size="lg">Next mission</ButtonLink>}
+            <ButtonLink href="/student/missions" variant="secondary" size="lg">All missions</ButtonLink>
+          </div>
+        </div>
+      ) : (
+        <>
+          <p className="font-display text-2xl font-bold">{remaining.length ? "Almost there" : "Ready to finish?"}</p>
+          {remaining.length > 0 ? (
+            <>
+              <p className="mt-1 text-muted">Still to do:</p>
+              <ul className="mx-auto mt-3 max-w-sm space-y-2 text-left">
+                {remaining.map((id) => {
+                  const idx = steps.findIndex((st) => st.blocks.some((b) => b.id === id));
+                  const b = steps[idx]?.blocks.find((x) => x.id === id);
+                  return (
+                    <li key={id}>
+                      <button onClick={() => go(idx)} className="flex w-full items-center gap-3 rounded-xl border border-border p-3 text-left font-semibold hover:border-primary">
+                        <Lock className="size-4 text-muted" aria-hidden /> {b ? blockLabel(b) : id} <span className="ml-auto text-sm text-primary">Go</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          ) : (
+            <p className="mt-1 text-muted">You did every required activity.</p>
+          )}
+          <Button size="lg" className="mt-6" disabled={pending || remaining.length > 0} onClick={() => start(async () => {
+            const r = await completeLessonAction({ courseId: p.courseId, lessonId: p.lesson.id });
+            if (r.ok) { setCompleted(true); setResult(r.data); setError(null); } else setError(r);
+          })}>
+            {pending ? "Saving…" : "Complete mission"}
+          </Button>
+          {error && <div className="mt-3 text-left"><FriendlyError {...error} /></div>}
+        </>
+      )}
+    </section>
+  );
+
+  // Teacher preview: everything on one page.
+  if (p.mode === "scroll") {
+    return (
+      <I.LessonCtx.Provider value={ctx}>
+        <div className="space-y-10">
           {p.lesson.sections.map((s, i) => (
-            <section key={i} id={`phase-${i}`} aria-labelledby={`phase-h-${i}`} className="scroll-mt-20 space-y-4">
-              <h2 id={`phase-h-${i}`} className="flex items-baseline gap-3 font-display text-xl font-bold">
+            <section key={i} className="space-y-4">
+              <h2 className="flex items-baseline gap-3 font-display text-xl font-bold">
                 <span className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-accent">{PHASE_LABEL[s.phase]}</span>
                 {s.title}
               </h2>
-              {s.blocks.map((b) => (
-                <div key={b.id} id={`block-${b.id}`} className="scroll-mt-20">
-                  {render(b)}
-                </div>
-              ))}
+              {s.blocks.map((b) => <div key={b.id}>{render(b)}</div>)}
             </section>
           ))}
+        </div>
+      </I.LessonCtx.Provider>
+    );
+  }
 
-          {!p.readOnly && (
-            <section aria-label="Finish this mission" className="rounded-3xl border border-border bg-surface p-6 text-center">
-              {completed ? (
-                <div className="animate-unlock">
-                  <CircleCheck className="mx-auto size-10 text-success" aria-hidden />
-                  <p className="mt-2 font-display text-xl font-bold">Mission complete</p>
-                  <p className="text-sm text-muted">Completing a mission isn&apos;t the same as mastering it — your skill levels grow as your teacher reviews your evidence. You can come back and improve any time.</p>
-                  {result?.unlocked.length ? (
-                    <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-accent-soft px-4 py-1 font-semibold text-accent">
-                      <Award className="size-4" aria-hidden /> Unlocked: {result.unlocked.length} new mission{result.unlocked.length > 1 ? "s" : ""}
-                    </p>
-                  ) : null}
-                  <div className="mt-4 flex flex-wrap justify-center gap-2">
-                    {result?.nextLessonId && <ButtonLink href={`/student/lessons/${result.nextLessonId}`}>Next mission</ButtonLink>}
-                    <ButtonLink href="/student/missions" variant="secondary">
-                      All missions
-                    </ButtonLink>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <p className="font-display text-lg font-bold">Ready to finish?</p>
-                  <p className="text-sm text-muted" aria-live="polite">
-                    {remaining.length ? `${remaining.length} required activit${remaining.length === 1 ? "y" : "ies"} still open.` : "Every required activity is done."}
-                  </p>
-                  <Button
-                    size="lg"
-                    className="mt-4"
-                    disabled={pending || remaining.length > 0}
-                    onClick={() =>
-                      start(async () => {
-                        const r = await completeLessonAction({ courseId: p.courseId, lessonId: p.lesson.id });
-                        if (r.ok) {
-                          setCompleted(true);
-                          setResult(r.data);
-                          setError(null);
-                        } else setError(r);
-                      })
-                    }
-                  >
-                    {pending ? "Saving…" : "Complete mission"}
-                  </Button>
-                  {error && <div className="mt-3 text-left"><FriendlyError {...error} /></div>}
-                </>
-              )}
-            </section>
+  const total = steps.length + (p.readOnly ? 0 : 1);
+  const onFinish = step >= steps.length;
+  const cur = steps[Math.min(step, steps.length - 1)];
+  const curPhase = onFinish ? p.lesson.sections.length : cur.section;
+  const openRequired = !onFinish && cur.blocks.some((b) => p.requiredBlockIds.includes(b.id) && !doneIds.has(b.id));
+
+  return (
+    <I.LessonCtx.Provider value={ctx}>
+      <div className="mx-auto max-w-3xl">
+        {/* Phase strip: you are here */}
+        <ol className="mb-3 grid grid-cols-5 gap-1" aria-label="Mission phases">
+          {p.lesson.sections.map((s, i) => {
+            const first = steps.findIndex((st) => st.section === i);
+            const state = i < curPhase ? "done" : i === curPhase ? "now" : "next";
+            return (
+              <li key={i}>
+                <button onClick={() => first >= 0 && go(first)} aria-current={state === "now" ? "step" : undefined}
+                  className={cn("w-full rounded-lg px-1 py-1.5 text-center text-[11px] font-bold uppercase tracking-wider sm:text-xs",
+                    state === "now" ? "bg-primary text-primary-fg" : state === "done" ? "bg-primary-soft text-primary" : "bg-surface-2 text-muted")}>
+                  {state === "done" && <span aria-hidden className="hidden sm:inline">✓ </span>}{PHASE_LABEL[s.phase]}{state === "done" && <span className="sr-only"> (done)</span>}
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+        {/* Step progress */}
+        <div className="mb-6 flex items-center gap-3">
+          <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface-2" role="progressbar" aria-label="Mission progress" aria-valuemin={1} aria-valuemax={total} aria-valuenow={step + 1}>
+            <div className="h-full rounded-full bg-accent transition-[width] duration-500" style={{ width: `${((step + 1) / total) * 100}%` }} />
+          </div>
+          <span className="font-mono text-xs text-muted">{step + 1}/{total}</span>
+        </div>
+
+        <div key={step} className="animate-fade-up space-y-4">
+          {onFinish ? (
+            finish
+          ) : (
+            <>
+              <h2 ref={headingRef} tabIndex={-1} className="font-display text-sm font-bold uppercase tracking-widest text-accent outline-none">
+                {p.lesson.sections[cur.section].title}
+              </h2>
+              {cur.blocks.map((b) => <div key={b.id}>{render(b)}</div>)}
+            </>
           )}
         </div>
 
-        <nav aria-label="Lesson sections" className="hidden lg:block">
-          <div className="sticky top-20 space-y-1 text-sm">
-            {p.lesson.sections.map((s, i) => (
-              <a key={i} href={`#phase-${i}`} className="block rounded-lg px-3 py-1.5 hover:bg-surface-2">
-                <span className="font-mono text-[11px] uppercase tracking-widest text-accent">{PHASE_LABEL[s.phase]}</span>
-                <span className="block font-semibold">{s.title}</span>
-              </a>
-            ))}
-            <p className="mt-4 px-3 text-xs font-semibold uppercase tracking-wide text-muted">Required</p>
-            <ul className="px-3">
-              {p.requiredBlockIds.map((id) => (
-                <li key={id}>
-                  <a href={`#block-${id}`} className={cn("flex items-center gap-2 py-0.5", doneIds.has(id) ? "text-success" : "text-muted")}>
-                    {doneIds.has(id) ? <CircleCheck className="size-3.5" aria-hidden /> : <Lock className="size-3.5" aria-hidden />}
-                    <span className="truncate">{id.replace(/-/g, " ")}</span>
-                    <span className="sr-only">{doneIds.has(id) ? "done" : "to do"}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-            <Link href="/student/missions" className="mt-4 block px-3 text-primary underline">
-              Back to missions
-            </Link>
-          </div>
-        </nav>
+        {/* Big, thumb-friendly navigation */}
+        <div className="sticky bottom-20 z-10 mt-8 flex items-center gap-3 rounded-2xl border border-border bg-surface/95 p-3 shadow-lg backdrop-blur lg:bottom-4">
+          <Button variant="secondary" size="lg" disabled={step === 0} onClick={() => go(step - 1)} aria-label="Previous step">← Back</Button>
+          <span className="flex-1 text-center text-sm text-muted" aria-live="polite">
+            {openRequired ? "Try this one, or skip and come back." : ""}
+          </span>
+          {step < total - 1 && (
+            <Button size="lg" variant={openRequired ? "secondary" : "primary"} onClick={() => go(step + 1)}>
+              {openRequired ? "Skip for now" : "Next →"}
+            </Button>
+          )}
+        </div>
+        <p className="mt-3 text-center text-sm"><Link href="/student/missions" className="text-muted underline">Back to missions</Link></p>
       </div>
     </I.LessonCtx.Provider>
   );
+}
+
+const LIGHT: LessonBlock["type"][] = ["text", "callout"];
+
+/** Group blocks into focused screens: short text/callouts ride along with the activity that follows them. */
+function buildSteps(lesson: Lesson) {
+  const steps: { section: number; blocks: LessonBlock[] }[] = [];
+  lesson.sections.forEach((s, si) => {
+    let carry: LessonBlock[] = [];
+    for (const b of s.blocks) {
+      if (LIGHT.includes(b.type) && carry.length < 2) { carry.push(b); continue; }
+      // files belong with the challenge that asks for them
+      const prev = steps.at(-1);
+      if (b.type === "modelDownload" && !carry.length && prev?.section === si && prev.blocks.at(-1)?.type === "challenge") { prev.blocks.push(b); continue; }
+      steps.push({ section: si, blocks: [...carry, b] });
+      carry = [];
+    }
+    if (carry.length) {
+      const last = steps.at(-1);
+      if (last && last.section === si) last.blocks.push(...carry);
+      else steps.push({ section: si, blocks: carry });
+    }
+  });
+  return steps;
+}
+
+function blockLabel(b: LessonBlock): string {
+  switch (b.type) {
+    case "prediction": return "Make a prediction";
+    case "multipleChoice": return b.check === "skill" ? "Skill check" : "Quick check";
+    case "ordering": return "Put the steps in order";
+    case "matching": return "Match them up";
+    case "hotspot": return "Find the problem";
+    case "measurement": return "Measure it";
+    case "uploadEvidence": return "Submit your design";
+    case "reflection": return "Reflect";
+    default: return b.type;
+  }
 }

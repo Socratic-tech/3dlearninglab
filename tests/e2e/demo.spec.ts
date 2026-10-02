@@ -12,9 +12,18 @@ test("anonymous visitors are sent to sign in", async ({ page }) => {
 });
 
 test("student dashboard, lesson interaction and permission boundary", async ({ page }) => {
+  // start from fresh demo data so earlier runs don't leave the activity answered
+  await signIn(page, "maya@example.test");
+  await page.goto("/settings");
+  await page.getByRole("button", { name: "Reset demo data" }).click();
+  await page.waitForURL(/\/demo/);
   await signIn(page, "maya@example.test");
   await expect(page.getByRole("heading", { name: "Maya" })).toBeVisible();
   await page.goto("/student/lessons/holes");
+  // lessons are one screen at a time: advance to the measurement activity
+  for (let i = 0; i < 12 && !(await page.getByLabel("Your answer").isVisible()); i++) {
+    await page.getByRole("button", { name: /^(Next →|Skip for now)$/ }).click();
+  }
   const measure = page.getByLabel("Your answer").first();
   await measure.fill("38");
   await page.getByRole("button", { name: "Test" }).first().click();

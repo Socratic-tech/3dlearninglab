@@ -172,7 +172,7 @@ export const lesson: LessonInput = {
           id: "journal-start",
           type: "text",
           title: "Start your design journal",
-          body: "Your capstone is coming. Think of someone at school who has a small, annoying problem. Write a first guess below — you will update it after you interview them.",
+          body: "Your capstone is coming. Think of someone at school who has a small, annoying problem. Write a first guess here — you will update it after you interview them.",
         },
         { id: "journal", type: "journal", projectKey: "capstone", promptIds: ["user"] },
         {

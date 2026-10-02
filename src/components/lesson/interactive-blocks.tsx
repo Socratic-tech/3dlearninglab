@@ -46,16 +46,17 @@ function useAnswer(blockId: string) {
 
 function ResultPanel({ result }: { result?: ClientResult }) {
   if (!result) return null;
-  const tone = result.correct === true ? "border-success/40 bg-success-soft" : result.correct === false ? "border-warning/50 bg-warning-soft" : "border-primary/40 bg-primary-soft";
+  const good = result.correct === true;
+  const tone = good ? "border-success bg-success-soft" : result.correct === false ? "border-warning bg-warning-soft" : "border-primary bg-primary-soft";
   return (
-    <div role="status" aria-live="polite" className={cn("mt-4 animate-fade-up rounded-xl border p-4", tone)}>
-      <p className="flex items-center gap-2 font-semibold">
-        {result.correct === true ? <CircleCheck className="size-5 text-success" aria-hidden /> : <FlaskConical className="size-5" aria-hidden />}
+    <div role="status" aria-live="polite" className={cn("mt-4 animate-unlock rounded-2xl border-2 p-5", tone)}>
+      <p className="flex items-center gap-3 font-display text-xl font-bold">
+        {good ? <CircleCheck className="size-8 shrink-0 text-success" aria-hidden /> : <FlaskConical className="size-8 shrink-0" aria-hidden />}
         {result.headline}
       </p>
-      {result.feedback && <p className="mt-1 text-sm">{result.feedback}</p>}
-      {result.explanation && <Md text={result.explanation} className="mt-1 text-sm" />}
-      {result.correct === false && !result.locked && <p className="mt-2 text-sm font-semibold">What would you change? Try again.</p>}
+      {result.feedback && <p className="mt-2">{result.feedback}</p>}
+      {result.explanation && <Md text={result.explanation} className="mt-2" />}
+      {result.correct === false && !result.locked && <p className="mt-3 font-semibold">What would you change? Try again ↑</p>}
     </div>
   );
 }
@@ -67,7 +68,7 @@ function Header({ label, prompt, check }: { label: string; prompt: string; check
         <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-primary">{label}</p>
         {check === "skill" && <Pill tone="accent">Skill check</Pill>}
       </div>
-      <Md text={prompt} className="text-lg font-semibold" />
+      <Md text={prompt} className="font-display text-xl font-bold sm:text-2xl" />
     </>
   );
 }
@@ -84,7 +85,7 @@ export function PredictionBlock({ b }: { b: BlockOf<"prediction"> }) {
       {b.visual && <div className="my-3"><Visual {...b.visual} assets={ctx.assets} /></div>}
       <OptionList name={b.id} options={b.options} multiple={false} value={choice ? [choice] : []} onChange={(v) => setChoice(v[0])} disabled={locked} />
       {!locked && (
-        <Button className="mt-4" disabled={!choice || pending} onClick={() => submit({ type: "prediction", optionId: choice })}>
+        <Button size="lg" className="mt-5" disabled={!choice || pending} onClick={() => submit({ type: "prediction", optionId: choice })}>
           {pending ? "Locking in…" : "Lock in my prediction"}
         </Button>
       )}
@@ -105,7 +106,7 @@ function OptionList({ name, options, multiple, value, onChange, disabled, correc
           <label
             key={o.id}
             className={cn(
-              "flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-focus",
+              "flex min-h-14 cursor-pointer items-start gap-3 rounded-2xl border-2 p-4 text-base font-semibold transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-focus",
               checked ? "border-primary bg-primary-soft" : "border-border hover:bg-surface-2",
               correct && "border-success bg-success-soft",
               disabled && "cursor-default",
@@ -114,7 +115,7 @@ function OptionList({ name, options, multiple, value, onChange, disabled, correc
             <input
               type={multiple ? "checkbox" : "radio"}
               name={name}
-              className="mt-1 size-4 accent-[var(--primary)]"
+              className="mt-0.5 size-5 accent-[var(--primary)]"
               checked={checked}
               onChange={(e) => onChange(multiple ? (e.target.checked ? [...value, o.id] : value.filter((x) => x !== o.id)) : [o.id])}
             />
@@ -142,7 +143,7 @@ export function MultipleChoiceBlock({ b }: { b: BlockOf<"multipleChoice"> }) {
       {b.visual && <div className="my-3"><Visual {...b.visual} assets={ctx.assets} /></div>}
       <OptionList name={b.id} options={b.options} multiple={multiple} value={value} onChange={setValue} disabled={locked} correctIds={(result?.reveal.correctOptionIds as string[]) ?? undefined} />
       {!locked && (
-        <Button className="mt-4" disabled={!value.length || pending} onClick={() => submit({ type: "multipleChoice", optionIds: value })}>
+        <Button size="lg" className="mt-5" disabled={!value.length || pending} onClick={() => submit({ type: "multipleChoice", optionIds: value })}>
           {pending ? "Testing…" : "Test my answer"}
         </Button>
       )}
@@ -190,7 +191,7 @@ export function OrderingBlock({ b }: { b: BlockOf<"ordering"> }) {
       </ol>
       <p className="sr-only" aria-live="polite">{announce}</p>
       {!locked && (
-        <Button className="mt-4" disabled={pending} onClick={() => submit({ type: "ordering", order: items.map((i) => i.id) })}>
+        <Button size="lg" className="mt-5" disabled={pending} onClick={() => submit({ type: "ordering", order: items.map((i) => i.id) })}>
           {pending ? "Testing…" : "Test my order"}
         </Button>
       )}
@@ -230,7 +231,7 @@ export function MatchingBlock({ b }: { b: BlockOf<"matching"> }) {
         ))}
       </div>
       {!locked && (
-        <Button className="mt-4" disabled={pending || Object.keys(pairs).length < b.pairs.length} onClick={() => submit({ type: "matching", pairs })}>
+        <Button size="lg" className="mt-5" disabled={pending || Object.keys(pairs).length < b.pairs.length} onClick={() => submit({ type: "matching", pairs })}>
           {pending ? "Testing…" : "Test my matches"}
         </Button>
       )}
@@ -275,7 +276,7 @@ export function HotspotBlock({ b }: { b: BlockOf<"hotspot"> }) {
               </button>
             ))}
           </div>
-          <Button className="mt-4" disabled={!point || pending} onClick={() => point && submit({ type: "hotspot", point })}>
+          <Button size="lg" className="mt-5" disabled={!point || pending} onClick={() => point && submit({ type: "hotspot", point })}>
             {pending ? "Testing…" : "Test this spot"}
           </Button>
         </>

@@ -44,7 +44,7 @@ export default async function TeacherView(props: PageProps<"/teacher/curriculum/
       </div>
       {assets.length > 0 && <section className="mb-8"><h2 className="mb-3 font-display text-xl font-bold">Model files</h2><div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">{assets.map((a) => <ModelCard key={a.id} a={a} />)}</div></section>}
       <h2 className="mb-3 font-display text-xl font-bold">Student view (preview)</h2>
-      <LessonPlayer courseId="" lesson={lesson} entries={{}} requiredBlockIds={[]} evidence={[]} assets={Object.fromEntries(assets.map((a) => [a.id, a]))} competencyTitles={Object.fromEntries(competencies.map((c) => [c.id, c.title]))} journalPrompts={[]} journals={{}} tinkercadClassUrl={null} startedAt={null} completed={false} readOnly />
+      <LessonPlayer courseId="" lesson={lesson} entries={{}} requiredBlockIds={[]} evidence={[]} assets={Object.fromEntries(assets.map((a) => [a.id, a]))} competencyTitles={Object.fromEntries(competencies.map((c) => [c.id, c.title]))} journalPrompts={[]} journals={{}} tinkercadClassUrl={null} startedAt={null} completed={false} readOnly mode="scroll" />
     </>
   );
 }
