@@ -24,10 +24,12 @@ export function LessonPage({ me, apiUrl, lessonId, onChange }: { me: Me; apiUrl:
     );
   }
   const p = me.progress[lessonId];
+  const preview = me.user.role !== "student";
   const evidence = me.evidence.filter((e) => e.lessonId === lessonId).map((e) => ({ id: e.id, type: e.type, fileName: e.fileName, url: e.url, createdAt: e.createdAt, status: e.status, teacherComment: e.comment, teacherRating: e.rating, blockId: e.blockId }));
   return (
     <article>
       <header className="mx-auto mb-6 max-w-3xl">
+        {preview && <div className="mb-3"><Alert tone="info" title="Teacher preview">Try every activity like a student. Your answers go to your own test record, not to any class.</Alert></div>}
         <a href="#/" className="text-sm text-muted hover:text-fg">← Missions</a>
         <h1 className="mt-1 font-display text-2xl font-bold sm:text-3xl">{lesson.title} <span className="text-lg font-normal text-muted">· {lesson.subtitle}</span></h1>
         <div className="mt-2 flex flex-wrap gap-2">
@@ -50,7 +52,7 @@ export function LessonPage({ me, apiUrl, lessonId, onChange }: { me: Me; apiUrl:
         tinkercadClassUrl={me.cls?.tinkercadUrl ?? null}
         startedAt={p?.startedAt ?? null}
         completed={p?.status === "completed"}
-        readOnly={me.user.role !== "student"}
+        readOnly={false}
         api={api}
         links={{ lesson: (id) => `#/lesson/${id}`, missions: "#/" }}
       />

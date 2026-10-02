@@ -75,8 +75,22 @@ export function scoreBlock(block: LessonBlock, response: BlockResponse): ScoreRe
       };
     }
     case "matching": {
-      const r = response as Extract<BlockResponse, { type: "matching" }>;
-      const ok = (p: { id: string }) => r.pairs[p.id] === p.id || r.pairs[p.id] === matchToken(block.id, p.id);
+      const r = { ...(response as Extract<BlockResponse, { type: "matching" }>) };
+      r.pairs = { ...r.pairs };
+      // A choice is right if it belongs to ANY pair with the same left label, so "sort into groups" blocks
+      // (two Subtractive rows, two Additive rows) accept either example in either row.
+      const pairForChoice = (choice: string | undefined) => block.pairs.find((q) => choice === q.id || choice === matchToken(block.id, q.id));
+      const ok = (p: { id: string; left: string }) => pairForChoice(r.pairs[p.id])?.left === p.left;
+      const used = Object.values(r.pairs);
+      if (new Set(used).size !== used.length) {
+        // the same example picked twice can only be right once
+        const seen = new Set<string>();
+        for (const p of block.pairs) {
+          const c = r.pairs[p.id];
+          if (c && seen.has(c)) delete r.pairs[p.id];
+          else if (c) seen.add(c);
+        }
+      }
       const right = block.pairs.filter(ok).length;
       const correct = right === block.pairs.length;
       return {

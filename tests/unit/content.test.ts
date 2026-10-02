@@ -80,3 +80,13 @@ describe("curriculum content", () => {
       }
   });
 });
+
+describe("matching with repeated labels", () => {
+  it("accepts either example in either row of the same group, but not the same example twice", () => {
+    const b = { id: "sort", type: "matching" as const, prompt: "", explanation: "", check: "practice" as const, pairs: [
+      { id: "p1", left: "Subtractive", right: "Drill" }, { id: "p2", left: "Additive", right: "Print" },
+      { id: "p3", left: "Subtractive", right: "Carve" }, { id: "p4", left: "Additive", right: "Clay" } ] };
+    expect(scoreBlock(b, { type: "matching", pairs: { p1: "p3", p2: "p4", p3: "p1", p4: "p2" } }).correct).toBe(true);
+    expect(scoreBlock(b, { type: "matching", pairs: { p1: "p1", p2: "p2", p3: "p1", p4: "p4" } }).correct).toBe(false);
+  });
+});
