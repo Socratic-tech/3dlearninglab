@@ -111,6 +111,7 @@ export function validateCurriculum(): string[] {
       if ("visual" in b && b.visual?.diagram) diagrams.push(b.visual.diagram);
       if (b.type === "showMe") b.steps.forEach((s) => s.diagram && diagrams.push(s.diagram));
       if (b.type === "observe") b.cards.forEach((c) => c.diagram && diagrams.push(c.diagram));
+      if (b.type === "failGallery") b.cards.forEach((c) => diagrams.push(c.diagram));
       if ("options" in b) b.options.forEach((o) => o.diagram && diagrams.push(o.diagram));
       for (const d of diagrams) if (!(d in diagramCatalog)) problems.push(`${l.id}/${b.id}: unknown diagram ${d}`);
       const models: string[] = [];

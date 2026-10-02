@@ -57,3 +57,19 @@ A typical lesson: hook (`hero`) → very short explanation (`text`) → demonstr
 - Every misconception id used by an option must be described in `teacher.misconceptions`.
 - Do not copy third-party curriculum wording, branding or assets.
 - Standards mappings go in `src/content/standards.ts`, never in lesson prose.
+
+## Flavor: real-world openers, clients and themes
+
+`src/content/flavor.ts` adds personality without touching lesson files:
+
+- **hook** (every lesson): an "In the real world" card on the first screen. Real facts only — check them before adding
+  (e.g. the 2023 Terran 1 launch, 3D-printed hearing-aid shells and running-shoe midsoles, Dyson's 5,127 prototypes,
+  OXO Good Grips, the 19.05 mm keyboard key pitch). Keep it under ~55 words.
+- **clients** (by challenge id): a fictional person asking for the challenge, shown as a message. Must match the
+  challenge's real requirements.
+- **themes** (by challenge id): 2–3 "make it yours" options for open-ended challenges. Never for exact-spec tasks.
+
+Style: second person, short, a little funny. No slang cosplay, no brand mascots or characters.
+`tests/unit/flavor.test.ts` checks every lesson has a hook and every client/theme points at a real challenge.
+
+`failGallery` blocks (Print Detective, Print Failures) show nicknamed fails with a clue, then reveal cause and fix.

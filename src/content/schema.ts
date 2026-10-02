@@ -261,6 +261,15 @@ export const challengeBlock = z.object({
   /** Where the work happens: in Tinkercad, offline (paper, tools, real objects, people) or both. */
   where: z.enum(["tinkercad", "offline", "both"]).default("tinkercad"),
 });
+/** Fail gallery: swipe through famous print fails, guess, then reveal what went wrong. Not scored. */
+export const failGalleryBlock = z.object({
+  ...base,
+  type: z.literal("failGallery"),
+  title: z.string(),
+  cards: z
+    .array(z.object({ id: z.string(), nickname: z.string(), diagram: z.string(), clue: z.string(), cause: z.string(), fix: z.string() }))
+    .min(2),
+});
 export const journalBlock = z.object({
   ...base,
   type: z.literal("journal"),
@@ -309,6 +318,7 @@ export const lessonBlockSchema = z.discriminatedUnion("type", [
   challengeBlock,
   journalBlock,
   observeBlock,
+  failGalleryBlock,
 ]);
 export type LessonBlock = z.infer<typeof lessonBlockSchema>;
 export type LessonBlockInput = z.input<typeof lessonBlockSchema>;

@@ -32,6 +32,17 @@ export const lesson: LessonInput = {
           visual: { diagram: "layers-stack" },
         },
         {
+          id: "fail-gallery",
+          type: "failGallery",
+          title: "Fail gallery · guess the crime",
+          cards: [
+            { id: "spaghetti", nickname: "The Spaghetti Monster", diagram: "failure-spaghetti", clue: "Started fine. Came back an hour later to a bird's nest of plastic noodles.", cause: "The part came loose from the bed (or started in mid-air), so the nozzle kept squirting plastic onto nothing.", fix: "Make sure the part sits flat on the workplane, clean the bed, and watch the first layer go down." },
+            { id: "stringing", nickname: "The Cobweb", diagram: "failure-stringing", clue: "Thin hairy strings stretched between two towers, like a spider moved in.", cause: "Melted plastic oozed out of the nozzle while it travelled across the gap.", fix: "Usually a settings fix: lower the temperature a little or turn retraction up. Your design is probably fine." },
+            { id: "warping", nickname: "The Banana", diagram: "failure-warping", clue: "The corners curled up off the bed. It rocks on the table.", cause: "The plastic shrank as it cooled, pulling the corners up — big flat parts are the worst.", fix: "Round the sharp corners, add a brim, or keep drafts off the printer." },
+            { id: "shift", nickname: "The Glitch", diagram: "failure-layer-shift", clue: "Halfway up, the whole print jumped sideways, like a video game lag spike.", cause: "The print head got bumped or skipped steps — often the nozzle hit a curled-up part.", fix: "Printer problem: check the belts and that nothing blocks the head. Re-print." }
+          ],
+        },
+        {
           id: "rules",
           type: "text",
           title: "Detective rules",

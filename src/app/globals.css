@@ -267,3 +267,22 @@ body {
   body { background: #fff; }
   .bg-blueprint { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/*
+ * Unlockable looks (earned with XP). Only brand colours change, all pairs stay WCAG AA.
+ * Ignored when High contrast is on.
+ */
+:root[data-skin="neon"]:not([data-contrast="high"]) { --primary: #6d28d9; --primary-soft: #ede9fe; --accent: #be185d; --accent-soft: #fce7f3; --grid: rgba(109, 40, 217, 0.08); }
+:root[data-skin="arcade"]:not([data-contrast="high"]) { --primary: #0f766e; --primary-soft: #ccfbf1; --accent: #c2410c; --accent-soft: #ffedd5; --grid: rgba(15, 118, 110, 0.08); }
+:root[data-skin="sunset"]:not([data-contrast="high"]) { --primary: #b91c5c; --primary-soft: #fde2ec; --accent: #b45309; --accent-soft: #fef3c7; --grid: rgba(185, 28, 92, 0.07); }
+:root[data-skin="galaxy"]:not([data-contrast="high"]) { --primary: #4338ca; --primary-soft: #e0e7ff; --accent: #a21caf; --accent-soft: #fae8ff; --grid: rgba(67, 56, 202, 0.09); }
+@media (prefers-color-scheme: dark) {
+  :root[data-skin="neon"]:not([data-contrast="high"]):not([data-theme="light"]) { --primary: #c4b5fd; --primary-fg: #1e0b3b; --primary-soft: #2e1a52; --accent: #f9a8d4; --accent-soft: #4a1530; --grid: rgba(196, 181, 253, 0.08); }
+  :root[data-skin="arcade"]:not([data-contrast="high"]):not([data-theme="light"]) { --primary: #5eead4; --primary-fg: #042f2c; --primary-soft: #0f3b38; --accent: #fdba74; --accent-soft: #432210; --grid: rgba(94, 234, 212, 0.08); }
+  :root[data-skin="sunset"]:not([data-contrast="high"]):not([data-theme="light"]) { --primary: #f9a8c9; --primary-fg: #3b0a1f; --primary-soft: #4a1630; --accent: #fcd34d; --accent-soft: #3d2a08; --grid: rgba(249, 168, 201, 0.08); }
+  :root[data-skin="galaxy"]:not([data-contrast="high"]):not([data-theme="light"]) { --primary: #a5b4fc; --primary-fg: #111339; --primary-soft: #23265e; --accent: #f0abfc; --accent-soft: #3f1747; --grid: rgba(165, 180, 252, 0.1); }
+}
+:root[data-skin="neon"][data-theme="dark"]:not([data-contrast="high"]) { --primary: #c4b5fd; --primary-fg: #1e0b3b; --primary-soft: #2e1a52; --accent: #f9a8d4; --accent-soft: #4a1530; --grid: rgba(196, 181, 253, 0.08); }
+:root[data-skin="arcade"][data-theme="dark"]:not([data-contrast="high"]) { --primary: #5eead4; --primary-fg: #042f2c; --primary-soft: #0f3b38; --accent: #fdba74; --accent-soft: #432210; --grid: rgba(94, 234, 212, 0.08); }
+:root[data-skin="sunset"][data-theme="dark"]:not([data-contrast="high"]) { --primary: #f9a8c9; --primary-fg: #3b0a1f; --primary-soft: #4a1630; --accent: #fcd34d; --accent-soft: #3d2a08; --grid: rgba(249, 168, 201, 0.08); }
+:root[data-skin="galaxy"][data-theme="dark"]:not([data-contrast="high"]) { --primary: #a5b4fc; --primary-fg: #111339; --primary-soft: #23265e; --accent: #f0abfc; --accent-soft: #3f1747; --grid: rgba(165, 180, 252, 0.1); }

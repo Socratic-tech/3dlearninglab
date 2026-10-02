@@ -3,6 +3,7 @@ import { ArrowRight, Printer, RotateCcw } from "lucide-react";
 import { Pill } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { call } from "../api";
+import { applySkin, savedSkin, SKINS, SkinPicker, type SkinId } from "../skins";
 import { MissionPath, StreakCard } from "@/components/student/mission-path";
 import { ProgressRing, ProgressBar } from "@/components/ui/progress";
 import { rank } from "@/lib/mastery";
@@ -36,6 +37,7 @@ export function StudentHome({ me, apiUrl, onChange }: { me: Me; apiUrl: string; 
       </section>
 
       {me.stats && <StreakCard stats={me.stats} />}
+      {me.stats && <Looks xp={me.stats.xp} />}
 
       <ReviewDeck me={me} />
 
@@ -162,4 +164,15 @@ function MyPrints({ me, apiUrl, onChange }: { me: Me; apiUrl: string; onChange: 
       <p role="status" className="mt-2 text-sm">{msg}</p>
     </section>
   );
+}
+
+function Looks({ xp }: { xp: number }) {
+  const [skin, setSkin] = useState<SkinId>(() => {
+    // a shared device: don't keep a look this student hasn't earned
+    const s = savedSkin();
+    const need = SKINS.find((x) => x.id === s)?.xp ?? 0;
+    if (xp < need) { applySkin("blueprint"); return "blueprint"; }
+    return s;
+  });
+  return <SkinPicker xp={xp} current={skin} onChange={(id) => { applySkin(id); setSkin(id); }} />;
 }

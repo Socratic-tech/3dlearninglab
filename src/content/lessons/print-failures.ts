@@ -32,6 +32,17 @@ export const lesson: LessonInput = {
           visual: { diagram: "failure-spaghetti" },
         },
         {
+          id: "fail-gallery",
+          type: "failGallery",
+          title: "Fail gallery · name that fail",
+          cards: [
+            { id: "stringing", nickname: "The Cobweb", diagram: "failure-stringing", clue: "Thin hairy strings stretched between two towers, like a spider moved in.", cause: "Melted plastic oozed out of the nozzle while it travelled across the gap.", fix: "Usually a settings fix: lower the temperature a little or turn retraction up. Your design is probably fine." },
+            { id: "foot", nickname: "Elephant's Foot", diagram: "failure-elephant-foot", clue: "The bottom few layers bulge out wider than the rest. Now it won't fit in its hole.", cause: "The first layers got squished extra flat against the hot bed.", fix: "Add a tiny chamfer to the bottom edge in your design, or ask your teacher to adjust the first-layer settings." },
+            { id: "under", nickname: "The Swiss Cheese", diagram: "failure-under-extrusion", clue: "Gaps and see-through spots in the walls. It crumbles when you squeeze it.", cause: "Not enough plastic came out — a partial clog, or the filament slipped.", fix: "Printer problem: clean the nozzle or check the filament path. The design is fine." },
+            { id: "scars", nickname: "The Battle Scars", diagram: "support-scars", clue: "The part printed! But underneath it's rough, ugly and full of nubs.", cause: "Support material was needed and left marks when it was snapped off.", fix: "Design it out: use 45° angles or a different orientation so it needs no support." }
+          ],
+        },
+        {
           id: "explain",
           type: "text",
           body: "Like a doctor, a designer looks at the **symptoms**, thinks of likely **causes**, then changes **one thing** and tests again. Some failures come from the design. Others come from the printer or settings.",

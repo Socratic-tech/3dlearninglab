@@ -14,6 +14,7 @@ import { cn } from "@/lib/cn";
 import * as S from "./static-blocks";
 import * as I from "./interactive-blocks";
 import { Md } from "./static-blocks";
+import { flavorFor } from "@/content/flavor";
 
 const PHASE_LABEL = { discover: "Discover", practice: "Practice", apply: "Apply", prove: "Prove", reflect: "Reflect" } as const;
 
@@ -126,6 +127,7 @@ export function LessonPlayer(p: PlayerProps) {
     registerCheck: p.mode === "scroll" ? undefined : registerCheck,
   };
 
+  const flavor = flavorFor(p.lesson.id);
   const render = (b: LessonBlock) => {
     switch (b.type) {
       case "hero": return <S.HeroBlock b={b} assets={p.assets} />;
@@ -138,9 +140,10 @@ export function LessonPlayer(p: PlayerProps) {
       case "modelViewer": return <S.ModelViewerBlock b={b} assets={p.assets} />;
       case "tinkercadLaunch": return <S.TinkercadBlock b={b} classUrl={p.tinkercadClassUrl} />;
       case "modelDownload": return <S.ModelDownloadBlock b={b} assets={p.assets} />;
-      case "challenge": return <S.ChallengeBlock b={b} assets={p.assets} startedAt={p.startedAt} skillTitle={(id) => p.competencyTitles[id] ?? id} classUrl={p.tinkercadClassUrl} />;
+      case "challenge": return <S.ChallengeBlock b={b} assets={p.assets} startedAt={p.startedAt} skillTitle={(id) => p.competencyTitles[id] ?? id} classUrl={p.tinkercadClassUrl} client={flavor?.clients?.[b.id]} themes={flavor?.themes?.[b.id]} pickId={`${p.lesson.id}.${b.id}`} />;
       case "teacherCheck": return <S.TeacherCheckBlock b={b} done={doneIds.has(b.id)} />;
       case "observe": return <S.ObserveBlock b={b} />;
+      case "failGallery": return <S.FailGalleryBlock b={b} />;
       case "prediction": return <I.PredictionBlock b={b} />;
       case "multipleChoice": return <I.MultipleChoiceBlock b={b} />;
       case "ordering": return <I.OrderingBlock b={b} />;
@@ -226,6 +229,7 @@ export function LessonPlayer(p: PlayerProps) {
     return (
       <I.LessonCtx.Provider value={ctx}>
         <div className="space-y-10">
+          {flavor && <S.RealWorldCard hook={flavor.hook} />}
           {p.lesson.sections.map((s, i) => (
             <section key={i} className="space-y-4">
               <h2 className="flex items-baseline gap-3 font-display text-xl font-bold">
@@ -291,6 +295,7 @@ export function LessonPlayer(p: PlayerProps) {
               <h2 ref={headingRef} tabIndex={-1} className="font-display text-sm font-bold uppercase tracking-widest text-accent outline-none">
                 {p.lesson.sections[cur.section].title}
               </h2>
+              {step === 0 && flavor && <S.RealWorldCard hook={flavor.hook} />}
               {cur.blocks.map((b) => <div key={b.id}>{render(b)}</div>)}
             </>
           )}

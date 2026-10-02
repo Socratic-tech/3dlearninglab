@@ -1,7 +1,8 @@
 "use client";
 
 import { Fragment, useEffect, useState, type ReactNode } from "react";
-import { BookOpen, Download, ExternalLink, Eye, Lightbulb, Monitor, PencilRuler, PlayCircle, ShieldAlert, Swords, Timer, TriangleAlert, Users } from "lucide-react";
+import { BookOpen, Download, ExternalLink, Eye, Globe2, Lightbulb, MessageCircle, Monitor, PencilRuler, PlayCircle, ShieldAlert, Swords, Timer, TriangleAlert, Users } from "lucide-react";
+import type { Client, Hook, Theme } from "@/content/flavor";
 import type { BlockOf, ModelAsset } from "@/content/schema";
 import { Diagram } from "@/components/diagrams";
 import LazyModelViewer from "@/components/viewer/LazyModelViewer";
@@ -347,7 +348,61 @@ function Elapsed() {
 }
 
 /** Boss battles and Prove-It tasks get a "mission briefing" look with a tickable requirements checklist. */
-export function ChallengeBlock({ b, assets, skillTitle, classUrl = null }: { b: BlockOf<"challenge">; assets: Record<string, ModelAsset>; startedAt?: string | null; skillTitle: (id: string) => string; classUrl?: string | null }) {
+/** Opening card: where this skill shows up in the real world. */
+export function RealWorldCard({ hook }: { hook: Hook }) {
+  return (
+    <section className="rounded-3xl border-2 border-accent bg-accent-soft p-5 sm:p-6">
+      <p className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-[0.18em] text-accent">
+        <Globe2 className="size-4" aria-hidden /> In the real world
+      </p>
+      <h2 className="mt-2 font-display text-2xl font-bold sm:text-3xl">{hook.headline}</h2>
+      <p className="mt-2 text-lg">{hook.body}</p>
+    </section>
+  );
+}
+
+/** A request from a (fictional) client, styled like a message. */
+function ClientMessage({ c }: { c: Client }) {
+  const initials = c.name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  return (
+    <div className="mb-4 flex items-start gap-3">
+      <span aria-hidden className="grid size-11 shrink-0 place-items-center rounded-full bg-accent font-display font-bold text-white">{initials}</span>
+      <div className="min-w-0 flex-1">
+        <p className="flex flex-wrap items-center gap-x-2 text-sm"><MessageCircle className="size-4" aria-hidden /><strong>New request from {c.name}</strong><span className="opacity-75">· {c.who}</span></p>
+        <p className="mt-1 rounded-2xl rounded-tl-sm bg-surface p-3 text-base text-fg">{c.message}</p>
+      </div>
+    </div>
+  );
+}
+
+const themeKey = (id: string) => `academy.pick.${id}`;
+/** Same skill, your choice of theme. Remembered on this device only. */
+function ThemePicker({ id, themes }: { id: string; themes: Theme[] }) {
+  const [pick, setPick] = useState<string | null>(() => {
+    try { return localStorage.getItem(themeKey(id)); } catch { return null; }
+  });
+  const choose = (label: string) => {
+    setPick(label);
+    try { localStorage.setItem(themeKey(id), label); } catch { /* private mode */ }
+  };
+  const chosen = themes.find((t) => t.label === pick);
+  return (
+    <fieldset className="mt-5">
+      <legend className="text-xs font-bold uppercase tracking-widest opacity-75">Make it yours · pick a theme</legend>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {themes.map((t) => (
+          <button key={t.label} type="button" aria-pressed={pick === t.label} onClick={() => choose(t.label)}
+            className={cn("rounded-full border-2 px-4 py-1.5 text-sm font-bold", pick === t.label ? "border-accent bg-accent text-white" : "border-current/30 hover:border-accent")}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      {chosen && <p className="mt-2 text-base" aria-live="polite">Idea: {chosen.idea}. Same requirements — your style.</p>}
+    </fieldset>
+  );
+}
+
+export function ChallengeBlock({ b, assets, skillTitle, classUrl = null, client, themes, pickId }: { b: BlockOf<"challenge">; assets: Record<string, ModelAsset>; startedAt?: string | null; skillTitle: (id: string) => string; classUrl?: string | null; client?: Client; themes?: Theme[]; pickId?: string }) {
   const [ticks, setTicks] = useState<boolean[]>(() => b.requirements.map(() => false));
   const briefing = b.kind !== "micro";
   const boss = b.kind === "boss";
@@ -362,10 +417,12 @@ export function ChallengeBlock({ b, assets, skillTitle, classUrl = null }: { b: 
         {b.showTimer && <Elapsed />}
       </div>
       <div className="p-5 sm:p-6">
+        {client && <ClientMessage c={client} />}
         <WhereTag where={b.where ?? "tinkercad"} />
         <h3 className="mt-3 font-display text-2xl font-bold sm:text-3xl">{b.title}</h3>
         <Md text={b.prompt} className={cn("mt-2 text-lg", briefing && "opacity-90")} />
         {b.visual && <div className="mt-3 rounded-xl bg-surface p-2"><Visual {...b.visual} assets={assets} /></div>}
+        {themes && themes.length > 0 && <ThemePicker id={pickId ?? b.id} themes={themes} />}
         <p className="mt-5 text-xs font-bold uppercase tracking-widest opacity-75">Requirements · {done}/{b.requirements.length} checked</p>
         <ul className="mt-2 space-y-2">
           {b.requirements.map((r, i) => (
@@ -410,6 +467,39 @@ export function TeacherCheckBlock({ b, done }: { b: BlockOf<"teacherCheck">; don
         {done ? "✓ Your teacher has checked this." : "When you're ready, ask your teacher to check your work."}
       </p>
     </BlockFrame>
+  );
+}
+
+/** Fail gallery: one card at a time. Guess, then flip to see what went wrong and how to fix it. */
+export function FailGalleryBlock({ b }: { b: BlockOf<"failGallery"> }) {
+  const [i, setI] = useState(0);
+  const [shown, setShown] = useState<Record<string, boolean>>({});
+  const c = b.cards[i];
+  const open = !!shown[c.id];
+  return (
+    <section className="overflow-hidden rounded-3xl border-2 border-danger/50 bg-surface" aria-roledescription="carousel" aria-label={b.title}>
+      <div className="flex items-center justify-between bg-danger-soft px-5 py-3">
+        <p className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-danger">{b.title}</p>
+        <p className="font-mono text-xs text-muted" aria-live="polite">{i + 1} / {b.cards.length}</p>
+      </div>
+      <div className="p-5 sm:p-6" aria-roledescription="slide" aria-label={`${i + 1} of ${b.cards.length}: ${c.nickname}`}>
+        <h3 className="font-display text-2xl font-bold">{c.nickname}</h3>
+        <div className="mt-3 rounded-2xl bg-surface-2/60 p-2 [&_svg]:max-h-56"><Diagram name={c.diagram} /></div>
+        <p className="mt-3 text-lg"><strong>Clue:</strong> {c.clue}</p>
+        {open ? (
+          <div className="mt-3 animate-fade-up space-y-2 rounded-2xl border-2 border-success bg-success-soft p-4">
+            <p><strong>What went wrong:</strong> {c.cause}</p>
+            <p><strong>The fix:</strong> {c.fix}</p>
+          </div>
+        ) : (
+          <button className={buttonClass("primary", "lg", "mt-4")} onClick={() => setShown({ ...shown, [c.id]: true })}>Guess first… then reveal</button>
+        )}
+        <div className="mt-5 flex items-center justify-between gap-2">
+          <button className={buttonClass("secondary")} disabled={i === 0} onClick={() => setI(i - 1)}>← Previous fail</button>
+          <button className={buttonClass("secondary")} disabled={i === b.cards.length - 1} onClick={() => setI(i + 1)}>Next fail →</button>
+        </div>
+      </div>
+    </section>
   );
 }
 
