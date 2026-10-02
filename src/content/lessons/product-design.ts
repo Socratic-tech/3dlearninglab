@@ -104,6 +104,7 @@ export const lesson: LessonInput = {
         {
           id: "micro",
           type: "challenge",
+          where: "both",
           kind: "micro",
           title: "The rolling markers",
           prompt: "Sketch three different ways to stop Ms. Ortiz's markers rolling off a 5 cm ledge. Then block out your best one in Tinkercad in 10 minutes.",
@@ -143,6 +144,7 @@ export const lesson: LessonInput = {
         {
           id: "prove",
           type: "challenge",
+          where: "offline",
           kind: "prove",
           title: "A new user, a new problem",
           prompt: "Coach Lee's whistle lanyard tangles with the clipboard every practice, and the whistle ends up on the ground. Describe the need, sketch three different ideas, and choose one using the need — not your favourite.",

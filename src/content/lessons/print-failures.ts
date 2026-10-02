@@ -141,6 +141,7 @@ export const lesson: LessonInput = {
         {
           id: "prove",
           type: "challenge",
+          where: "offline",
           kind: "prove",
           title: "Failure detective",
           prompt: "Your teacher will give you a real failed print (or a photo of one) you haven't seen before. Diagnose it like a pro — no hints this time.",

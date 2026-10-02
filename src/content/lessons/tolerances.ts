@@ -174,6 +174,7 @@ export const lesson: LessonInput = {
         {
           id: "prove",
           type: "challenge",
+          where: "both",
           kind: "prove",
           title: "Build a fit gauge for a pencil",
           prompt: "Design your own fit gauge for a pencil or pen you have in class. Measure it first. Your gauge should test three hole sizes so the class can find the best fit for that object.",

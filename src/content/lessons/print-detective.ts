@@ -157,6 +157,7 @@ export const lesson: LessonInput = {
         {
           id: "prove",
           type: "challenge",
+          where: "offline",
           kind: "prove",
           title: "The unknown sample",
           prompt: "Your teacher will hand you a print you haven't seen before. Write a short case report. No hints this time.",

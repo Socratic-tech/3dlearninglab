@@ -141,6 +141,7 @@ export const lesson: LessonInput = {
         {
           id: "prove",
           type: "challenge",
+          where: "both",
           kind: "prove",
           title: "Design for Someone Else",
           prompt: "Deliver a printed object that solves your client's problem. Test it in their real space with them. Your journal tells the full story — including what failed.",

@@ -128,6 +128,7 @@ export const lesson: LessonInput = {
         {
           id: "micro",
           type: "challenge",
+          where: "offline",
           kind: "micro",
           title: "Faster or smoother?",
           prompt: "The same 30 mm tall part can print with 0.1 mm or 0.3 mm layers. Work out the number of layers for each, then decide which you'd choose for a quick test part.",
@@ -157,6 +158,7 @@ export const lesson: LessonInput = {
         {
           id: "prove",
           type: "challenge",
+          where: "offline",
           kind: "prove",
           title: "Layer plan for a mystery object",
           prompt: "Pick an object in this room that is not a cube: a cup, a phone stand, a game piece. Sketch how a printer would build it from the bottom up.",

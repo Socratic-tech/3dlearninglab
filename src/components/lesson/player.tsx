@@ -124,7 +124,7 @@ export function LessonPlayer(p: PlayerProps) {
       case "modelViewer": return <S.ModelViewerBlock b={b} assets={p.assets} />;
       case "tinkercadLaunch": return <S.TinkercadBlock b={b} classUrl={p.tinkercadClassUrl} />;
       case "modelDownload": return <S.ModelDownloadBlock b={b} assets={p.assets} />;
-      case "challenge": return <S.ChallengeBlock b={b} assets={p.assets} startedAt={p.startedAt} skillTitle={(id) => p.competencyTitles[id] ?? id} />;
+      case "challenge": return <S.ChallengeBlock b={b} assets={p.assets} startedAt={p.startedAt} skillTitle={(id) => p.competencyTitles[id] ?? id} classUrl={p.tinkercadClassUrl} />;
       case "teacherCheck": return <S.TeacherCheckBlock b={b} done={doneIds.has(b.id)} />;
       case "observe": return <S.ObserveBlock b={b} />;
       case "prediction": return <I.PredictionBlock b={b} />;

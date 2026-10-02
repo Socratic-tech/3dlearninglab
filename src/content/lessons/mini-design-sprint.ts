@@ -151,6 +151,7 @@ export const lesson: LessonInput = {
         {
           id: "prove",
           type: "challenge",
+          where: "both",
           kind: "prove",
           title: "Mini Product Design Challenge",
           prompt: "Deliver a functional design that solves your defined problem. Show the evidence: constraints, a test, a revision and a re-test. Present it in 90 seconds.",

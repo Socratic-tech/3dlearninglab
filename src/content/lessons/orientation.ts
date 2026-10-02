@@ -122,6 +122,7 @@ export const lesson: LessonInput = {
         {
           id: "micro",
           type: "challenge",
+          where: "offline",
           kind: "micro",
           title: "Orientation card",
           prompt: "For the hook in its new position, write one sentence about each: strength, supports, base.",

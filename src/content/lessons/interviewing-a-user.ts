@@ -121,6 +121,7 @@ export const lesson: LessonInput = {
         {
           id: "micro",
           type: "challenge",
+          where: "offline",
           kind: "micro",
           title: "Practice interview",
           prompt: "Write six interview questions. Then interview a partner for 5 minutes about a problem in their backpack, locker or desk. Swap roles.",
@@ -153,6 +154,7 @@ export const lesson: LessonInput = {
         {
           id: "prove",
           type: "challenge",
+          where: "offline",
           kind: "prove",
           title: "Interview your client",
           prompt: "With your teacher's permission, interview your capstone client for about 10 minutes. Find one problem you could solve with a printed object. Bring back at least two measurements.",

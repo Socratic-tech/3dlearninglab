@@ -132,6 +132,7 @@ export const lesson: LessonInput = {
         {
           id: "prove",
           type: "challenge",
+          where: "both",
           kind: "prove",
           title: "Make It Fit",
           prompt: "Choose a real object your teacher approves — a bolt, marker, battery, building block, PVC fitting or something else. Design a useful part that fits it: a cap, holder, clip, stand or adapter. You decide the design.",

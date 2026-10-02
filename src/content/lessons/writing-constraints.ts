@@ -132,6 +132,7 @@ export const lesson: LessonInput = {
         {
           id: "micro",
           type: "challenge",
+          where: "offline",
           kind: "micro",
           title: "Three approaches for the coach",
           prompt: "Using the coach's three constraints, sketch three approaches that work in different ways: one that clips, one that hangs, one that slides in.",
@@ -161,6 +162,7 @@ export const lesson: LessonInput = {
         {
           id: "prove",
           type: "challenge",
+          where: "offline",
           kind: "prove",
           title: "Your capstone constraints",
           prompt: "Use your interview notes to write your capstone problem, constraints and wishes. Then sketch three different approaches and choose one using your constraints.",

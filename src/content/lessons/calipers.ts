@@ -137,6 +137,7 @@ export const lesson: LessonInput = {
         {
           id: "micro",
           type: "challenge",
+          where: "offline",
           kind: "micro",
           title: "Outside, inside, depth",
           prompt: "Find one object in the class bin that has an outside, an inside and a depth to measure (a bottle cap, a tape roll, a pen cap). Measure all three, three times each.",
@@ -180,6 +181,7 @@ export const lesson: LessonInput = {
         {
           id: "prove",
           type: "challenge",
+          where: "both",
           kind: "prove",
           title: "Precision report",
           prompt: "Your teacher gives you an unfamiliar object. Using calipers only, record one outside, one inside and one depth measurement — three readings each — and model the object's measured features in Tinkercad. No steps.",

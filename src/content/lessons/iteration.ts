@@ -112,6 +112,7 @@ export const lesson: LessonInput = {
         {
           id: "micro",
           type: "challenge",
+          where: "both",
           kind: "micro",
           title: "One targeted change",
           prompt: "Make the single change that addresses your most important failed test, then re-run just that test.",

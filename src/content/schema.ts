@@ -258,6 +258,8 @@ export const challengeBlock = z.object({
   skills: z.array(z.string()).default([]),
   visual,
   showTimer: z.boolean().default(false),
+  /** Where the work happens: in Tinkercad, offline (paper, tools, real objects, people) or both. */
+  where: z.enum(["tinkercad", "offline", "both"]).default("tinkercad"),
 });
 export const journalBlock = z.object({
   ...base,

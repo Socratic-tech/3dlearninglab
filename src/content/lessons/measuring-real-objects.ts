@@ -134,6 +134,7 @@ export const lesson: LessonInput = {
         {
           id: "micro",
           type: "challenge",
+          where: "both",
           kind: "micro",
           title: "Measurement card",
           prompt: "Pick one object from the class bin (marker, eraser, battery, building brick…). Make a measurement card: a sketch, the critical dimension, three readings, the average, and the unit.",
@@ -159,6 +160,7 @@ export const lesson: LessonInput = {
         {
           id: "prove",
           type: "challenge",
+          where: "both",
           kind: "prove",
           title: "Blind build",
           prompt: "Your teacher hands you an object you haven't seen today. Measure it and write a measurement card good enough that a classmate could model it in Tinkercad without ever seeing the object. Then model it yourself. No steps.",

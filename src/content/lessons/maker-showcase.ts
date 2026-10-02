@@ -120,6 +120,7 @@ export const lesson: LessonInput = {
         {
           id: "micro",
           type: "challenge",
+          where: "offline",
           kind: "micro",
           title: "Give three pieces of feedback",
           prompt: "Visit at least three projects. Leave one specific note on each using the three starters.",
@@ -135,6 +136,7 @@ export const lesson: LessonInput = {
         {
           id: "prove",
           type: "challenge",
+          where: "offline",
           kind: "prove",
           title: "Your showcase",
           prompt: "Present your capstone in about 2 minutes to visitors who have never seen it. Use your showcase card and your object. Answer at least one question.",

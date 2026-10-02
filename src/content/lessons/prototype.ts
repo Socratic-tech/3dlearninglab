@@ -128,6 +128,7 @@ export const lesson: LessonInput = {
         {
           id: "prove",
           type: "challenge",
+          where: "both",
           kind: "prove",
           title: "Capstone prototype 1",
           prompt: "Write your capstone's critical question. Then build the quickest prototype that answers it — paper, cardboard, a block-out, or a test print under about 30 minutes.",

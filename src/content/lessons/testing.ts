@@ -116,6 +116,7 @@ export const lesson: LessonInput = {
         {
           id: "micro",
           type: "challenge",
+          where: "offline",
           kind: "micro",
           title: "Capstone test plan",
           prompt: "Write a test for every constraint in your capstone journal. Use a table: constraint | how I'll test | pass if | my prediction.",
@@ -144,6 +145,7 @@ export const lesson: LessonInput = {
         {
           id: "prove",
           type: "challenge",
+          where: "offline",
           kind: "prove",
           title: "Test prototype 1",
           prompt: "Run your test plan on prototype 1. Record every result, including failures. Decide pass or fail for each constraint using your pass criteria.",

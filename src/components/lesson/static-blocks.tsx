@@ -1,11 +1,10 @@
 "use client";
 
 import { Fragment, useEffect, useState, type ReactNode } from "react";
-import { BookOpen, Download, ExternalLink, Eye, Lightbulb, PlayCircle, ShieldAlert, Swords, Timer, TriangleAlert } from "lucide-react";
+import { BookOpen, Download, ExternalLink, Eye, Lightbulb, Monitor, PencilRuler, PlayCircle, ShieldAlert, Swords, Timer, TriangleAlert, Users } from "lucide-react";
 import type { BlockOf, ModelAsset } from "@/content/schema";
 import { Diagram } from "@/components/diagrams";
 import LazyModelViewer from "@/components/viewer/LazyModelViewer";
-import { Pill } from "@/components/ui/card";
 import { buttonClass } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 
@@ -196,26 +195,59 @@ export function ModelViewerBlock({ b, assets }: { b: BlockOf<"modelViewer">; ass
   );
 }
 
+export const TINKERCAD_URL = "https://www.tinkercad.com/dashboard";
+
+/** "Open Tinkercad" (and the class's Tinkercad Classroom, if the teacher set one). Always a new tab. */
+export function TinkercadButtons({ classUrl }: { classUrl: string | null }) {
+  return (
+    <div>
+      <div className="flex flex-wrap gap-2">
+        {classUrl && (
+          <a href={classUrl} target="_blank" rel="noopener noreferrer" className={buttonClass("primary", "lg")}>
+            Open our Tinkercad Classroom <ExternalLink className="size-4" aria-hidden /><span className="sr-only"> (opens in a new tab)</span>
+          </a>
+        )}
+        <a href={TINKERCAD_URL} target="_blank" rel="noopener noreferrer" className={buttonClass(classUrl ? "secondary" : "primary", "lg")}>
+          Open Tinkercad <ExternalLink className="size-4" aria-hidden /><span className="sr-only"> (opens in a new tab)</span>
+        </a>
+      </div>
+      <p className="mt-2 text-xs text-muted">Opens in a new tab. Come back to this tab when you&apos;re done.</p>
+    </div>
+  );
+}
+
+const WHERE = {
+  tinkercad: { icon: Monitor, text: "Do this in Tinkercad", cls: "bg-primary-soft text-primary border-primary/40" },
+  offline: { icon: PencilRuler, text: "Do this offline — paper, tools or real objects", cls: "bg-warning-soft text-warning border-warning/50" },
+  both: { icon: PencilRuler, text: "Part offline, part in Tinkercad", cls: "bg-accent-soft text-accent border-accent/50" },
+  teacher: { icon: Users, text: "In person, with your teacher", cls: "bg-success-soft text-success border-success/50" },
+} as const;
+
+/** Where a task happens, so nobody hunts for it in the wrong place. */
+export function WhereTag({ where }: { where: keyof typeof WHERE }) {
+  const w = WHERE[where];
+  const Icon = w.icon;
+  return (
+    <p className={cn("inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-bold", w.cls)}>
+      <Icon className="size-4 shrink-0" aria-hidden />
+      {w.text}
+    </p>
+  );
+}
+
 export function TinkercadBlock({ b, classUrl }: { b: BlockOf<"tinkercadLaunch">; classUrl: string | null }) {
   return (
     <BlockFrame label="Try it in Tinkercad">
+      <WhereTag where="tinkercad" />
       <h3 className="font-display text-lg font-semibold">{b.title}</h3>
       <ol className="mt-2 list-decimal space-y-1 pl-5">
         {b.steps.map((s, i) => (
           <li key={i}>{s}</li>
         ))}
       </ol>
-      <div className="mt-4 flex flex-wrap gap-2">
-        {classUrl && (
-          <a href={classUrl} target="_blank" rel="noopener noreferrer" className={buttonClass("primary")}>
-            Open our Tinkercad Classroom <ExternalLink className="size-4" aria-hidden />
-          </a>
-        )}
-        <a href="https://www.tinkercad.com/dashboard" target="_blank" rel="noopener noreferrer" className={buttonClass(classUrl ? "secondary" : "primary")}>
-          Open Tinkercad <ExternalLink className="size-4" aria-hidden />
-        </a>
+      <div className="mt-4">
+        <TinkercadButtons classUrl={classUrl} />
       </div>
-      <p className="mt-2 text-xs text-muted">Tinkercad opens in a new tab. Keep this tab open to come back.</p>
     </BlockFrame>
   );
 }
@@ -315,7 +347,7 @@ function Elapsed() {
 }
 
 /** Boss battles and Prove-It tasks get a "mission briefing" look with a tickable requirements checklist. */
-export function ChallengeBlock({ b, assets, skillTitle }: { b: BlockOf<"challenge">; assets: Record<string, ModelAsset>; startedAt?: string | null; skillTitle: (id: string) => string }) {
+export function ChallengeBlock({ b, assets, skillTitle, classUrl = null }: { b: BlockOf<"challenge">; assets: Record<string, ModelAsset>; startedAt?: string | null; skillTitle: (id: string) => string; classUrl?: string | null }) {
   const [ticks, setTicks] = useState<boolean[]>(() => b.requirements.map(() => false));
   const briefing = b.kind !== "micro";
   const boss = b.kind === "boss";
@@ -330,7 +362,8 @@ export function ChallengeBlock({ b, assets, skillTitle }: { b: BlockOf<"challeng
         {b.showTimer && <Elapsed />}
       </div>
       <div className="p-5 sm:p-6">
-        <h3 className="font-display text-2xl font-bold sm:text-3xl">{b.title}</h3>
+        <WhereTag where={b.where ?? "tinkercad"} />
+        <h3 className="mt-3 font-display text-2xl font-bold sm:text-3xl">{b.title}</h3>
         <Md text={b.prompt} className={cn("mt-2 text-lg", briefing && "opacity-90")} />
         {b.visual && <div className="mt-3 rounded-xl bg-surface p-2"><Visual {...b.visual} assets={assets} /></div>}
         <p className="mt-5 text-xs font-bold uppercase tracking-widest opacity-75">Requirements · {done}/{b.requirements.length} checked</p>
@@ -352,6 +385,11 @@ export function ChallengeBlock({ b, assets, skillTitle }: { b: BlockOf<"challeng
             ))}
           </div>
         )}
+        {(b.where ?? "tinkercad") !== "offline" && (
+          <div className="mt-5 rounded-2xl bg-surface p-4 text-fg">
+            <TinkercadButtons classUrl={classUrl} />
+          </div>
+        )}
         {b.showTimer && <p className="mt-3 text-xs opacity-75">The timer is just for you — speed doesn&apos;t change your grade.</p>}
       </div>
     </section>
@@ -361,7 +399,8 @@ export function ChallengeBlock({ b, assets, skillTitle }: { b: BlockOf<"challeng
 export function TeacherCheckBlock({ b, done }: { b: BlockOf<"teacherCheck">; done: boolean }) {
   return (
     <BlockFrame label="Teacher check" icon={<BookOpen className="size-4" aria-hidden />}>
-      <p>{b.prompt}</p>
+      <WhereTag where="teacher" />
+      <p className="mt-2">{b.prompt}</p>
       <ul className="mt-2 list-disc pl-5 text-sm text-muted">
         {b.lookFors.map((l, i) => (
           <li key={i}>{l}</li>
