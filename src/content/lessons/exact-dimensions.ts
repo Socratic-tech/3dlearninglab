@@ -1,0 +1,207 @@
+import type { LessonInput } from "../schema";
+
+export const lesson: LessonInput = {
+  id: "exact-dimensions",
+  number: 6,
+  title: "Exact Dimensions",
+  subtitle: "Type the number instead of guessing",
+  domain: "A",
+  kind: "lesson",
+  summary: "Set shape sizes to exact millimetre values and check a part against a specification.",
+  estimatedMinutes: 45,
+  printLevel: "digital",
+  competencyIds: ["A9"],
+  prerequisites: ["scaling-objects"],
+  vocabulary: [
+    { term: "Dimension", definition: "A measured size: length, width or height." },
+    { term: "Millimetre (mm)", definition: "Tinkercad's default unit. 10 mm = 1 cm." },
+    { term: "Specification", definition: "The exact numbers a part must match, often called a spec." },
+    { term: "Snap grid", definition: "The step size shapes jump by when you drag them." },
+  ],
+  sections: [
+    {
+      phase: "discover",
+      title: "Close isn't the same as correct",
+      blocks: [
+        {
+          id: "hook",
+          type: "hero",
+          title: "This die looks fine. It isn't.",
+          hook: "A die should be 20 × 20 × 20 mm. This one was sized by dragging. Can you spot the problem without numbers? Nobody can.",
+          visual: { modelId: "broken-die", alt: "A cube-shaped die that is slightly the wrong size." },
+        },
+        {
+          id: "viewer",
+          type: "modelViewer",
+          modelId: "broken-die",
+          caption: "Orbit it. The cube body measures 21 mm on X, 20 mm on Y and 19.4 mm on Z. It also has a few other problems you'll fix in a later boss.",
+        },
+        {
+          id: "how-off",
+          type: "measurement",
+          prompt: "The spec says 20 mm tall. The die body is 19.4 mm tall. How far off is it?",
+          answer: 0.6,
+          tolerance: 0.01,
+          unit: "mm",
+          hint: "Subtract the actual from the target.",
+          explanation: "20 − 19.4 = 0.6 mm. That's less than the thickness of a credit card, but a lid or slot designed for 20 mm won't line up.",
+          competencyId: "A9",
+          check: "practice",
+        },
+        {
+          id: "show-me",
+          type: "showMe",
+          title: "Type an exact size",
+          steps: [
+            { text: "Select the shape. Hover or click a handle so the dimension numbers appear.", diagram: "scale-handles" },
+            { text: "Click the number you want to change. A box opens.", diagram: "exact-dimension" },
+            { text: "Type the exact value, for example 20, and press Enter.", keys: "Enter" },
+            { text: "Check all three: length, width and height. Each one has its own number." },
+          ],
+        },
+        {
+          id: "predict",
+          type: "prediction",
+          prompt: "Your snap grid is 5 mm. You try to drag a box to 23 mm wide. What will you probably get?",
+          options: [
+            { id: "a", text: "20 or 25 mm, because dragging jumps in 5 mm steps" },
+            { id: "b", text: "Exactly 23 mm if you drag carefully", misconceptionId: "drag-precise" },
+          ],
+          expectedOptionId: "a",
+          reveal: "Dragging follows the snap grid. Typing ignores it. When the number matters, type it.",
+        },
+      ],
+    },
+    {
+      phase: "practice",
+      title: "Try it",
+      blocks: [
+        {
+          id: "tinkercad",
+          type: "tinkercadLaunch",
+          title: "Build to spec",
+          steps: [
+            "Open Tinkercad and create a new design.",
+            "Drag in a Box. Click each dimension and type 20, 20, 20.",
+            "Drag in a Cylinder. Type 12 for both width and length, and 4 for height. That's a 12 mm coin.",
+            "Make a domino: a Box 24 × 48 × 7 mm.",
+            "Click each shape again and read its numbers to check.",
+            "Optional: import broken-die.stl and compare its size with your 20 mm cube.",
+          ],
+        },
+        { id: "files", type: "modelDownload", modelIds: ["broken-die"], showImportSteps: true },
+        {
+          id: "cylinder-dims",
+          type: "multipleChoice",
+          prompt: "You want a round cylinder 12 mm across. Which two numbers must both be 12?",
+          options: [
+            { id: "a", text: "Length (X) and width (Y)" },
+            { id: "b", text: "Width and height", misconceptionId: "diameter-height" },
+            { id: "c", text: "Only one of them; Tinkercad keeps it round", misconceptionId: "auto-round" },
+          ],
+          correctOptionIds: ["a"],
+          explanation: "A cylinder's diameter is set by both X and Y. If they differ, you get an oval.",
+          competencyId: "A9",
+          check: "skill",
+        },
+      ],
+    },
+    {
+      phase: "apply",
+      title: "Micro challenge",
+      blocks: [
+        {
+          id: "micro",
+          type: "challenge",
+          kind: "micro",
+          title: "Fix the die body",
+          prompt: "Start with any box you dragged by eye. Without deleting it, make it exactly the size of a correct die.",
+          requirements: ["20 × 20 × 20 mm, checked on all three axes", "Resting on the workplane"],
+          skills: ["A9", "A7"],
+        },
+        {
+          id: "spec-check",
+          type: "multipleChoice",
+          prompt: "A part must be 30 × 15 × 5 mm. Which reading passes the spec?",
+          options: [
+            { id: "a", text: "30.00 × 15.00 × 5.00" },
+            { id: "b", text: "30.00 × 15.00 × 5.40", misconceptionId: "close-enough" },
+            { id: "c", text: "15.00 × 30.00 × 5.00 (the same box turned 90°)" },
+          ],
+          correctOptionIds: ["a", "c"],
+          explanation: "Option C is the same box turned 90° — the sizes match, just on different axes. Option B is 0.4 mm too tall, which matters if something must fit on top.",
+          competencyId: "A9",
+          check: "skill",
+        },
+      ],
+    },
+    {
+      phase: "prove",
+      title: "Prove it",
+      blocks: [
+        {
+          id: "prove",
+          type: "challenge",
+          kind: "prove",
+          title: "Board game kit",
+          prompt: "A game company sent you this spec. Build every part to the exact number. No steps — read the spec and decide.",
+          requirements: [
+            "Game board tile: 50 × 50 × 3 mm",
+            "Pawn: a cylinder base 14 mm across and 4 mm tall, with a sphere 10 mm across sitting on top of it",
+            "Card holder: a box 64 × 10 × 12 mm",
+            "Every part rests on the workplane (except the pawn's sphere, which sits on its base)",
+          ],
+          skills: ["A9", "A7"],
+        },
+        {
+          id: "submit",
+          type: "uploadEvidence",
+          prompt: "Submit a class share link, or screenshots of each part selected with its dimensions showing.",
+          accepts: ["design_url", "screenshot"],
+          competencyIds: ["A9"],
+          checklist: ["Every dimension matches the spec exactly", "The sphere sits on the base, not floating or sunk"],
+        },
+      ],
+    },
+    {
+      phase: "reflect",
+      title: "Reflect",
+      blocks: [
+        {
+          id: "reflect",
+          type: "reflection",
+          prompt: "Describe a real object where being 1 mm off would cause a problem.",
+          sentenceStarters: ["If a … were 1 mm too big…", "Typing the number matters when…"],
+          competencyIds: ["A9"],
+        },
+      ],
+    },
+  ],
+  teacher: {
+    purpose: "Students replace dragging by eye with typed, verified dimensions — the habit every fit and print lesson depends on.",
+    preparation: ["Download broken-die.stl (optional import). It is reused as a warm-up in the Mystery Die boss later."],
+    equipment: ["Student devices with Tinkercad"],
+    misconceptions: [
+      { id: "drag-precise", text: "Careful dragging gives exact sizes.", response: "Show that dragging follows the snap grid; typing doesn't." },
+      { id: "diameter-height", text: "A cylinder's diameter is width and height.", response: "Orbit to the top view: the round face is on X and Y." },
+      { id: "auto-round", text: "Tinkercad keeps cylinders round automatically.", response: "Type different X and Y values to make an oval on purpose." },
+      { id: "close-enough", text: "A few tenths of a millimetre never matter.", response: "Hold up a lid and box: 0.4 mm can be the difference between fitting and not." },
+    ],
+    discussionQuestions: [
+      "When is it fine to drag by eye? When is it not?",
+      "Why might a company send a spec instead of a picture?",
+    ],
+    troubleshooting: [
+      "If the number box doesn't appear, click directly on the white handle first, then the number.",
+      "If a typed value seems ignored, make sure Enter was pressed and only one shape is selected.",
+      "If an imported model appears 10× too big or small, re-import with millimetres as the unit.",
+    ],
+    answerGuidance: [
+      "Spec check: A and C both pass (C is the same box rotated). B fails on height.",
+      "Pawn: cylinder 14 × 14 × 4; sphere 10 × 10 × 10 raised so its bottom is at 4 mm. A sphere sitting 1–2 mm into the base is acceptable if it doesn't float.",
+    ],
+    alternatives: {
+      touchDevice: "Tap the dimension numbers to type values with the on-screen keyboard.",
+    },
+  },
+};

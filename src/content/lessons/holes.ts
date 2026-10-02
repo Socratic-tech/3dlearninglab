@@ -1,0 +1,172 @@
+import type { LessonInput } from "../schema";
+
+export const lesson: LessonInput = {
+  id: "holes",
+  number: 11,
+  title: "Holes",
+  subtitle: "Making space with negative geometry",
+  domain: "B",
+  kind: "lesson",
+  summary: "Use hole shapes to subtract material, and decide when subtracting is easier than building.",
+  estimatedMinutes: 45,
+  printLevel: "digital",
+  competencyIds: ["B3", "B2", "C9"],
+  prerequisites: ["grouping"],
+  vocabulary: [
+    { term: "Hole", definition: "A shape that removes material wherever it overlaps a solid once they are grouped." },
+    { term: "Negative geometry", definition: "Empty space that is designed on purpose." },
+    { term: "Wall thickness", definition: "How thick the material is between the inside and outside of an object." },
+  ],
+  sections: [
+    {
+      phase: "discover",
+      title: "Why this matters",
+      blocks: [
+        {
+          id: "hook",
+          type: "hero",
+          title: "A hole isn't just empty space.",
+          hook: "Cups, phone cases, key rings and pencil holders are all mostly made of nothing. In CAD, you design the nothing on purpose.",
+          visual: { diagram: "solid-vs-hole" },
+        },
+        {
+          id: "explain",
+          type: "text",
+          body: "In Tinkercad every shape can be **Solid** or **Hole**. When you group a hole with a solid, the hole **subtracts** its volume from the solid. This is called negative geometry.",
+        },
+        {
+          id: "show-me",
+          type: "showMe",
+          title: "Turn a box into a container",
+          steps: [
+            { text: "Drag a Box onto the workplane and make it 40 × 40 × 30 mm.", diagram: "exact-dimension" },
+            { text: "Drag a second Box on top and switch it to Hole in the shape panel.", diagram: "solid-vs-hole" },
+            { text: "Make the hole 36 × 36 mm so 2 mm of wall is left on every side. Raise it 2 mm so a floor stays." },
+            { text: "Select both, Align them to the centre, then Group (Ctrl+G).", diagram: "group-hole", keys: "Ctrl+G" },
+          ],
+        },
+        {
+          id: "predict",
+          type: "prediction",
+          prompt: "A 20 mm cube and a 10 mm cylinder hole that is taller than the cube are grouped. What do you get?",
+          visual: { diagram: "group-hole" },
+          options: [
+            { id: "a", text: "A cube with a round opening all the way through" },
+            { id: "b", text: "A cube with a cylinder sticking out of it", misconceptionId: "hole-adds" },
+            { id: "c", text: "A cube with a shallow dent on top", misconceptionId: "hole-depth" },
+          ],
+          expectedOptionId: "a",
+          reveal: "The hole removes material everywhere it overlaps the cube. Because it is taller than the cube, it cuts all the way through. To make a dent instead, the hole must stop inside the cube.",
+        },
+      ],
+    },
+    {
+      phase: "practice",
+      title: "Try it",
+      blocks: [
+        {
+          id: "check-wall",
+          type: "measurement",
+          prompt: "A container is 40 mm wide on the outside. You want 2 mm walls on both sides. How wide should the hole be?",
+          answer: 36,
+          tolerance: 0,
+          unit: "mm",
+          hint: "There is a wall on the left AND on the right.",
+          explanation: "40 − 2 − 2 = 36 mm. Forgetting the second wall is the most common mistake.",
+          competencyId: "C9",
+          check: "practice",
+        },
+        {
+          id: "tinkercad",
+          type: "tinkercadLaunch",
+          title: "Build the container",
+          steps: [
+            "Open Tinkercad and create a new design.",
+            "Follow the four Show Me steps above to build a 40 × 40 × 30 mm container.",
+            "Ungroup it, change the hole height, and regroup. Watch the floor change.",
+          ],
+        },
+      ],
+    },
+    {
+      phase: "apply",
+      title: "Micro challenge",
+      blocks: [
+        {
+          id: "micro",
+          type: "challenge",
+          kind: "micro",
+          title: "Hollow container from two boxes",
+          prompt: "Create a hollow container using exactly two boxes.",
+          requirements: ["Wall thickness at least 2 mm", "Open top", "Single grouped model"],
+          skills: ["B3", "B2", "C9"],
+        },
+        {
+          id: "micro-mc",
+          type: "multipleChoice",
+          prompt: "Your container has no floor — you can see straight through it. What happened?",
+          options: [
+            { id: "a", text: "The hole starts at the workplane (Z = 0), so it cuts through the bottom too." },
+            { id: "b", text: "The walls are too thin.", misconceptionId: "thin-floor" },
+            { id: "c", text: "The shapes weren't aligned." },
+          ],
+          correctOptionIds: ["a"],
+          explanation: "Raise the hole by the floor thickness (for example 2 mm) so it stops above the bottom.",
+          competencyId: "B3",
+          check: "skill",
+        },
+      ],
+    },
+    {
+      phase: "prove",
+      title: "Prove it",
+      blocks: [
+        {
+          id: "prove",
+          type: "challenge",
+          kind: "prove",
+          title: "Make an opening",
+          prompt: "Download the Mystery Fit Object. Make a rectangular opening 12 mm wide and 6 mm tall straight through its base, centred on the long side. No steps this time — you decide which tools you need.",
+          requirements: ["Opening is 12 × 6 mm", "Goes all the way through the base", "Centred on the long side", "Single grouped model"],
+          skills: ["B3", "B4", "B2"],
+        },
+        { id: "files", type: "modelDownload", modelIds: ["mystery-fit-object"], showImportSteps: true },
+        {
+          id: "submit",
+          type: "uploadEvidence",
+          prompt: "Submit your design: a Tinkercad share link or a screenshot that shows the opening's dimensions.",
+          accepts: ["design_url", "screenshot", "stl"],
+          competencyIds: ["B3", "B2"],
+          checklist: ["Dimensions are visible in the screenshot", "Everything is one group"],
+        },
+      ],
+    },
+    {
+      phase: "reflect",
+      title: "Reflect",
+      blocks: [
+        {
+          id: "reflect",
+          type: "reflection",
+          prompt: "What is one situation where subtracting is easier than building a shape out of smaller pieces?",
+          sentenceStarters: ["Subtracting is easier when…", "For example, a…"],
+          competencyIds: ["B3"],
+        },
+      ],
+    },
+  ],
+  teacher: {
+    purpose: "Students learn that holes are designed geometry and practise reasoning about wall and floor thickness.",
+    preparation: ["Test the Mystery Fit Object import in Tinkercad on a student device."],
+    equipment: ["Student devices with Tinkercad"],
+    misconceptions: [
+      { id: "hole-adds", text: "Hole shapes add material.", response: "Group a hole with a solid on the board and orbit the result." },
+      { id: "hole-depth", text: "Holes only cut the top surface.", response: "Ask: where does the hole shape end? Change its height live." },
+      { id: "thin-floor", text: "A missing floor is caused by thin walls.", response: "Look at the hole's Z position — the floor is a height problem, not a width problem." },
+    ],
+    discussionQuestions: ["Name three everyday objects that are mostly empty space.", "Why might a designer prefer subtraction?"],
+    troubleshooting: ["If grouping turns everything grey/striped, at least one solid was accidentally set to Hole."],
+    answerGuidance: ["Container: 40 × 40 × 30 box with a 36 × 36 × 30+ hole raised 2 mm, centred, grouped."],
+    alternatives: { touchDevice: "Use the on-screen Group button instead of Ctrl+G." },
+  },
+};

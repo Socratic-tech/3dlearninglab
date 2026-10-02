@@ -1,0 +1,224 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens — "blueprint + dimensional geometry".
+ * Light is a drafting-paper look; dark is a blueprint look. Contrast pairs are WCAG AA (≥ 4.5:1 for text).
+ * Theme is chosen by <html data-theme>, falling back to the OS preference.
+ */
+:root {
+  --bg: #f6f8fb;
+  --surface: #ffffff;
+  --surface-2: #eef2f7;
+  --border: #cfd8e3;
+  --fg: #0f1b2d;
+  --muted: #4a5a70;
+  --primary: #0b5cad;
+  --primary-fg: #ffffff;
+  --primary-soft: #e3effb;
+  --accent: #b45309;
+  --accent-soft: #fdf1e3;
+  --success: #15803d;
+  --success-soft: #e6f6ec;
+  --warning: #a16207;
+  --warning-soft: #fdf6dc;
+  --danger: #b91c1c;
+  --danger-soft: #fdecec;
+  --focus: #f59e0b;
+  --grid: rgba(11, 92, 173, 0.07);
+  --axis-x: #c62828;
+  --axis-y: #2e7d32;
+  --axis-z: #1565c0;
+  --level-0: #e6ebf1;
+  --level-1: #fde7c3;
+  --level-2: #bfe3f7;
+  --level-3: #b6e8c4;
+  --font-scale: 1;
+  --letter-spacing: normal;
+  --word-spacing: normal;
+  --line-height: 1.6;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a1626;
+    --surface: #102037;
+    --surface-2: #162a46;
+    --border: #284366;
+    --fg: #e8f0fb;
+    --muted: #a5b7cf;
+    --primary: #5cb3ff;
+    --primary-fg: #04121f;
+    --primary-soft: #12304f;
+    --accent: #fbbf5a;
+    --accent-soft: #3a2a10;
+    --success: #5fd38a;
+    --success-soft: #0f3020;
+    --warning: #f5c84b;
+    --warning-soft: #362c0c;
+    --danger: #ff8a8a;
+    --danger-soft: #3d1414;
+    --grid: rgba(92, 179, 255, 0.08);
+    --axis-x: #ff6b6b;
+    --axis-y: #69d27a;
+    --axis-z: #6fb2ff;
+    --level-0: #1f3352;
+    --level-1: #5a4214;
+    --level-2: #134a6e;
+    --level-3: #1d5a33;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0a1626;
+  --surface: #102037;
+  --surface-2: #162a46;
+  --border: #284366;
+  --fg: #e8f0fb;
+  --muted: #a5b7cf;
+  --primary: #5cb3ff;
+  --primary-fg: #04121f;
+  --primary-soft: #12304f;
+  --accent: #fbbf5a;
+  --accent-soft: #3a2a10;
+  --success: #5fd38a;
+  --success-soft: #0f3020;
+  --warning: #f5c84b;
+  --warning-soft: #362c0c;
+  --danger: #ff8a8a;
+  --danger-soft: #3d1414;
+  --grid: rgba(92, 179, 255, 0.08);
+  --axis-x: #ff6b6b;
+  --axis-y: #69d27a;
+  --axis-z: #6fb2ff;
+  --level-0: #1f3352;
+  --level-1: #5a4214;
+  --level-2: #134a6e;
+  --level-3: #1d5a33;
+  color-scheme: dark;
+}
+
+/* Reading preferences (set on <html> from the user's settings cookie) */
+:root[data-text="large"] {
+  --font-scale: 1.15;
+}
+:root[data-text="xlarge"] {
+  --font-scale: 1.3;
+}
+:root[data-readable="true"] {
+  --letter-spacing: 0.035em;
+  --word-spacing: 0.12em;
+  --line-height: 1.85;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-fg: var(--primary-fg);
+  --color-primary-soft: var(--primary-soft);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-focus: var(--focus);
+  --color-axis-x: var(--axis-x);
+  --color-axis-y: var(--axis-y);
+  --color-axis-z: var(--axis-z);
+  --color-level-0: var(--level-0);
+  --color-level-1: var(--level-1);
+  --color-level-2: var(--level-2);
+  --color-level-3: var(--level-3);
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-heading), var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-code), ui-monospace, monospace;
+}
+
+html {
+  font-size: calc(100% * var(--font-scale));
+  background: var(--bg);
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  letter-spacing: var(--letter-spacing);
+  word-spacing: var(--word-spacing);
+  line-height: var(--line-height);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Blueprint grid background utility */
+.bg-blueprint {
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Visible, consistent focus ring for keyboard users */
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+}
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+  z-index: 100;
+  background: var(--surface);
+  color: var(--fg);
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--focus);
+}
+
+@keyframes unlock-pop {
+  0% { transform: scale(0.85); opacity: 0; }
+  60% { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.animate-unlock { animation: unlock-pop 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+@keyframes fade-up {
+  from { transform: translateY(6px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+.animate-fade-up { animation: fade-up 280ms ease-out both; }
+
+/* Reduced motion: OS preference or user setting */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+:root[data-motion="reduce"] *, :root[data-motion="reduce"] *::before, :root[data-motion="reduce"] *::after {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Prose for lesson text */
+.prose-lesson p { margin: 0.6em 0; }
+.prose-lesson ul { list-style: disc; padding-left: 1.4em; margin: 0.6em 0; }
+.prose-lesson ol { list-style: decimal; padding-left: 1.4em; margin: 0.6em 0; }
+.prose-lesson strong { font-weight: 650; }
+.prose-lesson code, kbd {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.05em 0.35em;
+}

@@ -1,0 +1,710 @@
+{
+  "misplaced-shapes": {
+    "file": "/models/original/misplaced-shapes.stl",
+    "triangles": 2808,
+    "min": [
+      -70,
+      -70,
+      -13
+    ],
+    "max": [
+      75,
+      79,
+      38
+    ],
+    "size": [
+      145,
+      149,
+      51
+    ],
+    "anchors": {
+      "floatingCube": [
+        65,
+        45,
+        28
+      ],
+      "farCylinder": [
+        -60,
+        -40,
+        12
+      ],
+      "sunkSphere": [
+        0,
+        0,
+        0
+      ],
+      "cone": [
+        -25,
+        70,
+        10
+      ],
+      "bar": [
+        35,
+        -65,
+        3
+      ]
+    },
+    "notes": "Five shapes scattered in space: one floating, one sunk below the workplane, the rest far from the origin."
+  },
+  "toolbox-parts": {
+    "file": "/models/original/toolbox-parts.stl",
+    "triangles": 68,
+    "min": [
+      0,
+      0,
+      0
+    ],
+    "max": [
+      143.47,
+      116.63,
+      62.83
+    ],
+    "size": [
+      143.47,
+      116.63,
+      62.83
+    ],
+    "anchors": {
+      "trayCenter": [
+        45,
+        22.5,
+        2
+      ],
+      "rod": [
+        45,
+        90,
+        35
+      ],
+      "block": [
+        130,
+        25,
+        15
+      ]
+    },
+    "notes": "An open tray (90 × 45 × 25 mm, 2 mm walls) and two parts that only fit after rotating them flat."
+  },
+  "broken-die": {
+    "file": "/models/original/broken-die.stl",
+    "triangles": 2360,
+    "min": [
+      0,
+      -8,
+      -1
+    ],
+    "max": [
+      21,
+      20,
+      21
+    ],
+    "size": [
+      21,
+      28,
+      22
+    ],
+    "anchors": {
+      "throughPip": [
+        10.5,
+        10,
+        20
+      ],
+      "floatingPip": [
+        5,
+        -6,
+        10
+      ],
+      "raisedFeature": [
+        6,
+        6,
+        20.5
+      ],
+      "cubeCorner": [
+        21,
+        20,
+        19.4
+      ]
+    },
+    "notes": "A die that looks almost right: 21 × 20 × 19.4 mm, a pip that runs through the whole cube, a floating pip and a raised (not recessed) feature. Nothing is grouped."
+  },
+  "bad-phone-stand": {
+    "file": "/models/original/bad-phone-stand.stl",
+    "triangles": 60,
+    "min": [
+      0,
+      0,
+      0
+    ],
+    "max": [
+      72,
+      70,
+      95
+    ],
+    "size": [
+      72,
+      70,
+      95
+    ],
+    "anchors": {
+      "slot": [
+        15,
+        35,
+        20
+      ],
+      "neck": [
+        18.6,
+        35,
+        15.5
+      ],
+      "backrestTop": [
+        70,
+        35,
+        95
+      ],
+      "shelf": [
+        55,
+        35,
+        61.5
+      ],
+      "base": [
+        30,
+        35,
+        7
+      ],
+      "front": [
+        0,
+        35,
+        7
+      ]
+    },
+    "notes": "Falls backward (backrest centre of mass is behind the base), 6 mm phone slot, 1.2 mm neck at a layer boundary, unsupported shelf, solid 14 mm base."
+  },
+  "orientation-hook": {
+    "file": "/models/original/orientation-hook.stl",
+    "triangles": 28,
+    "min": [
+      0,
+      0,
+      0
+    ],
+    "max": [
+      30,
+      10,
+      58
+    ],
+    "size": [
+      30,
+      10,
+      58
+    ],
+    "anchors": {
+      "hookBend": [
+        22,
+        5,
+        50
+      ],
+      "stem": [
+        4,
+        5,
+        25
+      ],
+      "tip": [
+        26,
+        5,
+        38
+      ]
+    },
+    "notes": "A J-hook 30 × 10 × 58 mm. Printed standing up, layers run across the stem and it snaps at the bend; printed flat on its side, layers run along the hook."
+  },
+  "excessive-support-object": {
+    "file": "/models/original/excessive-support-object.stl",
+    "triangles": 35,
+    "min": [
+      0,
+      0,
+      0
+    ],
+    "max": [
+      60,
+      20,
+      48
+    ],
+    "size": [
+      60,
+      20,
+      48
+    ],
+    "anchors": {
+      "leftArm": [
+        8,
+        10,
+        40
+      ],
+      "rightArm": [
+        52,
+        10,
+        40
+      ],
+      "stem": [
+        30,
+        10,
+        20
+      ]
+    },
+    "notes": "A 'T' standing on its stem: both 25 mm arms are flat overhangs that need support."
+  },
+  "redesigned-support-object": {
+    "file": "/models/original/redesigned-support-object.stl",
+    "triangles": 68,
+    "min": [
+      0,
+      0,
+      0
+    ],
+    "max": [
+      60,
+      20,
+      48
+    ],
+    "size": [
+      60,
+      20,
+      48
+    ],
+    "anchors": {
+      "leftChamfer": [
+        12,
+        10,
+        28
+      ],
+      "rightChamfer": [
+        48,
+        10,
+        28
+      ]
+    },
+    "notes": "Same T, but 45° chamfers under each arm make it self-supporting."
+  },
+  "peg-10mm": {
+    "file": "/models/original/peg-10mm.stl",
+    "triangles": 1331,
+    "min": [
+      -8,
+      -8,
+      0
+    ],
+    "max": [
+      8,
+      8,
+      20
+    ],
+    "size": [
+      16,
+      16,
+      20
+    ],
+    "anchors": {
+      "peg": [
+        0,
+        0,
+        20
+      ]
+    },
+    "notes": "A 10.0 mm diameter peg, 20 mm tall, on a 16 mm flange so it is easy to hold."
+  },
+  "hole-10mm": {
+    "file": "/models/original/hole-10mm.stl",
+    "triangles": 1041,
+    "min": [
+      -12.5,
+      -12.5,
+      0
+    ],
+    "max": [
+      12.5,
+      12.5,
+      8
+    ],
+    "size": [
+      25,
+      25,
+      8
+    ],
+    "anchors": {
+      "hole": [
+        0,
+        0,
+        8
+      ]
+    },
+    "notes": "25 × 25 × 8 mm plate with a 10.0 mm hole (zero designed clearance)."
+  },
+  "hole-10-2mm": {
+    "file": "/models/original/hole-10-2mm.stl",
+    "triangles": 1034,
+    "min": [
+      -12.5,
+      -12.5,
+      0
+    ],
+    "max": [
+      12.5,
+      12.5,
+      8
+    ],
+    "size": [
+      25,
+      25,
+      8
+    ],
+    "anchors": {
+      "hole": [
+        0,
+        0,
+        8
+      ]
+    },
+    "notes": "25 × 25 × 8 mm plate with a 10.2 mm hole (0.1 mm clearance per side)."
+  },
+  "hole-10-4mm": {
+    "file": "/models/original/hole-10-4mm.stl",
+    "triangles": 1050,
+    "min": [
+      -12.5,
+      -12.5,
+      0
+    ],
+    "max": [
+      12.5,
+      12.5,
+      8
+    ],
+    "size": [
+      25,
+      25,
+      8
+    ],
+    "anchors": {
+      "hole": [
+        0,
+        0,
+        8
+      ]
+    },
+    "notes": "25 × 25 × 8 mm plate with a 10.4 mm hole (0.2 mm clearance per side)."
+  },
+  "thin-wall-test": {
+    "file": "/models/original/thin-wall-test.stl",
+    "triangles": 232,
+    "min": [
+      0,
+      0,
+      0
+    ],
+    "max": [
+      49,
+      20,
+      17
+    ],
+    "size": [
+      49,
+      20,
+      17
+    ],
+    "anchors": {
+      "wall_0_4": [
+        4.2,
+        10,
+        17
+      ],
+      "wall_0_8": [
+        10.8,
+        10,
+        17
+      ],
+      "wall_1_2": [
+        17.8,
+        10,
+        17
+      ],
+      "wall_1_6": [
+        25.2,
+        10,
+        17
+      ],
+      "wall_2": [
+        33,
+        10,
+        17
+      ],
+      "wall_3": [
+        41.5,
+        10,
+        17
+      ]
+    },
+    "notes": "Six walls, left to right: 0.4, 0.8, 1.2, 1.6, 2.0 and 3.0 mm thick, 15 mm tall, on a 2 mm base."
+  },
+  "mystery-fit-object": {
+    "file": "/models/original/mystery-fit-object.stl",
+    "triangles": 408,
+    "min": [
+      0,
+      0,
+      0
+    ],
+    "max": [
+      34,
+      22,
+      22
+    ],
+    "size": [
+      34,
+      22,
+      22
+    ],
+    "anchors": {
+      "roundPeg": [
+        10,
+        11,
+        22
+      ],
+      "squarePost": [
+        25,
+        11,
+        16
+      ],
+      "base": [
+        17,
+        11,
+        5
+      ]
+    },
+    "notes": "A 34 × 22 × 10 mm block with an 8 mm round peg (12 mm tall) and a 6 × 6 × 6 mm square post. Measure it, then design a cap that fits over both."
+  },
+  "axis-cube-20mm": {
+    "file": "/models/original/axis-cube-20mm.stl",
+    "triangles": 188,
+    "min": [
+      0,
+      0,
+      0
+    ],
+    "max": [
+      20,
+      20,
+      20
+    ],
+    "size": [
+      20,
+      20,
+      20
+    ],
+    "anchors": {
+      "xFace": [
+        20,
+        10,
+        10
+      ],
+      "yFace": [
+        10,
+        20,
+        10
+      ],
+      "top": [
+        10,
+        10,
+        20
+      ]
+    },
+    "notes": "A 20 mm calibration cube. One notch marks the X face, two the Y face, three the top (Z)."
+  },
+  "overhang-test": {
+    "file": "/models/original/overhang-test.stl",
+    "triangles": 170,
+    "min": [
+      0,
+      0,
+      0
+    ],
+    "max": [
+      63.45,
+      60,
+      30
+    ],
+    "size": [
+      63.45,
+      60,
+      30
+    ],
+    "anchors": {
+      "overhang_20": [
+        18.551464216791643,
+        8,
+        26
+      ],
+      "overhang_30": [
+        22.392304845413264,
+        18,
+        26
+      ],
+      "overhang_45": [
+        29.999999999999996,
+        28,
+        26
+      ],
+      "overhang_60": [
+        43.17691453623978,
+        38,
+        26
+      ],
+      "overhang_70": [
+        61.45459355018319,
+        48,
+        26
+      ]
+    },
+    "notes": "Five fins leaning out from a wall at 20°, 30°, 45°, 60° and 70° from vertical. Most printers handle up to about 45°."
+  },
+  "bridge-test": {
+    "file": "/models/original/bridge-test.stl",
+    "triangles": 144,
+    "min": [
+      0,
+      0,
+      0
+    ],
+    "max": [
+      72,
+      50,
+      14
+    ],
+    "size": [
+      72,
+      50,
+      14
+    ],
+    "anchors": {
+      "span_10": [
+        11,
+        4,
+        13
+      ],
+      "span_20": [
+        16,
+        18,
+        13
+      ],
+      "span_40": [
+        26,
+        32,
+        13
+      ],
+      "span_60": [
+        36,
+        46,
+        13
+      ]
+    },
+    "notes": "Four bridges spanning 10, 20, 40 and 60 mm between pillars 12 mm tall."
+  },
+  "misaligned-stack": {
+    "file": "/models/original/misaligned-stack.stl",
+    "triangles": 1536,
+    "min": [
+      -20,
+      -20,
+      0
+    ],
+    "max": [
+      20,
+      20,
+      28
+    ],
+    "size": [
+      40,
+      40,
+      28
+    ],
+    "anchors": {
+      "bottom": [
+        0,
+        0,
+        3
+      ],
+      "middle": [
+        4,
+        -3,
+        9
+      ],
+      "top": [
+        -5,
+        6,
+        15
+      ],
+      "post": [
+        8,
+        2,
+        23
+      ]
+    },
+    "notes": "A wedding-cake stack of four cylinders that should share one centre line — none of them do."
+  },
+  "half-bracket": {
+    "file": "/models/original/half-bracket.stl",
+    "triangles": 64,
+    "min": [
+      0,
+      0,
+      0
+    ],
+    "max": [
+      30,
+      20,
+      30
+    ],
+    "size": [
+      30,
+      20,
+      30
+    ],
+    "anchors": {
+      "mirrorEdge": [
+        30,
+        10,
+        2
+      ],
+      "upright": [
+        2,
+        10,
+        17
+      ]
+    },
+    "notes": "Half of a symmetric shelf bracket. Mirror it across its right edge (X = 30 mm) and group to complete it."
+  },
+  "wedge-block": {
+    "file": "/models/original/wedge-block.stl",
+    "triangles": 12,
+    "min": [
+      0,
+      0,
+      0
+    ],
+    "max": [
+      40,
+      30,
+      30
+    ],
+    "size": [
+      40,
+      30,
+      30
+    ],
+    "anchors": {
+      "slopedFace": [
+        20,
+        15,
+        20
+      ]
+    },
+    "notes": "A wedge with a sloped top face. Put a workplane on the slope and add a feature that sits flat on it."
+  }
+}

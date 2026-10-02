@@ -1,0 +1,216 @@
+import type { LessonInput } from "../schema";
+
+export const lesson: LessonInput = {
+  id: "maker-showcase",
+  number: 39,
+  title: "Maker Showcase",
+  subtitle: "Tell the story of how your design came to be",
+  domain: "G",
+  kind: "showcase",
+  summary: "Choose the evidence that best shows your process, present your capstone in two minutes, give specific peer feedback in a gallery walk, and plan what's next.",
+  estimatedMinutes: 50,
+  printLevel: "digital",
+  competencyIds: ["G6", "F10"],
+  prerequisites: ["final-capstone"],
+  vocabulary: [
+    { term: "Portfolio", definition: "A small collection of your best evidence that shows what you can do." },
+    { term: "Gallery walk", definition: "Visitors move from project to project, looking, asking and leaving feedback." },
+    { term: "Specific feedback", definition: "Feedback that names one exact feature and why it matters." },
+  ],
+  sections: [
+    {
+      phase: "discover",
+      title: "Why this matters",
+      blocks: [
+        {
+          id: "hook",
+          type: "hero",
+          title: "The object is only half the story.",
+          hook: "Anyone can see your final print. Only you can explain who it's for, what failed, and why version 2 is better. That's what people remember.",
+          visual: { diagram: "follow-to-design" },
+        },
+        {
+          id: "explain",
+          type: "text",
+          body: "A strong presentation follows the design story: **who** it's for, **what** the problem was, **how** you tested and changed it, and **what's next**. Two minutes. No reading from a screen.",
+        },
+        {
+          id: "order-story",
+          type: "ordering",
+          prompt: "Put a 2-minute showcase talk in order.",
+          items: [
+            { id: "user", text: "Who I designed for (role, not name)" },
+            { id: "problem", text: "The problem, with one number" },
+            { id: "v1", text: "Prototype 1 and what failed" },
+            { id: "change", text: "What I changed and why" },
+            { id: "final", text: "The final product and how it meets the constraints" },
+            { id: "next", text: "What I'd change with another week" },
+          ],
+          explanation: "Starting with the user makes people care. Showing a failure makes your final design believable.",
+          competencyId: "G6",
+          check: "practice",
+        },
+      ],
+    },
+    {
+      phase: "practice",
+      title: "Pick your evidence",
+      blocks: [
+        {
+          id: "evidence-mc",
+          type: "multipleChoice",
+          prompt: "You can show three items on your showcase card. Which three best show your design process? Choose three.",
+          options: [
+            { id: "a", text: "Prototype 1 next to the final, with what changed labelled" },
+            { id: "b", text: "Your test results table with a failure in it" },
+            { id: "c", text: "A screenshot with the critical dimension visible" },
+            { id: "d", text: "Five photos of the final print from different angles", misconceptionId: "final-only" },
+            { id: "e", text: "A list of every Tinkercad shape you used" },
+          ],
+          correctOptionIds: ["a", "b", "c"],
+          explanation: "Process evidence shows thinking: before/after, test data, precise dimensions. Many photos of the final object show only the end.",
+          competencyId: "F10",
+          check: "skill",
+        },
+        {
+          id: "opening-mc",
+          type: "multipleChoice",
+          prompt: "Which opening line explains your design best?",
+          options: [
+            { id: "a", text: "'Our school librarian's returned books slid off her cart at the doorway bump. This 40 mm book stop keeps them on.'" },
+            { id: "b", text: "'So, um, I made this in Tinkercad.'" },
+            { id: "c", text: "'This is a box with some holes.'" },
+          ],
+          correctOptionIds: ["a"],
+          explanation: "Lead with the user and the problem, then the solution. One number makes it concrete.",
+          competencyId: "F10",
+          check: "practice",
+        },
+        {
+          id: "feedback-match",
+          type: "matching",
+          prompt: "Match each vague comment to a more specific version.",
+          pairs: [
+            { id: "f1", left: "Nice job.", right: "Works because: the finger notch makes it obvious which side opens." },
+            { id: "f2", left: "Make it better.", right: "Next try: a longer base at the front might stop it tipping when it's full." },
+            { id: "f3", left: "Cool.", right: "I wonder: would the clip still grip after 100 uses?" },
+          ],
+          explanation: "Specific feedback names one feature and why. Use three starters: Works because…, I wonder…, Next try…",
+          competencyId: "G6",
+          check: "practice",
+        },
+      ],
+    },
+    {
+      phase: "apply",
+      title: "Gallery walk",
+      blocks: [
+        {
+          id: "gallery",
+          type: "text",
+          title: "How the gallery walk works",
+          body: "Half the class presents while half visits, then swap. Visitors leave one note per project: **Works because… / I wonder… / Next try…** Be kind, be specific.",
+        },
+        {
+          id: "privacy",
+          type: "callout",
+          tone: "warning",
+          body: "Showcase cards use roles, not names. If you invite clients, ask your teacher first and don't photograph guests.",
+        },
+        {
+          id: "micro",
+          type: "challenge",
+          kind: "micro",
+          title: "Give three pieces of feedback",
+          prompt: "Visit at least three projects. Leave one specific note on each using the three starters.",
+          requirements: ["Three projects visited", "Each note names a specific feature", "Uses Works because / I wonder / Next try"],
+          skills: ["G6"],
+        },
+      ],
+    },
+    {
+      phase: "prove",
+      title: "Present",
+      blocks: [
+        {
+          id: "prove",
+          type: "challenge",
+          kind: "prove",
+          title: "Your showcase",
+          prompt: "Present your capstone in about 2 minutes to visitors who have never seen it. Use your showcase card and your object. Answer at least one question.",
+          requirements: [
+            "Showcase card with three pieces of process evidence",
+            "Talk covers user, problem, a failure, a change, the final product and what's next",
+            "About 2 minutes, without reading word for word",
+            "Answers at least one visitor question",
+          ],
+          skills: ["G6", "F10"],
+        },
+        {
+          id: "present-check",
+          type: "teacherCheck",
+          prompt: "Observe each presentation.",
+          lookFors: [
+            "Explains who it's for and the problem with a number",
+            "Shows at least one failure and the change it caused",
+            "Explains how the final design meets the constraints",
+            "Answers a question with evidence",
+          ],
+          competencyIds: ["G6", "F10"],
+        },
+        {
+          id: "submit",
+          type: "uploadEvidence",
+          prompt: "Upload your showcase card (screenshot or photo). This becomes the front page of your portfolio.",
+          accepts: ["screenshot"],
+          competencyIds: ["F10", "G6"],
+          checklist: ["Three pieces of process evidence", "User shown as a role, not a name", "No faces in photos"],
+        },
+      ],
+    },
+    {
+      phase: "reflect",
+      title: "Reflect",
+      blocks: [
+        {
+          id: "reflect",
+          type: "reflection",
+          prompt: "What feedback did you get that you agree with, and what would you change because of it?",
+          sentenceStarters: ["A visitor noticed…", "I agree because…", "I would change…"],
+          competencyIds: ["G6"],
+        },
+      ],
+    },
+  ],
+  teacher: {
+    purpose: "Students communicate their design process — not just the product — and practise giving and receiving specific, kind feedback.",
+    preparation: [
+      "Arrange tables for a gallery walk: each student has their object, showcase card and a feedback sheet or sticky notes.",
+      "Decide whether to invite clients, families or other classes, and follow your school's visitor policy.",
+      "Time a 2-minute talk yourself so you can model the pace.",
+    ],
+    equipment: ["Final capstone objects", "Showcase cards (printed or on devices)", "Sticky notes or feedback sheets", "Timer"],
+    misconceptions: [
+      { id: "final-only", text: "A portfolio should show only the finished product.", response: "Ask: how would a visitor know you tested and improved it? Show the before and after." },
+    ],
+    discussionQuestions: [
+      "Why show a failure in a showcase?",
+      "What makes feedback useful to the designer?",
+      "Which classmate's project solved a problem you hadn't noticed?",
+    ],
+    troubleshooting: [
+      "If a final object failed or isn't printed, students present prototype 1, the test results and the plan — the process still counts.",
+      "If a student is anxious about presenting, allow a partner-presentation or a recorded talk shared only with the class.",
+      "If feedback stays vague, pause and model one specific note out loud.",
+    ],
+    answerGuidance: [
+      "Strong showcase card: user role, one-sentence problem, v1/v2 comparison, test table, critical-dimension screenshot.",
+      "Proficient presentation covers user, problem, a failure, a change, the final design and next steps.",
+      "Score Communication on the capstone rubric with this presentation and the journal.",
+    ],
+    alternatives: {
+      touchDevice: "Showcase cards can be built as a single slide or photo collage on a tablet.",
+      noPrinter: "Present the final Tinkercad design on a device with paper prototypes and test evidence.",
+    },
+  },
+};

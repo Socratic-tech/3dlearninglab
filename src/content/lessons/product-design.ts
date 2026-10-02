@@ -1,0 +1,219 @@
+import type { LessonInput } from "../schema";
+
+export const lesson: LessonInput = {
+  id: "product-design",
+  number: 32,
+  title: "Product Design",
+  subtitle: "From someone's problem to an object that works",
+  domain: "F",
+  kind: "lesson",
+  summary: "Learn the design cycle, describe a specific user's need, sketch several ideas and choose one with reasons — not just your favourite.",
+  estimatedMinutes: 50,
+  printLevel: "digital",
+  competencyIds: ["F1", "F3", "F4"],
+  prerequisites: ["cad-er"],
+  vocabulary: [
+    { term: "User", definition: "The specific person who has the problem you are solving." },
+    { term: "Need", definition: "What the user is trying to do but can't do easily right now." },
+    { term: "Design cycle", definition: "Understand, define, ideate, prototype, test, revise — then loop back." },
+    { term: "Concept", definition: "One possible idea for solving the problem, often a quick sketch." },
+  ],
+  sections: [
+    {
+      phase: "discover",
+      title: "Why this matters",
+      blocks: [
+        {
+          id: "hook",
+          type: "hero",
+          title: "Until now, you fixed problems we gave you.",
+          hook: "Now the problem belongs to a real person. Good products start with someone's frustration, not with a cool shape.",
+          visual: { diagram: "design-cycle" },
+        },
+        {
+          id: "explain",
+          type: "text",
+          body: "Designers work in a loop: **understand** the user, **define** the problem, **ideate** many ideas, **prototype**, **test**, and **revise**. Most designs go around the loop more than once.",
+        },
+        {
+          id: "cycle",
+          type: "diagram",
+          name: "design-cycle",
+          caption: "The design cycle loops. Testing usually sends you back to an earlier step.",
+          alt: "Six steps in a loop: understand, define, ideate, prototype, test, revise.",
+        },
+        {
+          id: "order-cycle",
+          type: "ordering",
+          prompt: "Put the design cycle in order.",
+          items: [
+            { id: "understand", text: "Understand the user" },
+            { id: "define", text: "Define the problem" },
+            { id: "ideate", text: "Ideate (many ideas)" },
+            { id: "prototype", text: "Prototype" },
+            { id: "test", text: "Test" },
+            { id: "revise", text: "Revise" },
+          ],
+          explanation: "You can't define a problem you don't understand, and you can't test what you haven't built. Revise loops you back to prototype — or even to define.",
+          check: "practice",
+        },
+      ],
+    },
+    {
+      phase: "practice",
+      title: "Spot the need",
+      blocks: [
+        {
+          id: "need-mc",
+          type: "multipleChoice",
+          prompt: "Which statement describes a real user need?",
+          options: [
+            { id: "a", text: "Ms. Ortiz's dry-erase markers roll off the 5 cm whiteboard ledge and break about twice a week." },
+            { id: "b", text: "I want to make a cool dragon.", misconceptionId: "object-first" },
+            { id: "c", text: "Teachers need better stuff.", misconceptionId: "vague-user" },
+          ],
+          correctOptionIds: ["a"],
+          explanation: "A need names a specific person, what goes wrong, and when. A dragon is an object, not a problem. 'Teachers' and 'stuff' are too vague to design for.",
+          competencyId: "F1",
+          check: "skill",
+        },
+        {
+          id: "sketch-diagram",
+          type: "diagram",
+          name: "sketch-concepts",
+          caption: "Three quick, different sketches for the same problem.",
+          alt: "Three rough sketches of different solutions to one problem.",
+        },
+        {
+          id: "show-me",
+          type: "showMe",
+          title: "Three ideas in six minutes",
+          steps: [
+            { text: "Fold a sheet of paper into three boxes." },
+            { text: "Set a 2-minute timer. Sketch one idea per box. Stick figures and boxes are fine." },
+            { text: "Make each idea work a different way — clip it, hold it, hang it, stop it rolling. Not the same idea in three sizes.", diagram: "sketch-concepts" },
+            { text: "Label one dimension on each sketch, like '5 cm ledge'." },
+          ],
+        },
+      ],
+    },
+    {
+      phase: "apply",
+      title: "Micro challenge",
+      blocks: [
+        {
+          id: "micro",
+          type: "challenge",
+          kind: "micro",
+          title: "The rolling markers",
+          prompt: "Sketch three different ways to stop Ms. Ortiz's markers rolling off a 5 cm ledge. Then block out your best one in Tinkercad in 10 minutes.",
+          requirements: ["Three ideas that work in different ways", "Each sketch has at least one dimension", "One idea blocked out with simple shapes"],
+          skills: ["F3", "F4"],
+        },
+        {
+          id: "choose-mc",
+          type: "multipleChoice",
+          prompt: "The markers are 18 mm across. The holder must not cover the whiteboard. Which is the best reason to choose an idea?",
+          options: [
+            { id: "a", text: "It holds 18 mm markers and sits only on the ledge, so it meets both requirements." },
+            { id: "b", text: "It is the one I like best.", misconceptionId: "favourite-wins" },
+            { id: "c", text: "It has the most parts, so it is the most advanced." },
+          ],
+          correctOptionIds: ["a"],
+          explanation: "Choose ideas by checking them against what the user needs. Liking an idea is fine — but it has to win on the requirements.",
+          competencyId: "F4",
+          check: "skill",
+        },
+        {
+          id: "tinkercad",
+          type: "tinkercadLaunch",
+          title: "Quick block-out",
+          steps: [
+            "Create a new design called 'marker idea'.",
+            "Use boxes, cylinders and holes to rough out your chosen idea. Don't polish it.",
+            "Use one real number: make the marker space 18 mm plus a little clearance.",
+          ],
+        },
+      ],
+    },
+    {
+      phase: "prove",
+      title: "Prove it",
+      blocks: [
+        {
+          id: "prove",
+          type: "challenge",
+          kind: "prove",
+          title: "A new user, a new problem",
+          prompt: "Coach Lee's whistle lanyard tangles with the clipboard every practice, and the whistle ends up on the ground. Describe the need, sketch three different ideas, and choose one using the need — not your favourite.",
+          requirements: [
+            "One sentence that names the user, the problem and when it happens",
+            "Three ideas that work in different ways",
+            "At least one dimension on each sketch (estimate if needed)",
+            "Two sentences explaining why your chosen idea fits the need best",
+          ],
+          skills: ["F1", "F3", "F4"],
+        },
+        {
+          id: "submit",
+          type: "uploadEvidence",
+          prompt: "Upload a photo or screenshot of your three sketches with your need statement and choice written on the page.",
+          accepts: ["screenshot"],
+          competencyIds: ["F1", "F3", "F4"],
+          checklist: ["Need statement names a specific user", "Three different ideas", "Reason for choice refers to the need"],
+        },
+      ],
+    },
+    {
+      phase: "reflect",
+      title: "Reflect",
+      blocks: [
+        {
+          id: "journal-start",
+          type: "text",
+          title: "Start your design journal",
+          body: "Your capstone is coming. Think of someone at school who has a small, annoying problem. Write a first guess below — you will update it after you interview them.",
+        },
+        { id: "journal", type: "journal", projectKey: "capstone", promptIds: ["user"] },
+        {
+          id: "reflect",
+          type: "reflection",
+          prompt: "Why do designers sketch several ideas instead of building the first one?",
+          sentenceStarters: ["If I only build my first idea…", "Sketching more ideas helps because…"],
+          competencyIds: ["F3"],
+        },
+      ],
+    },
+  ],
+  teacher: {
+    purpose: "Students shift from solving given problems to solving a specific person's problem, and practise choosing between concepts using requirements.",
+    preparation: [
+      "Print or display the design-cycle diagram.",
+      "Have paper and timers ready for the three-sketch routine.",
+      "Prepare a short list of approved potential clients (teachers, staff, coaches) for the capstone so students can start thinking.",
+    ],
+    equipment: ["Student devices with Tinkercad", "Paper, pencils, timer"],
+    misconceptions: [
+      { id: "object-first", text: "Design starts with choosing a cool object.", response: "Ask: who has a problem this solves? If nobody, it's decoration, not a product." },
+      { id: "vague-user", text: "'Everyone' or a whole group is a good user.", response: "Push for one real person and one moment when the problem happens." },
+      { id: "favourite-wins", text: "You should build the idea you like most.", response: "Have students score each idea against two requirements. The favourite can still win — with evidence." },
+    ],
+    discussionQuestions: [
+      "Name a product you own that solves a problem well. Who was it designed for?",
+      "What's the difference between a problem and a solution?",
+      "Why might the first idea rarely be the best one?",
+    ],
+    troubleshooting: [
+      "If all three sketches are the same idea at different sizes, ask: 'How else could you stop it rolling — without a tray?'",
+      "If students jump to detailed CAD, cap the block-out at 10 minutes. Rough is the goal.",
+    ],
+    answerGuidance: [
+      "Strong need statement example: 'Coach Lee's whistle lanyard tangles with her clipboard every practice and the whistle falls on the field.'",
+      "Different ideas might include: a clip on the clipboard edge, a magnetic dock, a short retractable holder, a wrist loop.",
+      "Proficient: choice explicitly references the need (tangling, falling), not appearance.",
+    ],
+    alternatives: {
+      touchDevice: "The block-out step can be done with a pencil sketch with dimensions if CAD on a tablet is slow.",
+    },
+  },
+};

@@ -1,0 +1,198 @@
+import type { LessonInput } from "../schema";
+
+export const lesson: LessonInput = {
+  id: "duplicate",
+  number: 13,
+  title: "Duplicate",
+  subtitle: "Make identical parts in one keystroke",
+  domain: "B",
+  kind: "lesson",
+  summary: "Duplicate and copy-paste shapes so every copy keeps the exact same size, then place copies precisely.",
+  estimatedMinutes: 45,
+  printLevel: "digital",
+  competencyIds: ["B5", "B8"],
+  prerequisites: ["align"],
+  vocabulary: [
+    { term: "Duplicate", definition: "Make an exact copy of a shape in the same spot (Ctrl+D)." },
+    { term: "Copy and paste", definition: "Store a shape on the clipboard (Ctrl+C) and add it again (Ctrl+V), even in another design." },
+    { term: "Identical parts", definition: "Copies with the same size and settings, so they fit and look the same." },
+  ],
+  sections: [
+    {
+      phase: "discover",
+      title: "Why this matters",
+      blocks: [
+        {
+          id: "hook",
+          type: "hero",
+          title: "Four legs. One measurement.",
+          hook: "A table with one leg 29 mm and the others 30 mm wobbles. Build one leg right, then copy it — every leg is guaranteed to match.",
+          visual: { diagram: "duplicate-pattern" },
+        },
+        {
+          id: "explain",
+          type: "text",
+          body: "**Ctrl+D** duplicates the selected shape. The copy appears **exactly on top of the original**, so it looks like nothing happened. Drag or nudge it to see both. **Ctrl+C / Ctrl+V** copies to the clipboard, which also works between two of your designs.",
+        },
+        {
+          id: "predict",
+          type: "prediction",
+          prompt: "You select a cylinder and press Ctrl+D. The screen looks exactly the same. What happened?",
+          options: [
+            { id: "a", text: "A copy was made in the same place, hiding behind the original." },
+            { id: "b", text: "Nothing — the shortcut didn't work.", misconceptionId: "dup-nothing" },
+            { id: "c", text: "The cylinder became twice as big.", misconceptionId: "dup-scales" },
+          ],
+          expectedOptionId: "a",
+          reveal: "The copy is there, sitting in the exact same spot. Press an arrow key and you'll see two cylinders. Pressing Ctrl+D five times by accident makes five hidden copies — a common source of 'mystery' extra shapes.",
+        },
+        {
+          id: "show-me",
+          type: "showMe",
+          title: "Make four matching legs",
+          steps: [
+            { text: "Make one leg: a Box 6 × 6 × 30 mm.", diagram: "exact-dimension" },
+            { text: "Select it and press Ctrl+D. The copy is selected and sitting on the original.", keys: "Ctrl+D" },
+            { text: "Hold Shift and press → four times to move the copy 40 mm on X.", diagram: "nudge-keys", keys: "Shift+→" },
+            { text: "Select both legs, press Ctrl+D, then move the pair 30 mm on Y. Now you have four legs.", keys: "Ctrl+D" },
+          ],
+        },
+      ],
+    },
+    {
+      phase: "practice",
+      title: "Try it",
+      blocks: [
+        {
+          id: "tinkercad",
+          type: "tinkercadLaunch",
+          title: "Build the legs, then share them",
+          steps: [
+            "Create a new design and build the four legs from the Show Me steps.",
+            "Click one leg and check its size still reads 6 × 6 × 30 mm.",
+            "Select all four legs and press Ctrl+C.",
+            "Create a second new design and press Ctrl+V. The legs arrive with the same sizes.",
+          ],
+        },
+        {
+          id: "check-count",
+          type: "measurement",
+          prompt: "You build one leg, then press Ctrl+D three times without moving anything. How many legs are now in the design?",
+          answer: 4,
+          tolerance: 0,
+          unit: "legs",
+          hint: "Count the original too.",
+          explanation: "1 original + 3 copies = 4, all stacked in one spot. Move each one to see them.",
+          competencyId: "B5",
+          check: "practice",
+        },
+        {
+          id: "dup-vs-new",
+          type: "multipleChoice",
+          prompt: "Why is duplicating a leg better than dragging four new boxes from the shape panel?",
+          options: [
+            { id: "a", text: "Copies keep the exact size and settings, so you can't make one leg slightly different by mistake." },
+            { id: "b", text: "Duplicated shapes print faster." , misconceptionId: "dup-prints-faster" },
+            { id: "c", text: "New boxes from the panel can't be resized." },
+          ],
+          correctOptionIds: ["a"],
+          explanation: "Duplicating removes the chance of typing a size wrong. Build one part carefully; copy it to guarantee a match.",
+          competencyId: "B5",
+          check: "skill",
+        },
+      ],
+    },
+    {
+      phase: "apply",
+      title: "Micro challenge",
+      blocks: [
+        {
+          id: "micro",
+          type: "challenge",
+          kind: "micro",
+          title: "Domino",
+          prompt: "Make a domino 24 × 48 × 6 mm with a groove (1 mm wide, 1 mm deep) across the middle and six recessed dots (4 mm wide, 1 mm deep) — three on each half. Build one dot, then duplicate it.",
+          requirements: ["All six dots identical", "Dots 1 mm deep (not through)", "Single grouped model"],
+          skills: ["B5", "B3", "B2"],
+        },
+        {
+          id: "mystery-shapes",
+          type: "multipleChoice",
+          prompt: "After grouping your domino, one dot looks deeper than the others. What is the most likely cause?",
+          options: [
+            { id: "a", text: "Two hidden copies were stacked in that spot, and one was moved down." },
+            { id: "b", text: "Groups always make holes deeper.", misconceptionId: "group-deepens" },
+            { id: "c", text: "Ctrl+D always makes copies 1 mm deeper." , misconceptionId: "dup-scales" },
+          ],
+          correctOptionIds: ["a"],
+          explanation: "Ungroup, drag a selection box around the dot and look at how many shapes are selected. Delete the extra copy.",
+          competencyId: "B5",
+          check: "practice",
+        },
+      ],
+    },
+    {
+      phase: "prove",
+      title: "Prove it",
+      blocks: [
+        {
+          id: "prove",
+          type: "challenge",
+          kind: "prove",
+          title: "Stool for a figurine",
+          prompt: "Design a small stool: a round seat 40 mm wide and 4 mm thick standing on three identical legs, 5 × 5 × 25 mm, evenly placed under the seat. Then copy one leg into a new design and confirm it kept its size. No steps — you decide how to place the legs.",
+          requirements: [
+            "Three legs, all exactly 5 × 5 × 25 mm",
+            "All legs touch the seat and the workplane",
+            "No hidden extra copies",
+            "One leg copied into a second design with its size unchanged",
+            "Stool is a single grouped model",
+          ],
+          skills: ["B5", "B8", "B4", "B2"],
+        },
+        {
+          id: "submit",
+          type: "uploadEvidence",
+          prompt: "Submit two screenshots (or class design links): the stool, and the second design showing the copied leg's dimensions.",
+          accepts: ["screenshot", "design_url", "stl"],
+          competencyIds: ["B5", "B8"],
+          checklist: ["Leg dimensions are visible", "Second design shows the pasted leg", "Stool is one group"],
+        },
+      ],
+    },
+    {
+      phase: "reflect",
+      title: "Reflect",
+      blocks: [
+        {
+          id: "reflect",
+          type: "reflection",
+          prompt: "Name a real object made of identical parts. How would duplicating help you design it?",
+          sentenceStarters: ["A … has identical…", "Duplicating would help because…"],
+          competencyIds: ["B5"],
+        },
+      ],
+    },
+  ],
+  teacher: {
+    purpose: "Students learn that duplicates are exact and appear in place, use copy-paste between designs, and learn to spot hidden stacked copies.",
+    preparation: ["Try copying a shape from one Tinkercad design to another on a student device to confirm the clipboard works in your browser setup."],
+    equipment: ["Student devices with Tinkercad"],
+    misconceptions: [
+      { id: "dup-nothing", text: "Ctrl+D did nothing because the screen didn't change.", response: "Press an arrow key right after Ctrl+D on the projector to reveal the copy." },
+      { id: "dup-scales", text: "Duplicating changes the size of the copy.", response: "Click the copy and read its dimensions aloud — identical." },
+      { id: "dup-prints-faster", text: "Duplicated shapes print faster.", response: "The printer only sees the final shape; duplication is a design shortcut, not a print setting." },
+      { id: "group-deepens", text: "Grouping makes holes deeper.", response: "Ungroup and count the shapes in that spot with a selection box." },
+    ],
+    discussionQuestions: ["How could hidden copies cause a problem later when you print?", "When would you copy-paste between designs instead of duplicating?"],
+    troubleshooting: [
+      "Paste does nothing in the second design: make sure the first design's shapes were copied with Ctrl+C (not just selected), and both designs are open in the same browser.",
+      "Extra shapes appear when selecting: the student pressed Ctrl+D more than once; delete the extras.",
+    ],
+    answerGuidance: [
+      "Domino: one 4 mm cylinder hole 1 mm deep (raised to 5 mm on a 6 mm domino, height ≥ 1 mm above the top), duplicated five times; groove is a 1 mm hole across the middle.",
+      "Stool: legs placed roughly 120° apart (or at three points of a triangle) within the seat circle; the 'evenly placed' requirement can be judged by eye at this stage.",
+    ],
+    alternatives: { touchDevice: "Use the Duplicate button in the top toolbar and the on-screen Copy / Paste buttons." },
+  },
+};

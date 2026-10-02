@@ -1,0 +1,172 @@
+import type { LessonBlock, BlockOf } from "@/content/schema";
+import { nearestHotspot } from "@/components/viewer/geometry";
+
+/**
+ * Server-side scoring of interactive blocks, plus redaction so answers are never sent to the browser
+ * before a student responds. Pure functions — unit tested.
+ */
+export type ScorableType = "prediction" | "multipleChoice" | "ordering" | "matching" | "hotspot" | "measurement";
+export const SCORABLE: ScorableType[] = ["prediction", "multipleChoice", "ordering", "matching", "hotspot", "measurement"];
+export const isScorable = (b: LessonBlock): b is BlockOf<ScorableType> => (SCORABLE as string[]).includes(b.type);
+
+export type BlockResponse =
+  | { type: "prediction"; optionId: string }
+  | { type: "multipleChoice"; optionIds: string[] }
+  | { type: "ordering"; order: string[] }
+  | { type: "matching"; pairs: Record<string, string> } // leftId -> rightId (pair ids)
+  | { type: "hotspot"; point: [number, number, number] }
+  | { type: "measurement"; value: number };
+
+export type ScoreResult = {
+  /** null when the block has no right answer (open predictions) */
+  correct: boolean | null;
+  /** short headline in "test result" language */
+  headline: string;
+  feedback?: string;
+  explanation: string;
+  misconceptionId?: string;
+  /** extra data revealed after answering (e.g. correct option ids, hotspot regions) */
+  reveal: Record<string, unknown>;
+};
+
+const sameSet = (a: string[], b: string[]) => a.length === b.length && a.every((x) => b.includes(x));
+
+export function scoreBlock(block: LessonBlock, response: BlockResponse): ScoreResult {
+  if (block.type !== response.type) throw new Error(`Response type ${response.type} does not match block ${block.type}`);
+  switch (block.type) {
+    case "prediction": {
+      const r = response as Extract<BlockResponse, { type: "prediction" }>;
+      const opt = block.options.find((o) => o.id === r.optionId);
+      if (!opt) throw new Error("Unknown option");
+      const correct = block.expectedOptionId ? r.optionId === block.expectedOptionId : null;
+      return {
+        correct,
+        headline: block.revealTitle,
+        feedback: opt.feedback,
+        explanation: block.reveal,
+        misconceptionId: opt.misconceptionId,
+        reveal: { expectedOptionId: block.expectedOptionId ?? null },
+      };
+    }
+    case "multipleChoice": {
+      const r = response as Extract<BlockResponse, { type: "multipleChoice" }>;
+      const correct = sameSet(r.optionIds, block.correctOptionIds);
+      const chosen = block.options.filter((o) => r.optionIds.includes(o.id));
+      const wrongChosen = chosen.find((o) => !block.correctOptionIds.includes(o.id));
+      return {
+        correct,
+        headline: correct ? "Test result: that works." : "Test result: not quite yet.",
+        feedback: (wrongChosen ?? chosen[0])?.feedback,
+        explanation: block.explanation,
+        misconceptionId: wrongChosen?.misconceptionId,
+        reveal: { correctOptionIds: correct ? block.correctOptionIds : [] },
+      };
+    }
+    case "ordering": {
+      const r = response as Extract<BlockResponse, { type: "ordering" }>;
+      const target = block.items.map((i) => i.id);
+      const correct = r.order.length === target.length && r.order.every((id, i) => id === target[i]);
+      const inPlace = r.order.filter((id, i) => id === target[i]).length;
+      return {
+        correct,
+        headline: correct ? "Test result: sequence works." : `Test result: ${inPlace} of ${target.length} in the right place.`,
+        explanation: block.explanation,
+        reveal: correct ? { order: target } : {},
+      };
+    }
+    case "matching": {
+      const r = response as Extract<BlockResponse, { type: "matching" }>;
+      const right = block.pairs.filter((p) => r.pairs[p.id] === p.id).length;
+      const correct = right === block.pairs.length;
+      return {
+        correct,
+        headline: correct ? "Test result: every match holds." : `Test result: ${right} of ${block.pairs.length} matches hold.`,
+        explanation: block.explanation,
+        reveal: correct ? {} : { correctPairIds: block.pairs.filter((p) => r.pairs[p.id] === p.id).map((p) => p.id) },
+      };
+    }
+    case "hotspot": {
+      const r = response as Extract<BlockResponse, { type: "hotspot" }>;
+      const hit = nearestHotspot(r.point, block.hotspots);
+      const h = hit ? block.hotspots.find((x) => x.id === hit.id) : undefined;
+      const correct = Boolean(h?.correct);
+      return {
+        correct,
+        headline: h ? (correct ? `Found it: ${h.label}.` : `Test result: ${h.label} looks okay.`) : "Test result: nothing wrong there. Look again.",
+        feedback: h?.feedback,
+        explanation: correct ? block.explanation : "",
+        reveal: { hitId: h?.id ?? null, revealedIds: correct ? [h!.id] : h ? [h.id] : [] },
+      };
+    }
+    case "measurement": {
+      const r = response as Extract<BlockResponse, { type: "measurement" }>;
+      if (!Number.isFinite(r.value)) throw new Error("Not a number");
+      const correct = Math.abs(r.value - block.answer) <= block.tolerance + 1e-9;
+      return {
+        correct,
+        headline: correct ? "Test result: that measurement checks out." : "Test result: that doesn't match yet.",
+        feedback: correct ? undefined : block.hint,
+        explanation: correct ? block.explanation : "",
+        reveal: correct ? { answer: block.answer } : {},
+      };
+    }
+    default:
+      throw new Error(`Block type ${(block as LessonBlock).type} is not scorable`);
+  }
+}
+
+/** After repeated attempts, reveal the explanation even if still incorrect so nobody is stuck (spec §47). */
+export const REVEAL_AFTER_ATTEMPTS = 3;
+
+/**
+ * Remove answer keys before sending a block to a student's browser.
+ * Explanations/answers are returned by the server only after a response.
+ */
+export function redactBlock(block: LessonBlock): LessonBlock {
+  switch (block.type) {
+    case "prediction":
+      return { ...block, expectedOptionId: undefined, reveal: "", options: block.options.map((o) => ({ ...o, feedback: undefined, misconceptionId: undefined })) };
+    case "multipleChoice":
+      return {
+        ...block,
+        // keep the number of correct answers so the UI can choose radio vs checkbox
+        correctOptionIds: block.correctOptionIds.map((_, i) => `?${i}`),
+        explanation: "",
+        options: block.options.map((o) => ({ ...o, feedback: undefined, misconceptionId: undefined })),
+      };
+    case "ordering":
+      return { ...block, items: deterministicShuffle(block.items, block.id), explanation: "" };
+    case "matching": {
+      const rights = deterministicShuffle(
+        block.pairs.map((p) => ({ id: p.id, right: p.right })),
+        block.id + ":r",
+      );
+      // left side in authored order, right side shuffled: ids are kept so responses map pairId → pairId
+      return { ...block, pairs: block.pairs.map((p, i) => ({ id: p.id, left: p.left, right: `${rights[i].id}::${rights[i].right}` })), explanation: "" };
+    }
+    case "hotspot":
+      return { ...block, explanation: "", hotspots: block.hotspots.map((h) => ({ ...h, correct: false, feedback: "" })) };
+    case "measurement":
+      return { ...block, answer: 0, tolerance: 0, explanation: "" };
+    default:
+      return block;
+  }
+}
+
+/** Seeded shuffle so server and client render the same order. Never returns the original order for ≥3 items. */
+export function deterministicShuffle<T>(items: T[], seed: string): T[] {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
+  const rand = () => {
+    h = Math.imul(h ^ (h >>> 15), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return ((h ^= h >>> 16) >>> 0) / 4294967296;
+  };
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  if (out.length >= 3 && out.every((x, i) => x === items[i])) out.push(out.shift()!);
+  return out;
+}
