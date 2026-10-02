@@ -90,7 +90,7 @@ function handle_(req) {
   } catch (err) {
     if (err && err.userMessage) return { ok: false, error: err.userMessage };
     console.error(err && err.stack ? err.stack : err);
-    return { ok: false, error: "Something went wrong. Your work is safe — please try again." };
+    return { ok: false, error: "Something went wrong. Your work is safe — please try again.", details: String((err && err.message) || err).slice(0, 300) };
   }
 }
 
@@ -809,7 +809,11 @@ function evidenceOut_(r) {
   };
 }
 
-/** Uploads go to a private Drive folder owned by the teacher (the script owner). */
+/**
+ * Uploads go to a private Drive folder owned by the teacher (the script owner).
+ * Uses the Drive API (advanced service) so the script only needs access to files it creates (drive.file),
+ * not the teacher's whole Drive — DriveApp would require full Drive access.
+ */
 function saveUpload_(user, kind, file) {
   const maxMb = Number(config_().MAX_UPLOAD_MB || 10);
   const bytes = Utilities.base64Decode(String(file.base64 || ""));
@@ -817,34 +821,58 @@ function saveUpload_(user, kind, file) {
   if (bytes.length > maxMb * 1024 * 1024) throw userError_("That file is larger than " + maxMb + " MB.");
   const name = String(file.name || "upload").replace(/[^a-zA-Z0-9._-]+/g, "-").slice(-80);
   const ext = (name.split(".").pop() || "").toLowerCase();
-  const okExt = { screenshot: ["png", "jpg", "jpeg", "webp", "gif"], physical_test: ["png", "jpg", "jpeg", "webp", "gif"], stl: ["stl"], obj: ["obj"] }[kind] || [];
-  if (okExt.indexOf(ext) < 0) throw userError_("That file type isn't allowed here.");
-  const isImg = okExt[0] === "png";
+  const images = ["png", "jpg", "jpeg", "webp", "gif", "heic", "heif"];
+  const okExt = { screenshot: images, physical_test: images, stl: ["stl"], obj: ["obj"] }[kind] || [];
+  if (okExt.indexOf(ext) < 0) throw userError_("That file type isn't allowed here. Use " + okExt.join(", ").toUpperCase() + ".");
+  const isImg = okExt === images;
+  let mime = "application/octet-stream";
   if (isImg) {
-    const b = bytes;
-    const png = b[0] === -119 && b[1] === 80; // signed bytes in Apps Script
-    const jpg = b[0] === -1 && b[1] === -40;
-    const gif = b[0] === 71 && b[1] === 73;
-    const webp = b[0] === 82 && b[1] === 73;
-    if (!(png || jpg || gif || webp)) throw userError_("That image file looks damaged.");
+    const b = bytes; // signed bytes in Apps Script
+    const ascii = function (from, to) { return String.fromCharCode.apply(null, b.slice(from, to).map(function (x) { return x & 255; })); };
+    if (b[0] === -119 && b[1] === 80) mime = "image/png";
+    else if (b[0] === -1 && b[1] === -40) mime = "image/jpeg";
+    else if (b[0] === 71 && b[1] === 73) mime = "image/gif";
+    else if (ascii(0, 4) === "RIFF" && ascii(8, 12) === "WEBP") mime = "image/webp";
+    else if (ascii(4, 8) === "ftyp") mime = "image/heic"; // iPhone / iPad photos
+    else throw userError_("That image file looks damaged. Try taking the screenshot again.");
   }
-  const folder = uploadFolder_(user.email);
-  const blob = Utilities.newBlob(bytes, isImg ? "image/" + (ext === "jpg" ? "jpeg" : ext) : "application/octet-stream", new Date().toISOString().slice(0, 10) + "-" + name);
-  const f = folder.createFile(blob);
-  return { id: f.getId(), name: name };
+  const folderId = uploadFolder_(user.email);
+  const blob = Utilities.newBlob(bytes, mime, new Date().toISOString().slice(0, 10) + "-" + name);
+  const f = Drive.Files.create({ name: blob.getName(), parents: [folderId] }, blob);
+  return { id: f.id, name: name };
 }
 
+function driveFolderOk_(id) {
+  if (!id) return false;
+  try {
+    const f = Drive.Files.get(id, { fields: "id,trashed" });
+    return !!f && !f.trashed;
+  } catch (e) {
+    return false;
+  }
+}
+
+function newDriveFolder_(name, parentId) {
+  const meta = { name: name, mimeType: "application/vnd.google-apps.folder" };
+  if (parentId) meta.parents = [parentId];
+  return Drive.Files.create(meta).id;
+}
+
+/** One folder for the whole workbook, one sub-folder per student. Ids are remembered in script properties. */
 function uploadFolder_(email) {
   const props = PropertiesService.getScriptProperties();
   let rootId = props.getProperty("UPLOAD_FOLDER_ID");
-  let root;
-  try { root = rootId ? DriveApp.getFolderById(rootId) : null; } catch (e) { root = null; }
-  if (!root) {
-    root = DriveApp.createFolder("3D Design Academy uploads");
-    props.setProperty("UPLOAD_FOLDER_ID", root.getId());
+  if (!driveFolderOk_(rootId)) {
+    rootId = newDriveFolder_("3D Design Academy uploads (" + ss_().getName() + ")");
+    props.setProperty("UPLOAD_FOLDER_ID", rootId);
   }
-  const it = root.getFoldersByName(email);
-  return it.hasNext() ? it.next() : root.createFolder(email);
+  const key = "UF_" + email;
+  let id = props.getProperty(key);
+  if (!id || !driveFolderOk_(id)) {
+    id = newDriveFolder_(email, rootId);
+    props.setProperty(key, id);
+  }
+  return id;
 }
 
 // ───────────────────────── Setup (menu + sidebar in the teacher's Sheet) ─────────────────────────

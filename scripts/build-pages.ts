@@ -54,7 +54,12 @@ fs.writeFileSync(
       timeZone: "America/Detroit",
       runtimeVersion: "V8",
       exceptionLogging: "STACKDRIVER",
-      dependencies: { enabledAdvancedServices: [{ userSymbol: "Classroom", serviceId: "classroom", version: "v1" }] },
+      dependencies: {
+        enabledAdvancedServices: [
+          { userSymbol: "Classroom", serviceId: "classroom", version: "v1" },
+          { userSymbol: "Drive", serviceId: "drive", version: "v3" },
+        ],
+      },
       oauthScopes: [
         "https://www.googleapis.com/auth/spreadsheets.currentonly",
         "https://www.googleapis.com/auth/drive.file",
@@ -130,6 +135,30 @@ fs.writeFileSync(
 );
 const notes = fs.existsSync(path.join(root, "apps-script/release-notes.txt")) ? fs.readFileSync(path.join(root, "apps-script/release-notes.txt"), "utf8").trim() : "";
 fs.writeFileSync(path.join(pub, "version.json"), JSON.stringify({ version, notes, date: new Date().toISOString().slice(0, 10) }));
+// 5) A local copy-paste helper (never published: it contains the answer keys).
+const pasteFiles = [
+  { name: "Code", kind: "Script file", text: code },
+  { name: "Lib", kind: "Script file", text: files[0] },
+  { name: "Content", kind: "Script file", text: files[1] },
+  { name: "Sidebar", kind: "HTML file", text: files[2] },
+  { name: "appsscript.json", kind: "Manifest (Project Settings → Show appsscript.json)", text: files[3] },
+];
+const helper = `<!doctype html><html><head><meta charset="utf-8"><title>Apps Script files — copy & paste</title>
+<style>body{font:16px/1.5 system-ui,sans-serif;max-width:720px;margin:32px auto;padding:0 16px;color:#0f1b2d}
+.f{border:1px solid #cfd8e3;border-radius:12px;padding:14px 16px;margin:12px 0;display:flex;align-items:center;gap:12px}
+.f b{font-size:18px}.f span{color:#4a5a70;font-size:14px}button{margin-left:auto;background:#0b5cad;color:#fff;border:0;border-radius:9px;padding:10px 18px;font-weight:700;font-size:15px;cursor:pointer}
+button.ok{background:#15803d}textarea{position:fixed;left:-9999px}.warn{background:#fdf6dc;border:1px solid #a16207;border-radius:10px;padding:10px 14px}</style></head><body>
+<h1>Apps Script files</h1><p>Version <b>${version}</b>. In the Apps Script editor, click a file (or <b>+</b> to add it with this exact name), select all, delete, then paste.</p>
+${clientId ? "" : '<p class="warn">No Google client ID is built in. That’s fine for your own Sheet (it uses the CLIENT_ID in its Config tab), but set <code>clientId</code> in <code>apps-script/build.config.json</code> and rebuild before making the template for other teachers.</p>'}
+<div id="list"></div><textarea id="t"></textarea>
+<script>const F=${JSON.stringify(pasteFiles).replace(/</g, "\\u003c")};
+const list=document.getElementById("list"),t=document.getElementById("t");
+F.forEach(function(f){const d=document.createElement("div");d.className="f";d.innerHTML="<div><b></b><br><span></span></div><button>Copy</button>";
+d.querySelector("b").textContent=f.name;d.querySelector("span").textContent=f.kind+" · "+Math.round(f.text.length/1024)+" KB";
+const b=d.querySelector("button");b.onclick=function(){t.value=f.text;t.select();let ok=false;try{ok=document.execCommand("copy")}catch(e){}
+if(!ok&&navigator.clipboard){navigator.clipboard.writeText(f.text).then(function(){b.textContent="Copied ✓";b.className="ok"});return}
+b.textContent=ok?"Copied ✓":"Copy failed — try Chrome";b.className=ok?"ok":""};list.appendChild(d)});</script></body></html>`;
+fs.writeFileSync(path.join(dist, "paste-helper.html"), helper);
 if (!clientId) console.warn("⚠ No Google client ID baked in: set clientId in apps-script/build.config.json (or GOOGLE_CLIENT_ID).");
 }
 

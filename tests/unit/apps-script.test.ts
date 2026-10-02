@@ -72,6 +72,13 @@ describe("Apps Script API", () => {
     const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 1, 2, 3]).toString("base64");
     expect(env.call("maya@school.org", "submitEvidence", { lessonId: "holes", blockId: "submit", kind: "screenshot", file: { name: "x.png", base64: png } }).ok).toBe(true);
     expect(env.files).toHaveLength(1);
+    // iPad/iPhone photos (HEIC) and WebP work too; one folder for the book + one per student, reused
+    const heic = Buffer.concat([Buffer.from([0, 0, 0, 24]), Buffer.from("ftypheic"), Buffer.alloc(8)]).toString("base64");
+    expect(env.call("maya@school.org", "submitEvidence", { lessonId: "holes", blockId: "submit", kind: "screenshot", file: { name: "IMG_0042.HEIC", base64: heic } }).ok).toBe(true);
+    const webp = Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(4), Buffer.from("WEBPVP8 ")]).toString("base64");
+    expect(env.call("maya@school.org", "submitEvidence", { lessonId: "holes", blockId: "submit", kind: "screenshot", file: { name: "shot.webp", base64: webp } }).ok).toBe(true);
+    expect(env.files).toHaveLength(3);
+    expect(env.folders).toHaveLength(2);
   });
 });
 

@@ -40,24 +40,35 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
   };
   const cache = new Map<string, string>();
   const files: { name: string }[] = [];
+  const folders: string[] = [];
   const folder = { getFoldersByName: () => ({ hasNext: () => false }), createFolder: () => folder, createFile: (b: { name: string }) => { files.push(b); return { getId: () => "file" + files.length }; }, getId: () => "root" };
   const props = new Map<string, string>();
   const ctx: Record<string, unknown> = {
     console,
-    SpreadsheetApp: { getActiveSpreadsheet: () => book },
+    SpreadsheetApp: { getActiveSpreadsheet: () => ({ ...book, getName: () => "Test book" }) },
     LockService: { getScriptLock: () => ({ tryLock: () => true, releaseLock: () => {} }) },
     CacheService: { getScriptCache: () => ({ get: (k: string) => cache.get(k) ?? null, put: (k: string, v: string) => cache.set(k, v) }) },
     Session: { getEffectiveUser: () => ({ getEmail: () => owner }), getScriptTimeZone: () => "America/Detroit" },
     PropertiesService: { getScriptProperties: () => ({ getProperty: (k: string) => props.get(k) ?? null, setProperty: (k: string, v: string) => props.set(k, v), deleteAllProperties: () => props.clear() }) },
     ScriptApp: { getService: () => ({ getUrl: () => opts.webAppUrl ?? null }), getScriptId: () => "script-1", getOAuthToken: () => "oauth" },
     DriveApp: { getFolderById: () => folder, createFolder: () => folder },
+    Drive: {
+      Files: {
+        create: (meta: { name: string; mimeType?: string }, blob?: { name: string }) => {
+          if (blob) files.push(blob);
+          else folders.push(meta.name);
+          return { id: (blob ? "file" : "folder") + (blob ? files.length : folders.length) };
+        },
+        get: (id: string) => ({ id, trashed: false }),
+      },
+    },
     Utilities: {
       base64EncodeWebSafe: (b: number[]) => Buffer.from(b).toString("base64url"),
       computeDigest: (_a: unknown, s: string) => [...Buffer.from(s)].slice(0, 32),
       DigestAlgorithm: { SHA_256: "sha" },
       getUuid: () => Math.random().toString(36).slice(2),
       base64Decode: (s: string) => [...Buffer.from(s, "base64")].map((b) => (b > 127 ? b - 256 : b)),
-      newBlob: (_b: unknown, _t: string, name: string) => ({ name }),
+      newBlob: (_b: unknown, type: string, name: string) => ({ name, type, getName: () => name }),
       formatDate: (d: Date, tz: string) => new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(d),
     },
     UrlFetchApp: {
@@ -81,6 +92,6 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
   const raw = (body: string) => vm.runInContext(`doPost(${JSON.stringify({ postData: { contents: body } })})`, ctx) as string;
   const call = (email: string, action: string, args: Record<string, unknown> = {}) => JSON.parse(raw(JSON.stringify({ action, token: "tok:" + email, args })));
   const run = (code: string) => JSON.parse(vm.runInContext(`JSON.stringify(${code})`, ctx) as string);
-  return { call, raw, run, sheets, files, props };
+  return { call, raw, run, sheets, files, folders, props };
 }
 

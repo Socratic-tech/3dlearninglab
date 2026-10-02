@@ -539,7 +539,7 @@ export function UploadEvidenceBlock({ b, existing }: { b: BlockOf<"uploadEvidenc
           )}
           {(needsFile || kind === "physical_test") && (
             <Field label={kind === "physical_test" ? "Photo (optional)" : "File"} htmlFor={`${b.id}-file`}>
-              <input id={`${b.id}-file`} name="file" type="file" required={needsFile} accept={kind === "stl" ? ".stl" : kind === "obj" ? ".obj" : "image/png,image/jpeg,image/webp,image/gif"} className="text-sm" />
+              <input id={`${b.id}-file`} name="file" type="file" required={needsFile} accept={kind === "stl" ? ".stl" : kind === "obj" ? ".obj" : "image/png,image/jpeg,image/webp,image/gif,image/heic,image/heif,.heic,.heif"} className="text-sm" />
             </Field>
           )}
           <Field label={kind === "physical_test" ? "Test result — what happened?" : "Note for your teacher (optional)"} htmlFor={`${b.id}-note`}>
