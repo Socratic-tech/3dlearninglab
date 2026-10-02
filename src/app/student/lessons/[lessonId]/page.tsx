@@ -10,7 +10,7 @@ import { openLesson } from "@/server/services/progress";
 import { AppError, ForbiddenError, NotFoundError } from "@/server/errors";
 import { actorOf } from "@/app/actions/_run";
 import { allBlocks, assetsForLesson, competencies, getLesson, journalPrompts } from "@/content";
-import { LessonPlayer } from "@/components/lesson/player";
+import { StudentLessonPlayer } from "@/components/lesson/student-player";
 import { Alert, Pill } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button";
 
@@ -90,7 +90,7 @@ export default async function LessonPage(props: PageProps<"/student/lessons/[les
           </details>
         )}
       </header>
-      <LessonPlayer
+      <StudentLessonPlayer
         courseId={ctx.course.id}
         lesson={data.lesson}
         entries={data.blockState}

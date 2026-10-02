@@ -5,6 +5,13 @@ Tinkercad is the CAD workspace; Google Classroom is an optional integration.
 
 > Students should not prove that they can follow Tinkercad instructions. They should prove that they know what to do when the instructions disappear.
 
+## Two editions
+
+- **Pages + Google edition** (`web/` + `apps-script/`): static site on GitHub Pages, student data in each teacher's Google Sheet/Drive. Setup: [docs/pages-edition.md](docs/pages-edition.md).
+- **Full edition** (Next.js, below): Postgres-backed, all teacher tools (print queue, rubrics, Classroom grade sync).
+
+Both share the same curriculum, lesson player, 3D viewer and scoring rules.
+
 ## Quick start (no accounts, no database install)
 
 ```bash

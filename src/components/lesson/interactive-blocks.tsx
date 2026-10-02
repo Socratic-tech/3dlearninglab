@@ -4,8 +4,9 @@ import { createContext, useContext, useEffect, useRef, useState, useTransition, 
 import { ArrowDown, ArrowUp, CircleCheck, FlaskConical, Upload } from "lucide-react";
 import type { BlockOf, ModelAsset } from "@/content/schema";
 import type { BlockResponse } from "@/lib/scoring";
-import type { BlockEntry, ClientResult } from "@/server/services/progress";
-import { answerBlockAction, saveDraftAction, saveJournalAction, submitEvidenceAction, submitReflectionAction } from "@/app/actions/student";
+import type { ClientResult } from "@/lib/scoring";
+import type { BlockEntry } from "./types";
+import type { LessonApi } from "./api";
 import { Button } from "@/components/ui/button";
 import { FriendlyError } from "@/components/ui/friendly-error";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
@@ -22,6 +23,7 @@ export type LessonCtxValue = {
   markDone: (blockId: string, entry?: Partial<BlockEntry>) => void;
   assets: Record<string, ModelAsset>;
   readOnly: boolean;
+  api: LessonApi;
 };
 export const LessonCtx = createContext<LessonCtxValue | null>(null);
 const useLesson = () => useContext(LessonCtx)!;
@@ -35,7 +37,7 @@ function useAnswer(blockId: string) {
   const submit = (response: BlockResponse) =>
     start(async () => {
       setError(null);
-      const r = await answerBlockAction({ courseId: ctx.courseId, lessonId: ctx.lessonId, blockId, response });
+      const r = await ctx.api.answerBlock({ courseId: ctx.courseId, lessonId: ctx.lessonId, blockId, response });
       if (r.ok) {
         setResult(r.data);
         ctx.markDone(blockId, { result: r.data, response });
@@ -336,7 +338,7 @@ export function ReflectionBlock({ b }: { b: BlockOf<"reflection"> }) {
     setStatus("Saving…");
     clearTimeout(timer.current);
     timer.current = setTimeout(async () => {
-      const r = await saveDraftAction({ courseId: ctx.courseId, lessonId: ctx.lessonId, blockId: b.id, text: t });
+      const r = await ctx.api.saveDraft({ courseId: ctx.courseId, lessonId: ctx.lessonId, blockId: b.id, text: t });
       setStatus(r.ok ? "Draft saved" : "Couldn't save — keep this tab open and we'll retry");
     }, 1200);
   };
@@ -366,7 +368,7 @@ export function ReflectionBlock({ b }: { b: BlockOf<"reflection"> }) {
             onClick={() =>
               start(async () => {
                 clearTimeout(timer.current);
-                const r = await submitReflectionAction({ courseId: ctx.courseId, lessonId: ctx.lessonId, blockId: b.id, text });
+                const r = await ctx.api.submitReflection({ courseId: ctx.courseId, lessonId: ctx.lessonId, blockId: b.id, text });
                 if (r.ok) {
                   setSubmitted(true);
                   setStatus("Submitted");
@@ -441,7 +443,7 @@ export function UploadEvidenceBlock({ b, existing }: { b: BlockOf<"uploadEvidenc
               fd.set("lessonId", ctx.lessonId);
               fd.set("blockId", b.id);
               fd.set("kind", kind);
-              const r = await submitEvidenceAction(fd);
+              const r = await ctx.api.submitEvidence(fd);
               if (r.ok) {
                 setList([{ ...r.data, status: "submitted", teacherComment: null, teacherRating: null, blockId: b.id }, ...list]);
                 setOk("Submitted! Your teacher will review it.");
@@ -509,7 +511,7 @@ export function JournalBlock({ b, prompts, initial }: { b: BlockOf<"journal">; p
   );
 }
 
-export function JournalEntry({ projectKey, prompt, initial, courseId: courseOverride }: { projectKey: string; prompt: { id: string; title: string; prompt: string }; initial: string; courseId?: string }): ReactNode {
+export function JournalEntry({ projectKey, prompt, initial, courseId: courseOverride, api: apiOverride }: { projectKey: string; prompt: { id: string; title: string; prompt: string }; initial: string; courseId?: string; api?: LessonApi }): ReactNode {
   const ctx = useContext(LessonCtx);
   const courseId = courseOverride ?? ctx?.courseId ?? "";
   const [text, setText] = useState(initial);
@@ -533,7 +535,7 @@ export function JournalEntry({ projectKey, prompt, initial, courseId: courseOver
           setStatus("Saving…");
           clearTimeout(timer.current);
           timer.current = setTimeout(async () => {
-            const r = await saveJournalAction({ courseId, projectKey, promptId: prompt.id, text: t });
+            const r = await (ctx?.api ?? apiOverride)!.saveJournal({ courseId, projectKey, promptId: prompt.id, text: t });
             setStatus(r.ok ? "Saved" : "Couldn't save — retrying when you type again");
           }, 1000);
         }}

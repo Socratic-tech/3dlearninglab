@@ -4,8 +4,8 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { Award, CircleCheck, Lock } from "lucide-react";
 import type { Lesson, LessonBlock, ModelAsset } from "@/content/schema";
-import type { BlockEntry } from "@/server/services/progress";
-import { completeLessonAction, heartbeatAction } from "@/app/actions/student";
+import type { BlockEntry } from "./types";
+import { readOnlyApi, defaultLinks, type LessonApi, type LessonLinks } from "./api";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { FriendlyError } from "@/components/ui/friendly-error";
 import { cn } from "@/lib/cn";
@@ -31,9 +31,13 @@ export type PlayerProps = {
   readOnly?: boolean;
   /** "steps" = one focused screen at a time (students); "scroll" = whole lesson (teacher preview) */
   mode?: "steps" | "scroll";
+  api?: LessonApi;
+  links?: LessonLinks;
 };
 
 export function LessonPlayer(p: PlayerProps) {
+  const api = p.api ?? readOnlyApi;
+  const links = p.links ?? defaultLinks;
   const [entries, setEntries] = useState(p.entries);
   const [completed, setCompleted] = useState(p.completed);
   const [result, setResult] = useState<{ nextLessonId: string | null; unlocked: string[] } | null>(null);
@@ -62,10 +66,10 @@ export function LessonPlayer(p: PlayerProps) {
   useEffect(() => {
     if (p.readOnly) return;
     const t = setInterval(() => {
-      if (document.visibilityState === "visible") heartbeatAction({ courseId: p.courseId, lessonId: p.lesson.id });
+      if (document.visibilityState === "visible") api.heartbeat({ courseId: p.courseId, lessonId: p.lesson.id });
     }, 60_000);
     return () => clearInterval(t);
-  }, [p.courseId, p.lesson.id, p.readOnly]);
+  }, [p.courseId, p.lesson.id, p.readOnly, api]);
 
   const ctx: I.LessonCtxValue = {
     courseId: p.courseId,
@@ -73,6 +77,7 @@ export function LessonPlayer(p: PlayerProps) {
     entries,
     assets: p.assets,
     readOnly: !!p.readOnly,
+    api,
     markDone: (blockId, extra) => setEntries((e) => ({ ...e, [blockId]: { ...e[blockId], ...extra, done: true } })),
   };
 
@@ -116,8 +121,8 @@ export function LessonPlayer(p: PlayerProps) {
             </p>
           ) : null}
           <div className="mt-6 flex flex-wrap justify-center gap-2">
-            {result?.nextLessonId && <ButtonLink href={`/student/lessons/${result.nextLessonId}`} size="lg">Next mission</ButtonLink>}
-            <ButtonLink href="/student/missions" variant="secondary" size="lg">All missions</ButtonLink>
+            {result?.nextLessonId && <ButtonLink href={links.lesson(result.nextLessonId)} size="lg">Next mission</ButtonLink>}
+            <ButtonLink href={links.missions} variant="secondary" size="lg">All missions</ButtonLink>
           </div>
         </div>
       ) : (
@@ -144,7 +149,7 @@ export function LessonPlayer(p: PlayerProps) {
             <p className="mt-1 text-muted">You did every required activity.</p>
           )}
           <Button size="lg" className="mt-6" disabled={pending || remaining.length > 0} onClick={() => start(async () => {
-            const r = await completeLessonAction({ courseId: p.courseId, lessonId: p.lesson.id });
+            const r = await api.completeLesson({ courseId: p.courseId, lessonId: p.lesson.id });
             if (r.ok) { setCompleted(true); setResult(r.data); setError(null); } else setError(r);
           })}>
             {pending ? "Saving…" : "Complete mission"}
@@ -232,7 +237,7 @@ export function LessonPlayer(p: PlayerProps) {
             </Button>
           )}
         </div>
-        <p className="mt-3 text-center text-sm"><Link href="/student/missions" className="text-muted underline">Back to missions</Link></p>
+        <p className="mt-3 text-center text-sm"><Link href={links.missions} className="text-muted underline">Back to missions</Link></p>
       </div>
     </I.LessonCtx.Provider>
   );

@@ -45,3 +45,7 @@ next-env.d.ts
 /test-results
 /playwright-report
 !.env.example
+/web/dist
+/web/src/generated
+/apps-script/dist
+/web/public/models

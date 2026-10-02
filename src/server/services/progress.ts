@@ -4,7 +4,7 @@ import type { DB } from "../db/client";
 import { attempts, courses, evidence, lessonProgress, type BlockState } from "../db/schema";
 import { allBlocks, getCompetency, isRequiredBlock, type Lesson, type LessonBlock } from "@/content";
 import { autoLevel } from "@/lib/mastery";
-import { isScorable, redactBlock, scoreBlock, REVEAL_AFTER_ATTEMPTS, type BlockResponse, type ScoreResult } from "@/lib/scoring";
+import { isScorable, redactBlock, scoreBlock, toClientResult as toClient, type BlockResponse, type ClientResult, type ScoreResult } from "@/lib/scoring";
 import { assertStudentInCourse, type Actor } from "../policy";
 import { AppError, ForbiddenError, NotFoundError } from "../errors";
 import { studentLessonStates, lessonFor, type Course } from "./courses";
@@ -16,16 +16,7 @@ export type BlockEntry = BlockState[string] & {
   result?: ClientResult;
 };
 
-/** What the browser is allowed to know about a scored response. */
-export type ClientResult = {
-  correct: boolean | null;
-  headline: string;
-  feedback?: string;
-  explanation?: string;
-  reveal: Record<string, unknown>;
-  locked: boolean;
-  attempts: number;
-};
+export type { ClientResult };
 
 async function getCourse(db: DB, courseId: string): Promise<Course> {
   const [c] = await db.select().from(courses).where(eq(courses.id, courseId)).limit(1);
@@ -87,38 +78,6 @@ function findBlock(lesson: Lesson, blockId: string): LessonBlock {
   const b = allBlocks(lesson).find((x) => x.id === blockId);
   if (!b) throw new NotFoundError("Activity");
   return b;
-}
-
-function toClient(block: LessonBlock, score: ScoreResult, attemptsSoFar: number): ClientResult {
-  const locked = block.type === "prediction" || score.correct === true || score.correct === null;
-  const showExplanation = locked || attemptsSoFar >= REVEAL_AFTER_ATTEMPTS;
-  let reveal = score.reveal;
-  let explanation = showExplanation ? score.explanation || undefined : undefined;
-  if (showExplanation && score.correct === false) {
-    // after several tries, show the worked answer too
-    const full = scoreBlockAnswerKey(block);
-    reveal = { ...reveal, ...full.reveal };
-    explanation = full.explanation;
-  }
-  return { correct: score.correct, headline: score.headline, feedback: score.feedback, explanation, reveal, locked, attempts: attemptsSoFar };
-}
-
-/** The answer key, revealed only after enough attempts. */
-function scoreBlockAnswerKey(block: LessonBlock): { explanation: string; reveal: Record<string, unknown> } {
-  switch (block.type) {
-    case "multipleChoice":
-      return { explanation: block.explanation, reveal: { correctOptionIds: block.correctOptionIds } };
-    case "ordering":
-      return { explanation: block.explanation, reveal: { order: block.items.map((i) => i.id) } };
-    case "matching":
-      return { explanation: block.explanation, reveal: { correctPairIds: block.pairs.map((p) => p.id), solved: true } };
-    case "hotspot":
-      return { explanation: block.explanation, reveal: { revealedIds: block.hotspots.filter((h) => h.correct).map((h) => h.id) } };
-    case "measurement":
-      return { explanation: block.explanation, reveal: { answer: block.answer } };
-    default:
-      return { explanation: "", reveal: {} };
-  }
 }
 
 // ───────── Public API ─────────

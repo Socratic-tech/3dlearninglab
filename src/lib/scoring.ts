@@ -76,13 +76,14 @@ export function scoreBlock(block: LessonBlock, response: BlockResponse): ScoreRe
     }
     case "matching": {
       const r = response as Extract<BlockResponse, { type: "matching" }>;
-      const right = block.pairs.filter((p) => r.pairs[p.id] === p.id).length;
+      const ok = (p: { id: string }) => r.pairs[p.id] === p.id || r.pairs[p.id] === matchToken(block.id, p.id);
+      const right = block.pairs.filter(ok).length;
       const correct = right === block.pairs.length;
       return {
         correct,
         headline: correct ? "Test result: every match holds." : `Test result: ${right} of ${block.pairs.length} matches hold.`,
         explanation: block.explanation,
-        reveal: correct ? {} : { correctPairIds: block.pairs.filter((p) => r.pairs[p.id] === p.id).map((p) => p.id) },
+        reveal: correct ? {} : { correctPairIds: block.pairs.filter(ok).map((p) => p.id) },
       };
     }
     case "hotspot": {
@@ -142,7 +143,8 @@ export function redactBlock(block: LessonBlock): LessonBlock {
         block.id + ":r",
       );
       // left side in authored order, right side shuffled: ids are kept so responses map pairId → pairId
-      return { ...block, pairs: block.pairs.map((p, i) => ({ id: p.id, left: p.left, right: `${rights[i].id}::${rights[i].right}` })), explanation: "" };
+      // right options carry opaque tokens so the DOM doesn't reveal which right belongs to which left
+      return { ...block, pairs: block.pairs.map((p, i) => ({ id: p.id, left: p.left, right: `${matchToken(block.id, rights[i].id)}::${rights[i].right}` })), explanation: "" };
     }
     case "hotspot":
       return { ...block, explanation: "", hotspots: block.hotspots.map((h) => ({ ...h, correct: false, feedback: "" })) };
@@ -151,6 +153,13 @@ export function redactBlock(block: LessonBlock): LessonBlock {
     default:
       return block;
   }
+}
+
+/** Opaque, stable token for a matching option (not guessable from the left-side id). */
+export function matchToken(blockId: string, pairId: string): string {
+  let h = 2166136261;
+  for (const c of `${blockId}|${pairId}|academy`) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
+  return "m" + (h >>> 0).toString(36);
 }
 
 /** Seeded shuffle so server and client render the same order. Never returns the original order for ≥3 items. */
@@ -170,3 +179,47 @@ export function deterministicShuffle<T>(items: T[], seed: string): T[] {
   if (out.length >= 3 && out.every((x, i) => x === items[i])) out.push(out.shift()!);
   return out;
 }
+
+/** What the browser is allowed to know about a scored response. */
+export type ClientResult = {
+  correct: boolean | null;
+  headline: string;
+  feedback?: string;
+  explanation?: string;
+  reveal: Record<string, unknown>;
+  locked: boolean;
+  attempts: number;
+};
+
+export function toClientResult(block: LessonBlock, score: ScoreResult, attemptsSoFar: number): ClientResult {
+  const locked = block.type === "prediction" || score.correct === true || score.correct === null;
+  const showExplanation = locked || attemptsSoFar >= REVEAL_AFTER_ATTEMPTS;
+  let reveal = score.reveal;
+  let explanation = showExplanation ? score.explanation || undefined : undefined;
+  if (showExplanation && score.correct === false) {
+    // after several tries, show the worked answer too
+    const full = scoreBlockAnswerKey(block);
+    reveal = { ...reveal, ...full.reveal };
+    explanation = full.explanation;
+  }
+  return { correct: score.correct, headline: score.headline, feedback: score.feedback, explanation, reveal, locked, attempts: attemptsSoFar };
+}
+
+/** The answer key, revealed only after enough attempts. */
+function scoreBlockAnswerKey(block: LessonBlock): { explanation: string; reveal: Record<string, unknown> } {
+  switch (block.type) {
+    case "multipleChoice":
+      return { explanation: block.explanation, reveal: { correctOptionIds: block.correctOptionIds } };
+    case "ordering":
+      return { explanation: block.explanation, reveal: { order: block.items.map((i) => i.id) } };
+    case "matching":
+      return { explanation: block.explanation, reveal: { correctPairIds: block.pairs.map((p) => p.id), solved: true } };
+    case "hotspot":
+      return { explanation: block.explanation, reveal: { revealedIds: block.hotspots.filter((h) => h.correct).map((h) => h.id) } };
+    case "measurement":
+      return { explanation: block.explanation, reveal: { answer: block.answer } };
+    default:
+      return { explanation: "", reveal: {} };
+  }
+}
+
