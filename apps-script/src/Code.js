@@ -5,7 +5,8 @@
  * it verifies the caller's Google ID token, checks their role, and reads/writes the bound Google Sheet
  * (and Drive for uploads). Students never get access to the Sheet itself.
  *
- * Deploy: Extensions → Apps Script in the class Sheet, paste dist/*.js + appsscript.json (or use clasp),
+ * One workbook per TEACHER: all of a teacher's classes live in it (Classes + Enrollments tabs).
+ * Deploy: Extensions → Apps Script in the teacher's Sheet, paste dist/*.js + appsscript.json (or use clasp),
  * run setup() once, then Deploy → New deployment → Web app → Execute as: Me, Who has access: Anyone.
  * ("Anyone" is required so the Pages site can call it; every request is still authenticated by Google ID token.)
  *
@@ -16,7 +17,9 @@ const API_VERSION = "1";
 
 const TABLES = {
   Config: ["key", "value", "notes"],
+  Classes: ["classId", "name", "section", "pathId", "tinkercadUrl", "unlockAll", "googleCourseId", "status", "createdAt"],
   Users: ["email", "name", "role", "sub", "status", "createdAt", "lastSeen"],
+  Enrollments: ["email", "classId", "status", "source", "createdAt"],
   Progress: ["email", "lessonId", "status", "blockState", "startedAt", "completedAt", "updatedAt"],
   Attempts: ["at", "email", "lessonId", "blockId", "competencyId", "correct", "misconceptionId", "response"],
   Levels: ["email", "competencyId", "computed", "override", "overrideAt", "overrideBy", "overrideComment", "updatedAt"],
@@ -27,13 +30,9 @@ const TABLES = {
 
 const DEFAULT_CONFIG = [
   ["CLIENT_ID", "", "Google OAuth Web client ID used by the Pages site (same value for every class)."],
-  ["CLASS_NAME", "3D Design", "Shown to students."],
-  ["PATH_ID", "18-week", "9-week or 18-week"],
-  ["TINKERCAD_URL", "", "Your Tinkercad Classroom link (optional)."],
   ["ALLOWED_DOMAINS", "", "Comma-separated email domains allowed to sign in, e.g. district.org,students.district.org"],
   ["TEACHER_EMAILS", "", "Comma-separated teacher emails (the script owner is always a teacher)."],
-  ["AUTO_ENROLL", "FALSE", "TRUE = any allowed-domain account becomes a student on first sign-in. FALSE = only students listed in Users."],
-  ["UNLOCK_ALL", "FALSE", "TRUE = ignore prerequisites (e.g. Tinkercad is down)."],
+  ["AUTO_ENROLL", "FALSE", "TRUE = an allowed-domain student who opens a class link joins that class on first sign-in. FALSE = only students on a class roster."],
   ["MAX_UPLOAD_MB", "10", "Largest screenshot/STL a student may upload."],
 ];
 
@@ -67,7 +66,8 @@ function handle_(req) {
   try {
     const action = ACTIONS[req && req.action];
     if (!action) throw userError_("Unknown request.");
-    const user = authenticate_(req.token);
+    ensureClasses_();
+    const user = authenticate_(req.token, (req.args || {}).classId);
     if (action.role === "teacher" && user.role !== "teacher") throw userError_("You don't have access to that.");
     return { ok: true, data: action.run(user, req.args || {}) };
   } catch (err) {
@@ -80,7 +80,7 @@ function handle_(req) {
 // ───────────────────────── Auth ─────────────────────────
 
 /** Verifies a Google ID token (from Sign in with Google on the Pages site) and resolves the user. */
-function authenticate_(token) {
+function authenticate_(token, classId) {
   if (!token || typeof token !== "string") throw userError_("Please sign in.");
   const cfg = config_();
   const cache = CacheService.getScriptCache();
@@ -107,15 +107,85 @@ function authenticate_(token) {
 
   const users = table_("Users");
   let row = users.find(function (r) { return r.email === email; });
-  if (!row) {
-    if (String(cfg.AUTO_ENROLL).toUpperCase() !== "TRUE") throw userError_("You're not on this class roster yet. Ask your teacher to add you.");
-    row = withLock_(function () {
-      return users.upsert(function (r) { return r.email === email; }, { email: email, name: claims.name || email, role: "student", sub: claims.sub, status: "active", createdAt: now_(), lastSeen: now_() });
+  const enrolled = row ? activeEnrollments_(email) : [];
+  const linkClass = classId ? classById_(classId) : null;
+  const autoEnroll = String(cfg.AUTO_ENROLL).toUpperCase() === "TRUE";
+  const inLinkClass = linkClass && enrolled.some(function (e) { return e.classId === linkClass.classId; });
+  if (!row || !enrolled.length || (autoEnroll && linkClass && !inLinkClass)) {
+    // Joining through a class link is allowed only when AUTO_ENROLL is on and the class exists.
+    const cls = linkClass;
+    if (!autoEnroll || !cls) {
+      if (row && enrolled.length) return { email: email, name: row.name || claims.name || email, role: "student", sub: claims.sub };
+      throw userError_("You're not on this class roster yet. Ask your teacher to add you.");
+    }
+    withLock_(function () {
+      if (!row) row = users.upsert(function (r) { return r.email === email; }, { email: email, name: claims.name || email, role: "student", sub: claims.sub, status: "active", createdAt: now_(), lastSeen: now_() });
+      enroll_(email, cls.classId, "link");
     });
   }
-  if (row.status === "archived") throw userError_("You're no longer in this class.");
+  if (row.status === "archived") throw userError_("Your account is no longer active in these classes.");
   if (row.role !== "student") throw userError_("Ask your teacher to add you to TEACHER_EMAILS.");
   return { email: email, name: row.name || claims.name || email, role: "student", sub: claims.sub };
+}
+
+// ───────────────────────── Classes ─────────────────────────
+
+function classById_(classId) {
+  return table_("Classes").find(function (c) { return c.classId === classId && c.status !== "archived"; });
+}
+
+function activeClasses_() {
+  return table_("Classes").filter(function (c) { return c.status !== "archived"; });
+}
+
+function activeEnrollments_(email) {
+  const live = {};
+  activeClasses_().forEach(function (c) { live[c.classId] = true; });
+  return table_("Enrollments").filter(function (e) { return e.email === email && e.status !== "archived" && live[e.classId]; });
+}
+
+/** Call inside withLock_. Idempotent. */
+function enroll_(email, classId, source) {
+  table_("Enrollments").upsert(function (e) { return e.email === email && e.classId === classId; }, { email: email, classId: classId, status: "active", source: source || "manual", createdAt: now_() });
+}
+
+function classOut_(c) {
+  return {
+    id: c.classId, name: c.name, section: c.section || "", pathId: c.pathId === "9-week" ? "9-week" : "18-week",
+    tinkercadUrl: c.tinkercadUrl || null, unlockAll: String(c.unlockAll).toUpperCase() === "TRUE", googleCourseId: c.googleCourseId || null,
+  };
+}
+
+/** The class a request is about: the requested one if the user may see it, otherwise their first. */
+function classFor_(user, classId) {
+  if (user.role === "teacher") {
+    const all = activeClasses_();
+    const c = all.filter(function (x) { return x.classId === classId; })[0] || all[0];
+    if (!c) throw userError_("Create your first class to get started.");
+    return c;
+  }
+  const mine = activeEnrollments_(user.email).map(function (e) { return e.classId; });
+  const id = mine.indexOf(classId) >= 0 ? classId : mine[0];
+  const c = id ? classById_(id) : null;
+  if (!c) throw userError_("You're not in an active class.");
+  return c;
+}
+
+/**
+ * Upgrades a single-class workbook (Config CLASS_NAME/PATH_ID/...) to the multi-class layout once:
+ * creates one class from those values and enrolls every existing student in it.
+ */
+function ensureClasses_() {
+  const sh = sheet_("Classes");
+  if (sh.getLastRow() > 1) return;
+  const legacy = config_();
+  if (!legacy.CLASS_NAME && !table_("Users").rows.length) return;
+  withLock_(function () {
+    if (sheet_("Classes").getLastRow() > 1) return;
+    const id = "c" + Utilities.getUuid().slice(0, 8);
+    table_("Classes").append({ classId: id, name: legacy.CLASS_NAME || "3D Design", section: "", pathId: legacy.PATH_ID || "18-week", tinkercadUrl: legacy.TINKERCAD_URL || "", unlockAll: legacy.UNLOCK_ALL || "FALSE", status: "active", createdAt: now_() });
+    table_("Users").filter(function (u) { return u.role === "student"; }).forEach(function (u) { enroll_(u.email, id, "migrated"); });
+  });
 }
 
 // ───────────────────────── Sheets as tables ─────────────────────────
@@ -261,8 +331,10 @@ function recordLevel_(email, competencyId, level, reason, actor) {
 const ACTIONS = {
   /** Everything the student app needs on load. */
   me: {
-    run: function (user) {
-      const cfg = config_();
+    run: function (user, a) {
+      const hasClass = user.role === "student" || activeClasses_().length > 0;
+      const cls = hasClass ? classFor_(user, a.classId) : null;
+      const classes = user.role === "teacher" ? activeClasses_() : activeEnrollments_(user.email).map(function (e) { return classById_(e.classId); }).filter(Boolean);
       if (user.role === "student") {
         withLock_(function () { table_("Users").upsert(function (r) { return r.email === user.email; }, { lastSeen: now_() }); });
       }
@@ -277,7 +349,8 @@ const ACTIONS = {
       table_("Journals").filter(function (r) { return r.email === user.email; }).forEach(function (r) { journals[r.projectKey] = parse_(r.entries, {}); });
       return {
         user: { email: user.email, name: user.name, role: user.role },
-        cls: { name: cfg.CLASS_NAME || "3D Design", pathId: cfg.PATH_ID === "9-week" ? "9-week" : "18-week", tinkercadUrl: cfg.TINKERCAD_URL || null, unlockAll: String(cfg.UNLOCK_ALL).toUpperCase() === "TRUE" },
+        cls: cls ? classOut_(cls) : null,
+        classes: classes.map(classOut_),
         progress: progress,
         levels: levels,
         evidence: evidence,
@@ -377,7 +450,7 @@ const ACTIONS = {
       withLock_(function () {
         table_("Progress").upsert(function (r) { return r.email === user.email && r.lessonId === a.lessonId; }, { status: "completed", completedAt: (row && row.completedAt) || now_(), updatedAt: now_() });
       });
-      const path = CONTENT.paths[config_().PATH_ID === "9-week" ? "9-week" : "18-week"];
+      const path = CONTENT.paths[classOut_(classFor_(user, a.classId)).pathId];
       const i = path.indexOf(a.lessonId);
       const next = i >= 0 && i < path.length - 1 ? path[i + 1] : null;
       const unlocked = path.filter(function (id) { return (CONTENT.lessons[id].prerequisites || []).indexOf(a.lessonId) >= 0; });
@@ -391,16 +464,20 @@ const ACTIONS = {
 
   classData: {
     role: "teacher",
-    run: function () {
-      const students = table_("Users").filter(function (r) { return r.role === "student"; }).map(function (r) {
+    run: function (user, a) {
+      const cls = classFor_(user, a.classId);
+      const inClass = {};
+      table_("Enrollments").filter(function (e) { return e.classId === cls.classId && e.status !== "archived"; }).forEach(function (e) { inClass[e.email] = true; });
+      const students = table_("Users").filter(function (r) { return r.role === "student" && inClass[r.email]; }).map(function (r) {
         return { email: r.email, name: r.name, status: r.status || "active", lastSeen: r.lastSeen || null };
       });
-      const progress = table_("Progress").rows.map(function (r) { return { email: r.email, lessonId: r.lessonId, status: r.status, updatedAt: r.updatedAt }; });
+      const mine = function (r) { return inClass[r.email]; };
+      const progress = table_("Progress").rows.filter(mine).map(function (r) { return { email: r.email, lessonId: r.lessonId, status: r.status, updatedAt: r.updatedAt }; });
       const levels = {};
-      table_("Levels").rows.forEach(function (r) { (levels[r.email] = levels[r.email] || {})[r.competencyId] = effective_(r); });
-      const evidence = table_("Evidence").rows.map(evidenceOut_);
+      table_("Levels").rows.filter(mine).forEach(function (r) { (levels[r.email] = levels[r.email] || {})[r.competencyId] = effective_(r); });
+      const evidence = table_("Evidence").rows.filter(mine).map(evidenceOut_);
       const struggles = {};
-      table_("Attempts").rows.forEach(function (r) {
+      table_("Attempts").rows.filter(mine).forEach(function (r) {
         const b = (CONTENT.lessons[r.lessonId] || { blocks: {} }).blocks[r.blockId];
         if (!b || b.check !== "skill") return;
         const k = r.email + "|" + r.lessonId + "|" + r.blockId;
@@ -408,9 +485,9 @@ const ACTIONS = {
         s.attempts++;
         if (r.correct === true || r.correct === "TRUE") s.solved = true;
       });
-      const cfg = config_();
       return {
-        cls: { name: cfg.CLASS_NAME, pathId: cfg.PATH_ID === "9-week" ? "9-week" : "18-week", tinkercadUrl: cfg.TINKERCAD_URL || null },
+        cls: classOut_(cls),
+        classes: activeClasses_().map(classOut_),
         students: students,
         progress: progress,
         levels: levels,
@@ -454,20 +531,60 @@ const ACTIONS = {
   addStudents: {
     role: "teacher",
     run: function (user, a) {
+      const cls = classFor_(user, a.classId);
       const rows = (a.students || []).slice(0, 300);
       let added = 0;
       withLock_(function () {
         const t = table_("Users");
+        const enr = table_("Enrollments");
         rows.forEach(function (s) {
           const email = String(s.email || "").trim().toLowerCase();
           if (!/^[^@\s]+@[^@\s]+$/.test(email)) return;
-          if (!t.find(function (r) { return r.email === email; })) {
-            t.append({ email: email, name: s.name || email.split("@")[0], role: "student", status: "active", createdAt: now_() });
-            added++;
-          }
+          if (!t.find(function (r) { return r.email === email; })) t.append({ email: email, name: s.name || email.split("@")[0], role: "student", status: "active", createdAt: now_() });
+          const e = enr.find(function (r) { return r.email === email && r.classId === cls.classId; });
+          if (!e || e.status === "archived") { enroll_(email, cls.classId, a.source || "manual"); added++; }
         });
       });
-      return { added: added };
+      return { added: added, classId: cls.classId };
+    },
+  },
+
+  createClass: {
+    role: "teacher",
+    run: function (user, a) {
+      const name = String(a.name || "").trim().slice(0, 120);
+      if (!name) throw userError_("Give the class a name.");
+      const c = { classId: "c" + Utilities.getUuid().slice(0, 8), name: name, section: String(a.section || "").slice(0, 60), pathId: a.pathId === "9-week" ? "9-week" : "18-week", tinkercadUrl: "", unlockAll: "FALSE", googleCourseId: a.googleCourseId || "", status: "active", createdAt: now_() };
+      withLock_(function () { table_("Classes").append(c); });
+      return classOut_(c);
+    },
+  },
+
+  updateClass: {
+    role: "teacher",
+    run: function (user, a) {
+      const c = classFor_(user, a.classId);
+      if (a.tinkercadUrl && !/^https:\/\/(www\.)?tinkercad\.com\//.test(String(a.tinkercadUrl))) throw userError_("Use a https://www.tinkercad.com link.");
+      const patch = {};
+      if (a.name !== undefined) patch.name = String(a.name).trim().slice(0, 120) || c.name;
+      if (a.section !== undefined) patch.section = String(a.section).slice(0, 60);
+      if (a.pathId !== undefined) patch.pathId = a.pathId === "9-week" ? "9-week" : "18-week";
+      if (a.tinkercadUrl !== undefined) patch.tinkercadUrl = String(a.tinkercadUrl || "");
+      if (a.unlockAll !== undefined) patch.unlockAll = a.unlockAll ? "TRUE" : "FALSE";
+      if (a.archived !== undefined) patch.status = a.archived ? "archived" : "active";
+      let out;
+      withLock_(function () { out = table_("Classes").upsert(function (r) { return r.classId === c.classId; }, patch); });
+      return classOut_(out);
+    },
+  },
+
+  /** Remove a student from one class. Their work stays in the workbook. */
+  removeStudent: {
+    role: "teacher",
+    run: function (user, a) {
+      const c = classFor_(user, a.classId);
+      withLock_(function () { table_("Enrollments").upsert(function (r) { return r.email === a.email && r.classId === c.classId; }, { status: "archived" }); });
+      return { ok: true };
     },
   },
 
@@ -490,7 +607,14 @@ const ACTIONS = {
         (res.students || []).forEach(function (s) { students.push({ email: s.profile.emailAddress, name: s.profile.name.fullName }); });
         pageToken = res.nextPageToken;
       } while (pageToken);
-      return ACTIONS.addStudents.run(user, { students: students });
+      let classId = a.classId;
+      const linked = table_("Classes").find(function (c) { return String(c.googleCourseId) === String(a.courseId) && c.status !== "archived"; });
+      if (linked) classId = linked.classId;
+      else if (a.asNewClass || !classId) {
+        const course = Classroom.Courses.get(String(a.courseId));
+        classId = ACTIONS.createClass.run(user, { name: course.name, section: course.section || "", pathId: a.pathId, googleCourseId: String(a.courseId) }).id;
+      }
+      return ACTIONS.addStudents.run(user, { classId: classId, students: students, source: "classroom" });
     },
   },
 };
@@ -553,7 +677,7 @@ function uploadFolder_(email) {
   let root;
   try { root = rootId ? DriveApp.getFolderById(rootId) : null; } catch (e) { root = null; }
   if (!root) {
-    root = DriveApp.createFolder("3D Design Academy uploads (" + (config_().CLASS_NAME || "class") + ")");
+    root = DriveApp.createFolder("3D Design Academy uploads");
     props.setProperty("UPLOAD_FOLDER_ID", root.getId());
   }
   const it = root.getFoldersByName(email);
@@ -570,5 +694,6 @@ function setup() {
     if (!(row[0] in existing)) sh.appendRow(row);
   });
   sh.autoResizeColumns(1, 3);
-  return "Ready. Fill in the Config tab, then Deploy → New deployment → Web app.";
+  ensureClasses_();
+  return "Ready. Fill in the Config tab, then Deploy → New deployment → Web app. Create classes from the website.";
 }

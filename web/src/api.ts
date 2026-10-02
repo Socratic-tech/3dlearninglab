@@ -1,13 +1,14 @@
 import type { ActionResult } from "@/server/errors";
 import type { LessonApi } from "@/components/lesson/api";
 import { currentToken } from "./auth";
+import { currentClassId } from "./config";
 
 /** POST to the class's Apps Script. text/plain avoids a CORS preflight, which Apps Script can't answer. */
 export async function call<T>(apiUrl: string, action: string, args: Record<string, unknown> = {}): Promise<ActionResult<T>> {
   const token = currentToken();
   if (!token) return { ok: false, error: "Your sign-in expired. Please sign in again." };
   try {
-    const res = await fetch(apiUrl, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action, token, args }) });
+    const res = await fetch(apiUrl, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action, token, args: { classId: currentClassId(), ...args } }) });
     if (!res.ok) return { ok: false, error: "We couldn't reach your class's Google storage. Your answer wasn't lost — try again.", details: `HTTP ${res.status}` };
     return (await res.json()) as ActionResult<T>;
   } catch (e) {

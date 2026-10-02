@@ -36,9 +36,12 @@ export function pathLessons(pathId: string) {
 }
 export const pathTitle = (pathId: string) => (pathInputs.find((x) => x.id === pathId) ?? pathInputs[1]).title;
 
+export type ClassInfo = { id: string; name: string; section: string; pathId: string; tinkercadUrl: string | null; unlockAll: boolean; googleCourseId: string | null };
+
 export type Me = {
   user: { email: string; name: string; role: "student" | "teacher" };
-  cls: { name: string; pathId: string; tinkercadUrl: string | null; unlockAll: boolean };
+  cls: ClassInfo | null;
+  classes: ClassInfo[];
   progress: Record<string, { status: string; blockState: Record<string, unknown>; startedAt?: string }>;
   levels: Record<string, Proficiency>;
   evidence: { id: string; lessonId: string; blockId: string; type: string; url: string | null; fileName: string | null; text: string | null; status: string; rating: number | null; comment: string | null; createdAt: string }[];

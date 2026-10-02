@@ -14,7 +14,7 @@ Students & teachers ──► GitHub Pages (static site: lessons, 3D viewer, dia
 - Every request carries a Google ID token. Apps Script verifies it with Google, checks the audience (your OAuth client),
   the email domain, and the roster before touching the Sheet. Students never get access to the Sheet.
 - Skill checks are scored in Apps Script with the same code as the Next.js edition (`src/lib` bundled into `Lib.js`).
-- Each teacher runs their own copy of the Apps Script, so data and Google quotas stay per class.
+- **One Google Sheet per teacher**, holding all of that teacher's classes (Classes + Enrollments tabs). Each teacher runs their own copy of the Apps Script, so data and Google quotas stay per teacher.
 
 ## One-time setup (site owner)
 
@@ -26,18 +26,22 @@ Students & teachers ──► GitHub Pages (static site: lessons, 3D viewer, dia
    Settings → Secrets and variables → Actions → **Variables** → add `GOOGLE_CLIENT_ID` = the client ID.
    Every push to `main` builds and deploys `web/dist` (workflow: `.github/workflows/pages.yml`).
 
-## Per class (each teacher)
+## Per teacher (once — not per class)
 
-1. Create a new Google Sheet (e.g. “3D Design – Period 2”). Extensions → **Apps Script**.
+1. Create one Google Sheet (e.g. “3D Design Academy – Ms. Rivera”). Extensions → **Apps Script**.
 2. On your computer run `npm run pages:prepare`, then copy the four files from `apps-script/dist/` into the editor:
    `Code.js`, `Lib.js`, `Content.js` (as script files) and `appsscript.json`
    (Project Settings → “Show appsscript.json manifest file” to edit it).
 3. In the editor, choose `setup` and **Run**. Approve the permissions. This creates the tabs.
-4. In the **Config** tab fill in `CLIENT_ID` (same as above), `ALLOWED_DOMAINS` (e.g. `district.org,students.district.org`),
-   `CLASS_NAME`, `PATH_ID` (`9-week` or `18-week`), optional `TINKERCAD_URL`.
+4. In the **Config** tab fill in `CLIENT_ID` (same as above) and `ALLOWED_DOMAINS` (e.g. `district.org,students.district.org`).
 5. **Deploy → New deployment → Web app** · Execute as: **Me** · Who has access: **Anyone** → Deploy. Copy the URL.
-6. Open the Pages site, paste that URL on the Connect screen, sign in as the teacher → Roster → import from Classroom
-   (or add students by hand). Overview shows the **class link** — post it in Google Classroom.
+6. Open the Pages site, paste that URL on the Connect screen and sign in. Create your classes (Teacher → **Classes**),
+   or Roster → *Import as new class* straight from Google Classroom. Each class's Overview shows its own **class link** —
+   post it in that class's Google Classroom. Switch classes from the menu at the top.
+
+A workbook set up before multi-class support upgrades itself on the first request: the old `CLASS_NAME`/`PATH_ID`
+settings become one class and every existing student is enrolled in it. A student in two of your classes keeps one
+set of progress and skills (it's the same student) and sees each class's own course length and settings.
 
 When the curriculum changes: run `npm run pages:prepare` again and replace `Content.js`/`Lib.js`
 (Deploy → Manage deployments → edit → New version), so answer keys match the site.

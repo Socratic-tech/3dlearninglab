@@ -7,7 +7,10 @@ import http from "node:http";
 import { makeEnv } from "../tests/helpers/apps-script-env";
 
 const env = makeEnv("teacher@school.org");
-env.call("teacher@school.org", "addStudents", { students: [{ email: "maya@school.org", name: "Maya Okafor" }, { email: "luis@school.org", name: "Luis Hernández" }] });
+const p2 = env.call("teacher@school.org", "createClass", { name: "3D Design", section: "Period 2", pathId: "18-week" }).data.id;
+const p5 = env.call("teacher@school.org", "createClass", { name: "STEAM Lab", section: "Period 5", pathId: "9-week" }).data.id;
+env.call("teacher@school.org", "addStudents", { classId: p5, students: [{ email: "eli@school.org", name: "Eli Brooks" }] });
+env.call("teacher@school.org", "addStudents", { classId: p2, students: [{ email: "maya@school.org", name: "Maya Okafor" }, { email: "luis@school.org", name: "Luis Hernández" }] });
 http
   .createServer((req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*");

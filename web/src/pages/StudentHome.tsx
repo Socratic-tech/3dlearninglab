@@ -36,7 +36,7 @@ export function StudentHome({ me }: { me: Me }) {
 
       <section aria-labelledby="mis-h">
         <h2 id="mis-h" className="mb-1 font-display text-2xl font-bold">Missions</h2>
-        <p className="mb-4 text-sm text-muted">{pathTitle(me.cls.pathId)}</p>
+        <p className="mb-4 text-sm text-muted">{me.cls ? `${me.cls.name}${me.cls.section ? ` · ${me.cls.section}` : ""} — ${pathTitle(me.cls.pathId)}` : ""}</p>
         <ol className="relative space-y-8 border-l-2 border-border pl-6">
           {[...weeks.entries()].map(([week, list]) => (
             <li key={week}>

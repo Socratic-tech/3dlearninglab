@@ -10,11 +10,13 @@ import { groupLevel, LEVEL_LABEL, LEVELS } from "@/lib/mastery";
 import { cn } from "@/lib/cn";
 import { call } from "../api";
 import { classLink } from "../config";
+import type { ClassInfo, Me } from "../content";
 import { competencies, competencyTitle, heatmapGroups, lessonById, pathLessons } from "../content";
 
 type Ev = { id: string; email: string; lessonId: string; type: string; url: string | null; fileName: string | null; text: string | null; status: string; rating: number | null; comment: string | null; createdAt: string; competencyIds: string[] };
 type ClassData = {
-  cls: { name: string; pathId: string };
+  cls: ClassInfo;
+  classes: ClassInfo[];
   students: { email: string; name: string; status: string; lastSeen: string | null }[];
   progress: { email: string; lessonId: string; status: string; updatedAt: string }[];
   levels: Record<string, Record<string, Proficiency>>;
@@ -22,9 +24,22 @@ type ClassData = {
   struggles: { email: string; lessonId: string; blockId: string; competencyId: string; attempts: number }[];
 };
 
-const TABS = ["Overview", "Heatmap", "Review", "Roster"] as const;
+const TABS = ["Overview", "Heatmap", "Review", "Roster", "Classes"] as const;
 
-export function TeacherPage({ apiUrl, clientId }: { apiUrl: string; clientId: string }) {
+export function TeacherPage({ me, apiUrl, clientId, onChange }: { me: Me; apiUrl: string; clientId: string; onChange: () => void }) {
+  if (!me.cls) {
+    return (
+      <div className="mx-auto max-w-lg py-8">
+        <h1 className="font-display text-3xl font-bold">Create your first class</h1>
+        <p className="mt-1 text-muted">All your classes live in your one Google Sheet. Add more any time.</p>
+        <Card className="mt-6"><NewClassForm apiUrl={apiUrl} onCreated={onChange} /></Card>
+      </div>
+    );
+  }
+  return <ClassView key={me.cls.id} apiUrl={apiUrl} clientId={clientId} onChange={onChange} />;
+}
+
+function ClassView({ apiUrl, clientId, onChange }: { apiUrl: string; clientId: string; onChange: () => void }) {
   const [data, setData] = useState<ClassData | null>(null);
   const [err, setErr] = useState<{ error: string; details?: string } | null>(null);
   const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
@@ -40,7 +55,7 @@ export function TeacherPage({ apiUrl, clientId }: { apiUrl: string; clientId: st
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <h1 className="font-display text-2xl font-bold">{data.cls.name}</h1>
+        <h1 className="font-display text-2xl font-bold">{data.cls.name}{data.cls.section && <span className="text-muted"> · {data.cls.section}</span>}</h1>
         <Pill tone="primary">{data.cls.pathId}</Pill>
         <Button size="sm" variant="secondary" className="ml-auto" onClick={() => void load()}>Refresh</Button>
       </div>
@@ -54,7 +69,8 @@ export function TeacherPage({ apiUrl, clientId }: { apiUrl: string; clientId: st
       {tab === "Overview" && <Overview data={data} name={name} apiUrl={apiUrl} clientId={clientId} />}
       {tab === "Heatmap" && <Heatmap data={data} apiUrl={apiUrl} onSaved={load} />}
       {tab === "Review" && <Review queue={queue} name={name} apiUrl={apiUrl} onSaved={load} />}
-      {tab === "Roster" && <Roster data={data} apiUrl={apiUrl} onSaved={load} />}
+      {tab === "Roster" && <Roster data={data} apiUrl={apiUrl} onSaved={load} onClassesChanged={onChange} />}
+      {tab === "Classes" && <Classes data={data} apiUrl={apiUrl} onChange={() => { onChange(); void load(); }} />}
     </div>
   );
 }
@@ -64,7 +80,7 @@ function Overview({ data, name, apiUrl, clientId }: { data: ClassData; name: (e:
   const active = new Set(data.progress.filter((p) => String(p.updatedAt).slice(0, 10) === today).map((p) => p.email));
   const path = pathLessons(data.cls.pathId);
   const revisions = data.evidence.filter((e) => e.status === "needs_revision");
-  const link = classLink(apiUrl, clientId);
+  const link = classLink(apiUrl, clientId, data.cls.id);
   const [copied, setCopied] = useState(false);
   return (
     <div className="space-y-6">
@@ -76,7 +92,7 @@ function Overview({ data, name, apiUrl, clientId }: { data: ClassData; name: (e:
       </div>
       <Card>
         <CardTitle>Class link for students</CardTitle>
-        <p className="mt-1 text-sm text-muted">Post this in Google Classroom. It opens the site connected to this class&apos;s Google Sheet.</p>
+        <p className="mt-1 text-sm text-muted">Post this in this class&apos;s Google Classroom. Each of your classes has its own link; all of them save to your one Google Sheet.</p>
         <div className="mt-3 flex gap-2">
           <Input readOnly value={link} aria-label="Class link" className="font-mono text-xs" />
           <Button variant="secondary" onClick={() => { void navigator.clipboard.writeText(link); setCopied(true); }}><Copy className="size-4" aria-hidden /> {copied ? "Copied" : "Copy"}</Button>
@@ -199,7 +215,7 @@ function ReviewCard({ e, name, apiUrl, onSaved }: { e: Ev; name: string; apiUrl:
   );
 }
 
-function Roster({ data, apiUrl, onSaved }: { data: ClassData; apiUrl: string; onSaved: () => void }) {
+function Roster({ data, apiUrl, onSaved, onClassesChanged }: { data: ClassData; apiUrl: string; onSaved: () => void; onClassesChanged: () => void }) {
   const [text, setText] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [courses, setCourses] = useState<{ id: string; name: string; section: string }[] | null>(null);
@@ -222,10 +238,29 @@ function Roster({ data, apiUrl, onSaved }: { data: ClassData; apiUrl: string; on
             }}>{busy ? "Loading…" : "Show my Classroom classes"}</Button>
           ) : (
             <ul className="mt-3 space-y-2">
-              {courses.map((c) => <li key={c.id} className="flex items-center gap-2"><span className="flex-1">{c.name}{c.section && ` · ${c.section}`}</span><Button size="sm" disabled={busy} onClick={async () => {
-                setBusy(true); const r = await call<{ added: number }>(apiUrl, "importClassroom", { courseId: c.id }); setBusy(false);
-                setMsg(r.ok ? `Imported — ${r.data.added} new student(s).` : r.error); if (r.ok) onSaved();
-              }}>Import roster</Button></li>)}
+              {courses.map((c) => {
+                const linked = data.classes.find((x) => x.googleCourseId === c.id);
+                const run = async (asNewClass: boolean) => {
+                  setBusy(true);
+                  const r = await call<{ added: number; classId: string }>(apiUrl, "importClassroom", { courseId: c.id, asNewClass, pathId: data.cls.pathId });
+                  setBusy(false);
+                  setMsg(r.ok ? `Imported — ${r.data.added} student(s) added.` : r.error);
+                  if (r.ok) { onSaved(); if (asNewClass) onClassesChanged(); }
+                };
+                return (
+                  <li key={c.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-border p-2">
+                    <span className="flex-1 font-semibold">{c.name}{c.section && ` · ${c.section}`}</span>
+                    {linked ? (
+                      <Button size="sm" variant="secondary" disabled={busy} onClick={() => run(false)}>Sync “{linked.name}”</Button>
+                    ) : (
+                      <>
+                        <Button size="sm" variant="secondary" disabled={busy} onClick={() => run(false)}>Add to this class</Button>
+                        <Button size="sm" disabled={busy} onClick={() => run(true)}>Import as new class</Button>
+                      </>
+                    )}
+                  </li>
+                );
+              })}
               {courses.length === 0 && <li className="text-sm text-muted">No active classes.</li>}
             </ul>
           )}
@@ -240,6 +275,82 @@ function Roster({ data, apiUrl, onSaved }: { data: ClassData; apiUrl: string; on
           }}>Add students</Button>
         </Card>
         {msg && <Alert tone="info">{msg}</Alert>}
+      </div>
+    </div>
+  );
+}
+
+function NewClassForm({ apiUrl, onCreated }: { apiUrl: string; onCreated: () => void }) {
+  const [name, setName] = useState("");
+  const [section, setSection] = useState("");
+  const [pathId, setPathId] = useState("18-week");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  return (
+    <form className="space-y-3" onSubmit={async (e) => {
+      e.preventDefault(); setBusy(true);
+      const r = await call<ClassInfo>(apiUrl, "createClass", { name, section, pathId });
+      setBusy(false);
+      if (r.ok) { setCurrentClass(r.data.id); setName(""); setSection(""); onCreated(); } else setErr(r.error);
+    }}>
+      <Field label="Class name" htmlFor="nc-n"><Input id="nc-n" value={name} onChange={(e) => setName(e.target.value)} required placeholder="3D Design" /></Field>
+      <Field label="Section / period" htmlFor="nc-s"><Input id="nc-s" value={section} onChange={(e) => setSection(e.target.value)} placeholder="Period 2" /></Field>
+      <Field label="Course length" htmlFor="nc-p"><Select id="nc-p" value={pathId} onChange={(e) => setPathId(e.target.value)}><option value="18-week">18 weeks</option><option value="9-week">9 weeks</option></Select></Field>
+      <Button disabled={busy || !name.trim()}>{busy ? "Creating…" : "Create class"}</Button>
+      {err && <p role="alert" className="text-sm text-danger">{err}</p>}
+    </form>
+  );
+}
+
+function setCurrentClass(id: string) {
+  try { localStorage.setItem("academy.class", id); } catch { /* ignore */ }
+}
+
+function Classes({ data, apiUrl, onChange }: { data: ClassData; apiUrl: string; onChange: () => void }) {
+  const c = data.cls;
+  const [form, setForm] = useState({ name: c.name, section: c.section, pathId: c.pathId, tinkercadUrl: c.tinkercadUrl ?? "", unlockAll: c.unlockAll });
+  const [msg, setMsg] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const save = async (patch: Record<string, unknown>) => {
+    setBusy(true);
+    const r = await call(apiUrl, "updateClass", { classId: c.id, ...patch });
+    setBusy(false);
+    setMsg(r.ok ? "Saved" : r.error);
+    if (r.ok) onChange();
+  };
+  return (
+    <div className="grid gap-6 lg:grid-cols-2">
+      <Card>
+        <CardTitle>This class</CardTitle>
+        <form className="mt-3 space-y-3" onSubmit={(e) => { e.preventDefault(); void save(form); }}>
+          <Field label="Name" htmlFor="cl-n"><Input id="cl-n" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
+          <Field label="Section / period" htmlFor="cl-s"><Input id="cl-s" value={form.section} onChange={(e) => setForm({ ...form, section: e.target.value })} /></Field>
+          <Field label="Course length" htmlFor="cl-p" hint="Switching keeps all student work."><Select id="cl-p" value={form.pathId} onChange={(e) => setForm({ ...form, pathId: e.target.value })}><option value="18-week">18 weeks</option><option value="9-week">9 weeks</option></Select></Field>
+          <Field label="Tinkercad Classroom link" htmlFor="cl-t"><Input id="cl-t" type="url" value={form.tinkercadUrl} onChange={(e) => setForm({ ...form, tinkercadUrl: e.target.value })} placeholder="https://www.tinkercad.com/joinclass/…" /></Field>
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.unlockAll} onChange={(e) => setForm({ ...form, unlockAll: e.target.checked })} /> Unlock every mission (e.g. Tinkercad is down)</label>
+          <div className="flex flex-wrap gap-2">
+            <Button disabled={busy}>Save</Button>
+            <Button type="button" variant="ghost" disabled={busy} onClick={() => { if (confirm(`Archive ${c.name}? Student work stays in your Sheet.`)) void save({ archived: true }); }}>Archive class</Button>
+          </div>
+          {msg && <p role="status" className="text-sm">{msg}</p>}
+        </form>
+      </Card>
+      <div className="space-y-6">
+        <Card>
+          <CardTitle>All my classes</CardTitle>
+          <ul className="mt-3 space-y-2">
+            {data.classes.map((x) => (
+              <li key={x.id} className="flex items-center gap-2">
+                <span className="flex-1"><span className="font-semibold">{x.name}</span>{x.section && <span className="text-muted"> · {x.section}</span>} <Pill>{x.pathId}</Pill></span>
+                {x.id === c.id ? <Pill tone="primary">Viewing</Pill> : <Button size="sm" variant="secondary" onClick={() => { setCurrentClass(x.id); onChange(); }}>Open</Button>}
+              </li>
+            ))}
+          </ul>
+        </Card>
+        <Card>
+          <CardTitle>New class</CardTitle>
+          <div className="mt-3"><NewClassForm apiUrl={apiUrl} onCreated={onChange} /></div>
+        </Card>
       </div>
     </div>
   );

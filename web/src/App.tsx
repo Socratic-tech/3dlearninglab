@@ -3,7 +3,7 @@ import { LogOut, Moon } from "lucide-react";
 import { LogoMark } from "@/components/nav/logo";
 import { Alert } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { readConfig } from "./config";
+import { readConfig, setCurrentClassId } from "./config";
 import { currentToken, renderSignIn, signOut } from "./auth";
 import { call } from "./api";
 import type { Me } from "./content";
@@ -32,7 +32,7 @@ export function App() {
   const load = useCallback(async () => {
     if (!cfg.apiUrl || !currentToken()) return;
     const r = await call<Me>(cfg.apiUrl, "me");
-    if (r.ok) { setMe(r.data); setError(null); }
+    if (r.ok) { setMe(r.data); setError(null); if (r.data.cls) setCurrentClassId(r.data.cls.id); }
     else setError(r.error);
   }, [cfg.apiUrl]);
 
@@ -46,18 +46,17 @@ export function App() {
   const route = hash.replace(/^#/, "");
   let page: ReactNode;
   if (route.startsWith("/lesson/")) page = <LessonPage me={me} apiUrl={cfg.apiUrl} lessonId={route.slice(8)} onChange={load} />;
-  else if (route.startsWith("/teacher") && me.user.role === "teacher") page = <TeacherPage apiUrl={cfg.apiUrl} clientId={cfg.clientId} />;
-  else if (me.user.role === "teacher" && route === "/") page = <TeacherPage apiUrl={cfg.apiUrl} clientId={cfg.clientId} />;
+  else if (me.user.role === "teacher" && (route.startsWith("/teacher") || route === "/")) page = <TeacherPage me={me} apiUrl={cfg.apiUrl} clientId={cfg.clientId} onChange={load} />;
   else page = <StudentHome me={me} />;
 
   return (
-    <Frame me={me} onSignOut={() => { signOut(); setToken(null); setMe(null); }}>
+    <Frame me={me} onSwitch={(id) => { setCurrentClassId(id); void load(); }} onSignOut={() => { signOut(); setToken(null); setMe(null); }}>
       {page}
     </Frame>
   );
 }
 
-function Frame({ children, me, onSignOut }: { children: ReactNode; me?: Me; onSignOut?: () => void }) {
+function Frame({ children, me, onSignOut, onSwitch }: { children: ReactNode; me?: Me; onSignOut?: () => void; onSwitch?: (classId: string) => void }) {
   const toggle = () => {
     const root = document.documentElement;
     const cur = root.dataset.theme ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
@@ -70,7 +69,16 @@ function Frame({ children, me, onSignOut }: { children: ReactNode; me?: Me; onSi
       <header className="sticky top-0 z-30 border-b border-border bg-bg/90 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-4">
           <a href="#/" className="flex items-center gap-2 font-display font-bold"><LogoMark /> <span>3D Design <span className="text-primary">Academy</span></span></a>
-          {me && <span className="hidden truncate text-sm text-muted sm:inline">· {me.cls.name}</span>}
+          {me && me.classes.length > 1 && onSwitch ? (
+            <label className="flex min-w-0 items-center gap-2 text-sm">
+              <span className="sr-only">Class</span>
+              <select className="h-9 max-w-[11rem] truncate rounded-lg border border-border bg-surface px-2" value={me.cls?.id ?? ""} onChange={(e) => onSwitch(e.target.value)}>
+                {me.classes.map((c) => <option key={c.id} value={c.id}>{c.name}{c.section ? ` · ${c.section}` : ""}</option>)}
+              </select>
+            </label>
+          ) : me?.cls ? (
+            <span className="hidden truncate text-sm text-muted sm:inline">· {me.cls.name}{me.cls.section ? ` · ${me.cls.section}` : ""}</span>
+          ) : null}
           <div className="ml-auto flex items-center gap-1">
             {me?.user.role === "teacher" && <a href="#/teacher" className="rounded-lg px-3 py-2 text-sm font-semibold hover:bg-surface-2">Teacher</a>}
             {me && <a href="#/student" className="rounded-lg px-3 py-2 text-sm font-semibold hover:bg-surface-2">Missions</a>}

@@ -47,7 +47,7 @@ export function LessonPage({ me, apiUrl, lessonId, onChange }: { me: Me; apiUrl:
         competencyTitles={competencyTitle}
         journalPrompts={journalPrompts}
         journals={me.journals}
-        tinkercadClassUrl={me.cls.tinkercadUrl}
+        tinkercadClassUrl={me.cls?.tinkercadUrl ?? null}
         startedAt={p?.startedAt ?? null}
         completed={p?.status === "completed"}
         readOnly={me.user.role !== "student"}
