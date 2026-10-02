@@ -1,8 +1,10 @@
+import { getLocale } from "@/lib/i18n";
 import type { Stats } from "@/lib/streaks";
 import type { ActionResult } from "@/server/errors";
 import type { LessonApi } from "@/components/lesson/api";
 import { currentToken } from "./auth";
 import { currentClassId } from "./config";
+import { enqueue } from "./sync";
 
 /** POST to the class's Apps Script. text/plain avoids a CORS preflight, which Apps Script can't answer. */
 /**
@@ -24,11 +26,11 @@ function strip<T>(r: Attempt<T>): ActionResult<T> {
   return r;
 }
 
-async function callOnce<T>(apiUrl: string, action: string, args: Record<string, unknown>, requestId: string): Promise<Attempt<T>> {
+export async function callOnce<T>(apiUrl: string, action: string, args: Record<string, unknown>, requestId: string): Promise<Attempt<T>> {
   const token = currentToken();
   if (!token) return { ok: false, error: "Your sign-in expired. Please sign in again." };
   try {
-    const res = await fetch(apiUrl, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action, token, requestId, args: { classId: currentClassId(), ...args } }) });
+    const res = await fetch(apiUrl, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action, token, requestId, args: { classId: currentClassId(), lang: getLocale(), ...args } }) });
     const text = await res.text();
     if (!res.ok) return { ok: false, retryable: true, error: `Google storage didn't answer (HTTP ${res.status}). Your work wasn't lost — try again.`, details: text.slice(0, 500) };
     try {
@@ -52,15 +54,22 @@ function fileToBase64(f: File): Promise<string> {
   });
 }
 
-/** The lesson player's backend, implemented against the Apps Script API. */
+/**
+ * The lesson player's backend, implemented against the Apps Script API.
+ * Everything except file uploads goes through the background queue (sync.ts), so the page never waits on Google.
+ * Answers carry the instantly computed `local` result so the home screen can show progress before Google confirms.
+ */
 export function googleLessonApi(apiUrl: string, onChange: () => void): LessonApi {
   return {
-    answerBlock: (i) => call(apiUrl, "answerBlock", i),
-    saveDraft: (i) => call(apiUrl, "saveDraft", i),
-    submitReflection: async (i) => {
-      const r = await call(apiUrl, "submitReflection", i);
-      if (r.ok) onChange();
-      return r;
+    // instant practice answers queue in the background; skill checks go straight to Google (the page waits for them)
+    answerBlock: (i) => (i.local ? enqueue("answerBlock", { ...i }) : call(apiUrl, "answerBlock", i)) as never,
+    saveDraft: (i) => {
+      void enqueue("saveDraft", { ...i }, `draft:${i.lessonId}:${i.blockId}`);
+      return Promise.resolve({ ok: true, data: null });
+    },
+    submitReflection: (i) => {
+      void enqueue("submitReflection", { ...i }, `reflect:${i.lessonId}:${i.blockId}`);
+      return Promise.resolve({ ok: true, data: null });
     },
     submitEvidence: async (fd) => {
       const f = fd.get("file");
@@ -77,9 +86,12 @@ export function googleLessonApi(apiUrl: string, onChange: () => void): LessonApi
       if (r.ok) onChange();
       return r;
     },
-    saveJournal: (i) => call(apiUrl, "saveJournal", i),
+    saveJournal: (i) => {
+      void enqueue("saveJournal", { ...i }, `journal:${i.projectKey}:${i.promptId}`);
+      return Promise.resolve({ ok: true, data: null });
+    },
     completeLesson: async (i) => {
-      const r = await call<{ nextLessonId: string | null; unlocked: string[]; stats?: Stats }>(apiUrl, "completeLesson", i);
+      const r = await enqueue<{ nextLessonId: string | null; unlocked: string[]; stats?: Stats }>("completeLesson", { ...i });
       if (r.ok) onChange();
       return r;
     },

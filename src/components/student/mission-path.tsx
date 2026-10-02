@@ -1,3 +1,4 @@
+import { getLocale, tr } from "@/lib/i18n";
 import Link from "next/link";
 import { Check, Flame, Lock, Play, Sparkles, Star, Swords, Target } from "lucide-react";
 import type { Stats } from "@/lib/streaks";
@@ -27,15 +28,15 @@ export function MissionPath({ items }: { items: PathItem[] }) {
   items.forEach((x) => weeks.set(x.week, [...(weeks.get(x.week) ?? []), x]));
   let n = 0;
   return (
-    <ol className="mx-auto max-w-md space-y-10" aria-label="Mission path">
+    <ol className="mx-auto max-w-md space-y-10" aria-label={tr("Mission path")}>
       {[...weeks.entries()].map(([week, list]) => {
         const done = list.filter((x) => x.state === "completed").length;
         return (
           <li key={week}>
             <div className={cn("rounded-2xl px-5 py-3 text-center", done === list.length ? "bg-success-soft" : "bg-primary-soft")}>
-              <p className="font-mono text-xs font-semibold uppercase tracking-widest text-accent">Unit {week}</p>
+              <p className="font-mono text-xs font-semibold uppercase tracking-widest text-accent">{tr("Unit {n}", { n: week })}</p>
               <h3 className="font-display text-lg font-bold">{list[0].weekTitle}</h3>
-              <p className="text-sm text-muted">{done} of {list.length} done</p>
+              <p className="text-sm text-muted">{tr("{done} of {total} done", { done, total: list.length })}</p>
             </div>
             <ol className="mt-6 flex flex-col items-center gap-7">
               {list.map((x) => {
@@ -43,7 +44,7 @@ export function MissionPath({ items }: { items: PathItem[] }) {
                 const isCurrent = x.id === current?.id;
                 const boss = x.kind === "boss";
                 const Icon = x.state === "completed" ? Check : x.state === "locked" ? Lock : boss ? Swords : isCurrent ? Play : Star;
-                const label = x.state === "completed" ? "done" : x.state === "locked" ? "locked" : isCurrent ? (x.state === "in_progress" ? "keep going" : "start here") : "ready";
+                const label = tr(x.state === "completed" ? "done" : x.state === "locked" ? "locked" : isCurrent ? (x.state === "in_progress" ? "keep going" : "start here") : "ready");
                 const circle = (
                   <span
                     className={cn(
@@ -62,13 +63,13 @@ export function MissionPath({ items }: { items: PathItem[] }) {
                   <>
                     {isCurrent && (
                       <span className="mb-2 rounded-xl bg-accent px-3 py-1 font-display text-sm font-bold uppercase tracking-wide text-primary-fg">
-                        {x.state === "in_progress" ? "Keep going" : "Start"}
+                        {x.state === "in_progress" ? tr("Keep going") : tr("Start")}
                       </span>
                     )}
                     {circle}
                     <span className={cn("mt-2 max-w-[9rem] text-center sm:max-w-[11rem] font-semibold leading-tight", x.state === "locked" && "text-muted")}>{x.title}</span>
-                    {x.due && x.state !== "completed" && <span className="mt-1 text-xs font-semibold text-warning">Due {x.due}</span>}
-                    <span className="sr-only">, {label}{boss ? ", boss mission" : ""}</span>
+                    {x.due && x.state !== "completed" && <span className="mt-1 text-xs font-semibold text-warning">{tr("Due {date}", { date: x.due })}</span>}
+                    <span className="sr-only">, {label}{boss ? tr(", boss mission") : ""}</span>
                   </>
                 );
                 return (
@@ -96,13 +97,13 @@ export function StreakCard({ stats }: { stats: Stats }) {
   const pct = Math.min(100, Math.round((stats.todayXp / stats.goal) * 100));
   const r = 26;
   const c = 2 * Math.PI * r;
-  const dayName = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString(undefined, { weekday: "narrow", timeZone: "UTC" });
+  const dayName = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString(getLocale() === "es" ? "es" : undefined, { weekday: "narrow", timeZone: "UTC" });
   return (
-    <section aria-label="Your streak and goal" className="grid grid-cols-3 gap-3">
+    <section aria-label={tr("Your streak and goal")} className="grid grid-cols-3 gap-3">
       <div className="rounded-2xl border border-border bg-surface p-4 text-center">
         <Flame className={cn("mx-auto size-8", stats.streak ? "text-warning" : "text-muted")} aria-hidden />
         <p className="font-display text-2xl font-bold">{stats.streak}</p>
-        <p className="text-xs text-muted">day streak</p>
+        <p className="text-xs text-muted">{tr("day streak")}</p>
       </div>
       <div className="rounded-2xl border border-border bg-surface p-4 text-center">
         <svg viewBox="0 0 64 64" className="mx-auto size-12 -rotate-90" aria-hidden>
@@ -110,20 +111,20 @@ export function StreakCard({ stats }: { stats: Stats }) {
           <circle cx="32" cy="32" r={r} fill="none" stroke="var(--accent)" strokeWidth="8" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} />
         </svg>
         <p className="mt-1 font-display text-lg font-bold">{stats.todayXp}/{stats.goal}</p>
-        <p className="text-xs text-muted">{pct >= 100 ? "goal done today!" : "today's goal"}</p>
+        <p className="text-xs text-muted">{pct >= 100 ? tr("goal done today!") : tr("today's goal")}</p>
       </div>
       <div className="rounded-2xl border border-border bg-surface p-4 text-center">
         <Sparkles className="mx-auto size-8 text-accent" aria-hidden />
         <p className="font-display text-2xl font-bold">{stats.xp}</p>
-        <p className="text-xs text-muted">total XP</p>
+        <p className="text-xs text-muted">{tr("total XP")}</p>
       </div>
-      <ol className="col-span-3 flex justify-between rounded-2xl border border-border bg-surface px-4 py-3" aria-label="This week">
+      <ol className="col-span-3 flex justify-between rounded-2xl border border-border bg-surface px-4 py-3" aria-label={tr("This week")}>
         {stats.week.map((d, i) => (
           <li key={d.day} className="flex flex-col items-center gap-1 text-xs">
             <span className={cn("grid size-8 place-items-center rounded-full", d.xp > 0 ? "bg-warning text-primary-fg" : "bg-surface-2 text-muted", i === 6 && "ring-2 ring-primary")}>
               {d.xp > 0 ? <Flame className="size-4" aria-hidden /> : <Target className="size-4" aria-hidden />}
             </span>
-            <span className="text-muted">{dayName(d.day)}<span className="sr-only">{d.xp > 0 ? `: ${d.xp} XP` : ": no activity"}</span></span>
+            <span className="text-muted">{dayName(d.day)}<span className="sr-only">{d.xp > 0 ? `: ${d.xp} XP` : tr(": no activity")}</span></span>
           </li>
         ))}
       </ol>

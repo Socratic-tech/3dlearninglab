@@ -2,6 +2,7 @@ import type { ActionResult } from "@/server/errors";
 import type { BlockResponse } from "@/lib/scoring";
 import type { ClientResult } from "@/lib/scoring";
 import type { Stats } from "@/lib/streaks";
+import type { BlockEntry } from "./types";
 
 /**
  * Everything the lesson player needs from a backend. The Next.js edition implements it with Server Actions
@@ -9,7 +10,8 @@ import type { Stats } from "@/lib/streaks";
  */
 type Ids = { courseId: string; lessonId: string };
 export type LessonApi = {
-  answerBlock(i: Ids & { blockId: string; response: BlockResponse }): Promise<ActionResult<ClientResult>>;
+  /** `local` = the result already shown to the student (instant practice feedback); the server just records it. */
+  answerBlock(i: Ids & { blockId: string; response: BlockResponse; local?: Partial<BlockEntry> }): Promise<ActionResult<ClientResult>>;
   saveDraft(i: Ids & { blockId: string; text: string }): Promise<ActionResult<unknown>>;
   submitReflection(i: Ids & { blockId: string; text: string }): Promise<ActionResult<unknown>>;
   /** FormData carries courseId, lessonId, blockId, kind, url, note, file, requestPrint */

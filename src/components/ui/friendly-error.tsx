@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useState } from "react";
 import { TriangleAlert } from "lucide-react";
 import { Button } from "./button";
@@ -15,16 +16,16 @@ export function FriendlyError({ error, details, onRetry, integration }: { error:
       <p className="flex items-center gap-2 font-semibold">
         <TriangleAlert className="size-5 text-danger" aria-hidden /> {error}
       </p>
-      {integration && <p className="mt-1 text-sm">Your work in 3D Design Academy is safe.</p>}
+      {integration && <p className="mt-1 text-sm">{tr("Your work in 3D Design Academy is safe.")}</p>}
       <div className="mt-3 flex flex-wrap gap-2">
         {onRetry && (
           <Button size="sm" variant="secondary" onClick={onRetry}>
-            Try again
+            {tr("Try again")}
           </Button>
         )}
         {details && (
           <Button size="sm" variant="ghost" onClick={() => setShow((s) => !s)} aria-expanded={show}>
-            {show ? "Hide details" : "View details"}
+            {show ? tr("Hide details") : tr("View details")}
           </Button>
         )}
       </div>

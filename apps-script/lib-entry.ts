@@ -3,3 +3,4 @@
 export { scoreBlock, toClientResult, isScorable } from "../src/lib/scoring";
 export { autoLevel, levelFromRating, maxLevel, rank, effectiveLevel, LEVELS } from "../src/lib/mastery";
 export { computeStats, applyEvents, statsFromSummary, emptySummary, dayKey, XP, DAILY_GOAL } from "../src/lib/streaks";
+export { localizeBlock } from "../src/lib/i18n-content";

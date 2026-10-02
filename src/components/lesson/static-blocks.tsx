@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { Fragment, useEffect, useState, type ReactNode } from "react";
 import { BookOpen, Download, ExternalLink, Eye, Globe2, Lightbulb, MessageCircle, Monitor, PencilRuler, PlayCircle, ShieldAlert, Swords, Timer, TriangleAlert, Users } from "lucide-react";
 import type { Client, Hook, Theme } from "@/content/flavor";
@@ -83,7 +84,7 @@ export function TextBlock({ b }: { b: BlockOf<"text"> }) {
       {long && !open ? <Md text={first} /> : <Md text={b.body} />}
       {long && (
         <button onClick={() => setOpen(!open)} aria-expanded={open} className="mt-1 text-sm font-semibold text-primary underline">
-          {open ? "Show less" : "Tell me more"}
+          {open ? tr("Show less") : tr("Tell me more")}
         </button>
       )}
     </section>
@@ -125,12 +126,12 @@ export function ImageBlock({ b }: { b: BlockOf<"image"> }) {
 
 export function VideoBlock({ b }: { b: BlockOf<"video"> }) {
   return (
-    <BlockFrame label="Watch" icon={<PlayCircle className="size-4" aria-hidden />}>
+    <BlockFrame label={tr("Watch")} icon={<PlayCircle className="size-4" aria-hidden />}>
       <video controls preload="metadata" className="w-full rounded-lg" src={b.url}>
         {b.captionsUrl && <track kind="captions" src={b.captionsUrl} srcLang="en" label="English" default />}
       </video>
       <details className="mt-3 text-sm">
-        <summary className="cursor-pointer font-semibold">Transcript</summary>
+        <summary className="cursor-pointer font-semibold">{tr("Transcript")}</summary>
         <Md text={b.transcript} />
       </details>
     </BlockFrame>
@@ -143,13 +144,13 @@ export function ShowMeBlock({ b }: { b: BlockOf<"showMe"> }) {
   const [i, setI] = useState(0);
   const step = b.steps[i];
   return (
-    <BlockFrame label="Show me" icon={<Eye className="size-4" aria-hidden />}>
+    <BlockFrame label={tr("Show me")} icon={<Eye className="size-4" aria-hidden />}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="font-display text-lg font-semibold">{b.title}</h3>
-        <div role="group" aria-label="How to view" className="inline-flex rounded-lg border border-border p-0.5 text-sm">
+        <div role="group" aria-label={tr("How to view")} className="inline-flex rounded-lg border border-border p-0.5 text-sm">
           {(["show", "read"] as const).map((m) => (
             <button key={m} aria-pressed={mode === m} onClick={() => setMode(m)} className={cn("rounded-md px-3 py-1 font-semibold", mode === m ? "bg-primary text-primary-fg" : "text-muted")}>
-              {m === "show" ? "Show me" : "Read it"}
+              {m === "show" ? tr("Show me") : tr("Read it")}
             </button>
           ))}
         </div>
@@ -167,16 +168,16 @@ export function ShowMeBlock({ b }: { b: BlockOf<"showMe"> }) {
           {step.diagram && <Diagram name={step.diagram} className="mx-auto mb-3 max-w-lg" />}
           <p aria-live="polite" className="text-lg">
             <span className="mr-2 font-mono text-sm text-muted">
-              Step {i + 1} / {b.steps.length}
+              {tr("Step {n} / {total}", { n: i + 1, total: b.steps.length })}
             </span>
             {step.text} {step.keys && <kbd>{step.keys}</kbd>}
           </p>
           <div className="mt-4 flex gap-2">
             <button className={buttonClass("secondary", "sm")} disabled={i === 0} onClick={() => setI(i - 1)}>
-              Back
+              {tr("Back")}
             </button>
             <button className={buttonClass("primary", "sm")} disabled={i === b.steps.length - 1} onClick={() => setI(i + 1)}>
-              Next step
+              {tr("Next step")}
             </button>
           </div>
         </div>
@@ -205,14 +206,14 @@ export function TinkercadButtons({ classUrl }: { classUrl: string | null }) {
       <div className="flex flex-wrap gap-2">
         {classUrl && (
           <a href={classUrl} target="_blank" rel="noopener noreferrer" className={buttonClass("primary", "lg")}>
-            Open our Tinkercad Classroom <ExternalLink className="size-4" aria-hidden /><span className="sr-only"> (opens in a new tab)</span>
+            {tr("Open our Tinkercad Classroom")} <ExternalLink className="size-4" aria-hidden /><span className="sr-only"> {tr("(opens in a new tab)")}</span>
           </a>
         )}
         <a href={TINKERCAD_URL} target="_blank" rel="noopener noreferrer" className={buttonClass(classUrl ? "secondary" : "primary", "lg")}>
-          Open Tinkercad <ExternalLink className="size-4" aria-hidden /><span className="sr-only"> (opens in a new tab)</span>
+          {tr("Open Tinkercad")} <ExternalLink className="size-4" aria-hidden /><span className="sr-only"> {tr("(opens in a new tab)")}</span>
         </a>
       </div>
-      <p className="mt-2 text-xs text-muted">Opens in a new tab. Come back to this tab when you&apos;re done.</p>
+      <p className="mt-2 text-xs text-muted">{tr("Opens in a new tab. Come back to this tab when you're done.")}</p>
     </div>
   );
 }
@@ -231,14 +232,14 @@ export function WhereTag({ where }: { where: keyof typeof WHERE }) {
   return (
     <p className={cn("inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-bold", w.cls)}>
       <Icon className="size-4 shrink-0" aria-hidden />
-      {w.text}
+      {tr(w.text)}
     </p>
   );
 }
 
 export function TinkercadBlock({ b, classUrl }: { b: BlockOf<"tinkercadLaunch">; classUrl: string | null }) {
   return (
-    <BlockFrame label="Try it in Tinkercad">
+    <BlockFrame label={tr("Try it in Tinkercad")}>
       <WhereTag where="tinkercad" />
       <h3 className="font-display text-lg font-semibold">{b.title}</h3>
       <ol className="mt-2 list-decimal space-y-1 pl-5">
@@ -274,13 +275,13 @@ export function ModelCard({ a, compact }: { a: ModelAsset; compact?: boolean }) 
       )}
       {!compact && <p className="mt-1 text-sm">{a.educationalPurpose}</p>}
       <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 text-xs text-muted">
-        <dt>License</dt>
-        <dd>{LICENSE_LABEL[a.license] ?? a.license}{!a.sourceVerifiedAt && " (as listed — not yet verified)"}</dd>
-        <dt>Creator</dt>
+        <dt>{tr("License")}</dt>
+        <dd>{tr(LICENSE_LABEL[a.license] ?? a.license)}{!a.sourceVerifiedAt && tr(" (as listed — not yet verified)")}</dd>
+        <dt>{tr("Creator")}</dt>
         <dd>{a.creator}</dd>
         {a.dimensionsMm && (
           <>
-            <dt>Size</dt>
+            <dt>{tr("Size")}</dt>
             <dd>{a.dimensionsMm.join(" × ")} mm</dd>
           </>
         )}
@@ -289,16 +290,16 @@ export function ModelCard({ a, compact }: { a: ModelAsset; compact?: boolean }) 
         {a.localFilePath ? (
           <>
             <button className={buttonClass("secondary", "sm")} onClick={() => setView((v) => !v)} aria-expanded={view}>
-              <Eye className="size-4" aria-hidden /> {view ? "Hide 3D" : "View in 3D"}
+              <Eye className="size-4" aria-hidden /> {view ? tr("Hide 3D") : tr("View in 3D")}
             </button>
             <a href={a.localFilePath} download={a.originalFileName} className={buttonClass("primary", "sm")}>
-              <Download className="size-4" aria-hidden /> Download {a.format.toUpperCase()}
+              <Download className="size-4" aria-hidden /> {tr("Download {format}", { format: a.format.toUpperCase() })}
             </a>
           </>
         ) : null}
         {a.sourcePage && (
           <a href={a.sourcePage} target="_blank" rel="noopener noreferrer" className={buttonClass(a.localFilePath ? "ghost" : "secondary", "sm")}>
-            {a.localFilePath ? "Source" : "Get it from the source"} <ExternalLink className="size-4" aria-hidden />
+            {a.localFilePath ? tr("Source") : tr("Get it from the source")} <ExternalLink className="size-4" aria-hidden />
           </a>
         )}
       </div>
@@ -309,7 +310,7 @@ export function ModelCard({ a, compact }: { a: ModelAsset; compact?: boolean }) 
 export function ModelDownloadBlock({ b, assets }: { b: BlockOf<"modelDownload">; assets: Record<string, ModelAsset> }) {
   const list = b.modelIds.map((id) => assets[id]).filter(Boolean);
   return (
-    <BlockFrame label="Files for this mission" icon={<Download className="size-4" aria-hidden />}>
+    <BlockFrame label={tr("Files for this mission")} icon={<Download className="size-4" aria-hidden />}>
       <div className="grid gap-3 md:grid-cols-2">
         {list.map((a) => (
           <ModelCard key={a.id} a={a} />
@@ -317,12 +318,12 @@ export function ModelDownloadBlock({ b, assets }: { b: BlockOf<"modelDownload">;
       </div>
       {b.showImportSteps && (
         <details className="mt-3 text-sm">
-          <summary className="cursor-pointer font-semibold">How to import a file into Tinkercad</summary>
+          <summary className="cursor-pointer font-semibold">{tr("How to import a file into Tinkercad")}</summary>
           <ol className="mt-2 list-decimal space-y-1 pl-5">
-            <li>Download the STL file above.</li>
-            <li>Open Tinkercad and start (or open) a design.</li>
-            <li>Choose <strong>Import</strong> (top right) and pick the file from your Downloads.</li>
-            <li>Keep units in millimetres and click Import. The model appears as one shape on the workplane.</li>
+            <li>{tr("Download the STL file above.")}</li>
+            <li>{tr("Open Tinkercad and start (or open) a design.")}</li>
+            <li><Md text={tr("Choose **Import** (top right) and pick the file from your Downloads.")} /></li>
+            <li>{tr("Keep units in millimetres and click Import. The model appears as one shape on the workplane.")}</li>
           </ol>
         </details>
       )}
@@ -341,7 +342,7 @@ function Elapsed() {
   const s = Math.max(0, Math.floor((now - since) / 1000));
   const fmt = `${Math.floor(s / 3600) ? Math.floor(s / 3600) + "h " : ""}${Math.floor((s % 3600) / 60)}m ${s % 60}s`;
   return (
-    <span className="inline-flex items-center gap-1 font-mono text-sm" aria-label={`Time elapsed ${fmt}`}>
+    <span className="inline-flex items-center gap-1 font-mono text-sm" aria-label={tr("Time elapsed {time}", { time: fmt })}>
       <Timer className="size-4" aria-hidden /> {fmt}
     </span>
   );
@@ -353,7 +354,7 @@ export function RealWorldCard({ hook }: { hook: Hook }) {
   return (
     <section className="rounded-3xl border-2 border-accent bg-accent-soft p-5 sm:p-6">
       <p className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-[0.18em] text-accent">
-        <Globe2 className="size-4" aria-hidden /> In the real world
+        <Globe2 className="size-4" aria-hidden /> {tr("In the real world")}
       </p>
       <h2 className="mt-2 font-display text-2xl font-bold sm:text-3xl">{hook.headline}</h2>
       <p className="mt-2 text-lg">{hook.body}</p>
@@ -368,7 +369,7 @@ function ClientMessage({ c }: { c: Client }) {
     <div className="mb-4 flex items-start gap-3">
       <span aria-hidden className="grid size-11 shrink-0 place-items-center rounded-full bg-accent font-display font-bold text-white">{initials}</span>
       <div className="min-w-0 flex-1">
-        <p className="flex flex-wrap items-center gap-x-2 text-sm"><MessageCircle className="size-4" aria-hidden /><strong>New request from {c.name}</strong><span className="opacity-75">· {c.who}</span></p>
+        <p className="flex flex-wrap items-center gap-x-2 text-sm"><MessageCircle className="size-4" aria-hidden /><strong>{tr("New request from {name}", { name: c.name })}</strong><span className="opacity-75">· {c.who}</span></p>
         <p className="mt-1 rounded-2xl rounded-tl-sm bg-surface p-3 text-base text-fg">{c.message}</p>
       </div>
     </div>
@@ -381,23 +382,23 @@ function ThemePicker({ id, themes }: { id: string; themes: Theme[] }) {
   const [pick, setPick] = useState<string | null>(() => {
     try { return localStorage.getItem(themeKey(id)); } catch { return null; }
   });
-  const choose = (label: string) => {
-    setPick(label);
-    try { localStorage.setItem(themeKey(id), label); } catch { /* private mode */ }
+  const choose = (i: number) => {
+    setPick(String(i));
+    try { localStorage.setItem(themeKey(id), String(i)); } catch { /* private mode */ }
   };
-  const chosen = themes.find((t) => t.label === pick);
+  const chosen = pick !== null ? themes[Number(pick)] : undefined;
   return (
     <fieldset className="mt-5">
-      <legend className="text-xs font-bold uppercase tracking-widest opacity-75">Make it yours · pick a theme</legend>
+      <legend className="text-xs font-bold uppercase tracking-widest opacity-75">{tr("Make it yours · pick a theme")}</legend>
       <div className="mt-2 flex flex-wrap gap-2">
-        {themes.map((t) => (
-          <button key={t.label} type="button" aria-pressed={pick === t.label} onClick={() => choose(t.label)}
-            className={cn("rounded-full border-2 px-4 py-1.5 text-sm font-bold", pick === t.label ? "border-accent bg-accent text-white" : "border-current/30 hover:border-accent")}>
+        {themes.map((t, i) => (
+          <button key={i} type="button" aria-pressed={pick === String(i)} onClick={() => choose(i)}
+            className={cn("rounded-full border-2 px-4 py-1.5 text-sm font-bold", pick === String(i) ? "border-accent bg-accent text-white" : "border-current/30 hover:border-accent")}>
             {t.label}
           </button>
         ))}
       </div>
-      {chosen && <p className="mt-2 text-base" aria-live="polite">Idea: {chosen.idea}. Same requirements — your style.</p>}
+      {chosen && <p className="mt-2 text-base" aria-live="polite">{tr("Idea: {idea}. Same requirements — your style.", { idea: chosen.idea })}</p>}
     </fieldset>
   );
 }
@@ -412,7 +413,7 @@ export function ChallengeBlock({ b, assets, skillTitle, classUrl = null, client,
       <div className={cn("flex flex-wrap items-center justify-between gap-2 px-5 py-3", briefing ? (boss ? "bg-accent text-white" : "bg-primary text-primary-fg") : "bg-primary-soft text-primary")}>
         <p className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-[0.2em]">
           {boss ? <Swords className="size-4" aria-hidden /> : null}
-          {boss ? "Boss battle" : b.kind === "prove" ? "Prove it · no steps this time" : "Micro challenge"}
+          {boss ? tr("Boss battle") : b.kind === "prove" ? tr("Prove it · no steps this time") : tr("Micro challenge")}
         </p>
         {b.showTimer && <Elapsed />}
       </div>
@@ -423,7 +424,7 @@ export function ChallengeBlock({ b, assets, skillTitle, classUrl = null, client,
         <Md text={b.prompt} className={cn("mt-2 text-lg", briefing && "opacity-90")} />
         {b.visual && <div className="mt-3 rounded-xl bg-surface p-2"><Visual {...b.visual} assets={assets} /></div>}
         {themes && themes.length > 0 && <ThemePicker id={pickId ?? b.id} themes={themes} />}
-        <p className="mt-5 text-xs font-bold uppercase tracking-widest opacity-75">Requirements · {done}/{b.requirements.length} checked</p>
+        <p className="mt-5 text-xs font-bold uppercase tracking-widest opacity-75">{tr("Requirements · {done}/{total} checked", { done, total: b.requirements.length })}</p>
         <ul className="mt-2 space-y-2">
           {b.requirements.map((r, i) => (
             <li key={i}>
@@ -435,8 +436,8 @@ export function ChallengeBlock({ b, assets, skillTitle, classUrl = null, client,
           ))}
         </ul>
         {b.skills.length > 0 && (
-          <div className="mt-4 flex flex-wrap items-center gap-1.5" aria-label="Skills you'll use">
-            <span className="text-xs font-bold uppercase tracking-widest opacity-75">Skills:</span>
+          <div className="mt-4 flex flex-wrap items-center gap-1.5" aria-label={tr("Skills you'll use")}>
+            <span className="text-xs font-bold uppercase tracking-widest opacity-75">{tr("Skills:")}</span>
             {b.skills.map((s) => (
               <span key={s} className={cn("rounded-full px-2.5 py-0.5 text-xs font-semibold", briefing ? "bg-white/15" : "bg-primary-soft text-primary")}>✓ {skillTitle(s)}</span>
             ))}
@@ -447,7 +448,7 @@ export function ChallengeBlock({ b, assets, skillTitle, classUrl = null, client,
             <TinkercadButtons classUrl={classUrl} />
           </div>
         )}
-        {b.showTimer && <p className="mt-3 text-xs opacity-75">The timer is just for you — speed doesn&apos;t change your grade.</p>}
+        {b.showTimer && <p className="mt-3 text-xs opacity-75">{tr("The timer is just for you — speed doesn't change your grade.")}</p>}
       </div>
     </section>
   );
@@ -455,7 +456,7 @@ export function ChallengeBlock({ b, assets, skillTitle, classUrl = null, client,
 
 export function TeacherCheckBlock({ b, done }: { b: BlockOf<"teacherCheck">; done: boolean }) {
   return (
-    <BlockFrame label="Teacher check" icon={<BookOpen className="size-4" aria-hidden />}>
+    <BlockFrame label={tr("Teacher check")} icon={<BookOpen className="size-4" aria-hidden />}>
       <WhereTag where="teacher" />
       <p className="mt-2">{b.prompt}</p>
       <ul className="mt-2 list-disc pl-5 text-sm text-muted">
@@ -464,7 +465,7 @@ export function TeacherCheckBlock({ b, done }: { b: BlockOf<"teacherCheck">; don
         ))}
       </ul>
       <p className="mt-3 text-sm font-semibold" role="status">
-        {done ? "✓ Your teacher has checked this." : "When you're ready, ask your teacher to check your work."}
+        {done ? tr("✓ Your teacher has checked this.") : tr("When you're ready, ask your teacher to check your work.")}
       </p>
     </BlockFrame>
   );
@@ -482,21 +483,21 @@ export function FailGalleryBlock({ b }: { b: BlockOf<"failGallery"> }) {
         <p className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-danger">{b.title}</p>
         <p className="font-mono text-xs text-muted" aria-live="polite">{i + 1} / {b.cards.length}</p>
       </div>
-      <div className="p-5 sm:p-6" aria-roledescription="slide" aria-label={`${i + 1} of ${b.cards.length}: ${c.nickname}`}>
+      <div className="p-5 sm:p-6" aria-roledescription="slide" aria-label={tr("{n} of {total}: {name}", { n: i + 1, total: b.cards.length, name: c.nickname })}>
         <h3 className="font-display text-2xl font-bold">{c.nickname}</h3>
         <div className="mt-3 rounded-2xl bg-surface-2/60 p-2 [&_svg]:max-h-56"><Diagram name={c.diagram} /></div>
-        <p className="mt-3 text-lg"><strong>Clue:</strong> {c.clue}</p>
+        <p className="mt-3 text-lg"><strong>{tr("Clue:")}</strong> {c.clue}</p>
         {open ? (
           <div className="mt-3 animate-fade-up space-y-2 rounded-2xl border-2 border-success bg-success-soft p-4">
-            <p><strong>What went wrong:</strong> {c.cause}</p>
-            <p><strong>The fix:</strong> {c.fix}</p>
+            <p><strong>{tr("What went wrong:")}</strong> {c.cause}</p>
+            <p><strong>{tr("The fix:")}</strong> {c.fix}</p>
           </div>
         ) : (
-          <button className={buttonClass("primary", "lg", "mt-4")} onClick={() => setShown({ ...shown, [c.id]: true })}>Guess first… then reveal</button>
+          <button className={buttonClass("primary", "lg", "mt-4")} onClick={() => setShown({ ...shown, [c.id]: true })}>{tr("Guess first… then reveal")}</button>
         )}
         <div className="mt-5 flex items-center justify-between gap-2">
-          <button className={buttonClass("secondary")} disabled={i === 0} onClick={() => setI(i - 1)}>← Previous fail</button>
-          <button className={buttonClass("secondary")} disabled={i === b.cards.length - 1} onClick={() => setI(i + 1)}>Next fail →</button>
+          <button className={buttonClass("secondary")} disabled={i === 0} onClick={() => setI(i - 1)}>{tr("← Previous fail")}</button>
+          <button className={buttonClass("secondary")} disabled={i === b.cards.length - 1} onClick={() => setI(i + 1)}>{tr("Next fail →")}</button>
         </div>
       </div>
     </section>
@@ -506,9 +507,9 @@ export function FailGalleryBlock({ b }: { b: BlockOf<"failGallery"> }) {
 export function ObserveBlock({ b }: { b: BlockOf<"observe"> }) {
   const [open, setOpen] = useState<Record<string, boolean>>({});
   return (
-    <BlockFrame label="Investigate">
+    <BlockFrame label={tr("Investigate")}>
       <h3 className="font-display text-lg font-semibold">{b.title}</h3>
-      <p className="mt-1 text-sm text-muted">For each sample, answer: {b.questions.join(" · ")}</p>
+      <p className="mt-1 text-sm text-muted">{tr("For each sample, answer:")} {b.questions.join(" · ")}</p>
       <div className="mt-4 grid gap-3 md:grid-cols-2">
         {b.cards.map((c) => (
           <div key={c.id} className="rounded-xl border border-border p-4">
@@ -521,7 +522,7 @@ export function ObserveBlock({ b }: { b: BlockOf<"observe"> }) {
               </div>
             ) : (
               <button className={cn(buttonClass("secondary", "sm"), "mt-3")} onClick={() => setOpen({ ...open, [c.id]: true })}>
-                Reveal explanation
+                {tr("Reveal explanation")}
               </button>
             )}
           </div>

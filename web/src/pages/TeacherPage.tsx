@@ -46,17 +46,25 @@ export function TeacherPage({ me, apiUrl, clientId, onChange }: { me: Me; apiUrl
       </div>
     );
   }
-  return <ClassView key={me.cls.id} apiUrl={apiUrl} clientId={clientId} onChange={onChange} />;
+  return <ClassView key={me.cls.id} classId={me.cls.id} apiUrl={apiUrl} clientId={clientId} onChange={onChange} />;
 }
 
-function ClassView({ apiUrl, clientId, onChange }: { apiUrl: string; clientId: string; onChange: () => void }) {
-  const [data, setData] = useState<ClassData | null>(null);
+const classKey = (id: string) => `academy.classdata.${id}`;
+function ClassView({ classId, apiUrl, clientId, onChange }: { classId: string; apiUrl: string; clientId: string; onChange: () => void }) {
+  // open instantly from the last snapshot (this browser tab only), then refresh from Google
+  const [data, setData] = useState<ClassData | null>(() => {
+    try { return JSON.parse(sessionStorage.getItem(classKey(classId)) ?? "null"); } catch { return null; }
+  });
   const [err, setErr] = useState<{ error: string; details?: string } | null>(null);
   const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
   const load = useCallback(async () => {
     const r = await call<ClassData>(apiUrl, "classData");
-    if (r.ok) { setData(r.data); setErr(null); } else setErr(r);
-  }, [apiUrl]);
+    if (r.ok) {
+      setData(r.data);
+      setErr(null);
+      try { sessionStorage.setItem(classKey(classId), JSON.stringify(r.data)); } catch { /* too big: skip */ }
+    } else setErr(r);
+  }, [apiUrl, classId]);
   useEffect(() => { void load(); }, [load]);
   // keep "Right now" fresh during class (only while the Overview tab is visible)
   useEffect(() => {

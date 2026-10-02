@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import { useMemo } from "react";
 import { Printer } from "lucide-react";
 import { offlineChallenges } from "./HandoutPage";
@@ -6,22 +7,22 @@ import { Alert, Pill } from "@/components/ui/card";
 import { buttonClass } from "@/components/ui/button";
 import type { BlockEntry } from "@/components/lesson/types";
 import { allBlocks, isRequiredBlock } from "@/content/schema";
-import { assetsFor, competencyTitle, journalPrompts, lessonById, type Me } from "../content";
+import { assetsFor, competencyTitleFor, journalPromptsFor, lessonFor, type Me } from "../content";
 import { googleLessonApi } from "../api";
 import { studentStates } from "../state";
 
 export function LessonPage({ me, apiUrl, lessonId, focusBlockId, onChange }: { me: Me; apiUrl: string; lessonId: string; focusBlockId?: string; onChange: () => void }) {
-  const lesson = lessonById.get(lessonId);
+  const lesson = lessonFor(lessonId);
   const api = useMemo(() => googleLessonApi(apiUrl, onChange), [apiUrl, onChange]);
-  if (!lesson) return <Alert tone="warning" title="That mission doesn't exist." />;
+  if (!lesson) return <Alert tone="warning" title={tr("That mission doesn't exist.")} />;
   const { states } = studentStates(me);
   const st = states.get(lessonId);
   if (me.user.role === "student" && (!st || st === "locked")) {
     return (
       <div className="mx-auto max-w-lg space-y-4 py-10">
         <h1 className="font-display text-2xl font-bold">{lesson.title}</h1>
-        <Alert tone="info" title="This mission is still locked">Finish the missions before it first — then it unlocks.</Alert>
-        <a href="#/" className={buttonClass()}>Back to missions</a>
+        <Alert tone="info" title={tr("This mission is still locked")}>{tr("Finish the missions before it first — then it unlocks.")}</Alert>
+        <a href="#/" className={buttonClass()}>{tr("Back to missions")}</a>
       </div>
     );
   }
@@ -31,16 +32,16 @@ export function LessonPage({ me, apiUrl, lessonId, focusBlockId, onChange }: { m
   return (
     <article>
       <header className="mx-auto mb-6 max-w-3xl">
-        {preview && <div className="mb-3"><Alert tone="info" title="Teacher preview">Try every activity like a student. Your answers go to your own test record, not to any class.</Alert></div>}
-        <a href="#/" className="text-sm text-muted hover:text-fg">← Missions</a>
+        {preview && <div className="mb-3"><Alert tone="info" title={tr("Teacher preview")}>{tr("Try every activity like a student. Your answers go to your own test record, not to any class.")}</Alert></div>}
+        <a href="#/" className="text-sm text-muted hover:text-fg">{tr("← Missions")}</a>
         <h1 className="mt-1 font-display text-2xl font-bold sm:text-3xl">{lesson.title} <span className="text-lg font-normal text-muted">· {lesson.subtitle}</span></h1>
         <div className="mt-2 flex flex-wrap gap-2">
-          {lesson.kind === "boss" && <Pill tone="accent">Boss battle</Pill>}
-          <Pill>{lesson.estimatedMinutes} min</Pill>
-          {p?.status === "completed" && <Pill tone="success">Completed</Pill>}
+          {lesson.kind === "boss" && <Pill tone="accent">{tr("Boss battle")}</Pill>}
+          <Pill>{tr("{n} min", { n: lesson.estimatedMinutes })}</Pill>
+          {p?.status === "completed" && <Pill tone="success">{tr("Completed")}</Pill>}
           {offlineChallenges(lesson).length > 0 && (
             <a href={`#/print/${lesson.id}`} className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-0.5 text-sm font-semibold hover:bg-surface-2">
-              <Printer className="size-4" aria-hidden /> Print handout
+              <Printer className="size-4" aria-hidden /> {tr("Print handout")}
             </a>
           )}
         </div>
@@ -53,8 +54,8 @@ export function LessonPage({ me, apiUrl, lessonId, focusBlockId, onChange }: { m
         requiredBlockIds={allBlocks(lesson).filter(isRequiredBlock).map((b) => b.id)}
         evidence={evidence}
         assets={assetsFor(lesson)}
-        competencyTitles={competencyTitle}
-        journalPrompts={journalPrompts}
+        competencyTitles={competencyTitleFor()}
+        journalPrompts={journalPromptsFor()}
         journals={me.journals}
         tinkercadClassUrl={me.cls?.tinkercadUrl ?? null}
         startedAt={p?.startedAt ?? null}

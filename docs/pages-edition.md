@@ -66,6 +66,11 @@ When the curriculum changes: push. Teachers click **Update now** in their side p
 - Uploads go to a Drive folder owned by the teacher (`MAX_UPLOAD_MB`, default 10).
 - Local try-out without Google: `npm run pages:prepare && npx vite build --config web/vite.config.ts`, then
   `npx tsx scripts/pages-mock-api.ts` and serve `web/dist` (the mock accepts unsigned tokens — never deploy it).
+- **Speed (feels instant):** practice questions are scored in the browser from a scrambled answer pack (skill checks
+  always go to Google), and all saves go into a background queue on the device (`web/src/sync.ts`) that retries until
+  Google confirms — even across reloads and Wi-Fi drops. Pages open from a cached copy and refresh quietly. On the
+  server, each student has their own lock, so 30 students saving at once don't wait on each other.
+  Try it locally with a slow fake backend: `MOCK_DELAY_MS=2000 npx tsx scripts/pages-mock-api.ts`.
 - Speed: XP/streaks live in a **Summary** tab updated as students work, each request reads a tab at most once, and the
   teacher's “Right now” panel is built from the Progress tab — nothing re-reads the whole answer log.
 - Not in this edition yet: rubric scoring, Classroom assignment publishing/grade sync, design-journal

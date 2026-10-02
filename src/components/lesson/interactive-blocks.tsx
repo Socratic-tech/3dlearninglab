@@ -1,9 +1,13 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { createContext, useContext, useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { ArrowDown, ArrowUp, CircleCheck, FlaskConical, Upload } from "lucide-react";
 import type { BlockOf, ModelAsset } from "@/content/schema";
 import type { BlockResponse } from "@/lib/scoring";
+import { scoreBlock, toClientResult } from "@/lib/scoring";
+import { getLocale } from "@/lib/i18n";
+import type { LessonBlock } from "@/content/schema";
 import type { ClientResult } from "@/lib/scoring";
 import type { BlockEntry } from "./types";
 import type { LessonApi } from "./api";
@@ -27,6 +31,10 @@ export type LessonCtxValue = {
   api: LessonApi;
   /** Step mode: question blocks hand their Check button + result to the player's bottom bar (Brilliant-style). */
   registerCheck?: (blockId: string, state: CheckState | null) => void;
+  /** Practice questions that can be scored instantly in the browser (see lib/answer-pack.ts). */
+  packs?: Record<string, LessonBlock>;
+  /** Called when a background save of an instant answer is refused by the server. */
+  onSaveError?: (message: string) => void;
 };
 export type CheckState = {
   label: string;
@@ -45,15 +53,38 @@ function useAnswer(blockId: string) {
   const [result, setResult] = useState<ClientResult | undefined>(ctx.entries[blockId]?.result);
   const [error, setError] = useState<{ error: string; details?: string } | null>(null);
   const [pending, start] = useTransition();
-  const submit = (response: BlockResponse) =>
+  const submit = (response: BlockResponse) => {
+    // Practice questions: score right here (same code as the server), save in the background.
+    const full = ctx.packs?.[blockId];
+    if (full && !ctx.readOnly) {
+      const attempts = (ctx.entries[blockId]?.attempts ?? 0) + 1;
+      let local: ClientResult | null = null;
+      try {
+        local = toClientResult(full, scoreBlock(full, response, getLocale()), attempts);
+      } catch {
+        local = null;
+      }
+      if (local) {
+        setError(null);
+        setResult(local);
+        const entry = { result: local, response, attempts, correct: local.correct ?? undefined };
+        ctx.markDone(blockId, entry);
+        void ctx.api.answerBlock({ courseId: ctx.courseId, lessonId: ctx.lessonId, blockId, response, local: { ...entry, done: true } }).then((r) => {
+          if (!r.ok) ctx.onSaveError?.(r.error);
+        });
+        return;
+      }
+    }
+    // Skill checks (and anything we can't score locally): Google scores it.
     start(async () => {
       setError(null);
       const r = await ctx.api.answerBlock({ courseId: ctx.courseId, lessonId: ctx.lessonId, blockId, response });
       if (r.ok) {
         setResult(r.data);
-        ctx.markDone(blockId, { result: r.data, response });
+        ctx.markDone(blockId, { result: r.data, response, attempts: r.data.attempts });
       } else setError(r);
     });
+  };
   return { result, error, pending, submit, locked: !!result?.locked || ctx.readOnly, prev: ctx.entries[blockId]?.response as BlockResponse | undefined };
 }
 
@@ -73,7 +104,7 @@ function CheckButton({ blockId, label, ready, pending, run, result, error, locke
   if (reg || locked) return null;
   return (
     <Button size="lg" className="mt-5" disabled={!ready || pending} onClick={run}>
-      {pending ? "Checking…" : label}
+      {pending ? tr("Checking…") : tr(label)}
     </Button>
   );
 }
@@ -97,7 +128,7 @@ function ResultPanel({ result }: { result?: ClientResult }) {
       </p>
       {result.feedback && <p className="mt-2">{result.feedback}</p>}
       {result.explanation && <Md text={result.explanation} className="mt-2" />}
-      {result.correct === false && !result.locked && <p className="mt-3 font-semibold">What would you change? Try again ↑</p>}
+      {result.correct === false && !result.locked && <p className="mt-3 font-semibold">{tr("What would you change? Try again ↑")}</p>}
     </div>
   );
 }
@@ -106,8 +137,8 @@ function Header({ label, prompt, check }: { label: string; prompt: string; check
   return (
     <>
       <div className="mb-2 flex items-center gap-2">
-        <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-primary">{label}</p>
-        {check === "skill" && <Pill tone="accent">Skill check</Pill>}
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-primary">{tr(label)}</p>
+        {check === "skill" && <Pill tone="accent">{tr("Skill check")}</Pill>}
       </div>
       <Md text={prompt} className="font-display text-xl font-bold sm:text-2xl" />
     </>
@@ -135,7 +166,7 @@ export function PredictionBlock({ b }: { b: BlockOf<"prediction"> }) {
 function OptionList({ name, options, multiple, value, onChange, disabled, correctIds }: { name: string; options: BlockOf<"multipleChoice">["options"]; multiple: boolean; value: string[]; onChange: (v: string[]) => void; disabled: boolean; correctIds?: string[] }) {
   return (
     <fieldset className="mt-3 grid gap-2 sm:grid-cols-2" disabled={disabled}>
-      <legend className="sr-only">Options</legend>
+      <legend className="sr-only">{tr("Options")}</legend>
       {options.map((o) => {
         const checked = value.includes(o.id);
         const correct = correctIds?.includes(o.id);
@@ -159,7 +190,7 @@ function OptionList({ name, options, multiple, value, onChange, disabled, correc
             <span className="flex-1">
               {o.diagram && <Diagram name={o.diagram} className="mb-2" />}
               {o.text}
-              {correct && <span className="sr-only"> (correct)</span>}
+              {correct && <span className="sr-only"> {tr("(correct)")}</span>}
             </span>
           </label>
         );
@@ -249,7 +280,7 @@ export function MatchingBlock({ b }: { b: BlockOf<"matching"> }) {
               {p.left}
             </label>
             <Select id={`${b.id}-${p.id}`} value={pairs[p.id] ?? ""} disabled={locked} onChange={(e) => setPairs({ ...pairs, [p.id]: e.target.value })}>
-              <option value="">Choose…</option>
+              <option value="">{tr("Choose…")}</option>
               {rights.map((r) => (
                 <option key={r.id} value={r.id}>
                   {r.text}
@@ -293,7 +324,7 @@ export function HotspotBlock({ b }: { b: BlockOf<"hotspot"> }) {
       )}
       {!locked && (
         <>
-          <p className="mt-2 text-sm text-muted">Click the part of the model you suspect, then test it. Can&apos;t use a mouse? Choose a region:</p>
+          <p className="mt-2 text-sm text-muted">{tr("Click the part of the model you suspect, then test it. Can't use a mouse? Choose a region:")}</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {b.hotspots.map((h) => (
               <button key={h.id} className="rounded-lg border border-border px-3 py-1 text-sm hover:bg-surface-2" onClick={() => setPoint(h.position)} aria-pressed={point === h.position}>
@@ -326,13 +357,13 @@ export function MeasurementBlock({ b }: { b: BlockOf<"measurement"> }) {
           if (v && Number.isFinite(n)) submit({ type: "measurement", value: n });
         }}
       >
-        <Field label="Your answer" htmlFor={`${b.id}-v`}>
+        <Field label={tr("Your answer")} htmlFor={`${b.id}-v`}>
           <div className="flex items-center gap-2">
             <Input id={`${b.id}-v`} inputMode="decimal" value={v} onChange={(e) => setV(e.target.value)} disabled={locked} className="w-32 font-mono" />
             <span className="font-mono text-muted">{b.unit}</span>
           </div>
         </Field>
-        {!locked && !ctx.registerCheck && <Button disabled={!v || !Number.isFinite(n) || pending}>{pending ? "Checking…" : "Check"}</Button>}
+        {!locked && !ctx.registerCheck && <Button disabled={!v || !Number.isFinite(n) || pending}>{pending ? tr("Checking…") : tr("Check")}</Button>}
       </form>
       <CheckButton blockId={b.id} label="Check" ready={!!v && Number.isFinite(n)} pending={pending} run={() => v && Number.isFinite(n) && submit({ type: "measurement", value: n })} result={result} error={error} locked />
       <InlineError error={error} />
@@ -377,7 +408,7 @@ export function SliderBlock({ b }: { b: BlockOf<"slider"> }) {
         />
         <button type="button" className="grid size-12 shrink-0 place-items-center rounded-full border-2 border-border text-2xl font-bold hover:border-primary disabled:opacity-40" onClick={() => set(v + b.step)} disabled={locked || v >= b.max} aria-label={`More (${b.step} ${b.unit})`}>+</button>
       </div>
-      {!moved && !locked && <p className="mt-2 text-center text-sm text-muted">Drag the slider (or tap − / +) and watch what changes.</p>}
+      {!moved && !locked && <p className="mt-2 text-center text-sm text-muted">{tr("Drag the slider (or tap − / +) and watch what changes.")}</p>}
       <CheckButton blockId={b.id} label="Check" ready={moved} pending={pending} run={() => submit({ type: "slider", value: v })} result={result} error={error} locked={locked} />
       <InlineError error={error} />
       <ResultPanel result={result} />
@@ -409,7 +440,7 @@ export function ReflectionBlock({ b }: { b: BlockOf<"reflection"> }) {
     }, 1200);
   };
   return (
-    <BlockFrame label="Reflect">
+    <BlockFrame label={tr("Reflect")}>
       <label htmlFor={`${b.id}-t`} className="block text-lg font-semibold">
         {b.prompt}
       </label>
@@ -425,7 +456,7 @@ export function ReflectionBlock({ b }: { b: BlockOf<"reflection"> }) {
       <Textarea id={`${b.id}-t`} className="mt-3 min-h-32" value={text} onChange={(e) => onChange(e.target.value)} disabled={ctx.readOnly} />
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-sm">
         <span className="text-muted" aria-live="polite">
-          {words} / {b.minWords} words{status && ` · ${status}`}
+          {tr("{n} / {min} words", { n: words, min: b.minWords })}{status && ` · ${tr(status)}`}
         </span>
         {!ctx.readOnly && (
           <Button
@@ -444,7 +475,7 @@ export function ReflectionBlock({ b }: { b: BlockOf<"reflection"> }) {
               })
             }
           >
-            {submitted ? "Submit revision" : "Submit reflection"}
+            {submitted ? tr("Submit revision") : tr("Submit reflection")}
           </Button>
         )}
       </div>
@@ -469,7 +500,7 @@ export function UploadEvidenceBlock({ b, existing }: { b: BlockOf<"uploadEvidenc
   const formRef = useRef<HTMLFormElement>(null);
   const needsFile = kind === "screenshot" || kind === "stl" || kind === "obj";
   return (
-    <BlockFrame label="Submit evidence" icon={<Upload className="size-4" aria-hidden />} tone="check">
+    <BlockFrame label={tr("Submit evidence")} icon={<Upload className="size-4" aria-hidden />} tone="check">
       <Md text={b.prompt} className="font-semibold" />
       {b.checklist.length > 0 && (
         <ul className="mt-2 space-y-1 text-sm">
@@ -486,13 +517,13 @@ export function UploadEvidenceBlock({ b, existing }: { b: BlockOf<"uploadEvidenc
             <li key={e.id} className="rounded-xl border border-border p-3 text-sm">
               <div className="flex flex-wrap items-center gap-2">
                 <Pill tone={e.status === "reviewed" ? "success" : e.status === "needs_revision" ? "warning" : "neutral"}>
-                  {e.status === "reviewed" ? "Reviewed" : e.status === "needs_revision" ? "Revision requested" : "Submitted"}
+                  {e.status === "reviewed" ? tr("Reviewed") : e.status === "needs_revision" ? tr("Revision requested") : tr("Submitted")}
                 </Pill>
-                <span>{KIND_LABEL[e.type as keyof typeof KIND_LABEL] ?? e.type}</span>
+                <span>{tr(KIND_LABEL[e.type as keyof typeof KIND_LABEL] ?? e.type)}</span>
                 <span className="text-muted">{e.fileName ?? e.url}</span>
                 <span className="ml-auto text-xs text-muted">{new Date(e.createdAt).toLocaleString()}</span>
               </div>
-              {e.teacherComment && <p className="mt-2 rounded-lg bg-surface-2 p-2">Teacher: {e.teacherComment}</p>}
+              {e.teacherComment && <p className="mt-2 rounded-lg bg-surface-2 p-2">{tr("Teacher:")} {e.teacherComment}</p>}
             </li>
           ))}
         </ul>
@@ -512,7 +543,7 @@ export function UploadEvidenceBlock({ b, existing }: { b: BlockOf<"uploadEvidenc
               const r = await ctx.api.submitEvidence(fd);
               if (r.ok) {
                 setList([{ ...r.data, status: "submitted", teacherComment: null, teacherRating: null, blockId: b.id }, ...list]);
-                setOk("Submitted! Your teacher will review it.");
+                setOk(tr("Submitted! Your teacher will review it."));
                 formRef.current?.reset();
                 ctx.markDone(b.id);
               } else setError(r);
@@ -521,36 +552,36 @@ export function UploadEvidenceBlock({ b, existing }: { b: BlockOf<"uploadEvidenc
         >
           {b.accepts.length > 1 && (
             <fieldset>
-              <legend className="text-sm font-semibold">What are you submitting?</legend>
+              <legend className="text-sm font-semibold">{tr("What are you submitting?")}</legend>
               <div className="mt-1 flex flex-wrap gap-2">
                 {b.accepts.map((k) => (
                   <label key={k} className={cn("cursor-pointer rounded-lg border px-3 py-1.5 text-sm", kind === k ? "border-primary bg-primary-soft" : "border-border")}>
                     <input type="radio" className="sr-only" name="kindPick" checked={kind === k} onChange={() => setKind(k)} />
-                    {KIND_LABEL[k]}
+                    {tr(KIND_LABEL[k])}
                   </label>
                 ))}
               </div>
             </fieldset>
           )}
           {kind === "design_url" && (
-            <Field label="Design link" htmlFor={`${b.id}-url`} hint="Share the design with your class in Tinkercad and paste the link. Don't make it public.">
+            <Field label={tr("Design link")} htmlFor={`${b.id}-url`} hint={tr("Share the design with your class in Tinkercad and paste the link. Don't make it public.")}>
               <Input id={`${b.id}-url`} name="url" type="url" required placeholder="https://www.tinkercad.com/things/…" />
             </Field>
           )}
           {(needsFile || kind === "physical_test") && (
-            <Field label={kind === "physical_test" ? "Photo (optional)" : "File"} htmlFor={`${b.id}-file`}>
+            <Field label={kind === "physical_test" ? tr("Photo (optional)") : tr("File")} htmlFor={`${b.id}-file`}>
               <input id={`${b.id}-file`} name="file" type="file" required={needsFile} accept={kind === "stl" ? ".stl" : kind === "obj" ? ".obj" : "image/png,image/jpeg,image/webp,image/gif,image/heic,image/heif,.heic,.heif"} className="text-sm" />
             </Field>
           )}
-          <Field label={kind === "physical_test" ? "Test result — what happened?" : "Note for your teacher (optional)"} htmlFor={`${b.id}-note`}>
+          <Field label={kind === "physical_test" ? tr("Test result — what happened?") : tr("Note for your teacher (optional)")} htmlFor={`${b.id}-note`}>
             <Textarea id={`${b.id}-note`} name="note" required={kind === "physical_test"} className="min-h-20" />
           </Field>
           {b.allowPrintRequest && kind === "stl" && (
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" name="requestPrint" className="size-4" /> Also send this to the class print queue
+              <input type="checkbox" name="requestPrint" className="size-4" /> {tr("Also send this to the class print queue")}
             </label>
           )}
-          <Button disabled={pending}>{pending ? "Uploading…" : "Submit"}</Button>
+          <Button disabled={pending}>{pending ? tr("Uploading…") : tr("Submit")}</Button>
           <p role="status" className="text-sm text-success">
             {ok}
           </p>
@@ -565,8 +596,8 @@ export function UploadEvidenceBlock({ b, existing }: { b: BlockOf<"uploadEvidenc
 
 export function JournalBlock({ b, prompts, initial }: { b: BlockOf<"journal">; prompts: { id: string; title: string; prompt: string }[]; initial: Record<string, string> }) {
   return (
-    <BlockFrame label="Design journal">
-      <p className="text-sm text-muted">Autosaves as you type. Everything here also appears in your Portfolio.</p>
+    <BlockFrame label={tr("Design journal")}>
+      <p className="text-sm text-muted">{tr("Autosaves as you type. Everything here also appears in your Portfolio.")}</p>
       <div className="mt-3 space-y-4">
         {b.promptIds.map((id) => {
           const p = prompts.find((x) => x.id === id)!;
@@ -607,7 +638,7 @@ export function JournalEntry({ projectKey, prompt, initial, courseId: courseOver
         }}
       />
       <p className="text-xs text-muted" aria-live="polite">
-        {status}
+        {tr(status)}
       </p>
     </div>
   );

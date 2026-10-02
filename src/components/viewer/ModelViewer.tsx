@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
@@ -688,7 +689,7 @@ export default function ModelViewer({
     if (pickKey) {
       const p = pickKey.split(",").map(Number) as Vec3;
       if (p.every(Number.isFinite)) {
-        addMarker(p, "Your pick", e.palette.danger, "pick");
+        addMarker(p, tr("Your pick"), e.palette.danger, "pick");
       }
     }
     e.render();
@@ -776,7 +777,7 @@ export default function ModelViewer({
 
   const dimsText = sizeMm ? formatSize(sizeMm) : "";
   const dimsSpoken = sizeMm
-    ? `Size: ${formatMm(sizeMm[0])} millimetres wide, ${formatMm(sizeMm[1])} deep, ${formatMm(sizeMm[2])} tall.`
+    ? tr("Size: {w} millimetres wide, {d} deep, {h} tall.", { w: formatMm(sizeMm[0]), d: formatMm(sizeMm[1]), h: formatMm(sizeMm[2]) })
     : "";
 
   if (status === "error") {
@@ -789,10 +790,10 @@ export default function ModelViewer({
         ].join(" ")}
         style={{ minHeight: height }}
       >
-        <p className="text-fg">3D preview unavailable — you can still download the file.</p>
+        <p className="text-fg">{tr("3D preview unavailable — you can still download the file.")}</p>
         <p className="text-sm">{title}</p>
         <a href={src} download className="text-sm font-medium text-primary underline underline-offset-2">
-          Download file
+          {tr("Download file")}
         </a>
       </div>
     );
@@ -807,9 +808,9 @@ export default function ModelViewer({
   return (
     <figure className={["m-0 flex flex-col gap-2", className ?? ""].join(" ")}>
       <div role="toolbar" aria-label={`${title} view controls`} className="flex flex-wrap items-center gap-1">
-        <button type="button" className={btn} onClick={resetView} disabled={!ready} aria-label="Reset view" title="Reset view (0)">
+        <button type="button" className={btn} onClick={resetView} disabled={!ready} aria-label={tr("Reset view")} title={tr("Reset view (0)")}>
           <RotateCcw aria-hidden="true" size={16} />
-          <span>Reset</span>
+          <span>{tr("Reset")}</span>
         </button>
         <button
           type="button"
@@ -817,30 +818,30 @@ export default function ModelViewer({
           onClick={() => setWireframe((w) => !w)}
           disabled={!ready}
           aria-pressed={wireframe}
-          aria-label="Wireframe"
-          title="Toggle wireframe"
+          aria-label={tr("Wireframe")}
+          title={tr("Toggle wireframe")}
         >
           <Box aria-hidden="true" size={16} />
-          <span>Wireframe</span>
+          <span>{tr("Wireframe")}</span>
         </button>
         <span className="mx-1 h-5 w-px bg-border" aria-hidden="true" />
-        <button type="button" className={btn} onClick={() => rotate(ROTATE_STEP, 0)} disabled={!ready} aria-label="Rotate left" title="Rotate left (←)">
+        <button type="button" className={btn} onClick={() => rotate(ROTATE_STEP, 0)} disabled={!ready} aria-label={tr("Rotate left")} title={tr("Rotate left (←)")}>
           <ArrowLeft aria-hidden="true" size={16} />
         </button>
-        <button type="button" className={btn} onClick={() => rotate(-ROTATE_STEP, 0)} disabled={!ready} aria-label="Rotate right" title="Rotate right (→)">
+        <button type="button" className={btn} onClick={() => rotate(-ROTATE_STEP, 0)} disabled={!ready} aria-label={tr("Rotate right")} title={tr("Rotate right (→)")}>
           <ArrowRight aria-hidden="true" size={16} />
         </button>
-        <button type="button" className={btn} onClick={() => rotate(0, ROTATE_STEP)} disabled={!ready} aria-label="Rotate up" title="Rotate up (↑)">
+        <button type="button" className={btn} onClick={() => rotate(0, ROTATE_STEP)} disabled={!ready} aria-label={tr("Rotate up")} title={tr("Rotate up (↑)")}>
           <ArrowUp aria-hidden="true" size={16} />
         </button>
-        <button type="button" className={btn} onClick={() => rotate(0, -ROTATE_STEP)} disabled={!ready} aria-label="Rotate down" title="Rotate down (↓)">
+        <button type="button" className={btn} onClick={() => rotate(0, -ROTATE_STEP)} disabled={!ready} aria-label={tr("Rotate down")} title={tr("Rotate down (↓)")}>
           <ArrowDown aria-hidden="true" size={16} />
         </button>
         <span className="mx-1 h-5 w-px bg-border" aria-hidden="true" />
-        <button type="button" className={btn} onClick={() => zoom(ZOOM_STEP)} disabled={!ready} aria-label="Zoom in" title="Zoom in (+)">
+        <button type="button" className={btn} onClick={() => zoom(ZOOM_STEP)} disabled={!ready} aria-label={tr("Zoom in")} title={tr("Zoom in (+)")}>
           <ZoomIn aria-hidden="true" size={16} />
         </button>
-        <button type="button" className={btn} onClick={() => zoom(1 / ZOOM_STEP)} disabled={!ready} aria-label="Zoom out" title="Zoom out (−)">
+        <button type="button" className={btn} onClick={() => zoom(1 / ZOOM_STEP)} disabled={!ready} aria-label={tr("Zoom out")} title={tr("Zoom out (−)")}>
           <ZoomOut aria-hidden="true" size={16} />
         </button>
       </div>
@@ -850,7 +851,7 @@ export default function ModelViewer({
         style={{ height }}
         tabIndex={0}
         role="group"
-        aria-roledescription="3D model viewer"
+        aria-roledescription={tr("3D model viewer")}
         aria-label={title}
         aria-describedby={`${descId} ${hintId}`}
         onKeyDown={onKeyDown}
@@ -858,7 +859,7 @@ export default function ModelViewer({
         <div ref={mountRef} className="absolute inset-0" style={{ cursor: onPick ? "crosshair" : "grab" }} />
         {status === "loading" && (
           <div role="status" className="absolute inset-0 flex items-center justify-center text-sm text-muted">
-            Loading 3D preview…
+            {tr("Loading 3D preview…")}
           </div>
         )}
         {ready && showDimensions && sizeMm && (
@@ -873,7 +874,7 @@ export default function ModelViewer({
       </div>
 
       <span id={descId} className="sr-only">
-        {[description, showDimensions ? dimsSpoken : "", "Use arrow keys to rotate, plus and minus to zoom, 0 to reset."]
+        {[description, showDimensions ? dimsSpoken : "", tr("Use arrow keys to rotate, plus and minus to zoom, 0 to reset.")]
           .filter(Boolean)
           .join(" ")}
       </span>
@@ -881,7 +882,7 @@ export default function ModelViewer({
       {showLayers && ready && totalLayers > 0 && (
         <div className="flex flex-wrap items-center gap-3 text-sm text-fg">
           <label htmlFor={layerId} className="font-medium">
-            Layer {layer} of {totalLayers}
+            {tr("Layer {n} of {total}", { n: layer, total: totalLayers })}
           </label>
           <input
             id={layerId}
@@ -891,7 +892,7 @@ export default function ModelViewer({
             step={1}
             value={layer}
             onChange={(ev) => setLayerState({ key: loadKey, layer: Number(ev.currentTarget.value) })}
-            aria-valuetext={`Layer ${layer} of ${totalLayers}, ${formatMm(layer * DEFAULT_LAYER_MM)} millimetres`}
+            aria-valuetext={tr("Layer {n} of {total}, {mm} millimetres", { n: layer, total: totalLayers, mm: formatMm(layer * DEFAULT_LAYER_MM) })}
             className="min-w-40 flex-1 accent-[var(--primary)]"
           />
           <span className="text-muted tabular-nums">{formatMm(layer * DEFAULT_LAYER_MM)} mm</span>
@@ -899,7 +900,7 @@ export default function ModelViewer({
       )}
 
       <figcaption id={hintId} className="text-xs text-muted">
-        {HINT}
+        {tr(HINT)}
       </figcaption>
     </figure>
   );

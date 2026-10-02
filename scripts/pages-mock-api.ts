@@ -19,7 +19,9 @@ http
     req.on("data", (c) => (body += c));
     req.on("end", () => {
       res.setHeader("Content-Type", "application/json");
-      res.end(env.raw(body));
+      // MOCK_DELAY_MS=2000 imitates a slow Apps Script so you can feel what students feel
+      const delay = Number(process.env.MOCK_DELAY_MS ?? 0);
+      setTimeout(() => res.end(env.raw(body)), delay);
     });
   })
   .listen(8787, () => console.log("Mock Apps Script API on http://localhost:8787"));

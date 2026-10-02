@@ -32,7 +32,28 @@ export type ScoreResult = {
 
 const sameSet = (a: string[], b: string[]) => a.length === b.length && a.every((x) => b.includes(x));
 
-export function scoreBlock(block: LessonBlock, response: BlockResponse): ScoreResult {
+/** Result headlines in each language (the rest of the feedback comes from the lesson content). */
+const ES_HEADLINES: Record<string, string> = {
+  "Test result: that works.": "Resultado: ¡funciona!",
+  "Test result: not quite yet.": "Resultado: todavía no.",
+  "Test result: sequence works.": "Resultado: el orden funciona.",
+  "Test result: {n} of {total} in the right place.": "Resultado: {n} de {total} en el lugar correcto.",
+  "Test result: every match holds.": "Resultado: todas las parejas son correctas.",
+  "Test result: {n} of {total} matches hold.": "Resultado: {n} de {total} parejas son correctas.",
+  "Found it: {label}.": "¡Lo encontraste! {label}.",
+  "Test result: {label} looks okay.": "Resultado: {label} se ve bien.",
+  "Test result: nothing wrong there. Look again.": "Resultado: ahí no hay ningún problema. Vuelve a mirar.",
+  "Test result: that measurement checks out.": "Resultado: esa medida es correcta.",
+  "Test result: that doesn't match yet.": "Resultado: todavía no coincide.",
+  "Nailed it!": "¡Lo lograste!",
+  "Not quite — try a bit more.": "Casi: prueba con un poco más.",
+  "Not quite — try a bit less.": "Casi: prueba con un poco menos.",
+};
+export type Lang = "en" | "es";
+const H = (lang: Lang, en: string, vars: Record<string, string | number> = {}) =>
+  (lang === "es" ? ES_HEADLINES[en] ?? en : en).replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m));
+
+export function scoreBlock(block: LessonBlock, response: BlockResponse, lang: Lang = "en"): ScoreResult {
   if (block.type !== response.type) throw new Error(`Response type ${response.type} does not match block ${block.type}`);
   switch (block.type) {
     case "prediction": {
@@ -56,7 +77,7 @@ export function scoreBlock(block: LessonBlock, response: BlockResponse): ScoreRe
       const wrongChosen = chosen.find((o) => !block.correctOptionIds.includes(o.id));
       return {
         correct,
-        headline: correct ? "Test result: that works." : "Test result: not quite yet.",
+        headline: correct ? H(lang, "Test result: that works.") : H(lang, "Test result: not quite yet."),
         feedback: (wrongChosen ?? chosen[0])?.feedback,
         explanation: block.explanation,
         misconceptionId: wrongChosen?.misconceptionId,
@@ -70,7 +91,7 @@ export function scoreBlock(block: LessonBlock, response: BlockResponse): ScoreRe
       const inPlace = r.order.filter((id, i) => id === target[i]).length;
       return {
         correct,
-        headline: correct ? "Test result: sequence works." : `Test result: ${inPlace} of ${target.length} in the right place.`,
+        headline: correct ? H(lang, "Test result: sequence works.") : H(lang, "Test result: {n} of {total} in the right place.", { n: inPlace, total: target.length }),
         explanation: block.explanation,
         reveal: correct ? { order: target } : {},
       };
@@ -96,7 +117,7 @@ export function scoreBlock(block: LessonBlock, response: BlockResponse): ScoreRe
       const correct = right === block.pairs.length;
       return {
         correct,
-        headline: correct ? "Test result: every match holds." : `Test result: ${right} of ${block.pairs.length} matches hold.`,
+        headline: correct ? H(lang, "Test result: every match holds.") : H(lang, "Test result: {n} of {total} matches hold.", { n: right, total: block.pairs.length }),
         explanation: block.explanation,
         reveal: correct ? {} : { correctPairIds: block.pairs.filter(ok).map((p) => p.id) },
       };
@@ -108,7 +129,7 @@ export function scoreBlock(block: LessonBlock, response: BlockResponse): ScoreRe
       const correct = Boolean(h?.correct);
       return {
         correct,
-        headline: h ? (correct ? `Found it: ${h.label}.` : `Test result: ${h.label} looks okay.`) : "Test result: nothing wrong there. Look again.",
+        headline: h ? (correct ? H(lang, "Found it: {label}.", { label: h.label }) : H(lang, "Test result: {label} looks okay.", { label: h.label })) : H(lang, "Test result: nothing wrong there. Look again."),
         feedback: h?.feedback,
         explanation: correct ? block.explanation : "",
         reveal: { hitId: h?.id ?? null, revealedIds: correct ? [h!.id] : h ? [h.id] : [] },
@@ -120,7 +141,7 @@ export function scoreBlock(block: LessonBlock, response: BlockResponse): ScoreRe
       const correct = Math.abs(r.value - block.answer) <= block.tolerance + 1e-9;
       return {
         correct,
-        headline: correct ? "Test result: that measurement checks out." : "Test result: that doesn't match yet.",
+        headline: correct ? H(lang, "Test result: that measurement checks out.") : H(lang, "Test result: that doesn't match yet."),
         feedback: correct ? undefined : block.hint,
         explanation: correct ? block.explanation : "",
         reveal: correct ? { answer: block.answer } : {},
@@ -132,7 +153,7 @@ export function scoreBlock(block: LessonBlock, response: BlockResponse): ScoreRe
       const correct = Math.abs(r.value - block.answer) <= block.tolerance + 1e-9;
       return {
         correct,
-        headline: correct ? "Nailed it!" : r.value < block.answer ? "Not quite — try a bit more." : "Not quite — try a bit less.",
+        headline: correct ? H(lang, "Nailed it!") : r.value < block.answer ? H(lang, "Not quite — try a bit more.") : H(lang, "Not quite — try a bit less."),
         feedback: correct ? undefined : block.hint,
         explanation: correct ? block.explanation : "",
         reveal: correct ? { answer: block.answer } : {},

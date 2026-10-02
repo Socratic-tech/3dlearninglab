@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n";
 import type { BlockOf } from "@/content/schema";
 
 /**
@@ -31,22 +32,22 @@ export function readout(scene: Scene, v: number): string {
   switch (scene) {
     case "overhang": {
       const rest = restingPct(v);
-      return `${v}° from vertical · each new layer rests ${rest}% on the one below`;
+      return tr("{v}° from vertical · each new layer rests {rest}% on the one below", { v, rest });
     }
-    case "clearance": return `Hole: ${v.toFixed(2)} mm · peg: 10.00 mm`;
-    case "scale": return `Scale: ${v}%`;
-    case "layers": return `Layer height: ${v.toFixed(2)} mm`;
-    case "infill": return `Infill: ${v}% · about ${infillGrams(v).toFixed(1)} g · ${infillMinutes(v)} min`;
-    case "rotate": return `Turned ${v}°`;
-    case "lift": return `Small cube's bottom: Z = ${v} mm`;
-    case "spacing": return `Tooth spacing: ${v.toFixed(1)} mm`;
-    case "wall": return `Wall: ${v.toFixed(1)} mm`;
-    case "bridge": return `Legs: ${v}`;
+    case "clearance": return tr("Hole: {v} mm · peg: 10.00 mm", { v: v.toFixed(2) });
+    case "scale": return tr("Scale: {v}%", { v });
+    case "layers": return tr("Layer height: {v} mm", { v: v.toFixed(2) });
+    case "infill": return tr("Infill: {v}% · about {g} g · {min} min", { v, g: infillGrams(v).toFixed(1), min: infillMinutes(v) });
+    case "rotate": return tr("Turned {v}°", { v });
+    case "lift": return tr("Small cube's bottom: Z = {v} mm", { v });
+    case "spacing": return tr("Tooth spacing: {v} mm", { v: v.toFixed(1) });
+    case "wall": return tr("Wall: {v} mm", { v: v.toFixed(1) });
+    case "bridge": return tr("Legs: {v}", { v });
   }
 }
 
 function describe(scene: Scene, v: number) {
-  return `Live picture. ${readout(scene, v)}`;
+  return `${tr("Live picture.")} ${readout(scene, v)}`;
 }
 
 // ── overhang: 0.2 mm layers, 0.4 mm lines ──
@@ -77,12 +78,12 @@ function Overhang({ angle }: { angle: number }) {
         );
       })}
       <line x1={x0} y1={base} x2={x0} y2={base - n * lh - 10} stroke="var(--muted)" strokeDasharray="4 4" />
-      <text x={x0 - 8} y={base - n * lh - 14} textAnchor="end" fontSize="13" fill="var(--muted)">vertical</text>
+      <text x={x0 - 8} y={base - n * lh - 14} textAnchor="end" fontSize="13" fill="var(--muted)">{tr("vertical")}</text>
       <g fontSize="13" fill="var(--fg)">
         <rect x={90} y={219} width={12} height={12} rx={3} fill="var(--accent)" />
-        <text x={108} y={230}>hangs over air</text>
+        <text x={108} y={230}>{tr("hangs over air")}</text>
         <rect x={230} y={219} width={12} height={12} rx={3} fill="var(--primary)" />
-        <text x={248} y={230}>held up by the layer below</text>
+        <text x={248} y={230}>{tr("held up by the layer below")}</text>
       </g>
     </g>
   );
@@ -99,7 +100,7 @@ function Clearance({ hole }: { hole: number }) {
       <rect x={60} y={20} width={220} height={200} rx={16} fill="var(--border)" />
       <circle cx={cx} cy={cy} r={peg + gapPx} fill="var(--bg)" />
       <circle cx={cx} cy={cy} r={peg} fill="var(--primary)" opacity={0.9} />
-      <text x={cx} y={cy + 5} textAnchor="middle" fontSize="15" fontWeight="700" fill="var(--primary-fg)">peg 10 mm</text>
+      <text x={cx} y={cy + 5} textAnchor="middle" fontSize="15" fontWeight="700" fill="var(--primary-fg)">{tr("peg 10 mm")}</text>
       {gapPx > 2 && (
         <g stroke="var(--accent)" strokeWidth={2}>
           <line x1={cx + peg} y1={cy} x2={cx + peg + gapPx} y2={cy} />
@@ -107,10 +108,10 @@ function Clearance({ hole }: { hole: number }) {
         </g>
       )}
       <g fontSize="14" fill="var(--fg)">
-        <text x={310} y={90}>Gaps are drawn</text>
-        <text x={310} y={110}>much bigger than</text>
-        <text x={310} y={130}>real life so you</text>
-        <text x={310} y={150}>can see them.</text>
+        <text x={310} y={90}>{tr("Gaps are drawn")}</text>
+        <text x={310} y={110}>{tr("much bigger than")}</text>
+        <text x={310} y={130}>{tr("real life so you")}</text>
+        <text x={310} y={150}>{tr("can see them.")}</text>
       </g>
     </g>
   );
@@ -132,7 +133,7 @@ function Scale({ pct }: { pct: number }) {
           {i % 10 === 0 && <text x={x0 + i * mm} y={base + 38} fontSize="13" textAnchor="middle" fill="var(--fg)">{i}</text>}
         </g>
       ))}
-      <text x={x0 + 66 * mm} y={base + 38} fontSize="13" textAnchor="end" fill="var(--muted)">mm</text>
+      <text x={x0 + 66 * mm} y={base + 38} fontSize="13" textAnchor="end" fill="var(--muted)">{tr("mm")}</text>
     </g>
   );
 }
@@ -154,10 +155,10 @@ function Layers({ h }: { h: number }) {
         return <rect key={i} x={cx - half * px} y={base - (z + h) * px} width={half * 2 * px} height={h * px} fill="var(--primary)" opacity={i % 2 ? 0.7 : 0.9} />;
       })}
       <g fontSize="13" fill="var(--fg)">
-        <text x={16} y={26}>Print time</text>
+        <text x={16} y={26}>{tr("Print time")}</text>
         <rect x={16} y={34} width={120} height={12} rx={6} fill="var(--border)" />
         <rect x={16} y={34} width={120 * rel} height={12} rx={6} fill="var(--accent)" />
-        <text x={W - 16} y={26} textAnchor="end">20 mm tall</text>
+        <text x={W - 16} y={26} textAnchor="end">{tr("20 mm tall")}</text>
       </g>
     </g>
   );
@@ -186,7 +187,7 @@ function Infill({ pct }: { pct: number }) {
           ))}
         </g>
       )}
-      <text x={x + w / 2} y={y + h + 22} textAnchor="middle" fontSize="13" fill="var(--muted)">walls stay the same · infill fills the inside</text>
+      <text x={x + w / 2} y={y + h + 22} textAnchor="middle" fontSize="13" fill="var(--muted)">{tr("walls stay the same \u00b7 infill fills the inside")}</text>
     </g>
   );
 }
@@ -206,7 +207,7 @@ function Rotate({ angle }: { angle: number }) {
         <rect x={cx} y={cy - 12} width={L} height={24} rx={4} fill="var(--primary)" opacity={0.9} />
       </g>
       <circle cx={cx} cy={cy} r={6} fill="var(--fg)" />
-      <text x={W - 16} y={30} textAnchor="end" fontSize="13" fill="var(--muted)">grey = where it started</text>
+      <text x={W - 16} y={30} textAnchor="end" fontSize="13" fill="var(--muted)">{tr("grey = where it started")}</text>
     </g>
   );
 }
@@ -221,13 +222,13 @@ function Lift({ z }: { z: number }) {
   return (
     <g>
       <line x1={20} y1={base} x2={W - 20} y2={base} stroke="var(--fg)" strokeWidth={2} />
-      <text x={W - 24} y={base + 15} textAnchor="end" fontSize="12" fill="var(--muted)">workplane (Z = 0)</text>
+      <text x={W - 24} y={base + 15} textAnchor="end" fontSize="12" fill="var(--muted)">{tr("workplane (Z = 0)")}</text>
       <rect x={150} y={boxTop} width={180} height={20 * mm} fill="var(--primary)" opacity={0.75} />
-      <text x={340} y={base - 8} fontSize="13" fill="var(--fg)">box: 20 mm tall</text>
+      <text x={340} y={base - 8} fontSize="13" fill="var(--fg)">{tr("box: 20 mm tall")}</text>
       <rect x={215} y={cubeBottom - 10 * mm} width={10 * mm} height={10 * mm} fill="var(--accent)" opacity={0.9} />
       {overlap && <rect x={215} y={Math.max(cubeBottom - 10 * mm, boxTop)} width={10 * mm} height={Math.min(cubeBottom, base) - Math.max(cubeBottom - 10 * mm, boxTop)} fill="var(--danger)" opacity={0.7} />}
       {z > 20 && <line x1={237} y1={boxTop} x2={237} y2={cubeBottom} stroke="var(--danger)" strokeWidth={2} strokeDasharray="3 3" />}
-      <text x={345} y={Math.max(20, cubeBottom - 20)} fontSize="13" fontWeight="700" fill="var(--danger)">{overlap ? "sunk into the box" : z > 20 ? "floating in the air" : ""}</text>
+      <text x={345} y={Math.max(20, cubeBottom - 20)} fontSize="13" fontWeight="700" fill="var(--danger)">{overlap ? tr("sunk into the box") : z > 20 ? tr("floating in the air") : ""}</text>
       {Array.from({ length: 9 }, (_, i) => i * 5).map((v) => (
         <g key={v}>
           <line x1={40} y1={base - v * mm} x2={v % 10 ? 46 : 52} y2={base - v * mm} stroke="var(--fg)" />
@@ -256,7 +257,7 @@ function Spacing({ s }: { s: number }) {
           {i % 10 === 0 && <text x={x0 + i * mm} y={base + 44} fontSize="12" textAnchor="middle" fill="var(--fg)">{i}</text>}
         </g>
       ))}
-      <text x={x0 + 14 * s * mm} y={52} fontSize="12" textAnchor="middle" fill="var(--accent)">last tooth</text>
+      <text x={x0 + 14 * s * mm} y={52} fontSize="12" textAnchor="middle" fill="var(--accent)">{tr("last tooth")}</text>
     </g>
   );
 }
@@ -271,7 +272,7 @@ function Wall({ t }: { t: number }) {
       {Array.from({ length: lines }, (_, i) => (
         <rect key={i} x={x0 + i * 0.4 * px} y={40} width={0.4 * px - 2} height={150} rx={7} fill="var(--primary)" opacity={i % 2 ? 0.7 : 0.9} />
       ))}
-      <text x={W / 2} y={215} textAnchor="middle" fontSize="13" fill="var(--muted)">each stripe = one 0.4 mm line from the nozzle</text>
+      <text x={W / 2} y={215} textAnchor="middle" fontSize="13" fill="var(--muted)">{tr("each stripe = one 0.4 mm line from the nozzle")}</text>
     </g>
   );
 }
@@ -293,7 +294,7 @@ function Bridge({ legs }: { legs: number }) {
         const a = xs[i];
         return <path key={i} d={`M ${a} ${top} Q ${(a + x) / 2} ${top + sag * 2} ${x} ${top}`} fill="none" stroke="var(--accent)" strokeWidth={6} strokeLinecap="round" />;
       })}
-      <text x={W / 2} y={36} textAnchor="middle" fontSize="13" fill="var(--muted)">shelf is 70 mm wide · first layer bridges each gap</text>
+      <text x={W / 2} y={36} textAnchor="middle" fontSize="13" fill="var(--muted)">{tr("shelf is 70 mm wide \u00b7 first layer bridges each gap")}</text>
     </g>
   );
 }

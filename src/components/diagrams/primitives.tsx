@@ -2,6 +2,8 @@
  * Shared drawing helpers for the explanatory diagram library.
  * Server-component safe: no hooks, no browser APIs. Colours only via CSS variables.
  */
+import { Children } from "react";
+import { tr } from "@/lib/i18n";
 import type { FC, ReactNode, SVGProps } from "react";
 import { diagramCatalog, type DiagramName } from "@/content/diagram-catalog";
 
@@ -82,7 +84,7 @@ export function defineDiagram(name: DiagramName, render: (r: Refs) => ReactNode)
       strokeLinecap="round"
       data-diagram={name}
     >
-      <title id={`${id}-title`}>{title ?? diagramCatalog[name]}</title>
+      <title id={`${id}-title`}>{title ?? tr(diagramCatalog[name])}</title>
       <defs>
         {TONES.map((t) => (
           <marker
@@ -134,7 +136,7 @@ export function T({ x, y, anchor = "start", size = 12, weight = 400, tone = C.fg
   const haloProps = halo ? { stroke: C.surface, strokeWidth: 3.5, paintOrder: "stroke" as const, strokeLinejoin: "round" as const } : {};
   return (
     <text x={x} y={y} textAnchor={anchor} fontSize={size} fontWeight={weight} fill={tone} {...haloProps} {...rest}>
-      {children}
+      {Children.map(children, (c) => (typeof c === "string" ? tr(c) : c))}
     </text>
   );
 }

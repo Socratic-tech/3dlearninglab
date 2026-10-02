@@ -1,5 +1,6 @@
 "use client";
 
+import { tr, trn, getLocale } from "@/lib/i18n";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import Link from "next/link";
 import { Award, CircleCheck, Flame, FlaskConical, Lock, Sparkles, Volume2, VolumeX } from "lucide-react";
@@ -14,7 +15,8 @@ import { cn } from "@/lib/cn";
 import * as S from "./static-blocks";
 import * as I from "./interactive-blocks";
 import { Md } from "./static-blocks";
-import { flavorFor } from "@/content/flavor";
+import { decodePack } from "@/lib/answer-pack";
+import { localizedFlavor } from "@/content/i18n/localize";
 
 const PHASE_LABEL = { discover: "Discover", practice: "Practice", apply: "Apply", prove: "Prove", reflect: "Reflect" } as const;
 
@@ -62,6 +64,13 @@ export function LessonPlayer(p: PlayerProps) {
     });
   }, []);
   const [dismissed, setDismissed] = useState<ClientResult | undefined>();
+  const [saveError, setSaveError] = useState<string | null>(null);
+  // practice questions that can be scored instantly (scrambled answer packs from the build)
+  const packs = useMemo(() => {
+    const out: Record<string, LessonBlock> = {};
+    for (const s of p.lesson.sections) for (const b of s.blocks) { const full = decodePack(b); if (full) out[b.id] = full; }
+    return out;
+  }, [p.lesson]);
   const [why, setWhy] = useState(false);
   const [error, setError] = useState<{ error: string; details?: string } | null>(null);
   const [pending, start] = useTransition();
@@ -125,9 +134,11 @@ export function LessonPlayer(p: PlayerProps) {
     api,
     markDone: (blockId, extra) => setEntries((e) => ({ ...e, [blockId]: { ...e[blockId], ...extra, done: true } })),
     registerCheck: p.mode === "scroll" ? undefined : registerCheck,
+    packs,
+    onSaveError: (m) => setSaveError(m),
   };
 
-  const flavor = flavorFor(p.lesson.id);
+  const flavor = localizedFlavor(p.lesson.id, getLocale());
   const render = (b: LessonBlock) => {
     switch (b.type) {
       case "hero": return <S.HeroBlock b={b} assets={p.assets} />;
@@ -158,43 +169,44 @@ export function LessonPlayer(p: PlayerProps) {
   };
 
   const finish = (
-    <section aria-label="Finish this mission" className="rounded-3xl border border-border bg-surface p-6 text-center sm:p-10">
+    <section aria-label={tr("Finish this mission")} className="rounded-3xl border border-border bg-surface p-6 text-center sm:p-10">
       {completed ? (
         <div className="relative animate-unlock">
           {result && <Confetti />}
           <CircleCheck className="mx-auto size-16 text-success" aria-hidden />
-          <p className="mt-3 font-display text-3xl font-bold">Mission complete!</p>
+          <p className="mt-3 font-display text-3xl font-bold">{tr("Mission complete!")}</p>
+          {pending && !result?.stats && <p className="mt-4 animate-pulse text-sm text-muted">{tr("Adding up your XP…")}</p>}
           {result?.stats && (
             <div className="mx-auto mt-5 grid max-w-sm grid-cols-2 gap-3">
               <div className="rounded-2xl border-2 border-accent bg-accent-soft p-4">
                 <Sparkles className="mx-auto size-7 text-accent" aria-hidden />
                 <p className="mt-1 font-display text-2xl font-bold">+{result.stats.byLesson[p.lesson.id] ?? 0} XP</p>
-                <p className="text-sm text-muted">this mission</p>
+                <p className="text-sm text-muted">{tr("this mission")}</p>
               </div>
               <div className="rounded-2xl border-2 border-warning bg-warning-soft p-4">
                 <Flame className="mx-auto size-7 text-warning" aria-hidden />
-                <p className="mt-1 font-display text-2xl font-bold">{result.stats.streak} day{result.stats.streak === 1 ? "" : "s"}</p>
-                <p className="text-sm text-muted">streak</p>
+                <p className="mt-1 font-display text-2xl font-bold">{trn(result.stats.streak, "{n} day", "{n} days")}</p>
+                <p className="text-sm text-muted">{tr("streak")}</p>
               </div>
             </div>
           )}
-          <p className="mx-auto mt-2 max-w-md text-muted">Your skill levels grow when your teacher reviews your work. You can come back and improve any time.</p>
+          <p className="mx-auto mt-2 max-w-md text-muted">{tr("Your skill levels grow when your teacher reviews your work. You can come back and improve any time.")}</p>
           {result?.unlocked.length ? (
             <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-accent-soft px-4 py-1.5 font-semibold text-accent">
-              <Award className="size-5" aria-hidden /> {result.unlocked.length} new mission{result.unlocked.length > 1 ? "s" : ""} unlocked
+              <Award className="size-5" aria-hidden /> {trn(result.unlocked.length, "{n} new mission unlocked", "{n} new missions unlocked")}
             </p>
           ) : null}
           <div className="mt-6 flex flex-wrap justify-center gap-2">
-            {result?.nextLessonId && <ButtonLink href={links.lesson(result.nextLessonId)} size="lg">Next mission</ButtonLink>}
-            <ButtonLink href={links.missions} variant="secondary" size="lg">All missions</ButtonLink>
+            {result?.nextLessonId && <ButtonLink href={links.lesson(result.nextLessonId)} size="lg">{tr("Next mission")}</ButtonLink>}
+            <ButtonLink href={links.missions} variant="secondary" size="lg">{tr("All missions")}</ButtonLink>
           </div>
         </div>
       ) : (
         <>
-          <p className="font-display text-2xl font-bold">{remaining.length ? "Almost there" : "Ready to finish?"}</p>
+          <p className="font-display text-2xl font-bold">{remaining.length ? tr("Almost there") : tr("Ready to finish?")}</p>
           {remaining.length > 0 ? (
             <>
-              <p className="mt-1 text-muted">Still to do:</p>
+              <p className="mt-1 text-muted">{tr("Still to do:")}</p>
               <ul className="mx-auto mt-3 max-w-sm space-y-2 text-left">
                 {remaining.map((id) => {
                   const idx = steps.findIndex((st) => st.blocks.some((b) => b.id === id));
@@ -202,7 +214,7 @@ export function LessonPlayer(p: PlayerProps) {
                   return (
                     <li key={id}>
                       <button onClick={() => go(idx)} className="flex w-full items-center gap-3 rounded-xl border border-border p-3 text-left font-semibold hover:border-primary">
-                        <Lock className="size-4 text-muted" aria-hidden /> {b ? blockLabel(b) : id} <span className="ml-auto text-sm text-primary">Go</span>
+                        <Lock className="size-4 text-muted" aria-hidden /> {b ? tr(blockLabel(b)) : id} <span className="ml-auto text-sm text-primary">{tr("Go")}</span>
                       </button>
                     </li>
                   );
@@ -210,13 +222,20 @@ export function LessonPlayer(p: PlayerProps) {
               </ul>
             </>
           ) : (
-            <p className="mt-1 text-muted">You did every required activity.</p>
+            <p className="mt-1 text-muted">{tr("You did every required activity.")}</p>
           )}
-          <Button size="lg" className="mt-6" disabled={pending || remaining.length > 0} onClick={() => start(async () => {
-            const r = await api.completeLesson({ courseId: p.courseId, lessonId: p.lesson.id });
-            if (r.ok) { setCompleted(true); setResult(r.data); setError(null); } else setError(r);
-          })}>
-            {pending ? "Saving…" : "Complete mission"}
+          <Button size="lg" className="mt-6" disabled={pending || remaining.length > 0} onClick={() => {
+            // celebrate right away; XP, streak and the next mission fill in when Google confirms
+            setCompleted(true);
+            setResult({ nextLessonId: null, unlocked: [] });
+            setError(null);
+            start(async () => {
+              const r = await api.completeLesson({ courseId: p.courseId, lessonId: p.lesson.id });
+              if (r.ok) setResult(r.data);
+              else { setCompleted(false); setResult(null); setError(r); }
+            });
+          }}>
+            {pending ? tr("Saving…") : tr("Complete mission")}
           </Button>
           {error && <div className="mt-3 text-left"><FriendlyError {...error} /></div>}
         </>
@@ -233,7 +252,7 @@ export function LessonPlayer(p: PlayerProps) {
           {p.lesson.sections.map((s, i) => (
             <section key={i} className="space-y-4">
               <h2 className="flex items-baseline gap-3 font-display text-xl font-bold">
-                <span className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-accent">{PHASE_LABEL[s.phase]}</span>
+                <span className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-accent">{tr(PHASE_LABEL[s.phase])}</span>
                 {s.title}
               </h2>
               {s.blocks.map((b) => <div key={b.id}>{render(b)}</div>)}
@@ -264,7 +283,7 @@ export function LessonPlayer(p: PlayerProps) {
     <I.LessonCtx.Provider value={ctx}>
       <div className="mx-auto max-w-3xl">
         {/* Phase strip: you are here */}
-        <ol className="mb-3 grid grid-cols-5 gap-1" aria-label="Mission phases">
+        <ol className="mb-3 grid grid-cols-5 gap-1" aria-label={tr("Mission phases")}>
           {p.lesson.sections.map((s, i) => {
             const first = steps.findIndex((st) => st.section === i);
             const state = i < curPhase ? "done" : i === curPhase ? "now" : "next";
@@ -273,7 +292,7 @@ export function LessonPlayer(p: PlayerProps) {
                 <button onClick={() => first >= 0 && go(first)} aria-current={state === "now" ? "step" : undefined}
                   className={cn("w-full rounded-lg px-1 py-1.5 text-center text-[11px] font-bold uppercase tracking-wider sm:text-xs",
                     state === "now" ? "bg-primary text-primary-fg" : state === "done" ? "bg-primary-soft text-primary" : "bg-surface-2 text-muted")}>
-                  {state === "done" && <span aria-hidden className="hidden sm:inline">✓ </span>}{PHASE_LABEL[s.phase]}{state === "done" && <span className="sr-only"> (done)</span>}
+                  {state === "done" && <span aria-hidden className="hidden sm:inline">✓ </span>}{tr(PHASE_LABEL[s.phase])}{state === "done" && <span className="sr-only"> {tr("(done)")}</span>}
                 </button>
               </li>
             );
@@ -281,7 +300,7 @@ export function LessonPlayer(p: PlayerProps) {
         </ol>
         {/* Step progress */}
         <div className="mb-6 flex items-center gap-3">
-          <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface-2" role="progressbar" aria-label="Mission progress" aria-valuemin={1} aria-valuemax={total} aria-valuenow={step + 1}>
+          <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface-2" role="progressbar" aria-label={tr("Mission progress")} aria-valuemin={1} aria-valuemax={total} aria-valuenow={step + 1}>
             <div className="h-full rounded-full bg-accent transition-[width] duration-500" style={{ width: `${((step + 1) / total) * 100}%` }} />
           </div>
           <span className="font-mono text-xs text-muted">{step + 1}/{total}</span>
@@ -315,30 +334,35 @@ export function LessonPlayer(p: PlayerProps) {
                 {freshXp > 0 && <span className="shrink-0 rounded-full bg-accent px-3 py-1 font-display text-sm font-bold text-primary-fg animate-unlock">+{freshXp} XP</span>}
               </div>
               {sheet.explanation && (
-                <button className="mt-2 text-sm font-semibold underline" onClick={() => setWhy(!why)} aria-expanded={why}>{why ? "Hide why" : "Why?"}</button>
+                <button className="mt-2 text-sm font-semibold underline" onClick={() => setWhy(!why)} aria-expanded={why}>{why ? tr("Hide why") : tr("Why?")}</button>
               )}
             </div>
           )}
+          {saveError && (
+            <p role="alert" className="mb-2 rounded-xl border border-danger/40 bg-danger-soft px-3 py-2 text-sm">
+              {tr("One answer didn't save:")} {saveError} <button className="ml-2 underline" onClick={() => setSaveError(null)}>{tr("OK")}</button>
+            </p>
+          )}
           {!sheet && chk?.error && <div className="rounded-t-2xl border-2 border-b-0 border-danger bg-surface p-3"><FriendlyError {...chk.error} /></div>}
           <div className={cn("flex items-center gap-3 border border-border bg-surface/95 p-3 shadow-lg backdrop-blur", sheet || chk?.error ? "rounded-b-2xl" : "rounded-2xl")}>
-            <Button variant="secondary" size="lg" className={sheet ? "hidden sm:inline-flex" : undefined} disabled={step === 0} onClick={() => go(step - 1)} aria-label="Previous step">←<span className="hidden sm:inline"> Back</span></Button>
+            <Button variant="secondary" size="lg" className={sheet ? "hidden sm:inline-flex" : undefined} disabled={step === 0} onClick={() => go(step - 1)} aria-label={tr("Previous step")}>←<span className="hidden sm:inline"> {tr("Back")}</span></Button>
             <ReadAloud key={step} target={stepRef} />
             <span className="flex-1 text-center text-sm text-muted" aria-live="polite">
-              {checkBlock && !attempted && !sheet ? (chk?.ready ? "" : "Answer to continue") : laterHint}
+              {checkBlock && !attempted && !sheet ? (chk?.ready ? "" : tr("Answer to continue")) : laterHint && tr(laterHint)}
             </span>
             {checkBlock && sheet && sheet.correct === false && !sheet.locked && (
-              <Button variant="secondary" size="lg" onClick={() => { setDismissed(sheet); setWhy(false); }}>Try again</Button>
+              <Button variant="secondary" size="lg" onClick={() => { setDismissed(sheet); setWhy(false); }}>{tr("Try again")}</Button>
             )}
             {checkBlock && !sheet && p.freeNav && step < total - 1 && (
-              <Button variant="ghost" size="lg" onClick={() => go(step + 1)}>Skip</Button>
+              <Button variant="ghost" size="lg" onClick={() => go(step + 1)}>{tr("Skip")}</Button>
             )}
             {checkBlock && !sheet ? (
               <Button size="lg" disabled={!chk?.ready || chk.pending} onClick={() => chk?.run()}>
-                {chk?.pending ? "Checking…" : chk?.label ?? "Check"}
+                {chk?.pending ? tr("Checking…") : tr(chk?.label ?? "Check")}
               </Button>
             ) : step < total - 1 ? (
               <Button size="lg" variant={laterHint ? "secondary" : "primary"} disabled={!!checkBlock && !attempted && !p.freeNav} onClick={() => go(step + 1)}>
-                {laterHint ? "Do it later" : "Continue →"}
+                {laterHint ? tr("Do it later") : tr("Continue →")}
               </Button>
             ) : null}
           </div>
@@ -375,6 +399,7 @@ function ReadAloud({ target }: { target: React.RefObject<HTMLDivElement | null> 
     if (!text) return;
     const u = new SpeechSynthesisUtterance(text);
     u.rate = Number(localStorage.getItem("academy.readRate") ?? "0.95") || 0.95;
+    u.lang = getLocale() === "es" ? "es-US" : "en-US";
     u.onend = () => setSpeaking(false);
     u.onerror = () => setSpeaking(false);
     synth.cancel();
@@ -382,9 +407,9 @@ function ReadAloud({ target }: { target: React.RefObject<HTMLDivElement | null> 
     setSpeaking(true);
   };
   return (
-    <Button variant="ghost" size="lg" onClick={toggle} aria-pressed={speaking} aria-label={speaking ? "Stop reading aloud" : "Read this screen aloud"}>
+    <Button variant="ghost" size="lg" onClick={toggle} aria-pressed={speaking} aria-label={speaking ? tr("Stop reading aloud") : tr("Read this screen aloud")}>
       {speaking ? <VolumeX className="size-5" aria-hidden /> : <Volume2 className="size-5" aria-hidden />}
-      <span className="hidden sm:inline">{speaking ? "Stop" : "Read aloud"}</span>
+      <span className="hidden sm:inline">{speaking ? tr("Stop") : tr("Read aloud")}</span>
     </Button>
   );
 }

@@ -1,3 +1,4 @@
+import { getLocale } from "@/lib/i18n";
 /** Sign in with Google (Google Identity Services). The ID token is sent with every API call and verified by Apps Script. */
 type Gis = {
   accounts: { id: { initialize(o: object): void; renderButton(el: HTMLElement, o: object): void; prompt(): void; disableAutoSelect(): void } };
@@ -41,6 +42,18 @@ export async function renderSignIn(el: HTMLElement, clientId: string, onToken: (
       onToken(r.credential);
     },
   });
-  g.accounts.id.renderButton(el, { theme: "outline", size: "large", shape: "pill", text: "signin_with" });
+  g.accounts.id.renderButton(el, { theme: "outline", size: "large", shape: "pill", text: "signin_with", locale: getLocale() });
   g.accounts.id.prompt();
+}
+
+/** Email in the current sign-in token (used to keep each student's offline queue and cache separate). */
+export function tokenEmail(): string | null {
+  const t = currentToken();
+  if (!t) return null;
+  try {
+    const p = JSON.parse(decodeURIComponent(escape(atob(t.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")))));
+    return typeof p.email === "string" ? p.email.toLowerCase() : null;
+  } catch {
+    return null;
+  }
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import type { CSSProperties } from "react";
 import dynamic from "next/dynamic";
 import type { ModelViewerProps } from "./ModelViewer";
@@ -16,7 +17,7 @@ function ViewerPlaceholder() {
         className="flex items-center justify-center rounded-lg border border-border bg-surface-2 text-sm text-muted"
         style={{ height: "var(--viewer-height, 320px)" }}
       >
-        Loading 3D preview…
+        {tr("Loading 3D preview…")}
       </div>
     </div>
   );

@@ -60,14 +60,61 @@ function json_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
 
+// The site sends `lang` with every request; student-facing messages come back in that language.
+var REQ_LANG_ = "en";
+const ES_ERRORS = {
+  "Ask your teacher to add you to TEACHER_EMAILS.": "Pídele a tu maestro o maestra que te agregue a TEACHER_EMAILS.",
+  "Choose a file to upload.": "Elige un archivo para subir.",
+  "Choose one of your uploaded STL files.": "Elige uno de los archivos STL que subiste.",
+  "Describe your test result or add a photo.": "Describe el resultado de tu prueba o agrega una foto.",
+  "Lots of people are saving at once. Please try again in a moment.": "Mucha gente está guardando a la vez. Vuelve a intentarlo en un momento.",
+  "Paste the whole link, starting with https://": "Pega el enlace completo, empezando con https://",
+  "Please sign in with your school Google account.": "Inicia sesión con tu cuenta de Google de la escuela.",
+  "Please sign in.": "Inicia sesión.",
+  "That activity doesn't take answers.": "Esa actividad no acepta respuestas.",
+  "That activity doesn't take submissions.": "Esa actividad no acepta entregas.",
+  "That answer couldn't be read. Try again.": "No pudimos leer esa respuesta. Inténtalo de nuevo.",
+  "That file is empty.": "Ese archivo está vacío.",
+  "That image file looks damaged. Try taking the screenshot again.": "Esa imagen parece dañada. Vuelve a tomar la captura de pantalla.",
+  "That isn't a reflection.": "Eso no es una reflexión.",
+  "That mission doesn't exist.": "Esa misión no existe.",
+  "This activity doesn't accept that kind of submission.": "Esta actividad no acepta ese tipo de entrega.",
+  "This class isn't set up for this website yet (CLIENT_ID).": "Esta clase todavía no está conectada con este sitio web (CLIENT_ID).",
+  "Unknown journal entry.": "Entrada de diario desconocida.",
+  "Unknown request.": "Solicitud desconocida.",
+  "You don't have access to that.": "No tienes acceso a eso.",
+  "You're not in an active class.": "No estás en una clase activa.",
+  "You're not on this class roster yet. Ask your teacher to add you.": "Todavía no estás en la lista de esta clase. Pídele a tu maestro o maestra que te agregue.",
+  "Your Google account needs a verified email.": "Tu cuenta de Google necesita un correo verificado.",
+  "Your account is no longer active in these classes.": "Tu cuenta ya no está activa en estas clases.",
+  "Your sign-in expired. Please sign in again.": "Tu sesión expiró. Vuelve a iniciar sesión.",
+  "Something went wrong. Your work is safe — please try again.": "Algo salió mal. Tu trabajo está a salvo: inténtalo de nuevo.",
+};
+const ES_ERROR_PATTERNS = [
+  [/^Write at least (\d+) words — you have (\d+)\.$/, "Escribe al menos $1 palabras; tienes $2."],
+  [/^Almost there — 1 required activity is still open\.$/, "¡Ya casi! Te falta 1 actividad obligatoria."],
+  [/^Almost there — (\d+) required activities are still open\.$/, "¡Ya casi! Te faltan $1 actividades obligatorias."],
+  [/^That file is larger than (\d+) MB\.$/, "Ese archivo pesa más de $1 MB."],
+  [/^That file type isn't allowed here\. Use (.*)\.$/, "Ese tipo de archivo no se permite aquí. Usa $1."],
+];
+function localizeMessage_(message) {
+  if (REQ_LANG_ !== "es") return message;
+  if (ES_ERRORS[message]) return ES_ERRORS[message];
+  for (let i = 0; i < ES_ERROR_PATTERNS.length; i++) if (ES_ERROR_PATTERNS[i][0].test(message)) return message.replace(ES_ERROR_PATTERNS[i][0], ES_ERROR_PATTERNS[i][1]);
+  return message;
+}
+
 function userError_(message) {
   const e = new Error(message);
-  e.userMessage = message;
+  e.userMessage = localizeMessage_(message);
   return e;
 }
 
 function handle_(req) {
   MEMO_ = {};
+  LOCK_MEMO_ = {};
+  STUDENT_HELD_ = {};
+  REQ_LANG_ = req && req.args && req.args.lang === "es" ? "es" : "en";
   try {
     const action = ACTIONS[req && req.action];
     if (!action) throw userError_("Unknown request.");
@@ -90,7 +137,7 @@ function handle_(req) {
   } catch (err) {
     if (err && err.userMessage) return { ok: false, error: err.userMessage };
     console.error(err && err.stack ? err.stack : err);
-    return { ok: false, error: "Something went wrong. Your work is safe — please try again.", details: String((err && err.message) || err).slice(0, 300) };
+    return { ok: false, error: localizeMessage_("Something went wrong. Your work is safe — please try again."), details: String((err && err.message) || err).slice(0, 300) };
   }
 }
 
@@ -223,14 +270,21 @@ function sheet_(name) {
   return sh;
 }
 
-// Each request reads a tab at most once (MEMO_). Inside withLock_ reads are always fresh, and writes clear the memo.
+// Each request reads a tab at most once (MEMO_). Inside a lock the first read of a tab is fresh and then reused
+// (LOCK_MEMO_), so one save reads Progress/Summary/Levels once each instead of several times.
 var MEMO_ = {};
-var LOCK_DEPTH_ = 0;
+var LOCK_MEMO_ = {};
+var FRESH_ = 0; // > 0 while holding the class lock or a student lock
+var SCRIPT_DEPTH_ = 0;
+var STUDENT_HELD_ = {};
 
 /** Minimal table API over a sheet: rows as objects keyed by header. */
-function table_(name) {
-  if (LOCK_DEPTH_ === 0 && MEMO_[name]) return MEMO_[name];
-  const inLock = LOCK_DEPTH_ > 0;
+function table_(name, forceFresh) {
+  const inLock = FRESH_ > 0;
+  if (!forceFresh) {
+    if (inLock && LOCK_MEMO_[name]) return LOCK_MEMO_[name];
+    if (!inLock && MEMO_[name]) return MEMO_[name];
+  }
   const sh = sheet_(name);
   const headers = TABLES[name];
   const values = sh.getLastRow() > 1 ? sh.getRange(2, 1, sh.getLastRow() - 1, headers.length).getValues() : [];
@@ -245,18 +299,21 @@ function table_(name) {
     find: function (pred) { for (let i = 0; i < rows.length; i++) if (pred(rows[i])) return rows[i]; return null; },
     filter: function (pred) { return rows.filter(pred); },
     append: function (obj) {
-      sh.appendRow(toValues(obj));
+      sh.appendRow(toValues(obj)); // atomic, safe while other students write too
       delete MEMO_[name];
-      rows.push(Object.assign({ _row: sh.getLastRow() }, obj));
+      rows.push(Object.assign({ _row: null }, obj)); // row number unknown (others may append at the same moment)
       return obj;
     },
     /** Insert or merge-update the first row matching pred. Call inside withLock_. */
     upsert: function (pred, obj) {
-      // inside the lock, this table was read fresh; otherwise re-read so concurrent writers don't overwrite each other
-      const fresh = inLock ? t : table_(name);
-      const existing = fresh.find(pred);
+      // inside a lock this table was read fresh; otherwise re-read so concurrent writers don't overwrite each other
+      const fresh = inLock ? t : table_(name, true);
+      const memoRow = fresh.find(pred);
+      let existing = memoRow;
+      if (existing && !existing._row) existing = table_(name, true).find(pred) || existing; // just appended this request: find its real row
+      if (memoRow && memoRow !== existing) Object.assign(memoRow, obj, { _row: existing._row });
       delete MEMO_[name];
-      if (existing) {
+      if (existing && existing._row) {
         const merged = Object.assign({}, existing, obj);
         sh.getRange(existing._row, 1, 1, headers.length).setValues([toValues(merged)]);
         Object.assign(existing, obj);
@@ -265,20 +322,54 @@ function table_(name) {
       return fresh.append(obj);
     },
   };
-  if (!inLock) MEMO_[name] = t;
+  if (inLock) LOCK_MEMO_[name] = t;
+  else MEMO_[name] = t;
   return t;
 }
 
+/** Class-wide lock: only for class structure (classes, rosters, settings). Student saves use withStudentLock_. */
 function withLock_(fn) {
-  if (LOCK_DEPTH_ > 0) return fn(); // already holding the lock
+  if (SCRIPT_DEPTH_ > 0) return fn(); // already holding the lock
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(25000)) throw userError_("Lots of people are saving at once. Please try again in a moment.");
-  LOCK_DEPTH_++;
+  SCRIPT_DEPTH_++;
+  if (FRESH_++ === 0) LOCK_MEMO_ = {};
   try {
     return fn();
   } finally {
-    LOCK_DEPTH_--;
+    FRESH_--;
+    SCRIPT_DEPTH_--;
     lock.releaseLock();
+  }
+}
+
+/**
+ * One student's saves never wait for another student's. Rows are never deleted, so each student's rows keep their
+ * position and different students can update their own rows at the same time; new rows use appendRow (atomic).
+ * This lock only keeps two requests from the SAME student (two tabs, a retry) from interleaving.
+ */
+function withStudentLock_(email, fn) {
+  if (STUDENT_HELD_[email]) return fn();
+  const cache = CacheService.getScriptCache();
+  const key = "slk_" + email;
+  const mine = Utilities.getUuid();
+  const until = Date.now() + 8000;
+  for (;;) {
+    if (!cache.get(key)) {
+      cache.put(key, mine, 20);
+      if (cache.get(key) === mine) break;
+    }
+    if (Date.now() > until) break; // never block a student's save for long; worst case two of their own saves overlap
+    Utilities.sleep(60 + Math.floor(Math.random() * 90));
+  }
+  STUDENT_HELD_[email] = true;
+  if (FRESH_++ === 0) LOCK_MEMO_ = {};
+  try {
+    return fn();
+  } finally {
+    FRESH_--;
+    delete STUDENT_HELD_[email];
+    if (cache.get(key) === mine) cache.remove(key);
   }
 }
 
@@ -315,7 +406,7 @@ function progressRow_(email, lessonId) {
 }
 
 function saveBlockEntry_(email, lessonId, blockId, entry) {
-  return withLock_(function () {
+  return withStudentLock_(email, function () {
     const t = table_("Progress");
     const row = t.find(function (r) { return r.email === email && r.lessonId === lessonId; });
     const state = row ? parse_(row.blockState, {}) : {};
@@ -345,7 +436,7 @@ function effective_(row) {
 /** Best level wins; history recorded when the effective level changes. */
 function recordLevel_(email, competencyId, level, reason, actor) {
   if (!level || level === "not_attempted") return;
-  withLock_(function () {
+  withStudentLock_(email, function () {
     const t = table_("Levels");
     const row = t.find(function (r) { return r.email === email && r.competencyId === competencyId; });
     const before = row ? effective_(row) : "not_attempted";
@@ -384,7 +475,7 @@ function summaryOf_(row) {
 
 /** Add XP events to the student's running summary (the Summary tab), so nobody has to re-read every answer. */
 function addXp_(email, events) {
-  return withLock_(function () {
+  return withStudentLock_(email, function () {
     const t = table_("Summary");
     const row = t.find(function (r) { return r.email === email; });
     const base = row ? summaryOf_(row) : Lib.applyEvents(Lib.emptySummary(), xpEventsFromHistory_(email), tz_());
@@ -453,7 +544,7 @@ function printOut_(r) {
 
 function newPrint_(user, classId, ev, note) {
   const cls = classFor_(user, classId);
-  return withLock_(function () {
+  return withStudentLock_(user.email, function () {
     const t = table_("Prints");
     const open = t.find(function (r) { return r.evidenceId === ev.id && ["requested", "approved", "printing"].indexOf(r.status) >= 0; });
     if (open) return printOut_(open);
@@ -473,7 +564,7 @@ const ACTIONS = {
       const cls = hasClass ? classFor_(user, a.classId) : null;
       const classes = user.role === "teacher" ? activeClasses_() : activeEnrollments_(user.email).map(function (e) { return classById_(e.classId); }).filter(Boolean);
       if (user.role === "student") {
-        withLock_(function () { table_("Users").upsert(function (r) { return r.email === user.email; }, { lastSeen: now_() }); });
+        withStudentLock_(user.email, function () { table_("Users").upsert(function (r) { return r.email === user.email; }, { lastSeen: now_() }); });
       }
       const progress = {};
       table_("Progress").filter(function (r) { return r.email === user.email; }).forEach(function (r) {
@@ -503,22 +594,25 @@ const ACTIONS = {
       const lesson = lessonOf_(a.lessonId);
       const block = lesson.blocks[a.blockId];
       if (!block || !Lib.isScorable(block)) throw userError_("That activity doesn't take answers.");
+      // one student lock for the whole save: each tab is read once, and other students never wait on this
+      return withStudentLock_(user.email, function () {
       const row = progressRow_(user.email, a.lessonId);
       const prev = (row ? parse_(row.blockState, {}) : {})[a.blockId] || {};
       if (prev.result && prev.result.locked) return prev.result;
+      // feedback, explanations and headlines in the student's language (Spanish text lives only here, like the answer keys)
+      const shown = REQ_LANG_ === "es" && CONTENT.es && CONTENT.es[a.lessonId] ? Lib.localizeBlock(block, CONTENT.es[a.lessonId]) : block;
       let score;
-      try { score = Lib.scoreBlock(block, a.response); } catch (e) { throw userError_("That answer couldn't be read. Try again."); }
+      try { score = Lib.scoreBlock(shown, a.response, REQ_LANG_); } catch (e) { throw userError_("That answer couldn't be read. Try again."); }
       const attempts = (prev.attempts || 0) + 1;
-      const result = Lib.toClientResult(block, score, attempts);
-      withLock_(function () {
-        table_("Attempts").append({ at: now_(), email: user.email, lessonId: a.lessonId, blockId: a.blockId, competencyId: block.competencyId || "", correct: score.correct === null ? "" : score.correct, misconceptionId: score.misconceptionId || "", response: JSON.stringify(a.response).slice(0, 2000) });
-      });
+      const result = Lib.toClientResult(shown, score, attempts);
+      table_("Attempts").append({ at: now_(), email: user.email, lessonId: a.lessonId, blockId: a.blockId, competencyId: block.competencyId || "", correct: score.correct === null ? "" : score.correct, misconceptionId: score.misconceptionId || "", response: JSON.stringify(a.response).slice(0, 2000) });
       saveBlockEntry_(user.email, a.lessonId, a.blockId, { response: a.response, correct: score.correct === null ? undefined : score.correct, attempts: attempts, done: true, result: result });
       addXp_(user.email, [{ kind: "attempt", at: now_(), lessonId: a.lessonId, blockId: a.blockId, correct: score.correct }]);
       if (block.competencyId && block.check) {
         recordLevel_(user.email, block.competencyId, Lib.autoLevel({ correct: score.correct === true, check: block.check, autoAssessable: !!CONTENT.autoAssessable[block.competencyId] }), (block.check === "skill" ? "Skill check" : "Practice") + " in " + lesson.title, "");
       }
       return result;
+      });
     },
   },
 
@@ -539,10 +633,12 @@ const ACTIONS = {
       const text = String(a.text || "").trim().slice(0, 10000);
       const words = text.split(/\s+/).filter(String).length;
       if (words < block.minWords) throw userError_("Write at least " + block.minWords + " words — you have " + words + ".");
-      const ev = newEvidence_(user, a.lessonId, a.blockId, block.competencyIds || [], "written", { text: text });
-      saveBlockEntry_(user.email, a.lessonId, a.blockId, { response: { text: text, evidenceId: ev.id }, done: true });
-      addXp_(user.email, [{ kind: "work", at: now_(), lessonId: a.lessonId, blockId: a.blockId }]);
-      return { evidenceId: ev.id };
+      return withStudentLock_(user.email, function () {
+        const ev = newEvidence_(user, a.lessonId, a.blockId, block.competencyIds || [], "written", { text: text });
+        saveBlockEntry_(user.email, a.lessonId, a.blockId, { response: { text: text, evidenceId: ev.id }, done: true });
+        addXp_(user.email, [{ kind: "work", at: now_(), lessonId: a.lessonId, blockId: a.blockId }]);
+        return { evidenceId: ev.id };
+      });
     },
   },
 
@@ -571,7 +667,7 @@ const ACTIONS = {
   saveJournal: {
     run: function (user, a) {
       if (!/^[a-z0-9-]{1,40}$/.test(String(a.projectKey)) || CONTENT.journalPrompts.indexOf(a.promptId) < 0) throw userError_("Unknown journal entry.");
-      return withLock_(function () {
+      return withStudentLock_(user.email, function () {
         const t = table_("Journals");
         const row = t.find(function (r) { return r.email === user.email && r.projectKey === a.projectKey; });
         const entries = row ? parse_(row.entries, {}) : {};
@@ -590,7 +686,7 @@ const ACTIONS = {
       const evBlocks = table_("Evidence").filter(function (r) { return r.email === user.email && r.lessonId === a.lessonId; }).map(function (r) { return r.blockId; });
       const missing = lesson.required.filter(function (id) { return !(state[id] && state[id].done) && evBlocks.indexOf(id) < 0; });
       if (missing.length) throw userError_("Almost there — " + missing.length + " required activit" + (missing.length === 1 ? "y is" : "ies are") + " still open.");
-      withLock_(function () {
+      withStudentLock_(user.email, function () {
         table_("Progress").upsert(function (r) { return r.email === user.email && r.lessonId === a.lessonId; }, { status: "completed", completedAt: (row && row.completedAt) || now_(), updatedAt: now_() });
       });
       addXp_(user.email, [{ kind: "lesson", at: now_(), lessonId: a.lessonId }]);
@@ -679,7 +775,7 @@ const ACTIONS = {
     role: "teacher",
     run: function (user, a) {
       if (Lib.LEVELS.indexOf(a.level) < 0 || !CONTENT.competencyIds[a.competencyId]) throw userError_("Choose a competency and level.");
-      withLock_(function () {
+      withStudentLock_(a.email, function () {
         const t = table_("Levels");
         const row = t.find(function (r) { return r.email === a.email && r.competencyId === a.competencyId; });
         const before = row ? effective_(row) : "not_attempted";
@@ -797,7 +893,7 @@ function newEvidence_(user, lessonId, blockId, competencyIds, type, extra) {
     status: "submitted",
     createdAt: now_(),
   };
-  withLock_(function () { table_("Evidence").append(ev); });
+  table_("Evidence").append(ev); // appendRow is atomic
   return ev;
 }
 

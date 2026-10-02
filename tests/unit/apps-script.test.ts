@@ -201,4 +201,20 @@ describe("Setup sidebar", () => {
     expect(e.props.get("OWNER")).toBe("teacher@school.org");
     expect(e.run("sidebarSaveSettings({ domains: 'School.org  students.school.org', teacherEmails: '', autoEnroll: true })")).toMatchObject({ domains: "school.org,students.school.org", autoEnroll: true });
   });
+
+  it("a student's save doesn't wait on another student's lock, and repeat saves keep one row", () => {
+    const e = makeEnv();
+    const cid = e.call("teacher@school.org", "createClass", { name: "3D" }).data.id;
+    e.call("teacher@school.org", "addStudents", { classId: cid, students: [{ email: "maya@school.org" }, { email: "luis@school.org" }] });
+    const mc = allBlocks(getLesson("navigating-tinkercad")!).find((b) => b.id === "box-select")!;
+    if (mc.type !== "multipleChoice") throw new Error();
+    e.run(`(CacheService.getScriptCache().put("slk_maya@school.org", "someone-else", 20), true)`); // Maya is mid-save elsewhere
+    const t0 = Date.now();
+    const wrong = { type: "multipleChoice", optionIds: [mc.options.find((o) => !mc.correctOptionIds.includes(o.id))!.id] };
+    expect(e.call("luis@school.org", "answerBlock", { lessonId: "navigating-tinkercad", blockId: mc.id, response: wrong }).ok).toBe(true);
+    expect(e.call("luis@school.org", "answerBlock", { lessonId: "navigating-tinkercad", blockId: mc.id, response: wrong }).data.attempts).toBe(2);
+    expect(Date.now() - t0).toBeLessThan(2000);
+    const rows = e.sheets.get("Progress")!.data.filter((r) => r[0] === "luis@school.org" && r[1] === "navigating-tinkercad");
+    expect(rows).toHaveLength(1);
+  });
 });

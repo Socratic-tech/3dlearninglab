@@ -22,7 +22,8 @@
     "pages:dev": "npm run pages:prepare && vite --config web/vite.config.ts",
     "pages:build": "npm run pages:prepare && vite build --config web/vite.config.ts",
     "pages:typecheck": "tsc --noEmit -p web/tsconfig.json",
-    "pages:mock-api": "tsx scripts/pages-mock-api.ts"
+    "pages:mock-api": "tsx scripts/pages-mock-api.ts",
+    "i18n:check": "tsx scripts/i18n-check.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8",
