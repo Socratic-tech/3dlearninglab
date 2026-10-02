@@ -7,7 +7,7 @@ import tailwindcss from "@tailwindcss/vite";
 const r = (p: string) => path.resolve(__dirname, p);
 // One sign-in client ID for the whole site: env var first, then apps-script/build.config.json.
 const conf = JSON.parse(fs.readFileSync(r("../apps-script/build.config.json"), "utf8")) as { clientId?: string; templateUrl?: string };
-const clientId = process.env.VITE_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || conf.clientId || "";
+const clientId = (process.env.VITE_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || conf.clientId || "").trim().replace(/^https?:\/\//i, "").replace(/\/+$/, "");
 
 // GitHub Pages edition: static SPA. Student data lives in Google (Apps Script + Sheets), never here.
 export default defineConfig({

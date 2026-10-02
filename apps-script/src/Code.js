@@ -111,7 +111,7 @@ function authenticate_(token, classId) {
     claims = JSON.parse(res.getContentText());
     cache.put(key, JSON.stringify(claims), 600);
   }
-  const clientId = cfg.CLIENT_ID || BUILD.clientId;
+  const clientId = String(cfg.CLIENT_ID || BUILD.clientId || "").trim().replace(/^https?:\/\//i, "").replace(/\/+$/, "");
   if (!clientId || claims.aud !== clientId) throw userError_("This class isn't set up for this website yet (CLIENT_ID).");
   if (Number(claims.exp) * 1000 < Date.now()) throw userError_("Your sign-in expired. Please sign in again.");
   if (String(claims.email_verified) !== "true") throw userError_("Your Google account needs a verified email.");

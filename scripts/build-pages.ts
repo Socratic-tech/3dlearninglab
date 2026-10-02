@@ -106,7 +106,13 @@ if (!site) {
   } catch { /* no git */ }
 }
 if (site && !site.endsWith("/")) site += "/";
-const clientId = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || conf.clientId || "";
+const clientId = cleanClientId(process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || conf.clientId || "");
+/** Accepts pasted values like "http://123-abc.apps.googleusercontent.com/" and returns just the ID; fails loudly on anything else. */
+function cleanClientId(raw: string) {
+  const id = raw.trim().replace(/^https?:\/\//i, "").replace(/\/+$/, "");
+  if (id && !/^\d+-[a-z0-9]+\.apps\.googleusercontent\.com$/.test(id)) throw new Error(`Google client ID looks wrong: "${raw}". It should look like 1234-abcd.apps.googleusercontent.com`);
+  return id;
+}
 const codeSrc = fs.readFileSync(path.join(root, "apps-script/src/Code.js"), "utf8");
 const files = ["Lib.js", "Content.js", "Sidebar.html", "appsscript.json"].map((f) => fs.readFileSync(path.join(dist, f), "utf8"));
 const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")) as { version: string };
