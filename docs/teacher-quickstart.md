@@ -12,22 +12,21 @@ In your new Sheet, use the menu **3D Design Academy → Set up & class links**.
 
 Google asks you to approve permissions the first time. You'll see **“Google hasn't verified this app.”**
 That's expected: it's *your* copy, not a third-party app. Click **Advanced → Go to 3D Design Academy (unsafe) → Allow**.
+**Then click the menu again** — the first click only asks for permission.
 
-## 3. Follow the 3 steps in the panel
-1. **Prepare this Sheet** — happens by itself when the side panel opens.
-2. **Turn on the app** — happens by itself when the side panel opens. If Google hasn't let this account use the
-   Apps Script API yet, the panel links to https://script.google.com/home/usersettings: switch **Google Apps Script API**
-   on (once per account), then click **I turned it on — finish setup**. The manual steps (Deploy → New deployment →
-   Web app, Me, Anyone) are still in the panel under **Or do it by hand**.
-3. **Create your classes** — type a name (e.g. “3D Design · Period 2”) and pick 9 or 18 weeks.
-   Each class gets a **student link** and a **QR code**. Post the link in Google Classroom.
+## 3. Let it finish, then make a class
+The panel sets everything up by itself (about 10 seconds). If it shows **One last switch**, open the link it gives,
+turn **Google Apps Script API** on (once per account), come back and click **Finish setup**.
 
-Then click **Open my teacher dashboard** to import rosters from Google Classroom, watch the **Right now** panel during
-class, review work, and run the **print queue**.
+Then type a class name, pick **18 weeks** or **9 weeks**, and click **Create class**.
+Click **Copy student link** and post it in Google Classroom, or **Show QR code** for the board.
+
+Click **Open my dashboard** to import rosters from Google Classroom, watch the **Right now** panel during
+class, review work, and run the **print queue**. Bookmark the page that opens.
 
 ## Good to know
 - **Who can sign in:** your email domain is filled in for you. If students use a different domain
-  (like `students.district.org`), add it in step 4 of the panel.
+  (like `students.district.org`), add it under **Settings** in the panel.
 - **Updates:** when your teacher dashboard (or the Sheet panel) says a new version is ready, click **Update now**. The first time, it may ask you to turn on
   the *Google Apps Script API* at script.google.com/home/usersettings (one switch). Links and student work don't change.
 - **“Anyone” access** only lets the website reach your Sheet. Every student still signs in with Google, and only

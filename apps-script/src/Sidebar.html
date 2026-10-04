@@ -4,153 +4,201 @@
 <base target="_top">
 <meta charset="utf-8">
 <style>
-  :root { --p:#0b5cad; --ps:#e3effb; --ok:#15803d; --oks:#e6f6ec; --w:#a16207; --ws:#fdf6dc; --b:#cfd8e3; --m:#4a5a70; }
+  :root { --p:#0b5cad; --ps:#e3effb; --ok:#15803d; --oks:#e6f6ec; --w:#a16207; --ws:#fdf6dc; --b:#cfd8e3; --m:#4a5a70; --bg:#f4f7fb; }
   body { font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color:#0f1b2d; margin:0; padding:14px; }
-  h1 { font-size:18px; margin:0 0 4px; } h2 { font-size:15px; margin:0; }
+  h1 { font-size:17px; margin:0; } h2 { font-size:16px; margin:0 0 6px; } h3 { font-size:14px; margin:0; }
+  p { margin:6px 0; }
+  a { color:var(--p); font-weight:600; }
   .muted { color:var(--m); font-size:12.5px; }
-  .step { border:1px solid var(--b); border-radius:12px; padding:12px; margin:12px 0; }
-  .step.done { border-color:var(--ok); background:var(--oks); }
-  .step.todo { border-color:var(--p); }
-  .num { display:inline-grid; place-items:center; width:22px; height:22px; border-radius:50%; background:var(--p); color:#fff; font-weight:700; font-size:12px; margin-right:6px; }
-  .done .num { background:var(--ok); }
-  button, .btn { display:inline-block; border:0; border-radius:9px; background:var(--p); color:#fff; font-weight:700; padding:9px 14px; font-size:14px; cursor:pointer; text-decoration:none; margin-top:8px; }
-  button.secondary, .btn.secondary { background:#fff; color:var(--p); border:2px solid var(--p); padding:7px 12px; }
-  button:disabled { opacity:.5; cursor:default; }
-  ol { padding-left:20px; margin:8px 0; } li { margin:3px 0; }
-  input[type=text], select { width:100%; box-sizing:border-box; border:1px solid var(--b); border-radius:8px; padding:7px; font-size:14px; margin-top:4px; }
-  label { display:block; margin-top:8px; font-weight:600; }
-  .link { word-break:break-all; background:#f4f7fb; border-radius:8px; padding:6px 8px; font-size:12px; margin-top:6px; }
-  .class { border-top:1px solid var(--b); padding-top:10px; margin-top:10px; }
+  .card { border:1px solid var(--b); border-radius:12px; padding:14px; margin:12px 0; }
+  .card.hero { border:2px solid var(--p); background:var(--ps); }
+  .card.good { border-color:var(--ok); background:var(--oks); }
+  .warn { background:var(--ws); border:1px solid var(--w); border-radius:10px; padding:10px 12px; margin:8px 0; }
+  button, .btn { display:block; width:100%; box-sizing:border-box; text-align:center; border:0; border-radius:10px; background:var(--p); color:#fff; font-weight:700; padding:11px 14px; font-size:15px; cursor:pointer; text-decoration:none; margin-top:10px; }
+  button.secondary, .btn.secondary { background:#fff; color:var(--p); border:2px solid var(--p); padding:9px 12px; }
+  button.small { display:inline-block; width:auto; font-size:13px; padding:6px 12px; margin:6px 6px 0 0; }
+  button.link { background:none; color:var(--p); padding:4px 0; width:auto; display:inline; font-weight:600; text-decoration:underline; margin:0; }
+  button:disabled { opacity:.55; cursor:default; }
+  ol { padding-left:20px; margin:8px 0; } li { margin:4px 0; }
+  input[type=text], select { width:100%; box-sizing:border-box; border:1px solid var(--b); border-radius:8px; padding:9px; font-size:15px; margin-top:4px; }
+  label { display:block; margin-top:10px; font-weight:600; }
+  .link { word-break:break-all; background:var(--bg); border-radius:8px; padding:6px 8px; font-size:12px; margin-top:6px; }
+  .class { border-top:1px solid var(--b); padding:12px 0 2px; }
+  .class:first-of-type { border-top:0; padding-top:0; }
   .qr { margin-top:8px; }
-  .warn { background:var(--ws); border:1px solid var(--w); border-radius:10px; padding:10px; margin-top:8px; }
-  .hide { display:none; }
-  kbd { background:#eef2f7; border:1px solid var(--b); border-radius:4px; padding:0 4px; font-size:12px; }
+  .progress { display:flex; gap:6px; margin:10px 0 4px; }
+  .progress span { flex:1; height:6px; border-radius:3px; background:var(--b); }
+  .progress span.on { background:var(--ok); }
+  .choices { display:flex; gap:8px; margin-top:6px; }
+  .choices label { flex:1; margin:0; border:2px solid var(--b); border-radius:10px; padding:8px; text-align:center; font-weight:600; cursor:pointer; }
+  .choices input { position:absolute; opacity:0; }
+  .choices label.on { border-color:var(--p); background:var(--ps); }
+  .choices small { display:block; font-weight:400; color:var(--m); }
+  details { border:1px solid var(--b); border-radius:12px; padding:10px 14px; margin:12px 0; }
+  summary { cursor:pointer; font-weight:700; font-size:14.5px; }
+  .spin { width:28px; height:28px; border:3px solid var(--ps); border-top-color:var(--p); border-radius:50%; animation:s 0.9s linear infinite; margin:4px auto 10px; }
+  @keyframes s { to { transform:rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spin { animation:none; } }
+  .tick { color:var(--ok); font-weight:700; }
+  .foot { margin-top:16px; }
 </style>
 </head>
 <body>
 <h1>3D Design Academy</h1>
-<p class="muted" id="who">Loading…</p>
-<div id="app"></div>
+<div id="app"><div class="card" style="text-align:center"><div class="spin"></div><p>Loading…</p></div></div>
+<p class="muted foot" id="who"></p>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-var S = null;
+/*
+ * One thing at a time:
+ *   working  → "Setting up…" (runs by itself right after the teacher allows permissions)
+ *   needsApi → one switch Google makes them flip, then "Finish setup"
+ *   failed   → try again, or do it by hand
+ *   noClass  → "You're set up! Create your first class"
+ *   home     → dashboard button, classes with links + QR, add class, settings, updates
+ */
+var S = null, working = false, showAdd = false, openQr = {};
 function $(id) { return document.getElementById(id); }
 function esc(t) { return String(t == null ? "" : t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
 function busy(btn, text) { if (btn) { btn.disabled = true; btn.dataset.t = btn.textContent; btn.textContent = text; } }
 function run(fn, arg, btn, text) {
   busy(btn, text || "Working…");
-  var r = google.script.run.withSuccessHandler(function (s) { S = s; render(); }).withFailureHandler(function (e) { alertBox(e.message || String(e)); if (btn) { btn.disabled = false; btn.textContent = btn.dataset.t; } });
+  var r = google.script.run
+    .withSuccessHandler(function (s) { working = false; S = s; render(); })
+    .withFailureHandler(function (e) { working = false; if (S) render(); alertBox(e.message || String(e)); if (btn) { btn.disabled = false; btn.textContent = btn.dataset.t; } });
   arg === undefined ? r[fn]() : r[fn](arg);
 }
 function alertBox(msg) { var d = document.createElement("div"); d.className = "warn"; d.textContent = msg; $("app").prepend(d); }
+function setup(btn) { working = true; render(); run("sidebarAutoSetup", undefined, btn); }
+
+function progress(n) {
+  return '<div class="progress" aria-label="Step ' + n + ' of 3">' + [1, 2, 3].map(function (i) { return '<span class="' + (i <= n ? "on" : "") + '"></span>'; }).join("") + "</div>";
+}
 
 function render() {
-  $("who").textContent = "Signed in as " + S.owner;
+  $("who").textContent = S ? "Signed in as " + S.owner + " · version " + S.version : "";
+  var t = (S && S.turnOn) || {};
   var h = "";
-  // 1 — prepare
-  h += '<div class="step ' + (S.ready ? "done" : "todo") + '"><h2><span class="num">1</span>Prepare this Sheet</h2>';
-  h += S.ready ? '<p class="muted">Done. Tabs and settings are ready.</p>' : '<p>Creates the tabs that store your classes and student work, and turns on your app.</p><button onclick="run(\'sidebarAutoSetup\', undefined, this, \'Setting up…\')">Set up my Sheet</button>';
-  h += "</div>";
-  // 2 — turn on the web app (done automatically by sidebarAutoSetup; manual steps are the fallback)
-  var t = S.turnOn || {};
-  h += '<div class="step ' + (S.url ? "done" : S.ready ? "todo" : "") + '"><h2><span class="num">2</span>Turn on the app</h2>';
-  if (S.url) {
-    h += '<p class="muted">Done. Your app is live.</p>';
-    if (t.warning) h += '<div class="warn">' + esc(t.warning) + "</div>";
-  } else if (t.needsApi) {
-    h += '<div class="warn"><b>One switch Google makes you flip yourself:</b><ol>' +
-      '<li>Open <a target="_blank" href="https://script.google.com/home/usersettings">Apps Script settings</a>.</li>' +
-      "<li>Turn <b>Google Apps Script API</b> on.</li>" +
-      "<li>Come back here and click the button below.</li></ol>" +
-      '<p class="muted">You only do this once. It also lets <b>Update now</b> work later.</p></div>' +
-      '<button onclick="run(\'sidebarAutoSetup\', undefined, this, \'Turning on…\')">I turned it on — finish setup</button>';
-  } else if (S.ready) {
-    if (t.error) h += '<div class="warn">Couldn’t turn on the app automatically: ' + esc(t.error) + "</div>";
-    h += '<button onclick="run(\'sidebarAutoSetup\', undefined, this, \'Turning on…\')">Turn on my app</button>';
+  if (working || !S) {
+    h = progress(1) + '<div class="card hero" style="text-align:center"><div class="spin"></div><h2>Setting up your Sheet…</h2><p>About 10 seconds. Keep this panel open.</p></div>';
+  } else if (!S.ready || !S.url) {
+    h = progress(1);
+    if (t.needsApi) {
+      h += '<div class="card hero"><h2>One last switch</h2><p>Google makes you flip this one yourself. You only do it once.</p><ol>' +
+        '<li><a target="_blank" href="https://script.google.com/home/usersettings"><b>Open this page</b></a> (new tab).</li>' +
+        "<li>Click <b>Google Apps Script API</b> and turn it <b>On</b>.</li>" +
+        "<li>Come back here and click the button.</li></ol>" +
+        '<button onclick="setup(this)">Finish setup</button></div>';
+    } else if (t.error) {
+      h += '<div class="card hero"><h2>Setup didn’t finish</h2><p>Click <b>Try again</b>. It usually works the second time.</p>' +
+        '<button onclick="setup(this)">Try again</button><p class="muted">Details: ' + esc(t.error) + "</p></div>" + manualDeploy();
+    } else {
+      h += '<div class="card hero"><h2>Let’s set up your Sheet</h2><p>This takes about 10 seconds.</p><button onclick="setup(this)">Set up my Sheet</button></div>';
+    }
+  } else if (!S.classes.length) {
+    h = progress(2) + '<div class="card good"><h2><span class="tick">✓</span> You’re set up!</h2><p>Now make your first class.</p></div>' + classForm("Create your first class");
+  } else {
+    h = home(t);
   }
-  if (!S.url && S.ready) {
-    h += '<details' + (t.error ? " open" : "") + '><summary class="muted">Or do it by hand</summary><ol>' +
-      "<li>Go to <b>Extensions → Apps Script</b>.</li>" +
-      "<li>Click the blue <b>Deploy</b> button → <b>New deployment</b>.</li>" +
-      "<li>Click the gear ⚙ next to “Select type” → <b>Web app</b>.</li>" +
-      "<li>Execute as: <b>Me</b>. Who has access: <b>Anyone</b>.</li>" +
-      "<li>Click <b>Deploy</b>, then <b>Authorize access</b> and allow.</li></ol>" +
-      '<button class="secondary" onclick="run(\'sidebarState\', undefined, this, \'Checking…\')">I did it — check again</button></details>';
-  }
-  h += '<p class="muted">“Anyone” only lets the website reach this Sheet. Students still sign in with Google, and only your roster gets in.</p>';
-  h += "</div>";
-  // 3 — classes + links
-  var live = S.ready && S.url;
-  h += '<div class="step ' + (live && S.classes.length ? "done" : live ? "todo" : "") + '"><h2><span class="num">3</span>Your classes &amp; links</h2>';
-  if (!live) h += '<p class="muted">Finish steps 1 and 2 first.</p>';
-  else {
-    if (!S.site) h += '<div class="warn">This copy doesn’t know the website address. Ask whoever shared it for an updated template.</div>';
-    if (S.teacherLink) h += '<a class="btn" target="_blank" href="' + esc(S.teacherLink) + '">Open my teacher dashboard ↗</a>';
-    h += '<p class="muted">Import rosters from Google Classroom and see progress on the dashboard.</p>';
-    S.classes.forEach(function (c, i) {
-      h += '<div class="class"><b>' + esc(c.name) + "</b>" + (c.link ? '<div class="link">' + esc(c.link) + '</div><button class="secondary" onclick="copy(' + i + ', this)">Copy student link</button><div class="qr" id="qr' + i + '"></div><p class="muted">Post the link in Google Classroom, or show the QR code.</p>' : "") + "</div>";
-    });
-    h += '<div class="class"><b>' + (S.classes.length ? "Add another class" : "Create your first class") + '</b>' +
-      '<label>Name<input type="text" id="cname" placeholder="3D Design"></label>' +
-      '<label>Section (optional)<input type="text" id="csec" placeholder="Period 2"></label>' +
-      '<label>Course length<select id="cpath"><option value="18-week">18 weeks (semester)</option><option value="9-week">9 weeks (quarter)</option></select></label>' +
-      '<button onclick="createClass(this)">Create class</button></div>';
-  }
-  h += "</div>";
-  // 4 — who can sign in
-  if (S.ready) {
-    h += '<div class="step"><h2><span class="num">4</span>Who can sign in</h2>' +
-      '<label>School email domains<input type="text" id="dom" value="' + esc(S.domains) + '" placeholder="district.org, students.district.org"></label>' +
-      '<p class="muted">Add your students’ domain if it’s different from yours.</p>' +
-      '<label>Co-teachers (emails)<input type="text" id="tch" value="' + esc(S.teacherEmails) + '" placeholder="optional"></label>' +
-      '<label>Administrators (emails)<input type="text" id="adm" value="' + esc(S.adminEmails) + '" placeholder="principal, district or RESA staff"></label>' +
-      '<p class="muted">Teachers and administrators can open every lesson at any time, no matter what is completed.</p>' +
-      (S.teacherLink ? '<p class="muted" style="margin-top:8px"><b>Send them this staff link</b> (not a student link). They sign in with their own Google account:</p><div class="link">' + esc(S.teacherLink) + '</div><button class="secondary" onclick="copyText(S.teacherLink, this)">Copy staff link</button>' : "") +
-      '<label style="font-weight:400"><input type="checkbox" id="auto"' + (S.autoEnroll ? " checked" : "") + '> Students who open a class link join that class automatically</label>' +
-      '<button class="secondary" onclick="save(this)">Save</button></div>';
-  }
-  // updates
-  var newer = S.latest && S.latest.version && S.latest.version !== S.version;
-  h += '<div class="step"><h2>Updates</h2><p class="muted">This copy: ' + esc(S.version) + (S.latest ? " · Latest: " + esc(S.latest.version) : "") + "</p>";
-  if (newer) {
-    h += (S.latest.notes ? "<p>" + esc(S.latest.notes) + "</p>" : "") + '<button onclick="update(this)">Update now</button>' +
-      '<p class="muted">Your links and student work stay the same.</p>';
-  } else if (S.latest) h += '<p class="muted">You’re up to date.</p>';
-  h += '<div id="upd"></div></div>';
   $("app").innerHTML = h;
-  S.classes.forEach(function (c, i) { if (c.link && window.QRCode) new QRCode($("qr" + i), { text: c.link, width: 132, height: 132 }); });
+  if (S) S.classes.forEach(function (c, i) { if (openQr[i] && c.link && window.QRCode) new QRCode($("qr" + i), { text: c.link, width: 150, height: 150 }); });
+  bindChoices();
 }
 
-function copyText(t, btn) {
-  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { btn.textContent = "Copied!"; }, function () { prompt("Copy this link:", t); });
+function home(t) {
+  var newer = S.latest && S.latest.version && S.latest.version !== S.version;
+  var h = "";
+  if (newer) h += '<div class="card hero"><h2>Update ready</h2>' + (S.latest.notes ? "<p>" + esc(S.latest.notes) + "</p>" : "") + '<button onclick="update(this)">Update now</button><p class="muted">Your links and student work stay the same.</p><div id="upd"></div></div>';
+  if (t.warning) h += '<div class="warn">' + esc(t.warning) + "</div>";
+  if (!S.site) h += '<div class="warn">This copy doesn’t know the website address. Ask whoever shared it for an updated template.</div>';
+  if (S.teacherLink) h += '<a class="btn" target="_blank" href="' + esc(S.teacherLink) + '">Open my dashboard ↗</a><p class="muted">See progress, review work and import rosters. Bookmark the page that opens.</p>';
+
+  h += '<div class="card"><h2>Your classes</h2><p class="muted">Post a class’s student link in Google Classroom. Students click it and sign in with Google.</p>';
+  S.classes.forEach(function (c, i) {
+    h += '<div class="class"><h3>' + esc(c.name) + "</h3>" + (c.link
+      ? '<button class="small" onclick="copyText(S.classes[' + i + '].link, this)">Copy student link</button>' +
+        '<button class="small secondary" onclick="toggleQr(' + i + ')">' + (openQr[i] ? "Hide QR code" : "Show QR code") + "</button>" +
+        (openQr[i] ? '<div class="qr" id="qr' + i + '"></div><p class="muted">Show this on the board for students to scan.</p>' : "")
+      : "") + "</div>";
+  });
+  h += showAdd ? "" : '<p><button class="link" onclick="showAdd=true; render()">+ Add another class</button></p>';
+  h += "</div>";
+  if (showAdd) h += classForm("Add another class");
+
+  h += "<details><summary>Settings</summary>" +
+    '<label>Student email domains<input type="text" id="dom" value="' + esc(S.domains) + '" placeholder="district.org, students.district.org"></label>' +
+    '<p class="muted">Who can sign in. Add your students’ domain if it’s different from yours.</p>' +
+    '<label style="font-weight:400"><input type="checkbox" id="auto"' + (S.autoEnroll ? " checked" : "") + "> Students join a class just by opening its link</label>" +
+    '<p class="muted">Off: only students on your roster get in.</p>' +
+    '<label>Co-teachers (emails)<input type="text" id="tch" value="' + esc(S.teacherEmails) + '" placeholder="optional"></label>' +
+    '<label>Administrators (emails)<input type="text" id="adm" value="' + esc(S.adminEmails) + '" placeholder="principal, district or RESA staff"></label>' +
+    '<button class="secondary" onclick="save(this)">Save settings</button>' +
+    (S.teacherLink ? '<p style="margin-top:14px"><b>Staff link</b>: send this to the co-teachers and admins above (not to students).</p><button class="small secondary" onclick="copyText(S.teacherLink, this)">Copy staff link</button>' : "") +
+    '<p style="margin-top:14px"><b>App address</b> (only if the website asks for it):</p><div class="link">' + esc(S.url) + "</div>" +
+    (newer ? "" : '<p class="muted" style="margin-top:14px">' + (S.latest ? "You’re up to date." : "") + "</p>") +
+    "</details>";
+  return h;
 }
-function copy(i, btn) {
-  var t = S.classes[i].link;
-  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { btn.textContent = "Copied!"; }, function () { prompt("Copy this link:", t); });
+
+function classForm(title) {
+  return '<div class="card' + (S.classes.length ? "" : " hero") + '"><h2>' + title + "</h2>" +
+    '<label>Class name<input type="text" id="cname" placeholder="3D Design – Period 2"></label>' +
+    '<label>How long is the course?</label><div class="choices" id="len">' +
+    '<label class="on"><input type="radio" name="len" value="18-week" checked>18 weeks<small>semester</small></label>' +
+    '<label><input type="radio" name="len" value="9-week">9 weeks<small>quarter</small></label></div>' +
+    '<button onclick="createClass(this)">Create class</button>' +
+    (S.classes.length ? '<p><button class="link" onclick="showAdd=false; render()">Cancel</button></p>' : "") + "</div>";
+}
+
+function bindChoices() {
+  var box = $("len"); if (!box) return;
+  box.addEventListener("change", function () {
+    Array.prototype.forEach.call(box.querySelectorAll("label"), function (l) { l.className = l.querySelector("input").checked ? "on" : ""; });
+  });
+}
+
+function manualDeploy() {
+  return "<details><summary>Or do it by hand</summary><ol>" +
+    "<li>Go to <b>Extensions → Apps Script</b>.</li>" +
+    "<li>Click the blue <b>Deploy</b> button → <b>New deployment</b>.</li>" +
+    "<li>Click the gear ⚙ next to “Select type” → <b>Web app</b>.</li>" +
+    "<li>Execute as: <b>Me</b>. Who has access: <b>Anyone</b>.</li>" +
+    "<li>Click <b>Deploy</b>, then <b>Authorize access</b> and allow.</li></ol>" +
+    '<p class="muted">“Anyone” only lets the website reach this Sheet. Students still sign in with Google, and only your roster gets in.</p>' +
+    '<button class="secondary" onclick="run(\'sidebarState\', undefined, this, \'Checking…\')">I did it, check again</button></details>';
+}
+
+function toggleQr(i) { openQr[i] = !openQr[i]; render(); }
+function copyText(t, btn) {
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () {
+    var old = btn.textContent; btn.textContent = "Copied ✓"; setTimeout(function () { btn.textContent = old; }, 2000);
+  }, function () { prompt("Copy this link:", t); });
 }
 function createClass(btn) {
   var n = $("cname").value.trim();
-  if (!n) { $("cname").focus(); return; }
-  run("sidebarCreateClass", { name: n, section: $("csec").value.trim(), pathId: $("cpath").value }, btn, "Creating…");
+  if (!n) { $("cname").focus(); $("cname").placeholder = "Type a class name first"; return; }
+  var len = document.querySelector('input[name="len"]:checked');
+  showAdd = false;
+  run("sidebarCreateClass", { name: n, section: "", pathId: len ? len.value : "18-week" }, btn, "Creating…");
 }
-function save(btn) { run("sidebarSaveSettings", { domains: $("dom").value, teacherEmails: $("tch").value, adminEmails: $("adm").value, autoEnroll: $("auto").checked }, btn, "Saving…"); }
+function save(btn) {
+  run("sidebarSaveSettings", { domains: $("dom").value, teacherEmails: $("tch").value, adminEmails: $("adm").value, autoEnroll: $("auto").checked }, btn, "Saving…");
+}
 function update(btn) {
   busy(btn, "Updating…");
   google.script.run.withSuccessHandler(function (r) {
     if (r.ok) { $("upd").innerHTML = '<p><b>Updated to ' + esc(r.version) + ".</b> " + (r.redeployed ? "Your app is already using it." : "Deploy → Manage deployments → Edit → New version to finish.") + "</p><p class=\"muted\">If Google asks you to review permissions next time, click Allow.</p>"; btn.remove(); }
-    else if (r.needsApi) { $("upd").innerHTML = '<div class="warn">One-time switch: open <a target="_blank" href="https://script.google.com/home/usersettings">Apps Script settings</a>, turn <b>Google Apps Script API</b> on, then click Update now again.</div>'; btn.disabled = false; btn.textContent = "Update now"; }
+    else if (r.needsApi) { $("upd").innerHTML = '<div class="warn">One-time switch: <a target="_blank" href="https://script.google.com/home/usersettings">open this page</a>, turn <b>Google Apps Script API</b> on, then click Update now again.</div>'; btn.disabled = false; btn.textContent = "Update now"; }
     else { $("upd").innerHTML = '<div class="warn">' + esc(r.error) + "</div>"; btn.disabled = false; btn.textContent = "Update now"; }
   }).withFailureHandler(function (e) { $("upd").innerHTML = '<div class="warn">' + esc(e.message) + "</div>"; btn.disabled = false; btn.textContent = "Update now"; }).sidebarUpdate();
 }
-// First open after allowing permissions: prepare the Sheet and turn on the app without any more clicks.
+
+// Opening the panel right after allowing permissions finishes setup with no more clicks.
 google.script.run.withSuccessHandler(function (s) {
-  S = s; render();
-  if (!S.ready || !S.url) {
-    $("app").insertAdjacentHTML("afterbegin", '<p class="warn" id="autobusy">Setting up your Sheet and turning on your app… (about 10 seconds)</p>');
-    run("sidebarAutoSetup");
-  }
-}).withFailureHandler(function (e) { $("who").textContent = e.message; }).sidebarState();
+  S = s;
+  if (!S.ready || !S.url) setup(); else render();
+}).withFailureHandler(function (e) { $("app").innerHTML = '<div class="warn">' + esc(e.message || String(e)) + "</div>"; }).sidebarState();
 </script>
 </body>
 </html>
