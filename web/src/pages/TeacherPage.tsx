@@ -13,6 +13,7 @@ import { classLink, setCurrentClassId } from "../config";
 import type { ClassInfo, Me } from "../content";
 import { competencies, competencyTitle, heatmapGroups, lessonById, lessons as allLessons, pathLessons } from "../content";
 import { offlineChallenges } from "./HandoutPage";
+import { UpdateBanner } from "./UpdateBanner";
 
 type Ev = { id: string; email: string; lessonId: string; type: string; url: string | null; fileName: string | null; text: string | null; status: string; rating: number | null; comment: string | null; createdAt: string; competencyIds: string[] };
 type ClassData = {
@@ -37,7 +38,16 @@ export type PrintJob = { id: string; email: string; lessonId: string; fileName: 
 
 const TABS = ["Overview", "Lessons", "Heatmap", "Review", "Prints", "Roster", "Classes"] as const;
 
-export function TeacherPage({ me, apiUrl, clientId, onChange }: { me: Me; apiUrl: string; clientId: string; onChange: () => void }) {
+export function TeacherPage(p: { me: Me; apiUrl: string; clientId: string; onChange: () => void }) {
+  return (
+    <>
+      <UpdateBanner me={p.me} apiUrl={p.apiUrl} onUpdated={p.onChange} />
+      <TeacherMain {...p} />
+    </>
+  );
+}
+
+function TeacherMain({ me, apiUrl, clientId, onChange }: { me: Me; apiUrl: string; clientId: string; onChange: () => void }) {
   if (!me.cls) {
     return (
       <div className="mx-auto max-w-lg py-8">

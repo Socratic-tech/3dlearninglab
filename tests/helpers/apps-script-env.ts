@@ -43,7 +43,7 @@ export const okScriptApi: ScriptApiFake = ({ method, path }) => {
   return { code: 200, body: {} };
 };
 
-export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string; scriptId?: string; scriptApi?: ScriptApiFake } = {}) {
+export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string; scriptId?: string; scriptApi?: ScriptApiFake; updatePack?: unknown } = {}) {
   const scriptApiCalls: ScriptApiCall[] = [];
   const sheets = new Map<string, ReturnType<typeof fakeSheet>>();
   const book = {
@@ -81,7 +81,7 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
       getUuid: () => Math.random().toString(36).slice(2),
       sleep: () => {},
       base64Decode: (s: string) => [...Buffer.from(s, "base64")].map((b) => (b > 127 ? b - 256 : b)),
-      newBlob: (_b: unknown, type: string, name: string) => ({ name, type, getName: () => name }),
+      newBlob: (b: unknown, type: string, name: string) => ({ name, type, getName: () => name, getDataAsString: () => (Array.isArray(b) ? Buffer.from(b.map((x: number) => x & 255)).toString("utf8") : String(b)) }),
       formatDate: (d: Date, tz: string) => new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(d),
     },
     UrlFetchApp: {
@@ -93,6 +93,10 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
           scriptApiCalls.push(call);
           const r = (opts.scriptApi ?? okScriptApi)(call);
           return { getResponseCode: () => r.code, getContentText: () => JSON.stringify(r.body) };
+        }
+        if (url.includes("apps-script/update.json")) {
+          const found = !!opts.updatePack;
+          return { getResponseCode: () => (found ? 200 : 404), getContentText: () => (found ? JSON.stringify(opts.updatePack) : "") };
         }
         const email = emailFromToken(decodeURIComponent(url.split("id_token=")[1]));
         const ok = !email.startsWith("bad");

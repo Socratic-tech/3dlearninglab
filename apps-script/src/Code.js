@@ -588,7 +588,16 @@ const ACTIONS = {
         journals: journals,
         stats: user.role === "student" ? stats_(user.email) : null,
         prints: table_("Prints").filter(function (r) { return r.email === user.email; }).map(printOut_),
+        app: user.role === "teacher" ? { version: BUILD.version, owner: String(Session.getEffectiveUser().getEmail() || "").toLowerCase() } : null,
       };
+    },
+  },
+
+  /** One-click update from the teacher dashboard (same as the sidebar's Update now). Runs as the Sheet's owner. */
+  updateApp: {
+    role: "teacher",
+    run: function () {
+      return sidebarUpdate();
     },
   },
 

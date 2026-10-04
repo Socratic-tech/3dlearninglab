@@ -229,6 +229,22 @@ describe("Setup sidebar", () => {
     expect(broken.run("sidebarAutoSetup()").turnOn).toMatchObject({ ok: false, needsApi: false, error: expect.stringMatching(/boom/) });
   });
 
+  it("teachers can update their copy from the dashboard; students can't", () => {
+    const pack = { version: "9.9.9-abc", files: [{ name: "Code", type: "SERVER_JS", source: Buffer.from("// new").toString("base64") }] };
+    const e = makeEnv("teacher@school.org", { webAppUrl: "https://script.google.com/macros/s/AKfy123/exec", updatePack: pack });
+    const me = e.call("teacher@school.org", "me");
+    expect(me.data.app).toMatchObject({ owner: "teacher@school.org" });
+    expect(typeof me.data.app.version).toBe("string");
+    const r = e.call("teacher@school.org", "updateApp");
+    expect(r.data).toMatchObject({ ok: true, version: "9.9.9-abc", redeployed: true });
+    expect(e.scriptApiCalls.map((c) => c.method + " " + c.path)).toEqual(["put /content", "post /versions", "put /deployments/AKfy123"]);
+    expect(e.scriptApiCalls[0].body).toEqual({ files: [{ name: "Code", type: "SERVER_JS", source: "// new" }] });
+    e.call("teacher@school.org", "addStudents", { classId: me.data.classes[0]?.id, students: [{ email: "kid@school.org", name: "Kid" }] });
+    expect(e.call("kid@school.org", "updateApp")).toMatchObject({ ok: false });
+    const off = makeEnv("teacher@school.org", { updatePack: pack, scriptApi: () => ({ code: 403, body: "Enable it at https://script.google.com/home/usersettings" }) });
+    expect(off.call("teacher@school.org", "updateApp").data).toMatchObject({ ok: false, needsApi: true });
+  });
+
   it("a copied template ignores the original teacher's app address", () => {
     const e = makeEnv("teacher@school.org", { scriptId: "copy-script" });
     e.props.set("WEBAPP_URL", "https://script.google.com/macros/s/AKfyOriginal/exec");

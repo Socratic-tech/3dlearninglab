@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 /**
  * Runtime configuration.
  * - API URL: each teacher's Apps Script web-app URL. Comes from the class link (?api=...), then is remembered.
@@ -31,6 +32,8 @@ function safeSet(k: string, v: string) {
  */
 export function normalizeApiUrl(raw: string | null | undefined): string | null {
   if (!raw) return null;
+  // local development against scripts/pages-mock-api.ts (never in a production build)
+  if (import.meta.env.MODE === "development" && /^http:\/\/localhost:\d+\/?$/.test(raw.trim())) return raw.trim().replace(/\/$/, "");
   const m = raw.trim().match(/^https:\/\/script\.google\.com\/(?:a\/macros\/[\w.-]+|macros)(?:\/u\/\d+)?\/s\/([\w-]+)\/exec\/?(?:[?#].*)?$/);
   return m ? `https://script.google.com/macros/s/${m[1]}/exec` : null;
 }
