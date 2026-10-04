@@ -8,7 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { execSync } from "node:child_process";
 import { getLesson, allBlocks } from "@/content";
-import { makeEnv } from "../helpers/apps-script-env";
+import { makeEnv, okScriptApi } from "../helpers/apps-script-env";
 
 const dist = path.join(process.cwd(), "apps-script/dist");
 if (!fs.existsSync(path.join(dist, "Code.js"))) execSync("npx tsx scripts/build-pages.ts", { stdio: "inherit" });
@@ -190,6 +190,50 @@ describe("Setup sidebar", () => {
     expect(st.classes[0].link).toContain("?api=https%3A%2F%2Fscript.google.com%2Fmacros%2Fs%2FAKfy123%2Fexec");
     expect(st.classes[0].link).toContain("&class=");
     expect(st.teacherLink).toMatch(/#\/teacher$/);
+  });
+
+  it("turns the app on by itself after permissions are allowed, then links work", () => {
+    const e = makeEnv("teacher@school.org");
+    const st = e.run("sidebarAutoSetup()");
+    expect(st.turnOn).toMatchObject({ ok: true, auto: true });
+    expect(st.url).toBe("https://script.google.com/macros/s/AKfyAuto/exec");
+    expect(st.teacherLink).toContain("?api=https%3A%2F%2Fscript.google.com%2Fmacros%2Fs%2FAKfyAuto%2Fexec");
+    expect(e.scriptApiCalls.map((c) => c.method + " " + c.path)).toEqual(["post /versions", "post /deployments"]);
+    expect(e.scriptApiCalls[1].body).toMatchObject({ versionNumber: 1, manifestFileName: "appsscript" });
+    e.run("sidebarAutoSetup()"); // opening the sidebar again doesn't make a second deployment
+    expect(e.scriptApiCalls).toHaveLength(2);
+  });
+
+  it("asks for the one-time Apps Script API switch, then finishes on retry", () => {
+    let enabled = false;
+    const e = makeEnv("teacher@school.org", {
+      scriptApi: (c) => (enabled ? okScriptApi(c) : { code: 403, body: { error: { message: "User has not enabled the Apps Script API. Enable it by visiting https://script.google.com/home/usersettings" } } }),
+    });
+    const before = e.run("sidebarAutoSetup()");
+    expect(before.url).toBeNull();
+    expect(before.turnOn).toMatchObject({ ok: false, needsApi: true });
+    enabled = true;
+    expect(e.run("sidebarAutoSetup()").url).toBe("https://script.google.com/macros/s/AKfyAuto/exec");
+  });
+
+  it("warns when the school only allows in-domain access, and reports other errors", () => {
+    const limited = makeEnv("teacher@school.org", {
+      scriptApi: (c) => {
+        const r = okScriptApi(c);
+        if (c.path === "/deployments") (r.body as { entryPoints: { webApp: { entryPointConfig: { access: string } } }[] }).entryPoints[0].webApp.entryPointConfig.access = "DOMAIN";
+        return r;
+      },
+    });
+    expect(limited.run("sidebarAutoSetup()").turnOn.warning).toMatch(/DOMAIN/);
+    const broken = makeEnv("teacher@school.org", { scriptApi: () => ({ code: 500, body: { error: "boom" } }) });
+    expect(broken.run("sidebarAutoSetup()").turnOn).toMatchObject({ ok: false, needsApi: false, error: expect.stringMatching(/boom/) });
+  });
+
+  it("a copied template ignores the original teacher's app address", () => {
+    const e = makeEnv("teacher@school.org", { scriptId: "copy-script" });
+    e.props.set("WEBAPP_URL", "https://script.google.com/macros/s/AKfyOriginal/exec");
+    e.props.set("WEBAPP_SCRIPT", "original-script");
+    expect(e.run("sidebarState()").url).toBeNull();
   });
 
   it("a copied template starts fresh for the new teacher and fills in their domain", () => {

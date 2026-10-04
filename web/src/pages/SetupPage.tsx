@@ -3,16 +3,15 @@ import { ExternalLink } from "lucide-react";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Button, buttonClass } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
-import { setApiUrl } from "../config";
+import { normalizeApiUrl, setApiUrl, setClientId } from "../config";
 
-const EXEC = /^https:\/\/script\.google\.com\/(a\/macros\/[\w.-]+|macros)\/s\/[\w-]+\/exec$/;
 const TEMPLATE = import.meta.env.VITE_TEMPLATE_URL as string;
 
 export function SetupPage({ cfg, onSaved }: { cfg: { apiUrl: string | null; clientId: string | null }; onSaved: () => void }) {
   const [api, setApi] = useState(cfg.apiUrl ?? "");
   const [cid, setCid] = useState(cfg.clientId ?? "");
   const [manual, setManual] = useState(false);
-  const valid = EXEC.test(api.trim());
+  const valid = !!normalizeApiUrl(api);
   return (
     <div className="mx-auto max-w-xl space-y-6 py-8">
       <div>
@@ -46,8 +45,8 @@ export function SetupPage({ cfg, onSaved }: { cfg: { apiUrl: string | null; clie
               </Field>
             )}
             <Button disabled={!valid} onClick={() => {
-              setApiUrl(api.trim().replace(/\/a\/macros\/[\w.-]+\/s\//, "/macros/s/"));
-              if (cid.trim()) try { localStorage.setItem("academy.cid", cid.trim()); } catch { /* ignore */ }
+              setApiUrl(api);
+              setClientId(cid);
               onSaved();
             }}>Connect</Button>
           </Card>

@@ -9,7 +9,7 @@ import { LevelCell, LevelChip, LevelLegend } from "@/components/ui/level";
 import { groupLevel, LEVEL_LABEL, LEVELS } from "@/lib/mastery";
 import { cn } from "@/lib/cn";
 import { call } from "../api";
-import { classLink } from "../config";
+import { classLink, setCurrentClassId } from "../config";
 import type { ClassInfo, Me } from "../content";
 import { competencies, competencyTitle, heatmapGroups, lessonById, lessons as allLessons, pathLessons } from "../content";
 import { offlineChallenges } from "./HandoutPage";
@@ -325,7 +325,7 @@ function NewClassForm({ apiUrl, onCreated }: { apiUrl: string; onCreated: () => 
 }
 
 function setCurrentClass(id: string) {
-  try { localStorage.setItem("academy.class", id); } catch { /* ignore */ }
+  setCurrentClassId(id);
 }
 
 function Classes({ data, apiUrl, onChange }: { data: ClassData; apiUrl: string; onChange: () => void }) {

@@ -50,21 +50,35 @@ function render() {
   var h = "";
   // 1 — prepare
   h += '<div class="step ' + (S.ready ? "done" : "todo") + '"><h2><span class="num">1</span>Prepare this Sheet</h2>';
-  h += S.ready ? '<p class="muted">Done. Tabs and settings are ready.</p>' : '<p>Creates the tabs that store your classes and student work.</p><button onclick="run(\'sidebarPrepare\', undefined, this)">Prepare my Sheet</button>';
+  h += S.ready ? '<p class="muted">Done. Tabs and settings are ready.</p>' : '<p>Creates the tabs that store your classes and student work, and turns on your app.</p><button onclick="run(\'sidebarAutoSetup\', undefined, this, \'Setting up…\')">Set up my Sheet</button>';
   h += "</div>";
-  // 2 — publish
+  // 2 — turn on the web app (done automatically by sidebarAutoSetup; manual steps are the fallback)
+  var t = S.turnOn || {};
   h += '<div class="step ' + (S.url ? "done" : S.ready ? "todo" : "") + '"><h2><span class="num">2</span>Turn on the app</h2>';
-  if (S.url) h += '<p class="muted">Done. Your app is live.</p>';
-  else {
-    h += '<p>Google needs you to click this part yourself (one time):</p><ol>' +
+  if (S.url) {
+    h += '<p class="muted">Done. Your app is live.</p>';
+    if (t.warning) h += '<div class="warn">' + esc(t.warning) + "</div>";
+  } else if (t.needsApi) {
+    h += '<div class="warn"><b>One switch Google makes you flip yourself:</b><ol>' +
+      '<li>Open <a target="_blank" href="https://script.google.com/home/usersettings">Apps Script settings</a>.</li>' +
+      "<li>Turn <b>Google Apps Script API</b> on.</li>" +
+      "<li>Come back here and click the button below.</li></ol>" +
+      '<p class="muted">You only do this once. It also lets <b>Update now</b> work later.</p></div>' +
+      '<button onclick="run(\'sidebarAutoSetup\', undefined, this, \'Turning on…\')">I turned it on — finish setup</button>';
+  } else if (S.ready) {
+    if (t.error) h += '<div class="warn">Couldn’t turn on the app automatically: ' + esc(t.error) + "</div>";
+    h += '<button onclick="run(\'sidebarAutoSetup\', undefined, this, \'Turning on…\')">Turn on my app</button>';
+  }
+  if (!S.url && S.ready) {
+    h += '<details' + (t.error ? " open" : "") + '><summary class="muted">Or do it by hand</summary><ol>' +
       "<li>Go to <b>Extensions → Apps Script</b>.</li>" +
       "<li>Click the blue <b>Deploy</b> button → <b>New deployment</b>.</li>" +
       "<li>Click the gear ⚙ next to “Select type” → <b>Web app</b>.</li>" +
       "<li>Execute as: <b>Me</b>. Who has access: <b>Anyone</b>.</li>" +
       "<li>Click <b>Deploy</b>, then <b>Authorize access</b> and allow.</li></ol>" +
-      '<p class="muted">“Anyone” only lets the website reach this Sheet. Students still sign in with Google, and only your roster gets in.</p>' +
-      '<button class="secondary" onclick="run(\'sidebarState\', undefined, this, \'Checking…\')">I did it — check again</button>';
+      '<button class="secondary" onclick="run(\'sidebarState\', undefined, this, \'Checking…\')">I did it — check again</button></details>';
   }
+  h += '<p class="muted">“Anyone” only lets the website reach this Sheet. Students still sign in with Google, and only your roster gets in.</p>';
   h += "</div>";
   // 3 — classes + links
   var live = S.ready && S.url;
@@ -125,7 +139,14 @@ function update(btn) {
     else { $("upd").innerHTML = '<div class="warn">' + esc(r.error) + "</div>"; btn.disabled = false; btn.textContent = "Update now"; }
   }).withFailureHandler(function (e) { $("upd").innerHTML = '<div class="warn">' + esc(e.message) + "</div>"; btn.disabled = false; btn.textContent = "Update now"; }).sidebarUpdate();
 }
-google.script.run.withSuccessHandler(function (s) { S = s; render(); }).withFailureHandler(function (e) { $("who").textContent = e.message; }).sidebarState();
+// First open after allowing permissions: prepare the Sheet and turn on the app without any more clicks.
+google.script.run.withSuccessHandler(function (s) {
+  S = s; render();
+  if (!S.ready || !S.url) {
+    $("app").insertAdjacentHTML("afterbegin", '<p class="warn" id="autobusy">Setting up your Sheet and turning on your app… (about 10 seconds)</p>');
+    run("sidebarAutoSetup");
+  }
+}).withFailureHandler(function (e) { $("who").textContent = e.message; }).sidebarState();
 </script>
 </body>
 </html>

@@ -1017,8 +1017,51 @@ function setConfig_(key, value) {
 function webAppUrl_() {
   let url = null;
   try { url = ScriptApp.getService().getUrl(); } catch (e) { url = null; }
-  if (!url || /\/dev$/.test(url)) return null;
+  if (!url || /\/dev$/.test(url)) {
+    // Turned on from the sidebar: remembered only for this script (a copied template has a new script ID).
+    const p = PropertiesService.getScriptProperties();
+    url = p.getProperty("WEBAPP_SCRIPT") === ScriptApp.getScriptId() ? p.getProperty("WEBAPP_URL") : null;
+  }
+  if (!url) return null;
   return url.replace(/\/a\/macros\/[^/]+\/s\//, "/macros/s/");
+}
+
+/** Calls the Apps Script API on this project with the teacher's own sign-in. */
+function scriptApi_(method, path, body) {
+  const opts = { method: method, headers: { Authorization: "Bearer " + ScriptApp.getOAuthToken() }, muteHttpExceptions: true };
+  if (body !== undefined) { opts.contentType = "application/json"; opts.payload = JSON.stringify(body); }
+  const r = UrlFetchApp.fetch("https://script.googleapis.com/v1/projects/" + ScriptApp.getScriptId() + path, opts);
+  const text = r.getContentText();
+  if (r.getResponseCode() >= 300) {
+    const needsApi = /usersettings|not enabled|has not been used/i.test(text);
+    throw { needsApi: needsApi, message: needsApi ? "Turn on the Google Apps Script API first." : text.slice(0, 300) };
+  }
+  return JSON.parse(text || "{}");
+}
+
+/**
+ * Turns on the web app for the teacher (the old manual "Deploy → New deployment → Web app" steps).
+ * Access settings come from appsscript.json: Execute as Me, Anyone. Safe to run again.
+ */
+function turnOnApp_() {
+  if (webAppUrl_()) return { ok: true };
+  try {
+    const v = scriptApi_("post", "/versions", { description: "3D Design Academy " + BUILD.version });
+    const d = scriptApi_("post", "/deployments", { versionNumber: v.versionNumber, manifestFileName: "appsscript", description: "3D Design Academy web app" });
+    const web = (d.entryPoints || []).filter(function (e) { return e.entryPointType === "WEB_APP"; })[0];
+    const webApp = (web && web.webApp) || {};
+    const url = webApp.url || "https://script.google.com/macros/s/" + d.deploymentId + "/exec";
+    const props = PropertiesService.getScriptProperties();
+    props.setProperty("WEBAPP_URL", url);
+    props.setProperty("WEBAPP_SCRIPT", ScriptApp.getScriptId());
+    const access = webApp.entryPointConfig && webApp.entryPointConfig.access;
+    if (access && access !== "ANYONE_ANONYMOUS") {
+      return { ok: true, auto: true, warning: "Your school's Google settings only allowed \"" + access + "\" access, so the website may not be able to reach this Sheet. Ask your Google admin to allow web apps shared with \"Anyone\"." };
+    }
+    return { ok: true, auto: true };
+  } catch (e) {
+    return { ok: false, needsApi: !!e.needsApi, error: e.message || String(e) };
+  }
 }
 
 function latestVersion_() {
@@ -1066,9 +1109,17 @@ function sidebarState() {
   };
 }
 
-function sidebarPrepare() {
+/** Runs right after the teacher allows permissions: prepares the Sheet and turns on the app, no clicks needed. */
+function sidebarAutoSetup() {
   setup();
-  return sidebarState();
+  const turnOn = turnOnApp_();
+  const state = sidebarState();
+  state.turnOn = turnOn;
+  return state;
+}
+
+function sidebarPrepare() {
+  return sidebarAutoSetup();
 }
 
 function sidebarSaveSettings(s) {
@@ -1100,25 +1151,14 @@ function sidebarUpdate() {
     return { name: f.name, type: f.type, source: Utilities.newBlob(Utilities.base64Decode(f.source)).getDataAsString() };
   });
   const id = ScriptApp.getScriptId();
-  const api = "https://script.googleapis.com/v1/projects/" + id;
-  const req = function (method, path, body) {
-    const r = UrlFetchApp.fetch(api + path, { method: method, contentType: "application/json", payload: JSON.stringify(body), headers: { Authorization: "Bearer " + ScriptApp.getOAuthToken() }, muteHttpExceptions: true });
-    const text = r.getContentText();
-    if (r.getResponseCode() >= 300) {
-      const needsApi = /usersettings|not enabled|has not been used/i.test(text);
-      throw { needsApi: needsApi, message: needsApi ? "Turn on the Google Apps Script API first." : "Update failed: " + text.slice(0, 200) };
-    }
-    return JSON.parse(text || "{}");
-  };
   try {
-    req("put", "/content", { files: files });
-    const v = req("post", "/versions", { description: "3D Design Academy " + pack.version });
-    const url = (function () { try { return ScriptApp.getService().getUrl(); } catch (e) { return ""; } })() || "";
-    const m = url.match(/\/s\/([\w-]+)\/exec/);
-    if (m) req("put", "/deployments/" + m[1], { deploymentConfig: { scriptId: id, versionNumber: v.versionNumber, manifestFileName: "appsscript", description: "3D Design Academy " + pack.version } });
+    scriptApi_("put", "/content", { files: files });
+    const v = scriptApi_("post", "/versions", { description: "3D Design Academy " + pack.version });
+    const m = (webAppUrl_() || "").match(/\/s\/([\w-]+)\/exec/);
+    if (m) scriptApi_("put", "/deployments/" + m[1], { deploymentConfig: { scriptId: id, versionNumber: v.versionNumber, manifestFileName: "appsscript", description: "3D Design Academy " + pack.version } });
     CacheService.getScriptCache().remove("latest_version");
     return { ok: true, version: pack.version, redeployed: !!m };
   } catch (e) {
-    return { ok: false, needsApi: !!e.needsApi, error: e.message || String(e) };
+    return { ok: false, needsApi: !!e.needsApi, error: e.needsApi ? e.message : "Update failed: " + (e.message || String(e)) };
   }
 }

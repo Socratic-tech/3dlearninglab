@@ -1,1 +1,1 @@
-Setup sidebar, one-click updates, faster loading, "who's stuck" panel, print queue, review deck and more hands-on questions.
+Setup now turns on your app for you — no more Deploy steps. Plus everything from the last update: setup sidebar, one-click updates, faster loading, "who's stuck" panel, print queue and review deck.

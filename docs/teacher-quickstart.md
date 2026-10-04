@@ -14,9 +14,11 @@ Google asks you to approve permissions the first time. You'll see **“Google ha
 That's expected: it's *your* copy, not a third-party app. Click **Advanced → Go to 3D Design Academy (unsafe) → Allow**.
 
 ## 3. Follow the 3 steps in the panel
-1. **Prepare my Sheet** — one click.
-2. **Turn on the app** — the panel shows the exact clicks: Extensions → Apps Script → **Deploy → New deployment →**
-   ⚙ **Web app** → Execute as **Me**, Who has access **Anyone** → **Deploy** → Authorize. Then click **I did it — check again**.
+1. **Prepare this Sheet** — happens by itself when the side panel opens.
+2. **Turn on the app** — happens by itself when the side panel opens. If Google hasn't let this account use the
+   Apps Script API yet, the panel links to https://script.google.com/home/usersettings: switch **Google Apps Script API**
+   on (once per account), then click **I turned it on — finish setup**. The manual steps (Deploy → New deployment →
+   Web app, Me, Anyone) are still in the panel under **Or do it by hand**.
 3. **Create your classes** — type a name (e.g. “3D Design · Period 2”) and pick 9 or 18 weeks.
    Each class gets a **student link** and a **QR code**. Post the link in Google Classroom.
 
