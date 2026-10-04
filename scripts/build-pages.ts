@@ -1,6 +1,7 @@
 /**
  * Builds the GitHub Pages edition's generated inputs:
- *   apps-script/dist/   Code.js + Lib.js (scoring/mastery bundled from src/lib) + Content.js (answer keys) + appsscript.json
+ *   apps-script/dist/   Code.js (small website loader) + appsscript.json — the only two files installed in a Sheet
+ *   web/public/apps-script/bundle.js   engine + scoring + sidebar + fallback content loaded by Code.js
  *   web/src/generated/lessons.json   lessons with answer keys and teacher guides REMOVED (safe to publish)
  * npm run pages:prepare
  */
@@ -21,6 +22,7 @@ const publish = (b: LessonBlock) => (packable(b) ? { ...redactBlock(b), k: encod
 
 const root = process.cwd();
 const dist = path.join(root, "apps-script/dist");
+fs.rmSync(dist, { recursive: true, force: true });
 fs.mkdirSync(dist, { recursive: true });
 
 // Spanish overlays (src/content/i18n/es/lessons/<id>.json). Missing files/keys fall back to English.
@@ -150,33 +152,44 @@ function cleanClientId(raw: string) {
   return id;
 }
 const codeSrc = fs.readFileSync(path.join(root, "apps-script/src/Code.js"), "utf8");
-// The engine version ignores Content.js: lesson edits travel in the content feed, not as engine updates.
 const read = (f: string) => fs.readFileSync(path.join(dist, f), "utf8");
 const [libJs, contentJs, sidebarHtml, manifestJson] = ["Lib.js", "Content.js", "Sidebar.html", "appsscript.json"].map(read);
-const files = [libJs, sidebarHtml, manifestJson];
+const loaderSrc = fs.readFileSync(path.join(root, "apps-script/src/Loader.js"), "utf8");
 const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")) as { version: string };
-const hash = crypto.createHash("sha256").update([codeSrc, ...files, site, clientId].join("\0")).digest("hex").slice(0, 7);
+const hash = crypto.createHash("sha256").update([codeSrc, loaderSrc, libJs, contentJs, sidebarHtml, manifestJson, site, clientId].join("\0")).digest("hex").slice(0, 7);
 const version = `${pkg.version}-${hash}`;
 const buildLine = /const BUILD = \{[^\n]*\}; \/\/ @build/;
 if (!buildLine.test(codeSrc)) throw new Error("Code.js is missing the BUILD line");
-const code = codeSrc.replace(buildLine, `const BUILD = ${JSON.stringify({ version, site, clientId })}; // @build`);
-fs.writeFileSync(path.join(dist, "Code.js"), code);
+const engine = codeSrc.replace(buildLine, `const BUILD = ${JSON.stringify({ version, site, clientId })}; // @build`);
 
 const pub = path.join(root, "web/public/apps-script");
+fs.rmSync(pub, { recursive: true, force: true });
 fs.mkdirSync(pub, { recursive: true });
-// Engine updates are a copy-and-paste (Google doesn't let Sheet copies use the Apps Script API). No code is ever
-// downloaded and run by a Sheet: lessons travel as checked data (content.json), see src/lib/content-feed.ts.
-for (const old of ["update.json", "bundle.js"]) fs.rmSync(path.join(pub, old), { force: true });
+
+// Publish one versioned application bundle. A teacher's permanent Code.gs is only the loader below.
+const libForBundle = libJs.replace(/^"use strict";\nvar Lib = \(\(\) => \{/m, 'var Lib = (() => {\n"use strict";');
+if (libForBundle === libJs) throw new Error("Lib.js layout changed: update the bundle step in build-pages.ts");
+const bundle = [
+  `// 3D Design Academy bundle ${version}`,
+  libForBundle,
+  contentJs,
+  engine,
+  `var SIDEBAR_HTML = ${JSON.stringify(sidebarHtml)};`,
+  "",
+].join("\n");
+fs.writeFileSync(path.join(pub, "bundle.js"), bundle);
+
+const loaderLine = /var ACADEMY_LOADER = \{[^\n]*\}; \/\/ @loader/;
+if (!loaderLine.test(loaderSrc)) throw new Error("Loader.js is missing the @loader line");
+const loader = loaderSrc.replace(loaderLine, `var ACADEMY_LOADER = ${JSON.stringify({ site, loader: 1 })}; // @loader`);
+fs.writeFileSync(path.join(dist, "Code.js"), loader);
+
 const notes = fs.existsSync(path.join(root, "apps-script/release-notes.txt")) ? fs.readFileSync(path.join(root, "apps-script/release-notes.txt"), "utf8").trim() : "";
 fs.writeFileSync(path.join(pub, "content.json"), JSON.stringify(feed));
 fs.writeFileSync(path.join(pub, "version.json"), JSON.stringify({ version, notes, date: new Date().toISOString().slice(0, 10) }));
-// 5) The copy-paste page for engine updates (published at apps-script/paste.html). Safe to publish: lesson content
-//    in Content.js is the scrambled feed, not readable answer keys.
+// The one-time migration page exposes exactly the two files that belong in Apps Script.
 const pasteFiles = [
-  { name: "Code", kind: "Script file", text: code },
-  { name: "Lib", kind: "Script file", text: libJs },
-  { name: "Content", kind: "Script file", text: contentJs },
-  { name: "Sidebar", kind: "HTML file", text: sidebarHtml },
+  { name: "Code", kind: "Replace everything in Code.gs", text: loader },
   { name: "appsscript.json", kind: "Manifest (Project Settings → Show appsscript.json)", text: manifestJson },
 ];
 const helper = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Update your 3D Design Academy Sheet</title>
@@ -186,14 +199,15 @@ h1{font-size:26px;margin:0 0 4px}ol.steps{padding-left:22px}ol.steps>li{margin:1
 .f b{font-size:17px}.f span{color:#4a5a70;font-size:14px}button{margin-left:auto;background:#0b5cad;color:#fff;border:0;border-radius:9px;padding:10px 18px;font-weight:700;font-size:15px;cursor:pointer}
 button.ok{background:#15803d}textarea{position:fixed;left:-9999px}.muted{color:#4a5a70;font-size:14px}code{background:#eef2f7;border-radius:4px;padding:0 4px}
 .warn{background:#fdf6dc;border:1px solid #a16207;border-radius:10px;padding:10px 14px}</style></head><body>
-<h1>Update your Sheet's script</h1><p class="muted">Only needed when your dashboard says so (rarely: lesson changes arrive by themselves). Your links and student work stay the same. Version ${version}.</p>
+<h1>Install the two-file loader</h1><p class="muted">This is a one-time change. Afterward, the app and lessons update from the website automatically. Your links and student work stay the same. Version ${version}.</p>
 ${clientId ? "" : '<p class="warn">No Google client ID is built in. Set <code>clientId</code> in <code>apps-script/build.config.json</code> and rebuild.</p>'}
 <ol class="steps">
 <li>In your class Google Sheet, click <b>Extensions → Apps Script</b>.</li>
-<li>For each file below: click it on the left (or click <b>+</b> to add it with this exact name), press <b>Ctrl+A</b> (Mac: <b>⌘A</b>), then paste.<div id="f0"></div><div id="f1"></div><div id="f2"></div><div id="f3"></div></li>
-<li>Click the gear ⚙ <b>Project Settings</b> → tick <b>Show "appsscript.json"</b>. Go back (&lt;&gt; Editor), click <b>appsscript.json</b>, select all, paste this:<div id="f4"></div></li>
+<li>Delete any old <b>Lib</b>, <b>Content</b>, or <b>Sidebar</b> files. Apps Script should contain only <b>Code.gs</b> and <b>appsscript.json</b>.</li>
+<li>Click <b>Code.gs</b>, select all, and paste:<div id="f0"></div></li>
+<li>Click the gear ⚙ <b>Project Settings</b> → tick <b>Show "appsscript.json"</b>. Go back (&lt;&gt; Editor), click <b>appsscript.json</b>, select all, and paste:<div id="f1"></div></li>
 <li>Click 💾 <b>Save</b>.</li>
-<li><b>Point your app at the new script</b>: click <b>Deploy → Manage deployments</b>, click the pencil ✏, set <b>Version</b> to <b>New version</b>, and click <b>Deploy</b>. Your links stay the same.</li>
+<li>If this Sheet is already deployed: click <b>Deploy → Manage deployments</b>, click the pencil ✏, choose <b>New version</b>, and click <b>Deploy</b>. Your links stay the same.</li>
 </ol>
 <textarea id="t"></textarea>
 <script>const F=${JSON.stringify(pasteFiles).replace(/</g, "\\u003c")};
@@ -204,7 +218,8 @@ const b=d.querySelector("button");b.onclick=function(){t.value=f.text;t.select()
 if(!ok&&navigator.clipboard){navigator.clipboard.writeText(f.text).then(function(){b.textContent="Copied ✓";b.className="ok"});return}
 b.textContent=ok?"Copied ✓":"Copy failed — try Chrome";b.className=ok?"ok":""};document.getElementById("f"+i).appendChild(d)});</script></body></html>`;
 fs.writeFileSync(path.join(pub, "paste.html"), helper);
-fs.writeFileSync(path.join(dist, "paste-helper.html"), helper);
+// Lib, content and sidebar are bundle inputs, never Apps Script installation files.
+for (const generated of ["Lib.js", "Content.js", "Sidebar.html"]) fs.rmSync(path.join(dist, generated), { force: true });
 if (!clientId) console.warn("⚠ No Google client ID baked in: set clientId in apps-script/build.config.json (or GOOGLE_CLIENT_ID).");
 }
 

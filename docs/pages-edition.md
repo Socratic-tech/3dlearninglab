@@ -10,10 +10,10 @@ Students & teachers ──► GitHub Pages (static site: lessons, 3D viewer, dia
                Google Sheet (data) + Drive folder (uploads) + Classroom (rosters)
 ```
 
-- The site has **no student data and no answer keys** (lessons are published redacted; teacher guides are left out).
+- The site has **no student data or readable answer keys** (lesson keys in the server feed are scrambled; teacher guides are left out).
 - Every request carries a Google ID token. Apps Script verifies it with Google, checks the audience (your OAuth client),
   the email domain, and the roster before touching the Sheet. Students never get access to the Sheet.
-- Skill checks are scored in Apps Script with the same code as the Next.js edition (`src/lib` bundled into `Lib.js`).
+- Skill checks are scored in Apps Script with the same code as the Next.js edition. The scoring engine is part of the website-hosted application bundle.
 - **One Google Sheet per teacher**, holding all of that teacher's classes (Classes + Enrollments tabs). Each teacher runs their own copy of the Apps Script, so data and Google quotas stay per teacher.
 
 ## One-time setup (site owner)
@@ -25,11 +25,11 @@ Students & teachers ──► GitHub Pages (static site: lessons, 3D viewer, dia
 2. Put the client ID in **`apps-script/build.config.json`** (`clientId`). It's public (every page of the site uses it),
    so committing it is fine. It gets baked into the site *and* the Apps Script, so teachers never type it.
 3. **GitHub** — Settings → Pages → Source: **GitHub Actions**. Every push to `main` builds and deploys the site,
-   plus `apps-script/update.json` + `version.json` that teachers' sidebars install updates from.
+   including the versioned Apps Script application bundle and lesson feed.
 4. **Make the template Sheet** (once):
    1. Run `npm run pages:prepare`. Create a blank Google Sheet named “3D Design Academy”. Extensions → **Apps Script**.
-   2. Create files with these exact names and paste from `apps-script/dist/`: script files **Code**, **Lib**, **Content**;
-      HTML file **Sidebar**; and the manifest (Project Settings → “Show appsscript.json” → paste `appsscript.json`). Save.
+   2. Apps Script must contain exactly two files. Replace **Code.gs** with `apps-script/dist/Code.js`, then enable and
+      replace **appsscript.json** from `apps-script/dist/appsscript.json`. Delete any old Lib, Content, or Sidebar files.
    3. Don't deploy it and don't add data — it's only a master.
    4. Share → *Anyone with the link* → **Viewer**. Copy the link and change the end from `/edit…` to **`/copy`**.
    5. Put that `/copy` link in `apps-script/build.config.json` → `templateUrl`, commit, push. The site's welcome screen
@@ -44,18 +44,16 @@ See **[teacher-quickstart.md](teacher-quickstart.md)** — the version to send t
 3. The side panel: **Prepare my Sheet** → follow the pictured **Deploy → New deployment → Web app** steps →
    create classes → copy each class's link (or show its QR code). **Open my teacher dashboard** for the rest.
 
-**Updates:** the side panel shows “Update available” after you push changes to the script or curriculum. **Update now**
-installs the new files into the teacher's own script with the Apps Script API and moves their web app to the new
-version — same links. It needs a one-time switch: script.google.com/home/usersettings → *Google Apps Script API* → On
-(the panel says so if it's off). The update bundle is published on the site; like the repo's lesson files, it contains
-the answer keys in encoded (not plain-text) form — keep the repo private if that matters to you.
+**Updates:** `Code.gs` is a small permanent loader. It checks the website every 30 minutes for the current application
+bundle, caches it for outages, and keeps a backup in a hidden Sheet tab. Teachers can also click **Check for updates
+now** in the side panel. No Apps Script files need to be replaced after the one-time two-file installation.
 
 A workbook set up before multi-class support upgrades itself on the first request: the old `CLASS_NAME`/`PATH_ID`
 settings become one class and every existing student is enrolled in it. A student in two of your classes keeps one
 set of progress and skills (it's the same student) and sees each class's own course length and settings.
 
-When the curriculum changes: push. Teachers click **Update now** in their side panel (or paste the new files from
-`apps-script/dist/` and Deploy → Manage deployments → Edit → New version).
+When the curriculum or application changes: push. Existing Sheets pick it up automatically from the website; their
+deployment URL and student work do not change.
 
 ## Notes and limits
 

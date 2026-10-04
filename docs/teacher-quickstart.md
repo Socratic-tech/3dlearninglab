@@ -30,7 +30,7 @@ class, review work, and run the **print queue**. Bookmark the page that opens.
 ## Good to know
 - **Who can sign in:** your email domain is filled in for you. If students use a different domain
   (like `students.district.org`), add it under **Settings** in the panel.
-- **Updates:** lessons, questions and fixes reach your class by themselves (your Sheet reads them from the website as data, never as code). Once in a while — for a new feature — your dashboard shows **A script update is ready** with copy-and-paste steps. Links and student work don't change.
+- **Updates:** the Sheet contains a small loader plus its manifest. The app and lessons come from the website, check for updates automatically, and keep a cached backup for outages. You do not have to replace script files after setup.
 - **“Anyone” access** only lets the website reach your Sheet. Every student still signs in with Google, and only
   students on your roster get in. If your district blocks “Anyone” web apps or unverified apps, ask your Google admin to
   allow this one script.

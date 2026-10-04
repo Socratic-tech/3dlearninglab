@@ -41,7 +41,7 @@ const TABS = ["Overview", "Lessons", "Heatmap", "Review", "Prints", "Roster", "C
 export function TeacherPage(p: { me: Me; apiUrl: string; clientId: string; onChange: () => void }) {
   return (
     <>
-      <UpdateBanner me={p.me} />
+      <UpdateBanner me={p.me} apiUrl={p.apiUrl} onUpdated={p.onChange} />
       <TeacherMain {...p} />
     </>
   );

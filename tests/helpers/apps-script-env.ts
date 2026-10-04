@@ -5,6 +5,7 @@ import vm from "node:vm";
 import { createHash } from "node:crypto";
 
 const dist = path.join(process.cwd(), "apps-script/dist");
+const published = path.join(process.cwd(), "web/public/apps-script");
 
 /** Test tokens are "tok:<email>" or an unsigned JWT whose payload has an email claim. */
 function emailFromToken(t: string) {
@@ -46,7 +47,7 @@ export const okScriptApi: ScriptApiFake = ({ method, path }) => {
   return { code: 200, body: {} };
 };
 
-export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string; scriptId?: string; scriptApi?: ScriptApiFake; updatePack?: unknown; feed?: { body: string | null; fetches: number } } = {}) {
+export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string; scriptId?: string; scriptApi?: ScriptApiFake; feed?: { body: string | null; fetches: number }; site?: { up: boolean; fetches: number } } = {}) {
   const scriptApiCalls: ScriptApiCall[] = [];
   const sheets = new Map<string, ReturnType<typeof fakeSheet>>();
   const book = {
@@ -119,9 +120,11 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
           const body = opts.feed?.body ?? null;
           return { getResponseCode: () => (body === null ? 404 : 200), getContentText: () => body ?? "" };
         }
-        if (url.includes("apps-script/update.json")) {
-          const found = !!opts.updatePack;
-          return { getResponseCode: () => (found ? 200 : 404), getContentText: () => (found ? JSON.stringify(opts.updatePack) : "") };
+        if (url.includes("apps-script/bundle.js")) {
+          const site = opts.site ?? { up: true, fetches: 0 };
+          site.fetches++;
+          const body = site.up ? fs.readFileSync(path.join(published, "bundle.js"), "utf8") : "<html>Service unavailable</html>";
+          return { getResponseCode: () => (site.up ? 200 : 503), getContentText: () => body };
         }
         const email = emailFromToken(decodeURIComponent(url.split("id_token=")[1]));
         const ok = !email.startsWith("bad");
@@ -135,8 +138,8 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
   };
   vm.createContext(ctx);
   const load = () => {
-    // Each Apps Script execution runs every file's top level again.
-    for (const f of ["Lib.js", "Content.js", "Code.js"]) vm.runInContext(fs.readFileSync(path.join(dist, f), "utf8"), ctx, { filename: f });
+    // The Apps Script project has one script file. It loads the application bundle from the website.
+    vm.runInContext(fs.readFileSync(path.join(dist, "Code.js"), "utf8"), ctx, { filename: "Code.js" });
   };
   load();
   vm.runInContext("setup()", ctx);
@@ -147,4 +150,3 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
   const run = (code: string) => JSON.parse(vm.runInContext(`JSON.stringify(${code})`, ctx) as string);
   return { call, raw, run, sheets, files, folders, props, scriptApiCalls, cache, load };
 }
-

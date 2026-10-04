@@ -6,12 +6,12 @@
  * (and Drive for uploads). Students never get access to the Sheet itself.
  *
  * One workbook per TEACHER: all of a teacher's classes live in it (Classes + Enrollments tabs).
- * Deploy: Extensions → Apps Script in the teacher's Sheet, paste dist/*.js + appsscript.json (or use clasp),
+ * Deploy: Extensions → Apps Script in the teacher's Sheet, paste dist/Code.js + appsscript.json,
  * run setup() once, then Deploy → New deployment → Web app → Execute as: Me, Who has access: Anyone.
  * ("Anyone" is required so the Pages site can call it; every request is still authenticated by Google ID token.)
  *
- * Globals provided by the other files: Lib (scoring/mastery, bundled from src/lib), CONTENT_FEED (built-in
- * copy of the lessons, scrambled; normally replaced by the newer feed from the website — see content_()).
+ * This engine is bundled with Lib, the sidebar and a fallback content feed on the website. The permanent
+ * Code.gs in each Sheet is only the loader; see Loader.js and scripts/build-pages.ts.
  */
 
 const API_VERSION = "1";
@@ -401,7 +401,7 @@ function parse_(s, fallback) {
 // ───────────────────────── Lesson content feed ─────────────────────────
 // Lessons and answer keys are DATA downloaded from the website (apps-script/content.json), never code. The feed is
 // checked (format, engine version, checksum, shape) before it's used; anything wrong keeps the last good copy, and
-// with no good copy at all the built-in copy from Content.js is used. Student data never leaves this Sheet.
+// with no good copy at all the fallback included in the website bundle is used. Student data never leaves this Sheet.
 var CONTENT_MEMO_ = null;
 const FEED_FRESH_SECS_ = 900; // re-check the website every 15 minutes while classes are using the app
 const FEED_CHUNK_ = 30000;    // cache values are limited to 100 KB; 30k characters is safe for any text
@@ -433,10 +433,10 @@ function feedContent_() {
   return cached;
 }
 
-/** The lessons that came with this copy (Content.js holds the same scrambled feed the website publishes). */
+/** Fallback lessons embedded in the website bundle, using the same scrambled feed the website publishes. */
 function builtInContent_() {
   const got = decodeFeed_(CONTENT_FEED);
-  if (!got) throw new Error("Content.js is damaged: paste it again from the update page.");
+  if (!got) throw new Error("The website bundle's fallback lessons are damaged. Try again in a minute.");
   return { data: got.data, version: "built-in", text: got.text };
 }
 
@@ -700,6 +700,14 @@ const ACTIONS = {
         prints: table_("Prints").filter(function (r) { return r.email === user.email; }).map(printOut_),
         app: user.role === "teacher" ? { version: BUILD.version, owner: String(Session.getEffectiveUser().getEmail() || "").toLowerCase(), content: contentVersion_(), engineBehind: !!CacheService.getScriptCache().get("cf_engine_behind") } : null,
       };
+    },
+  },
+
+  /** Ask the permanent loader to fetch the newest website bundle immediately. */
+  updateApp: {
+    role: "teacher",
+    run: function () {
+      return sidebarUpdate();
     },
   },
 
@@ -1093,7 +1101,8 @@ function onOpen() {
 }
 
 function showSidebar() {
-  SpreadsheetApp.getUi().showSidebar(HtmlService.createHtmlOutputFromFile("Sidebar").setTitle("3D Design Academy"));
+  const html = typeof SIDEBAR_HTML !== "undefined" ? HtmlService.createHtmlOutput(SIDEBAR_HTML) : HtmlService.createHtmlOutputFromFile("Sidebar");
+  SpreadsheetApp.getUi().showSidebar(html.setTitle("3D Design Academy"));
 }
 
 /** Creates tabs and settings. Safe to run again. */
@@ -1131,6 +1140,10 @@ function webAppUrl_() {
   try { url = ScriptApp.getService().getUrl(); } catch (e) { url = null; }
   if (!url || /\/dev$/.test(url)) return null;
   return url.replace(/\/a\/macros\/[^/]+\/s\//, "/macros/s/");
+}
+
+function viaLoader_() {
+  return typeof ACADEMY_LOADER !== "undefined" && typeof academyRefresh_ === "function";
 }
 
 function latestVersion_() {
@@ -1175,6 +1188,7 @@ function sidebarState() {
     classes: classes.map(function (c) { return { id: c.id, name: c.name + (c.section ? " · " + c.section : ""), link: link("&class=" + encodeURIComponent(c.id)) }; }),
     version: BUILD.version,
     latest: latestVersion_(),
+    autoUpdates: viaLoader_(),
     pasteUrl: BUILD.site ? BUILD.site + "apps-script/paste.html" : null,
     editorUrl: "https://script.google.com/d/" + ScriptApp.getScriptId() + "/edit",
   };
@@ -1205,3 +1219,18 @@ function sidebarCreateClass(c) {
   return sidebarState();
 }
 
+function sidebarUpdate() {
+  if (viaLoader_()) {
+    const version = academyRefresh_();
+    CacheService.getScriptCache().remove("latest_version");
+    return version
+      ? { ok: true, version: version, redeployed: true }
+      : { ok: false, error: "Couldn't reach the website. Try again in a minute." };
+  }
+  return {
+    ok: false,
+    needsPaste: true,
+    pasteUrl: BUILD.site ? BUILD.site + "apps-script/paste.html" : null,
+    error: "This copy needs the one-time two-file loader update.",
+  };
+}

@@ -1,5 +1,5 @@
 /**
- * Runs the real Apps Script bundle (apps-script/dist) inside a VM with in-memory fakes of
+ * Runs the real two-file Apps Script deployment and website bundle inside a VM with in-memory fakes of
  * SpreadsheetApp, LockService, CacheService, UrlFetchApp, DriveApp, etc.
  * Requires `npm run pages:prepare` (done automatically by the test via execSync if dist is missing).
  */
@@ -7,7 +7,6 @@ import { beforeEach, describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import { execSync } from "node:child_process";
-import vm from "node:vm";
 import { decodeFeed, encodeFeed, ENGINE, type Feed } from "@/lib/content-feed";
 import { getLesson, allBlocks } from "@/content";
 import { makeEnv } from "../helpers/apps-script-env";
@@ -197,20 +196,53 @@ describe("Setup sidebar", () => {
   it("setting up never touches the Apps Script API (Google blocks it in Sheet copies)", () => {
     const e = makeEnv("teacher@school.org");
     const st = e.run("sidebarAutoSetup()");
-    expect(st).toMatchObject({ ready: true, url: null });
+    expect(st).toMatchObject({ ready: true, url: null, autoUpdates: true });
     expect(st.editorUrl).toBe("https://script.google.com/d/script-1/edit");
     expect(e.scriptApiCalls).toHaveLength(0);
   });
 
-  it("engine updates are a copy and paste: the panel links the published paste page, and there is no update action", () => {
-    const e = makeEnv("teacher@school.org", { webAppUrl: "https://script.google.com/macros/s/AKfy123/exec" });
-    expect(e.run("sidebarState()").pasteUrl).toBe("https://socratic-tech.github.io/3dlearninglab/apps-script/paste.html");
-    expect(e.call("teacher@school.org", "updateApp")).toMatchObject({ ok: false });
-    expect(e.scriptApiCalls).toHaveLength(0);
+  it("the generated Apps Script installation contains only Code.gs and the manifest", () => {
+    const install = fs.readdirSync(dist).sort();
+    expect(install).toEqual(["Code.js", "appsscript.json"]);
+    const helper = fs.readFileSync(path.join(process.cwd(), "web/public/apps-script/paste.html"), "utf8");
+    expect(helper).toContain("only <b>Code.gs</b> and <b>appsscript.json</b>");
+    expect(helper).not.toContain('{ name: "Lib"');
   });
 
+  it("the loader runs the complete app from the website", () => {
+    const site = { up: true, fetches: 0 };
+    const e = makeEnv("teacher@school.org", { site, webAppUrl: "https://script.google.com/macros/s/AKfy123/exec" });
+    expect(e.run("sidebarState()")).toMatchObject({ ready: true, autoUpdates: true });
+    expect(e.run("typeof SIDEBAR_HTML === 'string' && SIDEBAR_HTML.indexOf('3D Design Academy') > 0")).toBe(true);
+    const cid = e.call("teacher@school.org", "createClass", { name: "Via loader" }).data.id;
+    e.call("teacher@school.org", "addStudents", { classId: cid, students: [{ email: "maya@school.org" }] });
+    expect(e.call("maya@school.org", "me").ok).toBe(true);
+    expect(Number(e.cache.get("ac_n"))).toBeGreaterThan(1);
+    e.load();
+    expect(site.fetches).toBe(1);
+  });
 
+  it("keeps working when the website is down: cache first, then the hidden backup", () => {
+    const site = { up: true, fetches: 0 };
+    const e = makeEnv("teacher@school.org", { site });
+    expect(e.sheets.get("_app_backup")!.data.length).toBeGreaterThan(1);
+    site.up = false;
+    e.cache.delete("ac_fresh");
+    e.load();
+    expect(e.run("sidebarState()").autoUpdates).toBe(true);
+    e.cache.clear();
+    e.load();
+    expect(e.call("teacher@school.org", "createClass", { name: "Still works" }).ok).toBe(true);
+  });
 
+  it("Update now asks the loader to fetch the newest website bundle", () => {
+    const site = { up: true, fetches: 0 };
+    const e = makeEnv("teacher@school.org", { site });
+    expect(e.call("teacher@school.org", "updateApp").data).toMatchObject({ ok: true, redeployed: true });
+    expect(site.fetches).toBe(2);
+    site.up = false;
+    expect(e.run("sidebarUpdate()")).toMatchObject({ ok: false, error: expect.stringMatching(/website/) });
+  });
 
   it("a copied template starts fresh for the new teacher and fills in their domain", () => {
     const e = makeEnv("teacher@school.org");
@@ -251,9 +283,10 @@ describe("Setup sidebar", () => {
 
 describe("Lesson content feed", () => {
   const builtIn = () => {
-    const ctx: { CONTENT_FEED?: Feed } = {};
-    vm.runInNewContext(fs.readFileSync(path.join(dist, "Content.js"), "utf8").replace("var CONTENT_FEED", "this.CONTENT_FEED"), ctx);
-    return decodeFeed(ctx.CONTENT_FEED!) as { lessons: Record<string, { blocks: Record<string, { correctOptionIds?: string[]; options?: { id: string }[] }> }> };
+    const bundle = fs.readFileSync(path.join(process.cwd(), "web/public/apps-script/bundle.js"), "utf8");
+    const line = bundle.match(/^var CONTENT_FEED = (.+);$/m);
+    if (!line) throw new Error("Published bundle has no fallback content feed");
+    return decodeFeed(JSON.parse(line[1]) as Feed) as { lessons: Record<string, { blocks: Record<string, { correctOptionIds?: string[]; options?: { id: string }[] }> }> };
   };
   const holesSkill = () => {
     const mc = allBlocks(getLesson("holes")!).find((b) => b.type === "multipleChoice" && b.check === "skill")!;
@@ -317,6 +350,9 @@ describe("Lesson content feed", () => {
     const f = JSON.parse(fs.readFileSync(path.join(process.cwd(), "web/public/apps-script/content.json"), "utf8"));
     expect(f).toMatchObject({ format: 1, engine: ENGINE });
     expect(JSON.stringify(f)).not.toContain("correctOptionIds"); // answer keys aren't readable in the file
-    expect(fs.readFileSync(path.join(dist, "Content.js"), "utf8")).not.toContain("correctOptionIds"); // nor in the paste page's Content file
+    const bundle = fs.readFileSync(path.join(process.cwd(), "web/public/apps-script/bundle.js"), "utf8");
+    const fallback = bundle.match(/^var CONTENT_FEED = (.+);$/m);
+    expect(fallback).not.toBeNull();
+    expect(fallback![1]).not.toContain("correctOptionIds");
   });
 });
