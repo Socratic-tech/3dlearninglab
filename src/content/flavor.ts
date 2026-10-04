@@ -88,9 +88,10 @@ export const FLAVOR: Record<string, Flavor> = {
     hook: { headline: "Your gamer tag, in plastic.", body: "Name tags, team logos, labels on the side of a controller stand — text is everywhere on printed things. But letters thinner than about 1 mm turn into blobs. Today: text that actually prints." },
     clients: { prove: { name: "Mr. Alvarez", who: "runs the school garden club", message: "Our labels keep fading in the sun. Can you design a plant marker with the name pressed into it so it lasts?" } },
   },
-  "boss-die": {
-    hook: { headline: "Every tabletop game needs fair dice.", body: "If a die is a little off, some numbers come up more than others — and somebody wins who shouldn't. Game makers measure dice carefully. Your turn." },
-    clients: { boss: { name: "Gamemaster Theo", who: "runs the after-school game club", message: "Someone swapped our dice with fakes. I need a perfect one by Friday. No pressure. (Some pressure.)" } },
+  "boss-nametag": {
+    hook: { headline: "Your name, on your backpack, by Friday.", body: "Esports teams, clubs and bands hand out custom keychains all the time. A factory makes thousands from one file — so the file has to match the spec exactly. Today you're the designer." },
+    clients: { boss: { name: "Coach Rivera", who: "runs the school esports team", message: "The team needs gamer-tag keychains before the tournament. They hang on a display board, so every tag has to be exactly 50 mm. Make yours the one we copy." } },
+    themes: { boss: [{ label: "Gamer tag", idea: "Your gamer tag with a controller or star icon" }, { label: "Team tag", idea: "Your name plus your team or club" }, { label: "Locker tag", idea: "Your initials and locker number" }] },
   },
   ruler: {
     hook: { headline: "'About here' isn't a measurement.", body: "When you mount a TV, the holes have to be exactly where the bracket expects. Screws, buttons and cutouts in real products are placed at exact distances from an edge." },

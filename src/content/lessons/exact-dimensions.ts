@@ -195,7 +195,7 @@ export const lesson: LessonInput = {
   ],
   teacher: {
     purpose: "Students replace dragging by eye with typed, verified dimensions — the habit every fit and print lesson depends on.",
-    preparation: ["Download broken-die.stl (optional import). It is reused as a warm-up in the Mystery Die boss later."],
+    preparation: ["Download broken-die.stl (optional import)."],
     equipment: ["Student devices with Tinkercad"],
     misconceptions: [
       { id: "drag-precise", text: "Careful dragging gives exact sizes.", response: "Show that dragging follows the snap grid; typing doesn't." },

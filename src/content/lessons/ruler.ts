@@ -11,7 +11,7 @@ export const lesson: LessonInput = {
   estimatedMinutes: 45,
   printLevel: "digital",
   competencyIds: ["C1", "C2"],
-  prerequisites: ["boss-die"],
+  prerequisites: ["boss-nametag"],
   vocabulary: [
     { term: "Ruler", definition: "A Tinkercad tool you drop at a point; it shows distances from that point to the selected shape." },
     { term: "Origin", definition: "The point you measure from. With the Ruler, it's wherever you place it." },

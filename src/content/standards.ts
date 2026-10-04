@@ -55,7 +55,7 @@ export const lessonStandards: { lessonId: string; standardIds: string[] }[] = [
   { lessonId: "repeat-duplicate", standardIds: ["math-8.g.a.3", "mics-2-ap-13"] },
   { lessonId: "mirror", standardIds: ["math-8.g.a.1", "math-8.g.a.3"] },
   { lessonId: "text", standardIds: ["iste-1.6d"] },
-  { lessonId: "boss-die", standardIds: ["iste-1.4d", "math-7.g.b.6"] },
+  { lessonId: "boss-nametag", standardIds: ["iste-1.4d", "math-7.g.b.6"] },
   { lessonId: "ruler", standardIds: ["math-6.ns.b.3"] },
   { lessonId: "measuring-real-objects", standardIds: ["math-6.ns.b.3", "ngss-ms-ets1-1"] },
   { lessonId: "calipers", standardIds: ["math-6.ns.b.3"] },

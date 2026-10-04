@@ -35,12 +35,13 @@ export const rubricInputs: R[] = [
     ],
   },
   {
-    id: "boss-die",
-    title: "Boss Battle — The Mystery Die (12 pts)",
+    id: "boss-nametag",
+    title: "Boss Battle — The Name Tag (16 pts)",
     criteria: [
-      { id: "dims", label: "Exactly 20 × 20 × 20 mm", max: 4, competencyIds: ["A9"], descriptors: d4("Verified exactly, with screenshot of dimensions.", "Within 0.1 mm.", "Off by more than 0.1 mm on one axis.", "Not measured.") },
-      { id: "recess", label: "Recessed numbering on six sides", max: 4, competencyIds: ["B3", "B4", "A10", "A11"], descriptors: d4("All six sides correct and none penetrate through.", "Six sides with one minor issue.", "Missing sides or features penetrate.", "Little recessed geometry.") },
-      { id: "group", label: "Single grouped model", max: 4, competencyIds: ["B2", "B5"], descriptors: d4("One clean group, no stray shapes.", "One group with a stray shape.", "Several groups.", "Not grouped.") },
+      { id: "dims", label: "Tag exactly 50 × 20 × 3 mm", max: 4, competencyIds: ["A9"], descriptors: d4("Verified exactly, with a screenshot of the grouped size.", "Within 0.5 mm.", "Off by more than 0.5 mm on one axis.", "Not measured.") },
+      { id: "name", label: "Raised, readable, centered name", max: 4, competencyIds: ["B10", "B4"], descriptors: d4("Raised 1 mm, touching, 6 mm+ letters, centered with Align.", "Raised and readable, slightly off-center.", "Floating, too small or clearly off-center.", "No name.") },
+      { id: "hole", label: "Key-ring hole with a margin", max: 4, competencyIds: ["B3"], descriptors: d4("5 mm hole cuts through with 2 mm+ of plastic all around.", "Hole works; margin a little under 2 mm.", "Hole breaks the edge or doesn't cut through.", "No hole.") },
+      { id: "group", label: "Single grouped part", max: 4, competencyIds: ["B2"], descriptors: d4("One clean group, no stray shapes.", "One group with a stray shape.", "Several groups.", "Not grouped.") },
     ],
   },
   {

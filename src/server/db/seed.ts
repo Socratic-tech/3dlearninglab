@@ -155,7 +155,7 @@ export async function seedDemo(db: DB) {
 
   // Evidence: some awaiting review, some reviewed, Mia's tolerance needs revision
   await db.insert(s.evidence).values([
-    { studentId: byKey.maya.id, courseId: course.id, lessonId: "boss-die", blockId: "submit", competencyIds: ["A9", "B2", "B3"], type: "design_url", url: "https://www.tinkercad.com/things/demo-maya-die", response: "Checked 20.00 × 20.00 × 20.00 in the shape panel.", status: "reviewed", teacherRating: 3, teacherComment: "Clean grouping and every recess is 1.5 mm deep. Independent.", reviewedBy: teacher.id, reviewedAt: days(9), createdAt: days(10) },
+    { studentId: byKey.maya.id, courseId: course.id, lessonId: "boss-nametag", blockId: "submit", competencyIds: ["A9", "B2", "B3"], type: "design_url", url: "https://www.tinkercad.com/things/demo-maya-die", response: "Checked 20.00 × 20.00 × 20.00 in the shape panel.", status: "reviewed", teacherRating: 3, teacherComment: "Clean grouping and every recess is 1.5 mm deep. Independent.", reviewedBy: teacher.id, reviewedAt: days(9), createdAt: days(10) },
     { studentId: byKey.luis.id, courseId: course.id, lessonId: "make-it-fit", blockId: "submit", competencyIds: ["C7", "C8"], type: "design_url", url: "https://www.tinkercad.com/things/demo-luis-clip", response: "Marker cap clip. Measured 14.2 mm, used 14.6 mm hole.", status: "submitted", createdAt: days(1) },
     { studentId: byKey.ava.id, courseId: course.id, lessonId: "orientation", blockId: "submit", competencyIds: ["D6", "D7"], type: "written", response: "I would print the hook lying flat because the layers would then run along the curve, so the load pulls along the layers instead of peeling them apart.", status: "submitted", createdAt: days(0.5) },
     { studentId: byKey.mia.id, courseId: course.id, lessonId: "tolerances", blockId: "class-results", competencyIds: ["C5", "C6"], type: "physical_test", response: "The 10.2 one fit.", status: "needs_revision", teacherComment: "Which holes did you test, and how did each one feel? Add all three results.", reviewedBy: teacher.id, reviewedAt: days(2), createdAt: days(3) },
@@ -189,7 +189,7 @@ export async function seedDemo(db: DB) {
     job("ava", "Hook — flat orientation", "queued", { lessonId: "strength", printer: "Prusa MK4 #1", filament: "PLA white", estimatedMinutes: 22 }),
     job("maya", "Tolerance coupon", "printing", { lessonId: "tolerances", printer: "Bambu A1 mini #2", filament: "PLA blue", estimatedMinutes: 14 }),
     job("mia", "Snap lid v1", "failed", { lessonId: "make-it-fit", printer: "Prusa MK4 #2", failureReason: "Thin walls (0.6 mm) didn't print — try at least 1.2 mm.", estimatedMinutes: 35 }),
-    job("jordan", "Die", "completed", { lessonId: "boss-die", printer: "Bambu A1 mini #1", estimatedMinutes: 40 }),
+    job("jordan", "Name tag", "completed", { lessonId: "boss-nametag", printer: "Bambu A1 mini #1", estimatedMinutes: 40 }),
   ]);
 
   // Design journal for Ava
@@ -209,8 +209,8 @@ export async function seedDemo(db: DB) {
   // A published Classroom assignment (fake Classroom in demo mode)
   await db.insert(s.assignments).values({
     courseId: course.id,
-    activityId: "boss-die",
-    title: "Boss Battle: The Mystery Die",
+    activityId: "boss-nametag",
+    title: "Boss Battle: The Name Tag",
     instructions: "No tutorial — use every skill you have. Submit your share link and a screenshot of the dimensions.",
     points: 12,
     topic: "Boss Battles",

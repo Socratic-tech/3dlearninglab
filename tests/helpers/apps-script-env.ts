@@ -2,6 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
+import { createHash } from "node:crypto";
 
 const dist = path.join(process.cwd(), "apps-script/dist");
 
@@ -32,7 +33,18 @@ function fakeSheet() {
   return sh;
 }
 
-export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string } = {}) {
+type ScriptApiCall = { method: string; path: string; body: unknown };
+export type ScriptApiFake = (call: ScriptApiCall) => { code: number; body: unknown };
+
+/** Default fake of the Apps Script API: versions and deployments succeed, web app open to Anyone. */
+export const okScriptApi: ScriptApiFake = ({ method, path }) => {
+  if (method === "post" && path === "/versions") return { code: 200, body: { versionNumber: 1 } };
+  if (method === "post" && path === "/deployments") return { code: 200, body: { deploymentId: "AKfyAuto", entryPoints: [{ entryPointType: "WEB_APP", webApp: { url: "https://script.google.com/a/macros/school.org/s/AKfyAuto/exec", entryPointConfig: { access: "ANYONE_ANONYMOUS", executeAs: "USER_DEPLOYING" } } }] } };
+  return { code: 200, body: {} };
+};
+
+export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string; scriptId?: string; scriptApi?: ScriptApiFake } = {}) {
+  const scriptApiCalls: ScriptApiCall[] = [];
   const sheets = new Map<string, ReturnType<typeof fakeSheet>>();
   const book = {
     getSheetByName: (n: string) => sheets.get(n) ?? null,
@@ -50,7 +62,7 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
     CacheService: { getScriptCache: () => ({ get: (k: string) => cache.get(k) ?? null, put: (k: string, v: string) => cache.set(k, v), remove: (k: string) => cache.delete(k) }) },
     Session: { getEffectiveUser: () => ({ getEmail: () => owner }), getScriptTimeZone: () => "America/Detroit" },
     PropertiesService: { getScriptProperties: () => ({ getProperty: (k: string) => props.get(k) ?? null, setProperty: (k: string, v: string) => props.set(k, v), deleteAllProperties: () => props.clear() }) },
-    ScriptApp: { getService: () => ({ getUrl: () => opts.webAppUrl ?? null }), getScriptId: () => "script-1", getOAuthToken: () => "oauth" },
+    ScriptApp: { getService: () => ({ getUrl: () => opts.webAppUrl ?? null }), getScriptId: () => opts.scriptId ?? "script-1", getOAuthToken: () => "oauth" },
     DriveApp: { getFolderById: () => folder, createFolder: () => folder },
     Drive: {
       Files: {
@@ -64,7 +76,7 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
     },
     Utilities: {
       base64EncodeWebSafe: (b: number[]) => Buffer.from(b).toString("base64url"),
-      computeDigest: (_a: unknown, s: string) => [...Buffer.from(s)].slice(0, 32),
+      computeDigest: (_a: unknown, s: string) => [...createHash("sha256").update(s).digest()],
       DigestAlgorithm: { SHA_256: "sha" },
       getUuid: () => Math.random().toString(36).slice(2),
       sleep: () => {},
@@ -74,7 +86,14 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
     },
     UrlFetchApp: {
       // token format for tests: "tok:<email>"
-      fetch: (url: string) => {
+      fetch: (url: string, o: { method?: string; payload?: string } = {}) => {
+        const api = url.match(/^https:\/\/script\.googleapis\.com\/v1\/projects\/[^/]+(\/.*)$/);
+        if (api) {
+          const call = { method: o.method ?? "get", path: api[1], body: o.payload ? JSON.parse(o.payload) : undefined };
+          scriptApiCalls.push(call);
+          const r = (opts.scriptApi ?? okScriptApi)(call);
+          return { getResponseCode: () => r.code, getContentText: () => JSON.stringify(r.body) };
+        }
         const email = emailFromToken(decodeURIComponent(url.split("id_token=")[1]));
         const ok = !email.startsWith("bad");
         return {
@@ -93,6 +112,6 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
   const raw = (body: string) => vm.runInContext(`doPost(${JSON.stringify({ postData: { contents: body } })})`, ctx) as string;
   const call = (email: string, action: string, args: Record<string, unknown> = {}) => JSON.parse(raw(JSON.stringify({ action, token: "tok:" + email, args })));
   const run = (code: string) => JSON.parse(vm.runInContext(`JSON.stringify(${code})`, ctx) as string);
-  return { call, raw, run, sheets, files, folders, props };
+  return { call, raw, run, sheets, files, folders, props, scriptApiCalls };
 }
 

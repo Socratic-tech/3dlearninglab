@@ -63,7 +63,8 @@ export const modelAssetInputs: ModelAssetInput[] = [
   // ───── Original course assets (bundled) ─────
   original("misplaced-shapes", "Misplaced Shapes", "Practice orbit, pan, zoom, select and move by rescuing scattered shapes.", ["Navigation", "Selecting", "Moving on X/Y/Z"], ["navigating-tinkercad", "moving-objects", "workspace-rescue"]),
   original("toolbox-parts", "Toolbox Parts", "Parts that only fit in the tray after they are rotated flat.", ["Rotation", "Workplane", "Exact placement"], ["rotating-objects", "workspace-rescue"]),
-  original("broken-die", "Broken Die", "A die built incorrectly — wrong size, through-holes and a floating feature.", ["Exact dimensions", "Holes vs. solids", "Grouping"], ["boss-die", "exact-dimensions"]),
+  original("broken-die", "Broken Die", "A die built incorrectly — wrong size, through-holes and a floating feature.", ["Exact dimensions", "Holes vs. solids", "Grouping"], ["exact-dimensions"]),
+  original("broken-tag", "Broken Name Tag", "A keychain tag built wrong — too long, a hole that breaks the edge and letters floating above it.", ["Exact dimensions", "Holes", "Align", "Grouping"], ["boss-nametag"]),
   original("bad-phone-stand", "Bad Phone Stand (CAD ER patient)", "A phone stand with five deliberate design faults to diagnose and repair.", ["Stability", "Fit", "Supports", "Layer strength", "Material use"], ["cad-er"]),
   original("orientation-hook", "Orientation Hook", "The same hook prints weak or strong depending on how it sits on the plate.", ["Layer direction", "Anisotropic strength"], ["orientation", "strength", "layers"]),
   original("excessive-support-object", "T-Bracket (needs support)", "A shape whose flat arms need support in its default orientation.", ["Overhangs", "Supports"], ["supports", "overhangs"]),

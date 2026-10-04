@@ -531,7 +531,7 @@ function LessonLibrary({ data }: { data: ClassData }) {
       <ul className="space-y-2">{inPath.map(({ lesson, week }) => row(lesson, week))}</ul>
       {extra.length > 0 && (
         <>
-          <h3 className="pt-2 font-display text-lg font-bold">Also available (not in this class's course length)</h3>
+          <h3 className="pt-2 font-display text-lg font-bold">Also available (not in this class&rsquo;s course length)</h3>
           <ul className="space-y-2">{extra.map((l) => row(l, null))}</ul>
         </>
       )}

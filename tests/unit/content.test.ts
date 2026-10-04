@@ -6,7 +6,7 @@ import { isScorable, redactBlock, scoreBlock } from "@/lib/scoring";
 
 const REQUIRED_V1 = [
   "what-is-3d-printing", "print-detective", "navigating-tinkercad", "moving-objects", "scaling-objects", "exact-dimensions",
-  "rotating-objects", "workplanes", "grouping", "holes", "align", "duplicate", "repeat-duplicate", "mirror", "text", "boss-die",
+  "rotating-objects", "workplanes", "grouping", "holes", "align", "duplicate", "repeat-duplicate", "mirror", "text", "boss-nametag",
   "ruler", "measuring-real-objects", "calipers", "tolerances", "make-it-fit", "layers", "orientation", "strength", "overhangs",
   "bridging", "supports", "material-efficiency", "print-failures", "cad-er", "product-design", "interviewing-a-user",
   "writing-constraints", "prototype", "testing", "iteration", "final-capstone", "maker-showcase",

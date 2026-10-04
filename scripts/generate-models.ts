@@ -147,6 +147,17 @@ const models: Record<string, () => Built> = {
     notes: "A die that looks almost right: 21 × 20 × 19.4 mm, a pip that runs through the whole cube, a floating pip and a raised (not recessed) feature. Nothing is grouped.",
   }),
 
+  "broken-tag": () => {
+    // 56 mm long (spec says 50), key-ring hole punched right through the edge, "name" floating 1 mm above the tag
+    const plate = subtract(box(0, 0, 0, 56, 20, 3), cyl(1.5, 10, -1, 2.5, 5));
+    const letters = [0, 1, 2, 3].map((i) => box(14 + i * 9, 5, 4, 6, 10, 1));
+    return {
+      geometry: shells(plate, ...letters),
+      anchors: { ringHole: [1.5, 10, 3], floatingName: [27, 10, 5], tagEnd: [56, 10, 3], tagFace: [48, 3, 3] },
+      notes: "A name tag that looks almost right: 56 mm long instead of 50, a key-ring hole that breaks through the edge, and name letters floating 1 mm above the tag.",
+    };
+  },
+
   "bad-phone-stand": () => {
     // Solid, oversized base (excessive material)
     const base = box(0, 0, 0, 60, 70, 14);
