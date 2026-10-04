@@ -11,7 +11,8 @@ import { cn } from "@/lib/cn";
 import { call } from "../api";
 import { classLink } from "../config";
 import type { ClassInfo, Me } from "../content";
-import { competencies, competencyTitle, heatmapGroups, lessonById, pathLessons } from "../content";
+import { competencies, competencyTitle, heatmapGroups, lessonById, lessons as allLessons, pathLessons } from "../content";
+import { offlineChallenges } from "./HandoutPage";
 
 type Ev = { id: string; email: string; lessonId: string; type: string; url: string | null; fileName: string | null; text: string | null; status: string; rating: number | null; comment: string | null; createdAt: string; competencyIds: string[] };
 type ClassData = {
@@ -34,7 +35,7 @@ type Live = {
 };
 export type PrintJob = { id: string; email: string; lessonId: string; fileName: string | null; fileUrl: string | null; status: string; note: string; teacherNote: string; createdAt: string; updatedAt: string };
 
-const TABS = ["Overview", "Heatmap", "Review", "Prints", "Roster", "Classes"] as const;
+const TABS = ["Overview", "Lessons", "Heatmap", "Review", "Prints", "Roster", "Classes"] as const;
 
 export function TeacherPage({ me, apiUrl, clientId, onChange }: { me: Me; apiUrl: string; clientId: string; onChange: () => void }) {
   if (!me.cls) {
@@ -92,6 +93,7 @@ function ClassView({ classId, apiUrl, clientId, onChange }: { classId: string; a
         ))}
       </nav>
       {tab === "Overview" && <Overview data={data} name={name} apiUrl={apiUrl} clientId={clientId} />}
+      {tab === "Lessons" && <LessonLibrary data={data} />}
       {tab === "Heatmap" && <Heatmap data={data} apiUrl={apiUrl} onSaved={load} />}
       {tab === "Review" && <Review queue={queue} name={name} apiUrl={apiUrl} onSaved={load} />}
       {tab === "Prints" && <Prints jobs={data.prints ?? []} name={name} apiUrl={apiUrl} onSaved={load} />}
@@ -130,7 +132,7 @@ function Overview({ data, name, apiUrl, clientId }: { data: ClassData; name: (e:
         <ul className="mt-3 max-h-96 space-y-1 overflow-y-auto text-sm">
           {path.map(({ lesson, week }) => {
             const n = data.progress.filter((p) => p.lessonId === lesson.id && p.status === "completed").length;
-            return <li key={lesson.id} className="flex gap-2"><span className="w-8 font-mono text-xs text-muted">W{week}</span><span className="flex-1">{lesson.title}</span><span className="font-mono text-xs">{n}/{data.students.length}</span></li>;
+            return <li key={lesson.id} className="flex gap-2"><span className="w-8 font-mono text-xs text-muted">W{week}</span><a href={`#/lesson/${lesson.id}`} className="flex-1 hover:text-primary hover:underline">{lesson.title}</a><span className="font-mono text-xs">{n}/{data.students.length}</span></li>;
           })}
         </ul>
       </Card>
@@ -493,5 +495,46 @@ function PrintNote({ job, onSave }: { job: PrintJob; onSave: (t: string) => void
       <Input aria-label="Note to student" placeholder="Note to student (e.g. pick up in bin 3)" value={t} onChange={(e) => setT(e.target.value)} />
       <Button size="sm" variant="secondary" disabled={t === job.teacherNote}>Save</Button>
     </form>
+  );
+}
+
+/** Every lesson, always open to teachers and admins — browse, preview like a student, or print handouts. */
+function LessonLibrary({ data }: { data: ClassData }) {
+  const [q, setQ] = useState("");
+  const inPath = pathLessons(data.cls.pathId);
+  const pathIds = new Set(inPath.map((x) => x.lesson.id));
+  const extra = allLessons.filter((l) => !pathIds.has(l.id)).sort((a, b) => a.number - b.number);
+  const match = (title: string, subtitle: string) => !q.trim() || `${title} ${subtitle}`.toLowerCase().includes(q.trim().toLowerCase());
+  const done = (id: string) => data.progress.filter((p) => p.lessonId === id && p.status === "completed").length;
+  const row = (lesson: (typeof allLessons)[number], week: number | null) => {
+    if (!match(lesson.title, lesson.subtitle)) return null;
+    const offline = offlineChallenges(lesson).length > 0;
+    return (
+      <li key={lesson.id} className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-surface p-3">
+        <span className="w-10 font-mono text-xs text-muted">{week ? `W${week}` : "—"}</span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-semibold">{lesson.title}</span>
+          <span className="block truncate text-sm text-muted">{lesson.subtitle} · {lesson.estimatedMinutes} min</span>
+        </span>
+        {lesson.kind === "boss" && <Pill tone="accent">Boss</Pill>}
+        {offline && <Pill tone="warning">Has offline work</Pill>}
+        <span className="font-mono text-xs text-muted" title="Students in this class who completed it">{done(lesson.id)}/{data.students.length} done</span>
+        <a href={`#/lesson/${lesson.id}`} className="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-fg hover:brightness-110">Open</a>
+        {offline && <a href={`#/print/${lesson.id}`} className="rounded-lg border border-border px-3 py-1.5 text-sm font-semibold hover:bg-surface-2">Handout</a>}
+      </li>
+    );
+  };
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted">All lessons are open to teachers and admins at any time. Opening one shows it exactly as students see it; your answers go to your own test record, not to the class.</p>
+      <Input aria-label="Search lessons" placeholder="Search lessons…" value={q} onChange={(e) => setQ(e.target.value)} />
+      <ul className="space-y-2">{inPath.map(({ lesson, week }) => row(lesson, week))}</ul>
+      {extra.length > 0 && (
+        <>
+          <h3 className="pt-2 font-display text-lg font-bold">Also available (not in this class's course length)</h3>
+          <ul className="space-y-2">{extra.map((l) => row(l, null))}</ul>
+        </>
+      )}
+    </div>
   );
 }

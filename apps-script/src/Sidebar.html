@@ -90,6 +90,8 @@ function render() {
       '<label>School email domains<input type="text" id="dom" value="' + esc(S.domains) + '" placeholder="district.org, students.district.org"></label>' +
       '<p class="muted">Add your students’ domain if it’s different from yours.</p>' +
       '<label>Co-teachers (emails)<input type="text" id="tch" value="' + esc(S.teacherEmails) + '" placeholder="optional"></label>' +
+      '<label>Administrators (emails)<input type="text" id="adm" value="' + esc(S.adminEmails) + '" placeholder="principal, district or RESA staff"></label>' +
+      '<p class="muted">Teachers and administrators can open every lesson at any time, no matter what is completed.</p>' +
       '<label style="font-weight:400"><input type="checkbox" id="auto"' + (S.autoEnroll ? " checked" : "") + '> Students who open a class link join that class automatically</label>' +
       '<button class="secondary" onclick="save(this)">Save</button></div>';
   }
@@ -114,7 +116,7 @@ function createClass(btn) {
   if (!n) { $("cname").focus(); return; }
   run("sidebarCreateClass", { name: n, section: $("csec").value.trim(), pathId: $("cpath").value }, btn, "Creating…");
 }
-function save(btn) { run("sidebarSaveSettings", { domains: $("dom").value, teacherEmails: $("tch").value, autoEnroll: $("auto").checked }, btn, "Saving…"); }
+function save(btn) { run("sidebarSaveSettings", { domains: $("dom").value, teacherEmails: $("tch").value, adminEmails: $("adm").value, autoEnroll: $("auto").checked }, btn, "Saving…"); }
 function update(btn) {
   busy(btn, "Updating…");
   google.script.run.withSuccessHandler(function (r) {

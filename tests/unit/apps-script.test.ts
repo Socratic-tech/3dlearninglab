@@ -217,4 +217,14 @@ describe("Setup sidebar", () => {
     const rows = e.sheets.get("Progress")!.data.filter((r) => r[0] === "luis@school.org" && r[1] === "navigating-tinkercad");
     expect(rows).toHaveLength(1);
   });
+
+  it("admins listed in ADMIN_EMAILS get staff access, even from another domain", () => {
+    const e = makeEnv();
+    e.sheets.get("Config")!.data.forEach((r) => { if (r[0] === "ADMIN_EMAILS") r[1] = "principal@resa.org"; });
+    const me = e.call("principal@resa.org", "me");
+    expect(me.ok).toBe(true);
+    expect(me.data.user).toMatchObject({ role: "teacher", admin: true });
+    expect(e.call("principal@resa.org", "createClass", { name: "Admin test" }).ok).toBe(true);
+    expect(e.call("stranger@resa.org", "me").ok).toBe(false);
+  });
 });

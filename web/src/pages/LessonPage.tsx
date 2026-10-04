@@ -9,7 +9,7 @@ import type { BlockEntry } from "@/components/lesson/types";
 import { allBlocks, isRequiredBlock } from "@/content/schema";
 import { assetsFor, competencyTitleFor, journalPromptsFor, lessonFor, type Me } from "../content";
 import { googleLessonApi } from "../api";
-import { studentStates } from "../state";
+import { isStaff, studentStates } from "../state";
 
 export function LessonPage({ me, apiUrl, lessonId, focusBlockId, onChange }: { me: Me; apiUrl: string; lessonId: string; focusBlockId?: string; onChange: () => void }) {
   const lesson = lessonFor(lessonId);
@@ -17,7 +17,7 @@ export function LessonPage({ me, apiUrl, lessonId, focusBlockId, onChange }: { m
   if (!lesson) return <Alert tone="warning" title={tr("That mission doesn't exist.")} />;
   const { states } = studentStates(me);
   const st = states.get(lessonId);
-  if (me.user.role === "student" && (!st || st === "locked")) {
+  if (!isStaff(me) && (!st || st === "locked")) {
     return (
       <div className="mx-auto max-w-lg space-y-4 py-10">
         <h1 className="font-display text-2xl font-bold">{lesson.title}</h1>
@@ -27,7 +27,7 @@ export function LessonPage({ me, apiUrl, lessonId, focusBlockId, onChange }: { m
     );
   }
   const p = me.progress[lessonId];
-  const preview = me.user.role !== "student";
+  const preview = isStaff(me);
   const evidence = me.evidence.filter((e) => e.lessonId === lessonId).map((e) => ({ id: e.id, type: e.type, fileName: e.fileName, url: e.url, createdAt: e.createdAt, status: e.status, teacherComment: e.comment, teacherRating: e.rating, blockId: e.blockId }));
   return (
     <article>

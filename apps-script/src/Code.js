@@ -36,6 +36,7 @@ const DEFAULT_CONFIG = [
   ["CLIENT_ID", "", "Leave blank to use the website's built-in sign-in ID. Only fill in if you run your own copy of the site."],
   ["ALLOWED_DOMAINS", "", "Comma-separated email domains allowed to sign in, e.g. district.org,students.district.org"],
   ["TEACHER_EMAILS", "", "Comma-separated teacher emails (the script owner is always a teacher)."],
+  ["ADMIN_EMAILS", "", "Administrators (principal, district or RESA staff): open every lesson and every class dashboard. Comma-separated."],
   ["AUTO_ENROLL", "FALSE", "TRUE = an allowed-domain student who opens a class link joins that class on first sign-in. FALSE = only students on a class roster."],
   ["MAX_UPLOAD_MB", "10", "Largest screenshot/STL a student may upload."],
 ];
@@ -165,10 +166,12 @@ function authenticate_(token, classId) {
   const email = String(claims.email).toLowerCase();
   const domain = email.split("@")[1];
   const allowed = list_(cfg.ALLOWED_DOMAINS);
-  const teachers = list_(cfg.TEACHER_EMAILS).concat([String(Session.getEffectiveUser().getEmail()).toLowerCase()]);
+  // Teachers and admins are "staff": every lesson is open to them, at any time, and they see class dashboards.
+  const admins = list_(cfg.ADMIN_EMAILS);
+  const teachers = list_(cfg.TEACHER_EMAILS).concat([String(Session.getEffectiveUser().getEmail()).toLowerCase()], admins);
   if (allowed.length && allowed.indexOf(domain) < 0 && teachers.indexOf(email) < 0) throw userError_("Please sign in with your school Google account.");
 
-  if (teachers.indexOf(email) >= 0) return { email: email, name: claims.name || email, role: "teacher", sub: claims.sub };
+  if (teachers.indexOf(email) >= 0) return { email: email, name: claims.name || email, role: "teacher", admin: admins.indexOf(email) >= 0, sub: claims.sub };
 
   const users = table_("Users");
   let row = users.find(function (r) { return r.email === email; });
@@ -576,7 +579,7 @@ const ACTIONS = {
       const journals = {};
       table_("Journals").filter(function (r) { return r.email === user.email; }).forEach(function (r) { journals[r.projectKey] = parse_(r.entries, {}); });
       return {
-        user: { email: user.email, name: user.name, role: user.role },
+        user: { email: user.email, name: user.name, role: user.role, admin: !!user.admin },
         cls: cls ? classOut_(cls) : null,
         classes: classes.map(classOut_),
         progress: progress,
@@ -1054,6 +1057,7 @@ function sidebarState() {
     hasClientId: !!clientId,
     domains: cfg.ALLOWED_DOMAINS || "",
     teacherEmails: cfg.TEACHER_EMAILS || "",
+    adminEmails: cfg.ADMIN_EMAILS || "",
     autoEnroll: String(cfg.AUTO_ENROLL).toUpperCase() === "TRUE",
     teacherLink: link("#/teacher"),
     classes: classes.map(function (c) { return { id: c.id, name: c.name + (c.section ? " · " + c.section : ""), link: link("&class=" + encodeURIComponent(c.id)) }; }),
@@ -1071,6 +1075,7 @@ function sidebarSaveSettings(s) {
   const clean = function (v) { return String(v || "").toLowerCase().split(/[\s,]+/).filter(String).join(","); };
   setConfig_("ALLOWED_DOMAINS", clean(s.domains));
   setConfig_("TEACHER_EMAILS", clean(s.teacherEmails));
+  setConfig_("ADMIN_EMAILS", clean(s.adminEmails));
   setConfig_("AUTO_ENROLL", s.autoEnroll ? "TRUE" : "FALSE");
   return sidebarState();
 }

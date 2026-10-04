@@ -9,7 +9,7 @@ import { MissionPath, StreakCard } from "@/components/student/mission-path";
 import { ProgressRing, ProgressBar } from "@/components/ui/progress";
 import { rank } from "@/lib/mastery";
 import { competencies, domainsFor, lessonFor, pathTitle, type Me } from "../content";
-import { studentStates } from "../state";
+import { isStaff, studentStates } from "../state";
 
 export function StudentHome({ me, apiUrl, onChange }: { me: Me; apiUrl: string; onChange: () => void }) {
   const { items, states } = studentStates(me);
@@ -37,6 +37,11 @@ export function StudentHome({ me, apiUrl, onChange }: { me: Me; apiUrl: string; 
         )}
       </section>
 
+      {isStaff(me) && (
+        <p role="note" className="rounded-2xl border border-primary/40 bg-primary-soft px-4 py-3 text-sm">
+          <strong>{tr("Teacher view:")}</strong> {tr("every mission is open to you, no matter what's completed. Students still unlock them in order.")}
+        </p>
+      )}
       {me.stats && <StreakCard stats={me.stats} />}
       {me.stats && <Looks xp={me.stats.xp} />}
 
