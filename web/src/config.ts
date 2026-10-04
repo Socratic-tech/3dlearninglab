@@ -75,6 +75,14 @@ export function setCurrentClassId(id: string) {
   safeSet(KEY_CLASS, id);
 }
 
+/** Link for co-teachers and administrators: opens this Sheet's teacher dashboard (they sign in with their own Google account). */
+export function staffLink(apiUrl: string, clientId: string | null | undefined) {
+  const u = new URL(location.origin + location.pathname);
+  u.searchParams.set("api", apiUrl);
+  if (clientId && !import.meta.env.VITE_GOOGLE_CLIENT_ID) u.searchParams.set("cid", clientId);
+  return u.toString() + "#/teacher";
+}
+
 export function classLink(apiUrl: string, clientId: string | null | undefined, classId: string) {
   const u = new URL(location.origin + location.pathname);
   u.searchParams.set("api", apiUrl);

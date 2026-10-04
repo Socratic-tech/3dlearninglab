@@ -106,6 +106,7 @@ function render() {
       '<label>Co-teachers (emails)<input type="text" id="tch" value="' + esc(S.teacherEmails) + '" placeholder="optional"></label>' +
       '<label>Administrators (emails)<input type="text" id="adm" value="' + esc(S.adminEmails) + '" placeholder="principal, district or RESA staff"></label>' +
       '<p class="muted">Teachers and administrators can open every lesson at any time, no matter what is completed.</p>' +
+      (S.teacherLink ? '<p class="muted" style="margin-top:8px"><b>Send them this staff link</b> (not a student link). They sign in with their own Google account:</p><div class="link">' + esc(S.teacherLink) + '</div><button class="secondary" onclick="copyText(S.teacherLink, this)">Copy staff link</button>' : "") +
       '<label style="font-weight:400"><input type="checkbox" id="auto"' + (S.autoEnroll ? " checked" : "") + '> Students who open a class link join that class automatically</label>' +
       '<button class="secondary" onclick="save(this)">Save</button></div>';
   }
@@ -121,6 +122,9 @@ function render() {
   S.classes.forEach(function (c, i) { if (c.link && window.QRCode) new QRCode($("qr" + i), { text: c.link, width: 132, height: 132 }); });
 }
 
+function copyText(t, btn) {
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { btn.textContent = "Copied!"; }, function () { prompt("Copy this link:", t); });
+}
 function copy(i, btn) {
   var t = S.classes[i].link;
   (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { btn.textContent = "Copied!"; }, function () { prompt("Copy this link:", t); });

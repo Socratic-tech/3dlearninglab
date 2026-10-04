@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ExternalLink } from "lucide-react";
-import { Card, CardTitle } from "@/components/ui/card";
+import { Alert, Card, CardTitle } from "@/components/ui/card";
 import { Button, buttonClass } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { normalizeApiUrl, setApiUrl, setClientId } from "../config";
@@ -32,6 +32,9 @@ export function SetupPage({ cfg, onSaved }: { cfg: { apiUrl: string | null; clie
         )}
         <p className="text-sm text-muted">The menu can take a few seconds to appear the first time you open the Sheet.</p>
       </Card>
+      <Alert tone="info" title="Invited to someone else's class?">
+        Co-teachers and administrators don&rsquo;t make a copy. Ask the teacher for their <b>staff link</b> (it&rsquo;s on their dashboard and in their Sheet&rsquo;s side panel) and open that instead.
+      </Alert>
       <div>
         <button className="text-sm text-muted underline" onClick={() => setManual(!manual)} aria-expanded={manual}>Already set up? Connect with your app address</button>
         {manual && (

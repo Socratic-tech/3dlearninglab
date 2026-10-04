@@ -9,7 +9,7 @@ import { LevelCell, LevelChip, LevelLegend } from "@/components/ui/level";
 import { groupLevel, LEVEL_LABEL, LEVELS } from "@/lib/mastery";
 import { cn } from "@/lib/cn";
 import { call } from "../api";
-import { classLink, setCurrentClassId } from "../config";
+import { classLink, setCurrentClassId, staffLink } from "../config";
 import type { ClassInfo, Me } from "../content";
 import { competencies, competencyTitle, heatmapGroups, lessonById, lessons as allLessons, pathLessons } from "../content";
 import { offlineChallenges } from "./HandoutPage";
@@ -60,6 +60,26 @@ function TeacherMain({ me, apiUrl, clientId, onChange }: { me: Me; apiUrl: strin
   return <ClassView key={me.cls.id} classId={me.cls.id} apiUrl={apiUrl} clientId={clientId} onChange={onChange} />;
 }
 
+/** Co-teachers and administrators need this link (with the app address), not the bare website. */
+function StaffLinkButton({ apiUrl, clientId }: { apiUrl: string; clientId: string }) {
+  const [copied, setCopied] = useState(false);
+  const link = staffLink(apiUrl, clientId);
+  return (
+    <Button
+      size="sm"
+      variant="secondary"
+      className="ml-auto"
+      title="Copy a dashboard link for co-teachers and administrators. Add their email under Who can sign in first."
+      onClick={() => {
+        navigator.clipboard?.writeText(link).then(() => setCopied(true), () => prompt("Copy this link:", link));
+        setTimeout(() => setCopied(false), 2500);
+      }}
+    >
+      <Copy className="size-4" aria-hidden /> {copied ? "Copied!" : "Staff link"}
+    </Button>
+  );
+}
+
 const classKey = (id: string) => `academy.classdata.${id}`;
 function ClassView({ classId, apiUrl, clientId, onChange }: { classId: string; apiUrl: string; clientId: string; onChange: () => void }) {
   // open instantly from the last snapshot (this browser tab only), then refresh from Google
@@ -93,7 +113,8 @@ function ClassView({ classId, apiUrl, clientId, onChange }: { classId: string; a
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <h1 className="font-display text-2xl font-bold">{data.cls.name}{data.cls.section && <span className="text-muted"> · {data.cls.section}</span>}</h1>
         <Pill tone="primary">{data.cls.pathId}</Pill>
-        <Button size="sm" variant="secondary" className="ml-auto" onClick={() => void load()}>Refresh</Button>
+        <StaffLinkButton apiUrl={apiUrl} clientId={clientId} />
+        <Button size="sm" variant="secondary" onClick={() => void load()}>Refresh</Button>
       </div>
       <nav className="mb-6 flex gap-1 overflow-x-auto border-b border-border" aria-label="Teacher sections">
         {TABS.map((t) => (
