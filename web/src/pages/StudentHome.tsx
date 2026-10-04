@@ -43,7 +43,7 @@ export function StudentHome({ me, apiUrl, onChange }: { me: Me; apiUrl: string; 
         </p>
       )}
       {me.stats && <StreakCard stats={me.stats} />}
-      {me.stats && <Looks xp={me.stats.xp} />}
+      {me.stats && !isStaff(me) && <Looks xp={me.stats.xp} />}
 
       <ReviewDeck me={me} />
 

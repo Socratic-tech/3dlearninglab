@@ -2,7 +2,7 @@ import { tr } from "@/lib/i18n";
 import { Check, Lock, Palette } from "lucide-react";
 import { cn } from "@/lib/cn";
 
-/** Looks a student unlocks with XP. Purely cosmetic; saved on this device. */
+/** Looks a student unlocks with XP (teachers and admins get them all). Purely cosmetic; saved on this device. */
 export const SKINS = [
   { id: "blueprint", name: "Blueprint", xp: 0, colors: ["#0b5cad", "#b45309"] },
   { id: "neon", name: "Neon", xp: 150, colors: ["#6d28d9", "#be185d"] },
@@ -57,5 +57,33 @@ export function SkinPicker({ xp, current, onChange }: { xp: number; current: Ski
         })}
       </ul>
     </section>
+  );
+}
+
+/** Every look, no XP needed: for teachers and admins (in the Aa display menu). */
+export function LookChooser({ current, onChange }: { current: SkinId; onChange: (id: SkinId) => void }) {
+  return (
+    <div>
+      <p className="text-sm font-semibold" id="look-h">{tr("Look")}</p>
+      <div className="mt-2 grid grid-cols-5 gap-1" role="radiogroup" aria-labelledby="look-h">
+        {SKINS.map((s) => {
+          const on = current === s.id;
+          return (
+            <button
+              key={s.id}
+              role="radio"
+              aria-checked={on}
+              onClick={() => onChange(s.id)}
+              className={cn("flex flex-col items-center gap-1 rounded-lg border-2 p-1 text-[11px] font-semibold", on ? "border-fg" : "border-transparent")}
+            >
+              <span className="grid size-8 place-items-center rounded-full" style={{ background: `linear-gradient(135deg, ${s.colors[0]} 50%, ${s.colors[1]} 50%)` }} aria-hidden>
+                {on && <Check className="size-4 text-white" />}
+              </span>
+              {tr(s.name)}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }

@@ -12,6 +12,7 @@ import { currentToken, renderSignIn, signOut, tokenEmail } from "./auth";
 import { cachedMe, clearCachedData, saveMe, withPending } from "./cache";
 import { resumeSync, startSync, subscribeSync, syncState } from "./sync";
 import { SyncPill } from "./sync-pill";
+import { isStaff } from "./state";
 import { call } from "./api";
 import type { Me } from "./content";
 import { StudentHome } from "./pages/StudentHome";
@@ -125,7 +126,7 @@ function Frame({ children, me, onSignOut, onSwitch }: { children: ReactNode; me?
             {me?.user.role === "teacher" && <a href="#/teacher" className="rounded-lg px-3 py-2 text-sm font-semibold hover:bg-surface-2">{tr("Teacher")}</a>}
             {me && <a href="#/student" className="rounded-lg px-3 py-2 text-sm font-semibold hover:bg-surface-2">{tr("Missions")}</a>}
             {me && <SyncPill />}
-            <DisplayMenu />
+            <DisplayMenu allLooks={!!me && isStaff(me)} />
             {onSignOut && me && <button onClick={onSignOut} className="rounded-lg p-2 text-muted hover:bg-surface-2" aria-label={tr("Sign out")}><LogOut className="size-5" aria-hidden /></button>}
           </div>
         </div>

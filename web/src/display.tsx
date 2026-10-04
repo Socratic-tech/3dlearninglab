@@ -3,6 +3,7 @@ import { Type } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { LOCALES, setLocale, tr, type Locale } from "@/lib/i18n";
 import { useLocale } from "@/lib/use-locale";
+import { applySkin, LookChooser, savedSkin, type SkinId } from "./skins";
 
 /**
  * UDL display & reading settings, remembered per device: text size, spacing, contrast, motion, theme, read-aloud speed.
@@ -38,9 +39,12 @@ export function applyPrefs(p: DisplayPrefs) {
   } catch { /* private mode */ }
 }
 
-export function DisplayMenu() {
+/** `allLooks`: teachers and admins can pick any look here (students unlock them with XP on their home page). */
+export function DisplayMenu({ allLooks = false }: { allLooks?: boolean }) {
   const [open, setOpen] = useState(false);
   const [p, setP] = useState<DisplayPrefs>(loadPrefs);
+  const [skin, setSkin] = useState<SkinId>(savedSkin);
+  const pickSkin = (id: SkinId) => { applySkin(id); setSkin(id); };
   const ref = useRef<HTMLDivElement>(null);
   const set = (patch: Partial<DisplayPrefs>) => {
     const next = { ...p, ...patch };
@@ -65,6 +69,12 @@ export function DisplayMenu() {
       {open && (
         <div role="dialog" aria-label={tr("Display and reading settings")} className="absolute right-0 top-12 z-50 w-80 max-w-[calc(100vw-2rem)] space-y-4 rounded-2xl border border-border bg-surface p-4 text-fg shadow-xl">
           <LanguagePicker />
+          {allLooks && (
+            <>
+              <LookChooser current={skin} onChange={pickSkin} />
+              {p.contrast && <p className="-mt-2 text-xs text-muted">{tr("Looks are paused while High contrast is on.")}</p>}
+            </>
+          )}
           <div>
             <p className="text-sm font-semibold" id="ts">{tr("Text size")}</p>
             <div className="mt-2 flex items-center gap-2" role="group" aria-labelledby="ts">
@@ -91,7 +101,7 @@ export function DisplayMenu() {
             {tr("Read-aloud speed")}
             <input type="range" min={0.6} max={1.4} step={0.1} value={p.rate} onChange={(e) => set({ rate: Number(e.target.value) })} className="mt-2 w-full accent-[var(--primary)]" aria-valuetext={`${Math.round(p.rate * 100)}%`} />
           </label>
-          <button className="text-sm text-primary underline" onClick={() => set(DEFAULTS)}>{tr("Reset to defaults")}</button>
+          <button className="text-sm text-primary underline" onClick={() => { set(DEFAULTS); if (allLooks) pickSkin("blueprint"); }}>{tr("Reset to defaults")}</button>
         </div>
       )}
     </div>
