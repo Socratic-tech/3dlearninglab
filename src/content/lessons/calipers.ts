@@ -79,6 +79,7 @@ export const lesson: LessonInput = {
           id: "match-jaws",
           type: "matching",
           prompt: "Match each measurement to the part of the calipers you'd use.",
+          hint: "Big jaws grip the outside, small jaws push on the inside, and the thin rod pokes into holes.",
           pairs: [
             { id: "outside", left: "Width of a marker", right: "Outside jaws" },
             { id: "inside", left: "Inside of a bottle cap", right: "Inside jaws" },
@@ -148,6 +149,7 @@ export const lesson: LessonInput = {
           id: "squeeze-mc",
           type: "multipleChoice",
           prompt: "Two students measure the same eraser. One gets 18.6 mm, the other 17.9 mm. What most likely explains the difference?",
+          hint: "Erasers are soft. What happens if you press hard?",
           options: [
             { id: "a", text: "One student squeezed the jaws, squashing the soft eraser." },
             { id: "b", text: "Calipers give random numbers.", misconceptionId: "calipers-random" },
@@ -162,6 +164,7 @@ export const lesson: LessonInput = {
           id: "precision-mc",
           type: "multipleChoice",
           prompt: "The display shows 8.03 mm. How should you record it for a CAD design?",
+          hint: "Write down what you measured. Decide on clearance later, when you design.",
           options: [
             { id: "a", text: "8.03 mm — then decide how much clearance to add when designing" },
             { id: "b", text: "8 — the decimals don't matter", misconceptionId: "drop-decimals" },

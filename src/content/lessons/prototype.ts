@@ -58,6 +58,7 @@ export const lesson: LessonInput = {
           id: "match-type",
           type: "matching",
           prompt: "Match each prototype to the question it answers best.",
+          hint: "Each prototype is fast because it only answers one question. What can paper, cardboard or a small slice tell you?",
           pairs: [
             { id: "paper", left: "Paper cut-out at full size", right: "Is it the right size for the space?" },
             { id: "cardboard", left: "Cardboard and tape mock-up", right: "Can the user reach and use it comfortably?" },
@@ -72,6 +73,7 @@ export const lesson: LessonInput = {
           id: "critical-mc",
           type: "multipleChoice",
           prompt: "A wall hook must hold a 600 g backpack without snapping. Which prototype tests the critical question?",
+          hint: "The critical question is about strength under a real load. Which prototype actually tests that?",
           options: [
             { id: "a", text: "Print just the hook arm in its planned orientation and hang the backpack on it." },
             { id: "b", text: "Make a paper version to check the size." },

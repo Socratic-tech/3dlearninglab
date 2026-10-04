@@ -141,6 +141,7 @@ export const lesson: LessonInput = {
           id: "mc-friend",
           type: "multipleChoice",
           prompt: "A friend at another school says \"a 0.2 mm gap always fits.\" On your printer, the 10.2 mm hole was too tight. What is the best explanation?",
+          hint: "Would a different printer and plastic make exactly the same size hole?",
           options: [
             { id: "a", text: "Different printers, plastics and settings produce slightly different sizes, so each printer needs its own tested clearance." },
             { id: "b", text: "Your friend must have measured wrong.", misconceptionId: "one-true-number" },
@@ -155,6 +156,7 @@ export const lesson: LessonInput = {
           id: "mc-why",
           type: "multipleChoice",
           prompt: "Why does a printed hole usually come out a little smaller than designed?",
+          hint: "Think about how the melted plastic behaves as it is laid around the hole.",
           options: [
             { id: "a", text: "Melted plastic spreads slightly as it is laid down, so it creeps into the hole." },
             { id: "b", text: "Tinkercad shrinks holes on purpose.", misconceptionId: "software-shrinks" },

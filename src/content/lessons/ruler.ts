@@ -128,6 +128,7 @@ export const lesson: LessonInput = {
           id: "micro-mc",
           type: "multipleChoice",
           prompt: "You typed 5 for a hole's X distance, but the hole's centre is 7 mm from the edge. Why?",
+          hint: "Check where the ruler measures to: the hole's edge or its centre? The hole is 4 mm wide.",
           options: [
             { id: "a", text: "The Ruler was reading to the hole's edge, so 5 mm puts the edge at 5 and the centre at 5 + 2 = 7." },
             { id: "b", text: "Holes always shift 2 mm when grouped.", misconceptionId: "holes-shift" },

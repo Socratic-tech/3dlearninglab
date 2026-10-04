@@ -87,6 +87,7 @@ export const lesson: LessonInput = {
           id: "find-slope",
           type: "hotspot",
           prompt: "Click the face where you'd place the workplane to add a button that sits flat on the slope.",
+          hint: "The button has to sit flat on the slanted face. Which face is slanted?",
           modelId: "wedge-block",
           hotspots: [
             { id: "slope", label: "Sloped top", position: [20, 15, 20], radius: 10, correct: true, feedback: "Yes. A workplane here makes new shapes sit flat on the slope." },
@@ -116,6 +117,7 @@ export const lesson: LessonInput = {
           id: "why-workplane",
           type: "multipleChoice",
           prompt: "Why use a workplane instead of rotating each shape to match the slope?",
+          hint: "Think about how many angles you'd have to type for each new shape without a workplane.",
           options: [
             { id: "a", text: "New shapes arrive already at the slope's angle and touching the face, so no guessing" },
             { id: "b", text: "Workplanes make the slope steeper", misconceptionId: "workplane-cosmetic" },
@@ -130,6 +132,7 @@ export const lesson: LessonInput = {
           id: "forgot",
           type: "multipleChoice",
           prompt: "You finished the slope and dragged in a new box for the base, but it appears tilted in the air. What happened?",
+          hint: "New shapes land on whatever workplane is active. Where did you leave it?",
           options: [
             { id: "a", text: "The workplane is still on the slope. Move it back to the default workplane first" },
             { id: "b", text: "The box is broken; delete it", misconceptionId: "workplane-permanent" },

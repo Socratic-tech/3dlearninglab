@@ -17,6 +17,7 @@ import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { Pill } from "@/components/ui/card";
 import LazyModelViewer from "@/components/viewer/LazyModelViewer";
 import { BlockFrame, Md, Visual } from "./static-blocks";
+import { DictateButton } from "@/components/ui/dictate";
 import { Diagram } from "@/components/diagrams";
 import { cn } from "@/lib/cn";
 import { SliderScene, readout } from "./slider-scenes";
@@ -133,7 +134,7 @@ function ResultPanel({ result }: { result?: ClientResult }) {
   );
 }
 
-function Header({ label, prompt, check }: { label: string; prompt: string; check?: "practice" | "skill" }) {
+function Header({ label, prompt, check, hint }: { label: string; prompt: string; check?: "practice" | "skill"; hint?: string }) {
   return (
     <>
       <div className="mb-2 flex items-center gap-2">
@@ -141,6 +142,12 @@ function Header({ label, prompt, check }: { label: string; prompt: string; check
         {check === "skill" && <Pill tone="accent">{tr("Skill check")}</Pill>}
       </div>
       <Md text={prompt} className="font-display text-xl font-bold sm:text-2xl" />
+      {hint && (
+        <details className="mt-2 text-sm">
+          <summary className="cursor-pointer font-semibold text-primary">{tr("Need a hint?")}</summary>
+          <Md text={hint} className="mt-1 rounded-lg bg-primary-soft px-3 py-2" />
+        </details>
+      )}
     </>
   );
 }
@@ -206,7 +213,7 @@ export function MultipleChoiceBlock({ b }: { b: BlockOf<"multipleChoice"> }) {
   const [value, setValue] = useState<string[]>(prev?.type === "multipleChoice" ? prev.optionIds : []);
   return (
     <BlockFrame tone="check">
-      <Header label={b.check === "skill" ? "Check your skill" : "Quick check"} prompt={b.prompt} check={b.check} />
+      <Header label={b.check === "skill" ? "Check your skill" : "Quick check"} prompt={b.prompt} check={b.check} hint={b.hint} />
       {multiple && <p className="text-sm text-muted">Choose {b.correctOptionIds.length}.</p>}
       {b.visual && <div className="my-3"><Visual {...b.visual} assets={ctx.assets} /></div>}
       <OptionList name={b.id} options={b.options} multiple={multiple} value={value} onChange={setValue} disabled={locked} correctIds={(result?.reveal.correctOptionIds as string[]) ?? undefined} />
@@ -234,7 +241,7 @@ export function OrderingBlock({ b }: { b: BlockOf<"ordering"> }) {
   };
   return (
     <BlockFrame tone="check">
-      <Header label="Put in order" prompt={b.prompt} check={b.check} />
+      <Header label="Put in order" prompt={b.prompt} check={b.check} hint={b.hint} />
       <ol className="mt-3 space-y-2">
         {items.map((it, i) => (
           <li key={it.id} className="flex items-center gap-2 rounded-xl border border-border bg-surface-2/40 p-2 pl-3">
@@ -272,7 +279,7 @@ export function MatchingBlock({ b }: { b: BlockOf<"matching"> }) {
   const good = new Set((result?.reveal.correctPairIds as string[]) ?? []);
   return (
     <BlockFrame tone="check">
-      <Header label="Match" prompt={b.prompt} check={b.check} />
+      <Header label="Match" prompt={b.prompt} check={b.check} hint={b.hint} />
       <div className="mt-3 space-y-2">
         {b.pairs.map((p) => (
           <div key={p.id} className={cn("grid gap-2 rounded-xl border p-3 sm:grid-cols-2 sm:items-center", good.has(p.id) ? "border-success bg-success-soft" : "border-border")}>
@@ -307,7 +314,7 @@ export function HotspotBlock({ b }: { b: BlockOf<"hotspot"> }) {
   const revealed = (result?.reveal.revealedIds as string[]) ?? [];
   return (
     <BlockFrame tone="check">
-      <Header label="Find the problem" prompt={b.prompt} check={b.check} />
+      <Header label="Find the problem" prompt={b.prompt} check={b.check} hint={b.hint} />
       {a?.localFilePath && (
         <div className="mt-3">
           <LazyModelViewer
@@ -348,7 +355,7 @@ export function MeasurementBlock({ b }: { b: BlockOf<"measurement"> }) {
   const n = Number(v.replace(",", "."));
   return (
     <BlockFrame tone="check">
-      <Header label="Measure" prompt={b.prompt} check={b.check} />
+      <Header label="Measure" prompt={b.prompt} check={b.check} hint={b.hint} />
       {b.visual && <div className="my-3"><Visual {...b.visual} assets={ctx.assets} /></div>}
       <form
         className="mt-3 flex items-end gap-2"
@@ -387,7 +394,7 @@ export function SliderBlock({ b }: { b: BlockOf<"slider"> }) {
   const text = readout(b.scene, v);
   return (
     <BlockFrame tone="check">
-      <Header label="Try it" prompt={b.prompt} check={b.check} />
+      <Header label="Try it" prompt={b.prompt} check={b.check} hint={b.hint} />
       <div className="mt-4">
         <SliderScene scene={b.scene} value={v} />
       </div>
@@ -454,6 +461,7 @@ export function ReflectionBlock({ b }: { b: BlockOf<"reflection"> }) {
         </div>
       )}
       <Textarea id={`${b.id}-t`} className="mt-3 min-h-32" value={text} onChange={(e) => onChange(e.target.value)} disabled={ctx.readOnly} />
+      {!ctx.readOnly && <DictateButton className="mt-2" onText={(w) => onChange(text ? `${text} ${w}` : w)} />}
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-sm">
         <span className="text-muted" aria-live="polite">
           {tr("{n} / {min} words", { n: words, min: b.minWords })}{status && ` · ${tr(status)}`}
@@ -488,7 +496,7 @@ export function ReflectionBlock({ b }: { b: BlockOf<"reflection"> }) {
 
 export type EvidenceSummary = { id: string; type: string; fileName: string | null; url: string | null; createdAt: string; status: string; teacherComment: string | null; teacherRating: number | null; blockId: string | null };
 
-const KIND_LABEL = { screenshot: "Screenshot (PNG/JPG)", stl: "STL file", obj: "OBJ file", design_url: "Tinkercad design link", physical_test: "Physical test result" } as const;
+const KIND_LABEL = { screenshot: "Screenshot or photo (PNG/JPG)", stl: "STL file", obj: "OBJ file", design_url: "Tinkercad design link", physical_test: "Physical test result", written: "Write or say it" } as const;
 
 export function UploadEvidenceBlock({ b, existing }: { b: BlockOf<"uploadEvidence">; existing: EvidenceSummary[] }) {
   const ctx = useLesson();
@@ -568,14 +576,18 @@ export function UploadEvidenceBlock({ b, existing }: { b: BlockOf<"uploadEvidenc
               <Input id={`${b.id}-url`} name="url" type="url" required placeholder="https://www.tinkercad.com/things/…" />
             </Field>
           )}
-          {(needsFile || kind === "physical_test") && (
-            <Field label={kind === "physical_test" ? tr("Photo (optional)") : tr("File")} htmlFor={`${b.id}-file`}>
+          {(needsFile || kind === "physical_test" || kind === "written") && (
+            <Field label={kind === "physical_test" || kind === "written" ? tr("Photo or sketch (optional)") : tr("File")} htmlFor={`${b.id}-file`}>
               <input id={`${b.id}-file`} name="file" type="file" required={needsFile} accept={kind === "stl" ? ".stl" : kind === "obj" ? ".obj" : "image/png,image/jpeg,image/webp,image/gif,image/heic,image/heif,.heic,.heif"} className="text-sm" />
             </Field>
           )}
-          <Field label={kind === "physical_test" ? tr("Test result — what happened?") : tr("Note for your teacher (optional)")} htmlFor={`${b.id}-note`}>
-            <Textarea id={`${b.id}-note`} name="note" required={kind === "physical_test"} className="min-h-20" />
+          <Field label={kind === "physical_test" ? tr("Test result — what happened?") : kind === "written" ? tr("Your explanation") : tr("Note for your teacher (optional)")} htmlFor={`${b.id}-note`}>
+            <Textarea id={`${b.id}-note`} name="note" required={kind === "physical_test" || kind === "written"} className={kind === "written" ? "min-h-32" : "min-h-20"} />
           </Field>
+          <DictateButton onText={(w) => {
+            const el = formRef.current?.elements.namedItem("note") as HTMLTextAreaElement | null;
+            if (el) el.value = el.value ? `${el.value} ${w}` : w;
+          }} />
           {b.allowPrintRequest && kind === "stl" && (
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" name="requestPrint" className="size-4" /> {tr("Also send this to the class print queue")}
@@ -615,6 +627,15 @@ export function JournalEntry({ projectKey, prompt, initial, courseId: courseOver
   const [status, setStatus] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
+  const change = (t: string) => {
+    setText(t);
+    setStatus("Saving…");
+    clearTimeout(timer.current);
+    timer.current = setTimeout(async () => {
+      const r = await (ctx?.api ?? apiOverride)!.saveJournal({ courseId, projectKey, promptId: prompt.id, text: t });
+      setStatus(r.ok ? "Saved" : "Couldn't save — retrying when you type again");
+    }, 1000);
+  };
   return (
     <div>
       <label htmlFor={`j-${projectKey}-${prompt.id}`} className="block font-display font-semibold uppercase tracking-wide">
@@ -626,17 +647,9 @@ export function JournalEntry({ projectKey, prompt, initial, courseId: courseOver
         className="mt-1"
         value={text}
         disabled={ctx?.readOnly}
-        onChange={(e) => {
-          const t = e.target.value;
-          setText(t);
-          setStatus("Saving…");
-          clearTimeout(timer.current);
-          timer.current = setTimeout(async () => {
-            const r = await (ctx?.api ?? apiOverride)!.saveJournal({ courseId, projectKey, promptId: prompt.id, text: t });
-            setStatus(r.ok ? "Saved" : "Couldn't save — retrying when you type again");
-          }, 1000);
-        }}
+        onChange={(e) => change(e.target.value)}
       />
+      {!ctx?.readOnly && <DictateButton className="mt-1" onText={(w) => change(text ? `${text} ${w}` : w)} />}
       <p className="text-xs text-muted" aria-live="polite">
         {tr(status)}
       </p>

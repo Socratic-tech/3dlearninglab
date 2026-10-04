@@ -7,7 +7,7 @@ import { Alert, Pill } from "@/components/ui/card";
 import { buttonClass } from "@/components/ui/button";
 import type { BlockEntry } from "@/components/lesson/types";
 import { allBlocks, isRequiredBlock } from "@/content/schema";
-import { assetsFor, competencyTitleFor, journalPromptsFor, lessonFor, type Me } from "../content";
+import { assetsFor, buildsOnFor, competencyTitleFor, goalsFor, journalPromptsFor, lessonFor, type Me } from "../content";
 import { googleLessonApi } from "../api";
 import { isStaff, studentStates } from "../state";
 
@@ -55,6 +55,8 @@ export function LessonPage({ me, apiUrl, lessonId, focusBlockId, onChange }: { m
         evidence={evidence}
         assets={assetsFor(lesson)}
         competencyTitles={competencyTitleFor()}
+        goals={goalsFor(lesson.competencyIds)}
+        buildsOn={buildsOnFor(lesson.prerequisites)}
         journalPrompts={journalPromptsFor()}
         journals={me.journals}
         tinkercadClassUrl={me.cls?.tinkercadUrl ?? null}

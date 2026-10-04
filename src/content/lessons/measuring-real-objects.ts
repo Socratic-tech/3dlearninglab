@@ -95,6 +95,7 @@ export const lesson: LessonInput = {
           id: "critical-mc",
           type: "multipleChoice",
           prompt: "You're designing a holder that a glue stick slides into from the top. Which two measurements are critical?",
+          hint: "Critical = if this number is wrong, the holder doesn't work.",
           options: [
             { id: "a", text: "The glue stick's width, and how deep the holder must be to keep it upright" },
             { id: "b", text: "The colour and the brand", misconceptionId: "irrelevant-dim" },

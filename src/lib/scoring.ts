@@ -78,7 +78,7 @@ export function scoreBlock(block: LessonBlock, response: BlockResponse, lang: La
       return {
         correct,
         headline: correct ? H(lang, "Test result: that works.") : H(lang, "Test result: not quite yet."),
-        feedback: (wrongChosen ?? chosen[0])?.feedback,
+        feedback: (wrongChosen ?? chosen[0])?.feedback ?? (correct ? undefined : block.hint),
         explanation: block.explanation,
         misconceptionId: wrongChosen?.misconceptionId,
         reveal: { correctOptionIds: correct ? block.correctOptionIds : [] },
@@ -92,6 +92,7 @@ export function scoreBlock(block: LessonBlock, response: BlockResponse, lang: La
       return {
         correct,
         headline: correct ? H(lang, "Test result: sequence works.") : H(lang, "Test result: {n} of {total} in the right place.", { n: inPlace, total: target.length }),
+        feedback: correct ? undefined : block.hint,
         explanation: block.explanation,
         reveal: correct ? { order: target } : {},
       };
@@ -118,6 +119,7 @@ export function scoreBlock(block: LessonBlock, response: BlockResponse, lang: La
       return {
         correct,
         headline: correct ? H(lang, "Test result: every match holds.") : H(lang, "Test result: {n} of {total} matches hold.", { n: right, total: block.pairs.length }),
+        feedback: correct ? undefined : block.hint,
         explanation: block.explanation,
         reveal: correct ? {} : { correctPairIds: block.pairs.filter(ok).map((p) => p.id) },
       };
@@ -130,7 +132,7 @@ export function scoreBlock(block: LessonBlock, response: BlockResponse, lang: La
       return {
         correct,
         headline: h ? (correct ? H(lang, "Found it: {label}.", { label: h.label }) : H(lang, "Test result: {label} looks okay.", { label: h.label })) : H(lang, "Test result: nothing wrong there. Look again."),
-        feedback: h?.feedback,
+        feedback: h?.feedback || (correct ? undefined : block.hint),
         explanation: correct ? block.explanation : "",
         reveal: { hitId: h?.id ?? null, revealedIds: correct ? [h!.id] : h ? [h.id] : [] },
       };
@@ -171,7 +173,9 @@ export const REVEAL_AFTER_ATTEMPTS = 3;
  * Remove answer keys before sending a block to a student's browser.
  * Explanations/answers are returned by the server only after a response.
  */
-export function redactBlock(block: LessonBlock): LessonBlock {
+export function redactBlock(input: LessonBlock): LessonBlock {
+  // Practice: the hint is offered up front ("Need a hint?"). Skill checks: it only comes back after a first try.
+  const block = "check" in input && input.check === "skill" && "hint" in input ? ({ ...input, hint: undefined } as LessonBlock) : input;
   switch (block.type) {
     case "prediction":
       return { ...block, expectedOptionId: undefined, reveal: "", options: block.options.map((o) => ({ ...o, feedback: undefined, misconceptionId: undefined })) };
@@ -199,7 +203,7 @@ export function redactBlock(block: LessonBlock): LessonBlock {
     case "measurement":
       return { ...block, answer: 0, tolerance: 0, explanation: "" };
     case "slider":
-      return { ...block, answer: 0, tolerance: 0, hint: undefined, explanation: "" };
+      return { ...block, answer: 0, tolerance: 0, explanation: "" };
     default:
       return block;
   }

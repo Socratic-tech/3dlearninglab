@@ -62,6 +62,13 @@ export const lesson: LessonInput = {
           expectedOptionId: "a",
           reveal: "People often say yes to be kind. 'Tell me about the last time your phone got in the way at work' would have told you what actually happens.",
         },
+        {
+          id: "listen-without-assuming",
+          type: "callout",
+          tone: "tip",
+          title: "Listen without assuming",
+          body: "Your user is the expert on their own day. People have different bodies, languages, routines and ways of doing things — and none of them is wrong. Don't guess what they need: ask how they do it now, watch if you can, and write down their words. If you share a language besides English, you can interview in that language and translate your notes.",
+        },
       ],
     },
     {
@@ -72,6 +79,7 @@ export const lesson: LessonInput = {
           id: "match-questions",
           type: "matching",
           prompt: "Match each weak question to a stronger version.",
+          hint: "Strong questions are open: they start with what, where, how or 'walk me through'.",
           pairs: [
             { id: "q1", left: "Do you like my idea?", right: "What's the most annoying part of your day at the front desk?" },
             { id: "q2", left: "Is it hard to carry the keys?", right: "Walk me through what you do with your keys when you lock up." },
@@ -86,6 +94,7 @@ export const lesson: LessonInput = {
           id: "follow-up-mc",
           type: "multipleChoice",
           prompt: "The office employee says: 'The tape dispenser always ends up buried under papers.' What is the best next thing to say?",
+          hint: "Good interviewers learn more about the problem before suggesting a solution.",
           options: [
             { id: "a", text: "'Tell me more — when does it get buried, and what do you do to find it?'" },
             { id: "b", text: "'I could print you a tape dispenser!'", misconceptionId: "pitch-too-early" },
@@ -100,6 +109,7 @@ export const lesson: LessonInput = {
           id: "order-interview",
           type: "ordering",
           prompt: "Put the interview in a respectful order.",
+          hint: "Permission and introductions come first; thank-yous come last.",
           items: [
             { id: "teacher-ok", text: "Get your teacher's permission" },
             { id: "ask", text: "Introduce yourself and ask if they agree to a short interview" },
@@ -172,8 +182,8 @@ export const lesson: LessonInput = {
         {
           id: "submit",
           type: "uploadEvidence",
-          prompt: "Upload a photo or screenshot of your interview notes. Cover or remove any names.",
-          accepts: ["screenshot"],
+          prompt: "Share your interview notes: a photo or screenshot, or type or dictate them. Cover or remove any names.",
+          accepts: ["screenshot", "written"],
           competencyIds: ["G1", "F7", "F1"],
           checklist: ["Questions and answers are visible", "Includes at least two measurements", "No full names, faces or contact details"],
         },

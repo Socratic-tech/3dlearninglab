@@ -119,6 +119,8 @@ export const predictionBlock = z.object({
   ...base,
   type: z.literal("prediction"),
   prompt: z.string(),
+  /** UDL graduated support: a nudge that never gives the answer away */
+  hint: z.string().optional(),
   visual,
   options: z.array(option).min(2),
   /** Optional: some predictions have no single right answer (e.g. machine-dependent fits). */
@@ -130,6 +132,8 @@ export const multipleChoiceBlock = z.object({
   ...base,
   type: z.literal("multipleChoice"),
   prompt: z.string(),
+  /** UDL graduated support: a nudge that never gives the answer away */
+  hint: z.string().optional(),
   visual,
   options: z.array(option).min(2),
   correctOptionIds: z.array(z.string()).min(1),
@@ -142,6 +146,8 @@ export const orderingBlock = z.object({
   ...base,
   type: z.literal("ordering"),
   prompt: z.string(),
+  /** UDL graduated support: a nudge that never gives the answer away */
+  hint: z.string().optional(),
   /** listed in the correct order; shuffled deterministically for display */
   items: z.array(z.object({ id: z.string(), text: z.string() })).min(3),
   explanation: z.string(),
@@ -152,6 +158,8 @@ export const matchingBlock = z.object({
   ...base,
   type: z.literal("matching"),
   prompt: z.string(),
+  /** UDL graduated support: a nudge that never gives the answer away */
+  hint: z.string().optional(),
   pairs: z.array(z.object({ id: z.string(), left: z.string(), right: z.string() })).min(2),
   explanation: z.string(),
   competencyId: z.string().optional(),
@@ -161,6 +169,8 @@ export const hotspotBlock = z.object({
   ...base,
   type: z.literal("hotspot"),
   prompt: z.string(),
+  /** UDL graduated support: a nudge that never gives the answer away */
+  hint: z.string().optional(),
   modelId: z.string(),
   hotspots: z
     .array(
@@ -222,7 +232,7 @@ export const modelDownloadBlock = z.object({
   modelIds: z.array(z.string()).min(1),
   showImportSteps: z.boolean().default(true),
 });
-export const evidenceKind = z.enum(["screenshot", "stl", "obj", "design_url", "physical_test"]);
+export const evidenceKind = z.enum(["screenshot", "stl", "obj", "design_url", "physical_test", "written"]);
 export const uploadEvidenceBlock = z.object({
   ...base,
   type: z.literal("uploadEvidence"),

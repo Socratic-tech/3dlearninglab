@@ -40,6 +40,7 @@ export const lesson: LessonInput = {
           id: "sort",
           type: "matching",
           prompt: "Match each way of making to an example.",
+          hint: "Ask: is material being taken away, or added a bit at a time?",
           pairs: [
             { id: "p1", left: "Subtractive", right: "Drilling a hole through a wooden board" },
             { id: "p2", left: "Additive", right: "Printing a keychain layer by layer" },
@@ -124,6 +125,7 @@ export const lesson: LessonInput = {
           id: "order",
           type: "ordering",
           prompt: "Put the steps in the order they happen.",
+          hint: "You can't slice something that hasn't been designed yet. Start with the computer, end at the printer.",
           items: [
             { id: "cad", text: "Design the model in CAD" },
             { id: "stl", text: "Export an STL file" },
@@ -155,6 +157,7 @@ export const lesson: LessonInput = {
           id: "layer-check",
           type: "multipleChoice",
           prompt: "Two copies of a part are printed: one at 0.1 mm layers and one at 0.3 mm. What is the main difference?",
+          hint: "Think about a 30 mm tall part. How many 0.1 mm layers stack up to 30 mm? How many 0.3 mm layers?",
           options: [
             { id: "a", text: "The 0.1 mm copy has 3× as many layers: smoother sides, but much longer to print." },
             { id: "b", text: "The 0.1 mm copy comes out smaller.", misconceptionId: "layer-size" },
@@ -189,8 +192,8 @@ export const lesson: LessonInput = {
         {
           id: "submit",
           type: "uploadEvidence",
-          prompt: "Upload a photo or screenshot of your layer plan.",
-          accepts: ["screenshot"],
+          prompt: "Show your layer plan: upload a photo or screenshot, or write or say it.",
+          accepts: ["screenshot", "written"],
           competencyIds: ["D1"],
           checklist: ["Layer lines are horizontal and start at the bottom", "Height and layer count are labelled", "Mid-air parts are circled"],
         },

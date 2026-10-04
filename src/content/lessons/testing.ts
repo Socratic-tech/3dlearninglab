@@ -56,6 +56,7 @@ export const lesson: LessonInput = {
           id: "good-test-mc",
           type: "multipleChoice",
           prompt: "Constraint: 'Holds a 600 g water bottle without tipping.' Which is the best test?",
+          hint: "A good test is repeatable, uses the real conditions and gives a clear pass or fail.",
           options: [
             { id: "a", text: "Put a full 600 g bottle in it on a flat desk, bump the desk lightly 5 times, and record if it tips." },
             { id: "b", text: "Look at it and decide it seems stable.", misconceptionId: "looks-pass" },
@@ -70,6 +71,7 @@ export const lesson: LessonInput = {
           id: "order-test",
           type: "ordering",
           prompt: "Put the testing steps in order.",
+          hint: "Decide what counts as a pass before you run the test.",
           items: [
             { id: "pick", text: "Pick the constraint to test" },
             { id: "criteria", text: "Write how you'll test it and what counts as a pass" },
@@ -86,6 +88,7 @@ export const lesson: LessonInput = {
           id: "match-method",
           type: "matching",
           prompt: "Match each constraint to a test method.",
+          hint: "Each test should measure exactly what the constraint says.",
           pairs: [
             { id: "w", left: "Width ≤ 60 mm", right: "Measure the print with a ruler or calipers" },
             { id: "f", left: "Holds a 14 mm glue stick", right: "Insert the glue stick 5 times; record any sticking" },
@@ -100,6 +103,7 @@ export const lesson: LessonInput = {
           id: "fail-amount",
           type: "measurement",
           prompt: "Constraint: width ≤ 60 mm. Your print measures 61.4 mm. By how many mm does it fail?",
+          hint: "How far over the limit is it? Subtract.",
           answer: 1.4,
           tolerance: 0.05,
           unit: "mm",

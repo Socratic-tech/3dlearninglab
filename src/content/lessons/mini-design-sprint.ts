@@ -54,6 +54,7 @@ export const lesson: LessonInput = {
           id: "constraint-mc",
           type: "multipleChoice",
           prompt: "Which is a measurable constraint for the rolling-marker problem?",
+          hint: "Could you check it with a ruler or a count?",
           options: [
             { id: "a", text: "Holds 3 markers 18 mm across and fits on a 5 cm ledge" },
             { id: "b", text: "Looks nice on the whiteboard", misconceptionId: "wish-is-constraint" },
@@ -82,6 +83,7 @@ export const lesson: LessonInput = {
           id: "choose-mc",
           type: "multipleChoice",
           prompt: "Your best-looking idea sticks out 45 mm past a 5 cm (50 mm) ledge. Another idea fits completely on the ledge. Which do you build?",
+          hint: "Check each idea against the 50 mm ledge.",
           options: [
             { id: "a", text: "The one that fits on the ledge — it meets the constraint." },
             { id: "b", text: "The best-looking one — looks matter most.", misconceptionId: "looks-first" },
@@ -132,6 +134,7 @@ export const lesson: LessonInput = {
           id: "revision-mc",
           type: "multipleChoice",
           prompt: "Your 4.0 mm clip was too tight — the cable wouldn't go in 5/5 tries. What's the best revision?",
+          hint: "Change one thing at a time, so you know what made the difference.",
           options: [
             { id: "a", text: "Widen only the clip opening a little (e.g. to 4.4 mm), print another slice and re-test." },
             { id: "b", text: "Change the clip, the base and the infill all at once.", misconceptionId: "change-everything" },

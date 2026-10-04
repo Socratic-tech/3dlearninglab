@@ -71,6 +71,7 @@ export const lesson: LessonInput = {
           id: "match",
           type: "matching",
           prompt: "Match each failure to its most likely cause.",
+          hint: "For each failure, ask: was it heat and shrinking, movement, too much plastic or too little?",
           pairs: [
             { id: "m-warp", left: "Corners lifted off the plate", right: "Plastic shrinking as it cools; weak bed adhesion" },
             { id: "m-string", left: "Fine hairs between two posts", right: "Plastic oozing during travel moves" },
@@ -102,6 +103,7 @@ export const lesson: LessonInput = {
           id: "mc-design-or-settings",
           type: "multipleChoice",
           prompt: "A tall, skinny 5 × 5 × 80 mm tower keeps getting knocked over halfway through. What is the best FIRST change?",
+          hint: "Tall and skinny means a tiny base for the nozzle to push against. What would give it a bigger footprint?",
           options: [
             { id: "a", text: "Change the design or orientation: widen the base, add a brim, or print it lying down." },
             { id: "b", text: "Print it again exactly the same and hope.", misconceptionId: "just-reprint" },
@@ -123,6 +125,7 @@ export const lesson: LessonInput = {
           id: "hotspot",
           type: "hotspot",
           prompt: "Some failures are caused by the design. On a printer with a 0.4 mm nozzle, click the wall most likely to come out missing, broken or full of gaps.",
+          hint: "A 0.4 mm nozzle draws lines about 0.4 mm wide. Which wall is only one line?",
           modelId: "thin-wall-test",
           hotspots: [
             { id: "w04", label: "0.4 mm wall", position: [4.2, 10, 17], radius: 3, correct: true, feedback: "Only one line wide. Some slicers skip walls this thin entirely, and if it prints it snaps easily." },

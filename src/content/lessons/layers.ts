@@ -98,6 +98,7 @@ export const lesson: LessonInput = {
           id: "mc-small",
           type: "multipleChoice",
           prompt: "You design a raised detail only 0.1 mm tall, and print at 0.2 mm layers. What is most likely to happen?",
+          hint: "Compare the detail's height with one layer's height.",
           options: [
             { id: "a", text: "It may disappear or print unevenly — it's thinner than one layer." },
             { id: "b", text: "It prints exactly 0.1 mm tall.", misconceptionId: "any-height-prints" },
@@ -112,6 +113,7 @@ export const lesson: LessonInput = {
           id: "mc-lines",
           type: "multipleChoice",
           prompt: "Why can you feel tiny ridges on the side of a print?",
+          hint: "A print is a stack of thin slices. What does the edge of each slice feel like?",
           options: [
             { id: "a", text: "Each ridge is the edge of one layer stacked on the one below." },
             { id: "b", text: "The nozzle scratched the print.", misconceptionId: "lines-are-damage" },

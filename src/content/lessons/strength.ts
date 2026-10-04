@@ -80,6 +80,7 @@ export const lesson: LessonInput = {
           id: "mc-break",
           type: "multipleChoice",
           prompt: "The standing hook broke in a perfectly flat, clean line. What does that tell you?",
+          hint: "A clean, flat break follows a line that was already in the part. Which lines run all the way across?",
           options: [
             { id: "a", text: "It split between two layers — the layer boundary was the weakest place." },
             { id: "b", text: "The plastic was old or bad.", misconceptionId: "bad-plastic" },
@@ -107,6 +108,7 @@ export const lesson: LessonInput = {
           id: "match",
           type: "matching",
           prompt: "Match each setting change to its most likely effect.",
+          hint: "Walls are the outer skin, infill is the inside, and orientation sets which way the layers run.",
           pairs: [
             { id: "walls-up", left: "2 walls → 4 walls", right: "Thin parts like hooks get much stiffer" },
             { id: "infill-up", left: "15% → 80% infill", right: "Heavier and slower; stronger, but with diminishing returns" },
@@ -137,6 +139,7 @@ export const lesson: LessonInput = {
           id: "mc-walls",
           type: "multipleChoice",
           prompt: "A thin 8 mm hook is too weak. You can change ONE setting. Which is usually the best first try?",
+          hint: "A thin hook is mostly skin. Which setting makes the skin thicker?",
           options: [
             { id: "a", text: "Add more walls (for example 2 → 4)" },
             { id: "b", text: "Raise infill to 100%", misconceptionId: "infill-is-strength" },

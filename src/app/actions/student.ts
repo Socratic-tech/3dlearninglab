@@ -58,7 +58,7 @@ export async function heartbeatAction(input: { courseId: string; lessonId: strin
 export async function submitEvidenceAction(formData: FormData) {
   return run(["student"], async ({ db, actor }) => {
     const base = ids.parse({ courseId: str(formData, "courseId"), lessonId: str(formData, "lessonId"), blockId: str(formData, "blockId") });
-    const kind = z.enum(["screenshot", "stl", "obj", "design_url", "physical_test"]).parse(str(formData, "kind"));
+    const kind = z.enum(["screenshot", "stl", "obj", "design_url", "physical_test", "written"]).parse(str(formData, "kind"));
     const ev = await submitEvidence(db, actor, { ...base, kind, url: str(formData, "url"), note: str(formData, "note", 4000), file: await fileFrom(formData, "file") });
     if (formData.get("requestPrint") === "on" && ev.type === "stl") {
       await submitPrintJob(db, actor, { courseId: base.courseId, lessonId: base.lessonId, title: str(formData, "printTitle") || ev.fileName || "Print request", evidenceId: ev.id, notes: str(formData, "printNotes") });

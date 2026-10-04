@@ -71,6 +71,7 @@ export const lesson: LessonInput = {
           id: "find-tear",
           type: "hotspot",
           prompt: "A key ring would rip right out of this tag. Click the reason.",
+          hint: "A ring pulls on whatever plastic surrounds it. Where is there almost none?",
           modelId: "broken-tag",
           hotspots: [
             { id: "hole", label: "Key-ring hole", position: [1.5, 10, 3], radius: 5, correct: true, feedback: "Found it. The hole cuts through the edge, so there's no plastic to hold the ring. Keep at least 2 mm between the hole and the edge." },
@@ -85,6 +86,7 @@ export const lesson: LessonInput = {
           id: "fault-match",
           type: "matching",
           prompt: "Match each fault to its fix.",
+          hint: "Compare each fault with the matching rule in the spec.",
           pairs: [
             { id: "size", left: "Tag is 56 mm long", right: "Type the length: 50" },
             { id: "hole", left: "Hole breaks the edge", right: "Move the hole in so 2 mm of plastic is left" },
@@ -117,6 +119,7 @@ export const lesson: LessonInput = {
           id: "center-how",
           type: "multipleChoice",
           prompt: "Your name has to be centered on the tag — but the hole is at one end. What's the best way?",
+          hint: "Which tool lines shapes up exactly, instead of by eye?",
           options: [
             { id: "a", text: "Select the tag and the name, click Align (L), then click the middle dots for X and Y." },
             { id: "b", text: "Drag the name until it looks about right.", misconceptionId: "eyeball-center" },
@@ -131,6 +134,7 @@ export const lesson: LessonInput = {
           id: "plan-order",
           type: "ordering",
           prompt: "Put the build in a sensible order.",
+          hint: "Centring is easiest before anything else is attached to one end.",
           items: [
             { id: "tag", text: "Make the tag: 50 × 20 × 3 mm" },
             { id: "name", text: "Add your name: 6 mm+ tall, 1 mm high, bottom at Z = 3" },

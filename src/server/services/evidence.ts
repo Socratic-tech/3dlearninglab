@@ -39,7 +39,7 @@ export async function submitEvidence(
     courseId: string;
     lessonId: string;
     blockId: string;
-    kind: "screenshot" | "stl" | "obj" | "design_url" | "physical_test";
+    kind: "screenshot" | "stl" | "obj" | "design_url" | "physical_test" | "written";
     url?: string;
     note?: string;
     file?: { name: string; type: string; body: Buffer };
@@ -63,6 +63,8 @@ export async function submitEvidence(
     values.url = normalizeDesignUrl(input.url);
   } else if (input.kind === "physical_test") {
     if (!input.note?.trim() && !input.file) throw new AppError("Describe your test result or add a photo.");
+  } else if (input.kind === "written") {
+    if (!input.note?.trim()) throw new AppError("Write or dictate your explanation.");
   }
   if (input.file) {
     if (org?.settings.studentUploadsEnabled === false) throw new AppError("File uploads are turned off for your school. Share a design link instead.");
@@ -72,7 +74,7 @@ export async function submitEvidence(
     } catch (e) {
       throw new AppError((e as Error).message);
     }
-    const wantKind = input.kind === "physical_test" ? "screenshot" : input.kind;
+    const wantKind = input.kind === "physical_test" || input.kind === "written" ? "screenshot" : input.kind;
     if (checked.kind !== wantKind) throw new AppError(`Choose a ${wantKind === "screenshot" ? "PNG or JPG image" : wantKind.toUpperCase() + " file"}.`);
     const key = `evidence/${actor.organizationId}/${actor.id}/${randomUUID()}-${safeFileName(input.file.name)}`;
     await storage().put(key, input.file.body, checked.contentType);

@@ -98,6 +98,7 @@ export const lesson: LessonInput = {
           id: "mc-compare",
           type: "multipleChoice",
           prompt: "The redesigned T-bracket uses a little more plastic in the part itself. Why is it still usually the better design? Choose all that apply.",
+          hint: "Count the support plastic, the clean-up and the bracing, not just the part.",
           options: [
             { id: "a", text: "No support to print, so less plastic is wasted overall" },
             { id: "b", text: "No support scars on the underside" },
@@ -113,6 +114,7 @@ export const lesson: LessonInput = {
           id: "order-strategies",
           type: "ordering",
           prompt: "A part needs support. Put these fixes in the order a designer usually tries them, from easiest to most work.",
+          hint: "Start with the change that takes the least work.",
           items: [
             { id: "rotate", text: "Rotate the part so the overhang faces up or lies flat" },
             { id: "angle", text: "Change the overhang to 45° or less (chamfer, cone, gusset)" },
@@ -133,6 +135,7 @@ export const lesson: LessonInput = {
           id: "mc-when",
           type: "multipleChoice",
           prompt: "Which part is a reasonable place to just use supports?",
+          hint: "Supports make sense when redesigning would ruin what the object is for.",
           options: [
             { id: "a", text: "A small figure with outstretched arms, where changing the arms would ruin the look" },
             { id: "b", text: "A box with a straight-sided hole", misconceptionId: "holes-need-support" },

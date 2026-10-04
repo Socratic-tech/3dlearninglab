@@ -94,6 +94,7 @@ export const lesson: LessonInput = {
           id: "cylinder-dims",
           type: "multipleChoice",
           prompt: "You want a round cylinder 12 mm across. Which two numbers must both be 12?",
+          hint: "Look at the cylinder from the top. Which two sizes make the circle?",
           options: [
             { id: "a", text: "Length (X) and width (Y)" },
             { id: "b", text: "Width and height", misconceptionId: "diameter-height" },
@@ -139,6 +140,7 @@ export const lesson: LessonInput = {
           id: "spec-check",
           type: "multipleChoice",
           prompt: "A part must be 30 × 15 × 5 mm. Which reading passes the spec?",
+          hint: "Compare each number to the spec. Does turning a box change its size?",
           options: [
             { id: "a", text: "30.00 × 15.00 × 5.00" },
             { id: "b", text: "30.00 × 15.00 × 5.40", misconceptionId: "close-enough" },

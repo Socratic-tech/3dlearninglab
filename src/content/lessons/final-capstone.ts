@@ -66,6 +66,7 @@ export const lesson: LessonInput = {
           id: "problem-mc",
           type: "multipleChoice",
           prompt: "Which capstone problem statement is clear enough to design for?",
+          hint: "A clear problem names who, what goes wrong, and a number.",
           options: [
             { id: "a", text: "The custodian's 3 radio chargers fall behind the shelf, which is 25 mm from the wall, and take 5 minutes to fish out each morning." },
             { id: "b", text: "The custodian needs organization.", misconceptionId: "vague-problem" },
@@ -80,6 +81,7 @@ export const lesson: LessonInput = {
           id: "milestones",
           type: "ordering",
           prompt: "Put the capstone milestones in order.",
+          hint: "You need a client before you can interview them, and a prototype before you can revise it.",
           items: [
             { id: "approve", text: "Teacher approves client" },
             { id: "interview", text: "Interview and measure" },

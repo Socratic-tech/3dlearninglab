@@ -111,18 +111,18 @@ function Frame({ children, me, onSignOut, onSwitch }: { children: ReactNode; me?
     <div className="min-h-dvh">
       <header className="sticky top-0 z-30 border-b border-border bg-bg/90 backdrop-blur print:hidden">
         <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-4">
-          <a href="#/" className="flex items-center gap-2 font-display font-bold"><LogoMark /> <span>3D Design <span className="text-primary">Academy</span></span></a>
+          <a href="#/" className="flex shrink-0 items-center gap-2 font-display font-bold" aria-label="3D Design Academy"><LogoMark /> <span className="hidden sm:inline">3D Design <span className="text-primary">Academy</span></span></a>
           {me && me.classes.length > 1 && onSwitch ? (
             <label className="flex min-w-0 items-center gap-2 text-sm">
               <span className="sr-only">{tr("Class")}</span>
-              <select className="h-9 max-w-[11rem] truncate rounded-lg border border-border bg-surface px-2" value={me.cls?.id ?? ""} onChange={(e) => onSwitch(e.target.value)}>
+              <select className="h-9 w-full min-w-[6rem] max-w-[11rem] truncate rounded-lg border border-border bg-surface px-2" value={me.cls?.id ?? ""} onChange={(e) => onSwitch(e.target.value)}>
                 {me.classes.map((c) => <option key={c.id} value={c.id}>{c.name}{c.section ? ` · ${c.section}` : ""}</option>)}
               </select>
             </label>
           ) : me?.cls ? (
             <span className="hidden truncate text-sm text-muted sm:inline">· {me.cls.name}{me.cls.section ? ` · ${me.cls.section}` : ""}</span>
           ) : null}
-          <div className="ml-auto flex items-center gap-1">
+          <div className="ml-auto flex shrink-0 items-center gap-1">
             {me?.user.role === "teacher" && <a href="#/teacher" className="rounded-lg px-3 py-2 text-sm font-semibold hover:bg-surface-2">{tr("Teacher")}</a>}
             {me && <a href="#/student" className="rounded-lg px-3 py-2 text-sm font-semibold hover:bg-surface-2">{tr("Missions")}</a>}
             {me && <SyncPill />}

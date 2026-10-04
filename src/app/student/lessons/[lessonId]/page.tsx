@@ -98,6 +98,8 @@ export default async function LessonPage(props: PageProps<"/student/lessons/[les
         evidence={data.evidence.map((e) => ({ id: e.id, type: e.type, fileName: e.fileName, url: e.url, createdAt: e.createdAt.toISOString(), status: e.status, teacherComment: e.teacherComment, teacherRating: e.teacherRating, blockId: e.blockId }))}
         assets={assets}
         competencyTitles={Object.fromEntries(competencies.map((c) => [c.id, c.title]))}
+        goals={base.competencyIds.map((id) => competencies.find((c) => c.id === id)?.canStatement).filter((x): x is string => !!x)}
+        buildsOn={base.prerequisites.map((id) => getLesson(id)?.title).filter((x): x is string => !!x)}
         journalPrompts={journalPrompts}
         journals={journals}
         tinkercadClassUrl={ctx.course.tinkercadClassUrl}

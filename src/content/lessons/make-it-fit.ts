@@ -115,6 +115,7 @@ export const lesson: LessonInput = {
           id: "mc-loose",
           type: "multipleChoice",
           prompt: "Your test ring for a 22.0 mm PVC fitting was designed at 22.4 mm and is too tight. What should you change?",
+          hint: "Change one thing, the smallest amount that might fix it, then test again.",
           options: [
             { id: "a", text: "Make the hole a little bigger (for example 22.6 mm), reprint the ring and test again." },
             { id: "b", text: "Print the full design anyway and sand it later.", misconceptionId: "print-whole-first" },
@@ -129,6 +130,7 @@ export const lesson: LessonInput = {
           id: "mc-which",
           type: "multipleChoice",
           prompt: "Which parts of a phone-charger cable holder are worth test-printing first? Choose all that apply.",
+          hint: "Which parts must fit something else exactly?",
           options: [
             { id: "a", text: "The slot the cable snaps into" },
             { id: "b", text: "The hole for the screw that mounts it" },

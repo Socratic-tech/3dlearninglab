@@ -89,6 +89,7 @@ export const lesson: LessonInput = {
           id: "find-seam",
           type: "hotspot",
           prompt: "Click the edge where the mirrored half must meet the original.",
+          hint: "The two halves must touch along one straight edge. Which edge is the open side of the half?",
           modelId: "half-bracket",
           hotspots: [
             { id: "edge", label: "Right edge (X = 30 mm)", position: [30, 10, 2], radius: 8, correct: true, feedback: "Test result: that's the mirror line. The copy's flat edge must touch here exactly." },
@@ -102,6 +103,7 @@ export const lesson: LessonInput = {
           id: "width-check",
           type: "measurement",
           prompt: "A half part is 23 mm wide. After mirroring and joining perfectly, how wide is the full part?",
+          hint: "Two halves of the same width, placed side by side.",
           answer: 46,
           tolerance: 0,
           unit: "mm",
@@ -128,6 +130,7 @@ export const lesson: LessonInput = {
           id: "text-mc",
           type: "multipleChoice",
           prompt: "You mirror a Text shape that says 'HI 5' on X. What does it look like?",
+          hint: "Hold a sign up to a real mirror. What happens to the words?",
           options: [
             { id: "a", text: "The letters read backwards, like in a mirror." },
             { id: "b", text: "It still reads 'HI 5' normally.", misconceptionId: "mirror-text-same" },

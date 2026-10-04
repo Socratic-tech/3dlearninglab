@@ -3,7 +3,7 @@
 import { tr, trn, getLocale } from "@/lib/i18n";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import Link from "next/link";
-import { Award, CircleCheck, Flame, FlaskConical, Lock, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { Award, CircleCheck, Flame, FlaskConical, LifeBuoy, Lock, Sparkles, Volume2, VolumeX } from "lucide-react";
 import { isScorable, type ClientResult } from "@/lib/scoring";
 import { answerXp, type Stats } from "@/lib/streaks";
 import type { Lesson, LessonBlock, ModelAsset } from "@/content/schema";
@@ -45,6 +45,10 @@ export type PlayerProps = {
   freeNav?: boolean;
   /** Open on the screen that holds this block (e.g. from the review deck). */
   focusBlockId?: string;
+  /** "I can…" statements for this lesson's competencies (shown on the goal card) */
+  goals?: string[];
+  /** Titles of the lessons this one builds on */
+  buildsOn?: string[];
 };
 
 export function LessonPlayer(p: PlayerProps) {
@@ -249,6 +253,7 @@ export function LessonPlayer(p: PlayerProps) {
       <I.LessonCtx.Provider value={ctx}>
         <div className="space-y-10">
           {flavor && <S.RealWorldCard hook={flavor.hook} />}
+          <S.GoalCard goals={p.goals ?? []} buildsOn={p.buildsOn ?? []} vocabulary={p.lesson.vocabulary} />
           {p.lesson.sections.map((s, i) => (
             <section key={i} className="space-y-4">
               <h2 className="flex items-baseline gap-3 font-display text-xl font-bold">
@@ -315,6 +320,7 @@ export function LessonPlayer(p: PlayerProps) {
                 {p.lesson.sections[cur.section].title}
               </h2>
               {step === 0 && flavor && <S.RealWorldCard hook={flavor.hook} />}
+              {step === 0 && <S.GoalCard goals={p.goals ?? []} buildsOn={p.buildsOn ?? []} vocabulary={p.lesson.vocabulary} />}
               {cur.blocks.map((b) => <div key={b.id}>{render(b)}</div>)}
             </>
           )}
@@ -344,10 +350,11 @@ export function LessonPlayer(p: PlayerProps) {
             </p>
           )}
           {!sheet && chk?.error && <div className="rounded-t-2xl border-2 border-b-0 border-danger bg-surface p-3"><FriendlyError {...chk.error} /></div>}
-          <div className={cn("flex items-center gap-3 border border-border bg-surface/95 p-3 shadow-lg backdrop-blur", sheet || chk?.error ? "rounded-b-2xl" : "rounded-2xl")}>
-            <Button variant="secondary" size="lg" className={sheet ? "hidden sm:inline-flex" : undefined} disabled={step === 0} onClick={() => go(step - 1)} aria-label={tr("Previous step")}>←<span className="hidden sm:inline"> {tr("Back")}</span></Button>
+          <div className={cn("flex items-center gap-1.5 border border-border bg-surface/95 p-2 shadow-lg backdrop-blur sm:gap-3 sm:p-3", sheet || chk?.error ? "rounded-b-2xl" : "rounded-2xl")}>
+            <Button variant="secondary" size="lg" className={cn("px-3 sm:px-5", sheet && "hidden sm:inline-flex")} disabled={step === 0} onClick={() => go(step - 1)} aria-label={tr("Previous step")}>←<span className="hidden sm:inline"> {tr("Back")}</span></Button>
             <ReadAloud key={step} target={stepRef} />
-            <span className="flex-1 text-center text-sm text-muted" aria-live="polite">
+            <StuckHelp vocabulary={p.lesson.vocabulary} />
+            <span className="min-w-0 flex-1 text-center text-xs text-muted sm:text-sm" aria-live="polite">
               {checkBlock && !attempted && !sheet ? (chk?.ready ? "" : tr("Answer to continue")) : laterHint && tr(laterHint)}
             </span>
             {checkBlock && sheet && sheet.correct === false && !sheet.locked && (
@@ -370,6 +377,46 @@ export function LessonPlayer(p: PlayerProps) {
         <p className="mt-3 text-center text-sm"><Link href={links.missions} className="text-muted underline">Back to missions</Link></p>
       </div>
     </I.LessonCtx.Provider>
+  );
+}
+
+/**
+ * UDL 6.2 / 8.2 / 9.1: a calm "what to do when you're stuck" menu, with the lesson's words close at hand.
+ * Everything here is a strategy the student can use on their own before asking for help.
+ */
+function StuckHelp({ vocabulary }: { vocabulary: { term: string; definition: string }[] }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <Button variant="ghost" size="lg" className="px-2 sm:px-4" onClick={() => setOpen(!open)} aria-expanded={open} aria-controls="stuck-help" aria-label={tr("Stuck? Ideas to try")}>
+        <LifeBuoy className="size-5" aria-hidden /><span className="hidden sm:inline">{tr("Stuck?")}</span>
+      </Button>
+      {open && (
+        <div id="stuck-help" role="dialog" aria-label={tr("Stuck? Ideas to try")} className="absolute bottom-full left-0 z-20 mb-2 max-h-[70vh] w-[min(22rem,85vw)] overflow-y-auto rounded-2xl border border-border bg-surface p-4 text-left shadow-xl">
+          <p className="font-display text-lg font-bold">{tr("Stuck? That's part of designing.")}</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+            <li>{tr("Open “Need a hint?” under the question, if there is one.")}</li>
+            <li>{tr("Press the speaker to hear the screen read aloud.")}</li>
+            <li>{tr("Go back a step and look at the pictures or Show Me steps again.")}</li>
+            <li>{tr("Say the problem out loud, or explain it to a partner for 2 minutes.")}</li>
+            <li>{tr("Try something and see what happens — a wrong answer tells you something.")}</li>
+            <li>{tr("Take a 1-minute break: stand up, stretch, breathe slowly. Then look again.")}</li>
+            <li>{tr("Still stuck? Ask your teacher — say what you tried.")}</li>
+          </ul>
+          {vocabulary.length > 0 && (
+            <>
+              <p className="mt-3 text-sm font-semibold">{tr("Words in this mission")}</p>
+              <dl className="mt-1 space-y-1 text-sm">
+                {vocabulary.map((v) => (
+                  <div key={v.term}><dt className="inline font-semibold">{v.term}:</dt> <dd className="inline text-muted">{v.definition}</dd></div>
+                ))}
+              </dl>
+            </>
+          )}
+          <Button variant="secondary" size="sm" className="mt-3" onClick={() => setOpen(false)}>{tr("Close")}</Button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -407,7 +454,7 @@ function ReadAloud({ target }: { target: React.RefObject<HTMLDivElement | null> 
     setSpeaking(true);
   };
   return (
-    <Button variant="ghost" size="lg" onClick={toggle} aria-pressed={speaking} aria-label={speaking ? tr("Stop reading aloud") : tr("Read this screen aloud")}>
+    <Button variant="ghost" size="lg" className="px-2 sm:px-4" onClick={toggle} aria-pressed={speaking} aria-label={speaking ? tr("Stop reading aloud") : tr("Read this screen aloud")}>
       {speaking ? <VolumeX className="size-5" aria-hidden /> : <Volume2 className="size-5" aria-hidden />}
       <span className="hidden sm:inline">{speaking ? tr("Stop") : tr("Read aloud")}</span>
     </Button>

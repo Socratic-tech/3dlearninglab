@@ -38,6 +38,7 @@ export const lesson: LessonInput = {
           id: "order-story",
           type: "ordering",
           prompt: "Put a 2-minute showcase talk in order.",
+          hint: "Tell it like a story: who, the problem, what failed, what changed, the result, what's next.",
           items: [
             { id: "user", text: "Who I designed for (role, not name)" },
             { id: "problem", text: "The problem, with one number" },
@@ -60,6 +61,7 @@ export const lesson: LessonInput = {
           id: "evidence-mc",
           type: "multipleChoice",
           prompt: "You can show three items on your showcase card. Which three best show your design process? Choose three.",
+          hint: "Process means how you got there: changes, tests and measurements, not just the final look.",
           options: [
             { id: "a", text: "Prototype 1 next to the final, with what changed labelled" },
             { id: "b", text: "Your test results table with a failure in it" },
@@ -76,6 +78,7 @@ export const lesson: LessonInput = {
           id: "opening-mc",
           type: "multipleChoice",
           prompt: "Which opening line explains your design best?",
+          hint: "A strong opening names a real person, a real problem and what the design does.",
           options: [
             { id: "a", text: "'Our school librarian's returned books slid off her cart at the doorway bump. This 40 mm book stop keeps them on.'" },
             { id: "b", text: "'So, um, I made this in Tinkercad.'" },
@@ -90,6 +93,7 @@ export const lesson: LessonInput = {
           id: "feedback-match",
           type: "matching",
           prompt: "Match each vague comment to a more specific version.",
+          hint: "Specific feedback names one feature and why it works, or what to try next.",
           pairs: [
             { id: "f1", left: "Nice job.", right: "Works because: the finger notch makes it obvious which side opens." },
             { id: "f2", left: "Make it better.", right: "Next try: a longer base at the front might stop it tipping when it's full." },
@@ -163,8 +167,8 @@ export const lesson: LessonInput = {
         {
           id: "submit",
           type: "uploadEvidence",
-          prompt: "Upload your showcase card (screenshot or photo). This becomes the front page of your portfolio.",
-          accepts: ["screenshot"],
+          prompt: "Share your showcase card as a screenshot or photo, or write or say what's on it. This becomes the front page of your portfolio.",
+          accepts: ["screenshot", "written"],
           competencyIds: ["F10", "G6"],
           checklist: ["Three pieces of process evidence", "User shown as a role, not a name", "No faces in photos"],
         },

@@ -114,6 +114,7 @@ export const lesson: LessonInput = {
           id: "match",
           type: "matching",
           prompt: "Match each clue to the most likely cause.",
+          hint: "Picture what the nozzle was doing at that spot: moving through the air, crossing a gap, or starting on the plate?",
           pairs: [
             { id: "m1", left: "Rough, pitted underside", right: "Support material was removed there" },
             { id: "m2", left: "Hair-thin strings between parts", right: "Plastic leaked while the nozzle travelled" },
@@ -135,6 +136,7 @@ export const lesson: LessonInput = {
           id: "design-or-printer",
           type: "multipleChoice",
           prompt: "Which TWO of these problems could you fix by changing the design in CAD?",
+          hint: "Which problems would still happen on a perfect printer, because of the shape itself?",
           options: [
             { id: "a", text: "Support scars under flat arms" },
             { id: "b", text: "A wall that is too thin to print" },

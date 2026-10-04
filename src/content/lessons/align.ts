@@ -96,6 +96,7 @@ export const lesson: LessonInput = {
           id: "pick-reference",
           type: "hotspot",
           prompt: "You want the stack centred on its biggest, lowest cylinder so the base doesn't move. Click the best reference shape.",
+          hint: "Align moves everything to match the shape you click. Which one should stay still?",
           modelId: "misaligned-stack",
           hotspots: [
             { id: "bottom", label: "Bottom cylinder", position: [0, 0, 3], radius: 12, correct: true, feedback: "Test result: good choice. The base is the widest part and sits on the workplane, so everything else should move to it." },
@@ -111,6 +112,7 @@ export const lesson: LessonInput = {
           id: "edge-mc",
           type: "multipleChoice",
           prompt: "You want a 10 mm cube to sit flush with the right edge of a 50 mm box (not centred). Which dot do you click on the X axis?",
+          hint: "The three dots on an axis mean left edge, centre and right edge.",
           visual: { diagram: "align-handles" },
           options: [
             { id: "a", text: "The dot at the right end of the X axis" },
@@ -141,6 +143,7 @@ export const lesson: LessonInput = {
           id: "micro-mc",
           type: "multipleChoice",
           prompt: "You aligned on X and Y, but the small cylinder is hidden inside the big one. What happened?",
+          hint: "After aligning, check the side view. Where are the bottoms of all three cylinders?",
           options: [
             { id: "a", text: "All three cylinders sit on the workplane, so the shorter ones are buried. Make each taller or raise it." },
             { id: "b", text: "Align deletes shapes that overlap.", misconceptionId: "align-deletes" },

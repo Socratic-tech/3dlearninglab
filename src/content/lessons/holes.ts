@@ -105,6 +105,7 @@ export const lesson: LessonInput = {
           id: "micro-mc",
           type: "multipleChoice",
           prompt: "Your container has no floor — you can see straight through it. What happened?",
+          hint: "Where does the bottom of the hole sit compared with the bottom of the container?",
           options: [
             { id: "a", text: "The hole starts at the workplane (Z = 0), so it cuts through the bottom too." },
             { id: "b", text: "The walls are too thin.", misconceptionId: "thin-floor" },

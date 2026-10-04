@@ -40,6 +40,7 @@ export const lesson: LessonInput = {
           id: "which-orientation",
           type: "multipleChoice",
           prompt: "Which orientation? The hook will hang on a wall and carry a heavy bag pulling straight down on the curved end.",
+          hint: "Layers stick to each other less well than plastic sticks along a layer. Which way will the bag pull?",
           options: [
             { id: "standing", text: "Standing upright", diagram: "hook-standing", misconceptionId: "tall-is-strong", feedback: "Test result: the layers run across the stem and the bend. The bag pulls those layers apart, and it tends to snap at the bend." },
             { id: "flat", text: "Lying flat on its side", diagram: "hook-flat", feedback: "Layers run along the whole hook shape, so the load pulls along the lines of plastic instead of between them." },
@@ -77,6 +78,7 @@ export const lesson: LessonInput = {
           id: "mc-strip",
           type: "multipleChoice",
           prompt: "A long, thin ruler (150 × 20 × 3 mm) will be bent a little when used. Which orientation is best?",
+          hint: "When it bends, should the force pull along each layer or try to split layers apart?",
           options: [
             { id: "a", text: "Flat on the plate — every layer is a full ruler shape." },
             { id: "b", text: "Standing on its short end — 150 mm tall.", misconceptionId: "tall-is-strong" },
@@ -91,6 +93,7 @@ export const lesson: LessonInput = {
           id: "mc-tradeoff",
           type: "multipleChoice",
           prompt: "Orientation can change more than strength. Which of these can it also change? Choose all that apply.",
+          hint: "Turn the part in your head: what changes about the overhangs, the visible layer steps and the height?",
           options: [
             { id: "a", text: "How much support material is needed" },
             { id: "b", text: "How smooth a curved surface looks" },

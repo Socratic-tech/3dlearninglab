@@ -59,6 +59,7 @@ export const lesson: LessonInput = {
           id: "hotspot",
           type: "hotspot",
           prompt: "Click the bridge that is MOST likely to sag on a typical printer.",
+          hint: "A bridge is a line of plastic stretched between two supports. The longer it is, the more it droops.",
           modelId: "bridge-test",
           hotspots: [
             { id: "b10", label: "10 mm span", position: [11, 4, 13], radius: 6, correct: false, feedback: "A short span — the strands barely have time to sag." },
@@ -74,6 +75,7 @@ export const lesson: LessonInput = {
           id: "mc-bridge-or-overhang",
           type: "multipleChoice",
           prompt: "Which of these is a BRIDGE (supported at both ends)?",
+          hint: "Bridge = held up at both ends. Overhang = held up at one end only.",
           options: [
             { id: "a", text: "The crossbar of a capital H printed standing up" },
             { id: "b", text: "The top bar of a capital T printed standing up", misconceptionId: "bridge-equals-overhang" },
@@ -104,6 +106,7 @@ export const lesson: LessonInput = {
           id: "mc-fix",
           type: "multipleChoice",
           prompt: "A 70 mm wide shelf on two legs sags in the middle when printed. Which design change is most likely to fix it without supports?",
+          hint: "Making the shelf thicker still leaves the first layer crossing the same gap. What shortens the gap?",
           options: [
             { id: "a", text: "Add a third leg in the middle so each span is about 35 mm or less." },
             { id: "b", text: "Make the shelf thicker — the bottom layer still has to cross 70 mm.", misconceptionId: "thicker-bridge" },

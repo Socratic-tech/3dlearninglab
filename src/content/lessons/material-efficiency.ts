@@ -108,6 +108,7 @@ export const lesson: LessonInput = {
           id: "mc-slicer",
           type: "multipleChoice",
           prompt: "Your math says the solid block is 48 cm³ of plastic, but the slicer's estimate is much lower. Why?",
+          hint: "Cut a print in half in your head. Is it solid all the way through?",
           options: [
             { id: "a", text: "The slicer doesn't print it solid — it uses walls plus a partly empty infill pattern inside." },
             { id: "b", text: "Your math must be wrong.", misconceptionId: "math-must-match-slicer" },
@@ -130,6 +131,7 @@ export const lesson: LessonInput = {
           id: "mc-wall",
           type: "multipleChoice",
           prompt: "A pencil cup gets knocked off desks a lot. Which wall thickness is the best balance of strength and material?",
+          hint: "0.4 mm is one nozzle line. Look for a few lines thick, but not a brick.",
           options: [
             { id: "a", text: "0.4 mm — saves the most plastic", misconceptionId: "thinnest-is-best" },
             { id: "b", text: "About 2 mm — several lines thick, still light" },

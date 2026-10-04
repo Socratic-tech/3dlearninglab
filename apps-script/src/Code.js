@@ -770,6 +770,7 @@ const ACTIONS = {
       if (a.file) extra.file = saveUpload_(user, a.kind, a.file);
       else if (a.kind === "screenshot" || a.kind === "stl" || a.kind === "obj") throw userError_("Choose a file to upload.");
       if (a.kind === "physical_test" && !extra.text && !a.file) throw userError_("Describe your test result or add a photo.");
+      if (a.kind === "written" && !extra.text) throw userError_("Write or dictate your explanation.");
       const ev = newEvidence_(user, a.lessonId, a.blockId, block.competencyIds, a.kind, extra);
       saveBlockEntry_(user.email, a.lessonId, a.blockId, { done: true });
       addXp_(user.email, [{ kind: "work", at: now_(), lessonId: a.lessonId, blockId: a.blockId }]);
@@ -1032,7 +1033,7 @@ function saveUpload_(user, kind, file) {
   const name = String(file.name || "upload").replace(/[^a-zA-Z0-9._-]+/g, "-").slice(-80);
   const ext = (name.split(".").pop() || "").toLowerCase();
   const images = ["png", "jpg", "jpeg", "webp", "gif", "heic", "heif"];
-  const okExt = { screenshot: images, physical_test: images, stl: ["stl"], obj: ["obj"] }[kind] || [];
+  const okExt = { screenshot: images, physical_test: images, written: images, stl: ["stl"], obj: ["obj"] }[kind] || [];
   if (okExt.indexOf(ext) < 0) throw userError_("That file type isn't allowed here. Use " + okExt.join(", ").toUpperCase() + ".");
   const isImg = okExt === images;
   let mime = "application/octet-stream";

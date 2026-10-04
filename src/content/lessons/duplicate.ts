@@ -90,6 +90,7 @@ export const lesson: LessonInput = {
           id: "dup-vs-new",
           type: "multipleChoice",
           prompt: "Why is duplicating a leg better than dragging four new boxes from the shape panel?",
+          hint: "What does a copy keep that a brand-new box from the panel doesn't have?",
           options: [
             { id: "a", text: "Copies keep the exact size and settings, so you can't make one leg slightly different by mistake." },
             { id: "b", text: "Duplicated shapes print faster." , misconceptionId: "dup-prints-faster" },
@@ -119,6 +120,7 @@ export const lesson: LessonInput = {
           id: "mystery-shapes",
           type: "multipleChoice",
           prompt: "After grouping your domino, one dot looks deeper than the others. What is the most likely cause?",
+          hint: "Ctrl+D puts the copy exactly on top of the original. What if you pressed it twice?",
           options: [
             { id: "a", text: "Two hidden copies were stacked in that spot, and one was moved down." },
             { id: "b", text: "Groups always make holes deeper.", misconceptionId: "group-deepens" },

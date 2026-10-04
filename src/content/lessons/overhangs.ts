@@ -80,6 +80,7 @@ export const lesson: LessonInput = {
           id: "hotspot-fins",
           type: "hotspot",
           prompt: "Click every fin you think is likely to droop on a typical school printer.",
+          hint: "Many printers manage overhangs up to about 45° from straight up. Find the fins leaning further than that.",
           modelId: "overhang-test",
           hotspots: [
             { id: "f20", label: "20° fin", position: [18.55, 8, 26], radius: 5, correct: false, feedback: "20° is a gentle lean — most printers handle it easily." },
@@ -96,6 +97,7 @@ export const lesson: LessonInput = {
           id: "mc-letters",
           type: "multipleChoice",
           prompt: "You print the capital letters T, A and H standing upright. Which one has an overhang that will need help?",
+          hint: "Look for a part that sticks straight out sideways with nothing underneath it.",
           options: [
             { id: "t", text: "T — its top bar sticks straight out sideways." },
             { id: "a", text: "A — its legs lean.", misconceptionId: "any-lean-fails" },
@@ -116,6 +118,7 @@ export const lesson: LessonInput = {
           id: "hotspot-t",
           type: "hotspot",
           prompt: "Find the problem: this T-bracket will print standing on its stem. Click every area that will print poorly without help.",
+          hint: "Printing upward from the stem, which surfaces start in mid-air?",
           modelId: "excessive-support-object",
           hotspots: [
             { id: "left-arm", label: "Underside of the left arm", position: [8, 10, 40], radius: 9, correct: true, feedback: "This 25 mm arm is a flat, 90° overhang — nothing is below it." },

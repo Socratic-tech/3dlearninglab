@@ -86,6 +86,7 @@ export const lesson: LessonInput = {
           id: "order",
           type: "ordering",
           prompt: "Put the repeat-duplicate steps in order.",
+          hint: "Tinkercad remembers the move you made to the first copy, as long as you don't click away.",
           items: [
             { id: "select", text: "Select the shape" },
             { id: "dup1", text: "Press Ctrl+D" },
@@ -155,6 +156,7 @@ export const lesson: LessonInput = {
           id: "micro-mc",
           type: "multipleChoice",
           prompt: "Your third tooth jumped to a strange spot and the pattern broke. What probably happened?",
+          hint: "What breaks Tinkercad's memory of your last move?",
           options: [
             { id: "a", text: "You clicked somewhere else between Ctrl+D presses, so Tinkercad forgot the move." },
             { id: "b", text: "Repeat duplicate only works three times.", misconceptionId: "repeat-limit" },

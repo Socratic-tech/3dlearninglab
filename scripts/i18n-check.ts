@@ -64,7 +64,7 @@ function INDIRECT() {
     "Discover", "Practice", "Apply", "Prove", "Reflect",
     "Predict", "Lock in", "Check", "Check your skill", "Quick check", "Put in order", "Match", "Find the problem", "Check this spot", "Measure", "Try it",
     "Submitted", "Draft saved", "Saving…", "Couldn't save — keep this tab open and we'll retry", "Saved", "Couldn't save — retrying when you type again",
-    "Screenshot (PNG/JPG)", "STL file", "OBJ file", "Tinkercad design link", "Physical test result",
+    "Screenshot or photo (PNG/JPG)", "STL file", "OBJ file", "Tinkercad design link", "Physical test result", "Write or say it",
     "Do this in Tinkercad", "Do this offline — paper, tools or real objects", "Part offline, part in Tinkercad", "In person, with your teacher",
     "CC0 (public domain)", "Public domain", "Permissive license",
     "Make a prediction", "Skill check", "Put the steps in order", "Match them up", "Measure it", "Submit your design",

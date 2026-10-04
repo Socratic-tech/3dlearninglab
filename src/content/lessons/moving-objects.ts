@@ -98,6 +98,7 @@ export const lesson: LessonInput = {
           id: "find-sunk",
           type: "hotspot",
           prompt: "In the original scene, click the shape that would lose part of itself because it is below the workplane.",
+          hint: "Orbit to a side view. Anything below the grid gets cut off when you print.",
           modelId: "misplaced-shapes",
           hotspots: [
             { id: "sphere", label: "Sphere", position: [0, 0, 0], radius: 11, correct: true, feedback: "Yes. Its bottom is 13 mm below the floor. Anything below the workplane won't print as designed." },
@@ -144,6 +145,7 @@ export const lesson: LessonInput = {
           id: "check-floor",
           type: "multipleChoice",
           prompt: "From the top view, your shape looks like it is sitting on the workplane. What is the best way to be sure?",
+          hint: "From straight above, you can't see height at all. What view shows the gap under a shape?",
           options: [
             { id: "a", text: "Orbit to a low side view and look for a gap, or select it and press D" },
             { id: "b", text: "Zoom in from the top view", misconceptionId: "top-view-enough" },
@@ -158,6 +160,7 @@ export const lesson: LessonInput = {
           id: "axis-check",
           type: "multipleChoice",
           prompt: "You need to move a shape toward the back of the workplane, away from you. Which axis is that?",
+          hint: "X goes left–right and Z goes up–down. What's left?",
           options: [
             { id: "a", text: "Y" },
             { id: "b", text: "X", misconceptionId: "axis-mixup" },

@@ -46,6 +46,7 @@ export const lesson: LessonInput = {
           id: "order-cycle",
           type: "ordering",
           prompt: "Put the design cycle in order.",
+          hint: "You can't define the problem before you understand who has it, and you can't test what you haven't built.",
           items: [
             { id: "understand", text: "Understand the user" },
             { id: "define", text: "Define the problem" },
@@ -57,6 +58,13 @@ export const lesson: LessonInput = {
           explanation: "You can't define a problem you don't understand, and you can't test what you haven't built. Revise loops you back to prototype — or even to define.",
           check: "practice",
         },
+        {
+          id: "design-for-everyone",
+          type: "callout",
+          tone: "idea",
+          title: "Design for everyone",
+          body: "Good designers ask: who might find this hard to use? Someone using one hand, someone who sees colours differently, someone sitting in a wheelchair, someone younger or older. A design that works for them usually works better for everyone. Curb cuts were made for wheelchairs — now strollers, bikes and suitcases use them too.",
+        },
       ],
     },
     {
@@ -67,6 +75,7 @@ export const lesson: LessonInput = {
           id: "need-mc",
           type: "multipleChoice",
           prompt: "Which statement describes a real user need?",
+          hint: "A real need names a real person, a specific problem, and something you could measure.",
           options: [
             { id: "a", text: "Ms. Ortiz's dry-erase markers roll off the 5 cm whiteboard ledge and break about twice a week." },
             { id: "b", text: "I want to make a cool dragon.", misconceptionId: "object-first" },
@@ -115,6 +124,7 @@ export const lesson: LessonInput = {
           id: "choose-mc",
           type: "multipleChoice",
           prompt: "The markers are 18 mm across. The holder must not cover the whiteboard. Which is the best reason to choose an idea?",
+          hint: "Go back to the requirements. Which reason mentions both of them?",
           options: [
             { id: "a", text: "It holds 18 mm markers and sits only on the ledge, so it meets both requirements." },
             { id: "b", text: "It is the one I like best.", misconceptionId: "favourite-wins" },
@@ -159,8 +169,8 @@ export const lesson: LessonInput = {
         {
           id: "submit",
           type: "uploadEvidence",
-          prompt: "Upload a photo or screenshot of your three sketches with your need statement and choice written on the page.",
-          accepts: ["screenshot"],
+          prompt: "Share your three sketches with your need statement and choice: a photo or screenshot, or describe them in writing or out loud (you can add a photo too).",
+          accepts: ["screenshot", "written"],
           competencyIds: ["F1", "F3", "F4"],
           checklist: ["Need statement names a specific user", "Three different ideas", "Reason for choice refers to the need"],
         },

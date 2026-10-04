@@ -131,6 +131,7 @@ export const lesson: LessonInput = {
           id: "axis-choice",
           type: "multipleChoice",
           prompt: "A rod stands straight up, 70 mm tall. Which rotation lays it flat?",
+          hint: "Spinning around Z is like a record turning on a table. Would that make a standing rod lie down?",
           options: [
             { id: "a", text: "90° around X" },
             { id: "b", text: "90° around Y" },
@@ -145,6 +146,7 @@ export const lesson: LessonInput = {
           id: "twice",
           type: "multipleChoice",
           prompt: "You rotate a shape 45° around Z, then 45° around Z again. Where does it end up?",
+          hint: "Rotations add up, like turning a steering wheel twice.",
           options: [
             { id: "a", text: "90° from where it started" },
             { id: "b", text: "Still at 45°, because the second rotation sets it to 45°", misconceptionId: "absolute-angle" },

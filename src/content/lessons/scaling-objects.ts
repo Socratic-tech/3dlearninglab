@@ -96,6 +96,7 @@ export const lesson: LessonInput = {
           id: "which-handle",
           type: "matching",
           prompt: "Match each goal to the handle you'd use.",
+          hint: "Top handles change height, side handles change one direction, corner handles change two. Shift keeps the shape's proportions.",
           pairs: [
             { id: "h1", left: "Make a coin thinner", right: "Top handle" },
             { id: "h2", left: "Make a bar longer, but not wider", right: "Side handle" },
@@ -125,6 +126,7 @@ export const lesson: LessonInput = {
           id: "squashed",
           type: "multipleChoice",
           prompt: "You resized a sphere and now it looks like an egg. What happened?",
+          hint: "A sphere stays round only if it grows the same amount in every direction. What key keeps proportions?",
           options: [
             { id: "a", text: "You dragged a handle without Shift, so one direction grew more than the others" },
             { id: "b", text: "Spheres always turn into eggs when they get bigger", misconceptionId: "shape-changes" },
@@ -139,6 +141,7 @@ export const lesson: LessonInput = {
           id: "half-size",
           type: "multipleChoice",
           prompt: "A box is 40 × 20 × 10 mm. You scale it proportionally to half the size. What are its new dimensions?",
+          hint: "Proportional means every number is multiplied by the same amount.",
           options: [
             { id: "a", text: "20 × 10 × 5 mm" },
             { id: "b", text: "20 × 20 × 10 mm", misconceptionId: "one-axis" },

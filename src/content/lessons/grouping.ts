@@ -79,6 +79,7 @@ export const lesson: LessonInput = {
           id: "why-group",
           type: "matching",
           prompt: "Match each situation to what grouping does.",
+          hint: "Grouped parts act as one object, until you ungroup.",
           pairs: [
             { id: "g1", left: "You drag the table to a new spot", right: "All parts move together" },
             { id: "g2", left: "You Shift-scale the table to 2×", right: "All parts grow together, keeping their positions" },
@@ -108,6 +109,7 @@ export const lesson: LessonInput = {
           id: "touching",
           type: "multipleChoice",
           prompt: "You grouped a snowman: three spheres stacked up. When you print it, the head falls off. What is the most likely cause?",
+          hint: "Grouping doesn't glue anything. How much of the head actually touches the body?",
           options: [
             { id: "a", text: "The head only touched the body at a single point, or not at all, so there was almost no connection" },
             { id: "b", text: "Grouping was undone during export", misconceptionId: "group-glues" },
@@ -122,6 +124,7 @@ export const lesson: LessonInput = {
           id: "edit-group",
           type: "multipleChoice",
           prompt: "Your rocket is grouped. You need to make just the nose cone 5 mm taller. What should you do?",
+          hint: "Dragging a group's handle changes every part inside it.",
           options: [
             { id: "a", text: "Ungroup, resize the cone, then group again" },
             { id: "b", text: "Drag the group's top handle up 5 mm", misconceptionId: "scale-group-part" },

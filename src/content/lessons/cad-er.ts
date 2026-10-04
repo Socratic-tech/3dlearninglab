@@ -74,6 +74,7 @@ export const lesson: LessonInput = {
           id: "find-causes",
           type: "hotspot",
           prompt: "Click every region that causes one of the five symptoms. One region is healthy.",
+          hint: "Match each symptom to a place on the stand. Only one region has nothing wrong.",
           modelId: "bad-phone-stand",
           hotspots: [
             { id: "slot", label: "Phone slot", position: [15, 35, 20], radius: 6, correct: true, feedback: "Diagnosis: the slot is only 6 mm wide. Most phones in a case are 9–12 mm thick." },
@@ -91,6 +92,7 @@ export const lesson: LessonInput = {
           id: "match-causes",
           type: "matching",
           prompt: "Match each symptom to the design cause.",
+          hint: "Read each symptom, then look at the stand and find the part that explains it.",
           pairs: [
             { id: "tips", left: "Falls backward", right: "Balance point sits behind the base" },
             { id: "fit", left: "Phone won't go in", right: "Slot narrower than the phone" },
@@ -118,6 +120,7 @@ export const lesson: LessonInput = {
           id: "neck-mc",
           type: "multipleChoice",
           prompt: "The stand will print standing up, so its layers are horizontal. Which change to the neck will most likely stop it snapping?",
+          hint: "Layers are weakest where few lines of plastic connect them. What gives a layer more to hold?",
           options: [
             { id: "a", text: "Make the neck thicker (for example 4 mm) so many more lines of plastic hold each layer together." },
             { id: "b", text: "Print it faster so the layers don't cool.", misconceptionId: "speed-fixes-strength" },
@@ -144,6 +147,7 @@ export const lesson: LessonInput = {
           id: "hypothesis-mc",
           type: "multipleChoice",
           prompt: "Which hypothesis can actually be tested?",
+          hint: "A testable hypothesis names one change and a result you can measure.",
           options: [
             { id: "a", text: "If I extend the base 25 mm behind the backrest, then the stand will stay upright with a phone in it, because the balance point will be over the base." },
             { id: "b", text: "If I make it better, then it will work.", misconceptionId: "vague-hypothesis" },

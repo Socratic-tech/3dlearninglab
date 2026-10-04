@@ -61,6 +61,14 @@ export const domainsFor = () => {
   const t = new Map(localizedCourse(getLocale()).domains.map((d) => [d.id, d]));
   return domains.map((d) => ({ ...d, title: t.get(d.id)?.title ?? d.title, shortTitle: t.get(d.id)?.shortTitle ?? d.shortTitle }));
 };
+/** "I can…" statements for a lesson's competencies, in the student's language. */
+export const goalsFor = (competencyIds: string[]) => {
+  const loc = getLocale() === "en" ? null : new Map(localizedCourse(getLocale()).competencies.map((c) => [c.id, c.canStatement]));
+  return competencyIds.map((id) => loc?.get(id) || competencies.find((c) => c.id === id)?.canStatement).filter((x): x is string => !!x);
+};
+/** Titles of the lessons a lesson builds on, in the student's language. */
+export const buildsOnFor = (prerequisites: string[]) => prerequisites.map((id) => lessonFor(id)?.title).filter((x): x is string => !!x);
+
 export const journalPromptsFor = () => (getLocale() === "en" ? journalPrompts : localizedCourse(getLocale()).journalPrompts);
 
 const pathText = (pathId: string) => (getLocale() === "en" ? undefined : localizedCourse(getLocale()).paths.find((x) => x.id === pathId));

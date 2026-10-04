@@ -89,6 +89,7 @@ export const lesson: LessonInput = {
           id: "find-floating",
           type: "hotspot",
           prompt: "Orbit the model. Click the shape that is floating above the workplane.",
+          hint: "Orbit down low so you are looking across the workplane. Look for daylight under a shape.",
           modelId: "misplaced-shapes",
           hotspots: [
             { id: "cube", label: "Cube", position: [65, 45, 28], radius: 14, correct: true, feedback: "Found it. From the side you can see an 18 mm gap under the cube." },
@@ -133,6 +134,7 @@ export const lesson: LessonInput = {
           id: "lost-view",
           type: "multipleChoice",
           prompt: "You zoomed and panned so far that your design is off the screen. What's the fastest way back?",
+          hint: "Tinkercad has a one-key shortcut and a button on the view cube that both reset the view.",
           options: [
             { id: "a", text: "Press F (Zoom to fit) or click Home on the view cube" },
             { id: "b", text: "Start a new design", misconceptionId: "lost-restart" },
@@ -147,6 +149,7 @@ export const lesson: LessonInput = {
           id: "box-select",
           type: "multipleChoice",
           prompt: "You drag a selection box that touches only half of a shape. In Tinkercad, what usually happens?",
+          hint: "Try it: drag a box over half a shape and see whether it lights up.",
           options: [
             { id: "a", text: "Shapes completely inside the box are selected; a shape only partly inside may be left out" },
             { id: "b", text: "Half of the shape is selected", misconceptionId: "half-select" },

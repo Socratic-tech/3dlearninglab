@@ -106,6 +106,7 @@ export const lesson: LessonInput = {
           id: "params-match",
           type: "matching",
           prompt: "Match the goal to the shape setting.",
+          hint: "Each shape has settings (sides, text and so on) in its panel. Count the sides each goal needs.",
           pairs: [
             { id: "hex", left: "A hexagon nut shape", right: "Polygon with 6 sides" },
             { id: "smooth", left: "A rounder cylinder", right: "Increase the cylinder's sides" },
@@ -135,6 +136,7 @@ export const lesson: LessonInput = {
           id: "floating-mc",
           type: "multipleChoice",
           prompt: "Your raised text looks fine, but in the slicer the letters print in mid-air. What happened?",
+          hint: "In the slicer, anything not touching the part or the plate has nothing to print onto.",
           options: [
             { id: "a", text: "The text was floating above the plate instead of touching it." },
             { id: "b", text: "Text can never be raised.", misconceptionId: "text-cant-raise" },

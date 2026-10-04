@@ -57,6 +57,7 @@ export const lesson: LessonInput = {
           id: "match-revision",
           type: "matching",
           prompt: "Match each test result to a sensible revision.",
+          hint: "Each fix should change the one thing that caused that result.",
           pairs: [
             { id: "tight", left: "Glue stick won't go in the 14.0 mm hole", right: "Widen the hole a little, e.g. to 14.4 mm, and print a new slice" },
             { id: "snap", left: "Hook arm snapped at a layer line", right: "Thicken the arm or change print orientation" },
@@ -71,6 +72,7 @@ export const lesson: LessonInput = {
           id: "doc-mc",
           type: "multipleChoice",
           prompt: "Which journal entry documents an iteration best?",
+          hint: "Good documentation lists the version, what changed, and a measured result.",
           options: [
             { id: "a", text: "v1: hole 14.0 mm — glue stick stuck 5/5 tries. v2: hole 14.4 mm (only change) — slid in 5/5 tries. Keeping 14.4." },
             { id: "b", text: "Made it better. Works now.", misconceptionId: "vague-log" },

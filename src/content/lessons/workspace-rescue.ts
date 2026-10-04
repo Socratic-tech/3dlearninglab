@@ -52,6 +52,7 @@ export const lesson: LessonInput = {
           id: "recon-shapes",
           type: "hotspot",
           prompt: "Scene 1: click every shape that is NOT resting on the workplane.",
+          hint: "Orbit low and check every shape for a gap underneath, or for parts below the grid.",
           modelId: "misplaced-shapes",
           hotspots: [
             { id: "cube", label: "Cube", position: [65, 45, 28], radius: 14, correct: true, feedback: "Floating: its bottom is 18 mm above the workplane." },
@@ -68,6 +69,7 @@ export const lesson: LessonInput = {
           id: "recon-toolbox",
           type: "hotspot",
           prompt: "Scene 2: click every part that must be rotated before it can lie inside the tray.",
+          hint: "The tray is only 25 mm deep. Which parts are taller than that the way they sit now?",
           modelId: "toolbox-parts",
           hotspots: [
             { id: "rod", label: "Rod", position: [45, 90, 35], radius: 15, correct: true, feedback: "Tilted on two axes. It's 70 mm long, so it only fits lying flat along the tray's length." },
@@ -100,6 +102,7 @@ export const lesson: LessonInput = {
           id: "rim-check",
           type: "multipleChoice",
           prompt: "The block is 30 × 10 × 10 mm. The tray is 25 mm deep. Which way can the block go so it doesn't stick up above the rim?",
+          hint: "The block's height depends on which face it sits on. Which way is it shortest?",
           options: [
             { id: "a", text: "Lying on a long side, so it is 10 mm tall" },
             { id: "b", text: "Standing on end, so it is 30 mm tall", misconceptionId: "size-not-orientation" },

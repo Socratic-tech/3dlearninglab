@@ -362,6 +362,40 @@ export function RealWorldCard({ hook }: { hook: Hook }) {
   );
 }
 
+/** UDL 8.1 / 6.1 / 3.1 / 2.1: what you'll be able to do, what it builds on, and the words you'll use. */
+export function GoalCard({ goals, buildsOn, vocabulary }: { goals: string[]; buildsOn: string[]; vocabulary: { term: string; definition: string }[] }) {
+  if (!goals.length && !buildsOn.length && !vocabulary.length) return null;
+  return (
+    <section className="rounded-3xl border border-border bg-surface p-5 sm:p-6" aria-label={tr("Today's goals")}>
+      <p className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-[0.18em] text-primary">
+        <PencilRuler className="size-4" aria-hidden /> {tr("Today's goals")}
+      </p>
+      {goals.length > 0 && (
+        <ul className="mt-2 space-y-1 text-lg font-semibold">
+          {goals.map((g) => <li key={g}>✓ {g}</li>)}
+        </ul>
+      )}
+      {buildsOn.length > 0 && <p className="mt-3 text-sm text-muted">{tr("Builds on:")} {buildsOn.join(" · ")}</p>}
+      {vocabulary.length > 0 && (
+        <details className="mt-3">
+          <summary className="cursor-pointer text-sm font-semibold text-primary">
+            <BookOpen className="mr-1 inline size-4" aria-hidden />
+            {tr("Words you'll use ({n})", { n: vocabulary.length })}
+          </summary>
+          <dl className="mt-2 grid gap-2 sm:grid-cols-2">
+            {vocabulary.map((v) => (
+              <div key={v.term} className="rounded-xl bg-surface-2 p-3">
+                <dt className="font-semibold">{v.term}</dt>
+                <dd className="text-sm text-muted">{v.definition}</dd>
+              </div>
+            ))}
+          </dl>
+        </details>
+      )}
+    </section>
+  );
+}
+
 /** A request from a (fictional) client, styled like a message. */
 function ClientMessage({ c }: { c: Client }) {
   const initials = c.name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
@@ -423,7 +457,13 @@ export function ChallengeBlock({ b, assets, skillTitle, classUrl = null, client,
         <h3 className="mt-3 font-display text-2xl font-bold sm:text-3xl">{b.title}</h3>
         <Md text={b.prompt} className={cn("mt-2 text-lg", briefing && "opacity-90")} />
         {b.visual && <div className="mt-3 rounded-xl bg-surface p-2"><Visual {...b.visual} assets={assets} /></div>}
-        {themes && themes.length > 0 && <ThemePicker id={pickId ?? b.id} themes={themes} />}
+        {themes && themes.length > 0 ? (
+          <ThemePicker id={pickId ?? b.id} themes={themes} />
+        ) : (
+          <p className={cn("mt-4 rounded-xl p-3 text-sm", briefing ? "bg-white/10" : "bg-primary-soft")}>
+            <strong>{tr("Make it yours:")}</strong> {tr("change the look, the name or who it's for — anything you like, as long as every requirement is met.")}
+          </p>
+        )}
         <p className="mt-5 text-xs font-bold uppercase tracking-widest opacity-75">{tr("Requirements · {done}/{total} checked", { done, total: b.requirements.length })}</p>
         <ul className="mt-2 space-y-2">
           {b.requirements.map((r, i) => (
@@ -443,6 +483,14 @@ export function ChallengeBlock({ b, assets, skillTitle, classUrl = null, client,
             ))}
           </div>
         )}
+        <p className="mt-4 flex items-start gap-2 text-sm opacity-90">
+          <Users className="mt-0.5 size-4 shrink-0" aria-hidden />
+          <span>
+            {b.kind === "boss"
+              ? tr("Talk your plan through with a partner if it helps — then build and submit your own.")
+              : tr("Team option: plan with a partner and check each other's work against the requirements. Each of you builds and submits your own.")}
+          </span>
+        </p>
         {(b.where ?? "tinkercad") !== "offline" && (
           <div className="mt-5 rounded-2xl bg-surface p-4 text-fg">
             <TinkercadButtons classUrl={classUrl} />

@@ -63,6 +63,7 @@ export const lesson: LessonInput = {
           id: "sort-mc",
           type: "multipleChoice",
           prompt: "A coach needs a holder for a clipboard on the gym wall. Which of these are measurable constraints? Choose all that apply.",
+          hint: "Could you check it with a ruler, a scale, a timer or a yes/no test?",
           options: [
             { id: "a", text: "Holds a clipboard 230 mm wide and 12 mm thick" },
             { id: "b", text: "Mounts with the two screws already in the wall, 150 mm apart" },
@@ -79,6 +80,7 @@ export const lesson: LessonInput = {
           id: "sort-match",
           type: "matching",
           prompt: "Sort the librarian's requests. Match each one to its label.",
+          hint: "A constraint must be met. A wish would be nice but isn't required.",
           pairs: [
             { id: "s1", left: "Holds books up to 40 mm thick", right: "Constraint — fit" },
             { id: "s2", left: "Fits on a cart shelf 300 mm deep", right: "Constraint — size" },
@@ -94,6 +96,7 @@ export const lesson: LessonInput = {
           id: "match-rewrite",
           type: "matching",
           prompt: "Match each vague wish to a measurable constraint.",
+          hint: "Turn each wish into a number you could test.",
           pairs: [
             { id: "small", left: "Should be small", right: "Fits inside a 60 × 40 mm drawer slot" },
             { id: "hold", left: "Holds a lot of pencils", right: "Holds at least 12 pencils, 8 mm across" },
@@ -143,6 +146,7 @@ export const lesson: LessonInput = {
           id: "choose-mc",
           type: "multipleChoice",
           prompt: "Idea 1 sticks out 55 mm. Idea 2 sticks out 35 mm but needs new screw holes. Idea 3 sticks out 30 mm and uses the existing screws. Which should you build first?",
+          hint: "Check each idea against every constraint: distance from the wall and the existing screws.",
           options: [
             { id: "a", text: "Idea 3 — it meets every constraint." },
             { id: "b", text: "Idea 1 — it holds the clipboard most securely.", misconceptionId: "ignore-constraint" },
@@ -179,8 +183,8 @@ export const lesson: LessonInput = {
         {
           id: "submit",
           type: "uploadEvidence",
-          prompt: "Upload a photo of your three sketches with your constraints list beside them.",
-          accepts: ["screenshot"],
+          prompt: "Share your three sketches and your constraints list: a photo, or write or say them (you can add a photo too).",
+          accepts: ["screenshot", "written"],
           competencyIds: ["F2", "G3", "F4"],
           checklist: ["Constraints have numbers and units", "Wishes are labelled separately", "Three different approaches", "Choice names constraints"],
         },
