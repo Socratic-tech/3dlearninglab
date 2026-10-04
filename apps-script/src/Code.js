@@ -990,7 +990,9 @@ function onOpen() {
 }
 
 function showSidebar() {
-  SpreadsheetApp.getUi().showSidebar(HtmlService.createHtmlOutputFromFile("Sidebar").setTitle("3D Design Academy"));
+  // Loaded by the loader: the panel's HTML travels inside the bundle. Pasted copies have a Sidebar file.
+  const html = typeof SIDEBAR_HTML !== "undefined" ? HtmlService.createHtmlOutput(SIDEBAR_HTML) : HtmlService.createHtmlOutputFromFile("Sidebar");
+  SpreadsheetApp.getUi().showSidebar(html.setTitle("3D Design Academy"));
 }
 
 /** Creates tabs and settings. Safe to run again. */
@@ -1026,59 +1028,13 @@ function setConfig_(key, value) {
 function webAppUrl_() {
   let url = null;
   try { url = ScriptApp.getService().getUrl(); } catch (e) { url = null; }
-  if (!url || /\/dev$/.test(url)) {
-    // Turned on from the sidebar: remembered only for this script (a copied template has a new script ID).
-    const p = PropertiesService.getScriptProperties();
-    url = p.getProperty("WEBAPP_SCRIPT") === ScriptApp.getScriptId() ? p.getProperty("WEBAPP_URL") : null;
-  }
-  if (!url) return null;
+  if (!url || /\/dev$/.test(url)) return null;
   return url.replace(/\/a\/macros\/[^/]+\/s\//, "/macros/s/");
 }
 
-/** Calls the Apps Script API on this project with the teacher's own sign-in. */
-function scriptApi_(method, path, body) {
-  const opts = { method: method, headers: { Authorization: "Bearer " + ScriptApp.getOAuthToken() }, muteHttpExceptions: true };
-  if (body !== undefined) { opts.contentType = "application/json"; opts.payload = JSON.stringify(body); }
-  const r = UrlFetchApp.fetch("https://script.googleapis.com/v1/projects/" + ScriptApp.getScriptId() + path, opts);
-  const text = r.getContentText();
-  if (r.getResponseCode() >= 300) {
-    // Two different Google switches, two different fixes:
-    //  - this Sheet's own Google project has the API off ("has not been used in project N … or it is disabled")
-    //  - the teacher's account setting is off ("User has not enabled the Apps Script API … usersettings")
-    const project = text.match(/has not been used in project (\d+)|project=(\d+)/);
-    if (project && /has not been used|is disabled/i.test(text)) {
-      const id = project[1] || project[2];
-      throw { needsProjectApi: true, enableUrl: "https://console.cloud.google.com/apis/library/script.googleapis.com?project=" + id + "&authuser=" + encodeURIComponent(Session.getEffectiveUser().getEmail()), message: "Turn on the Apps Script API for this Sheet's Google project first." };
-    }
-    if (/usersettings|has not enabled|not enabled/i.test(text)) throw { needsApi: true, message: "Turn on the Google Apps Script API first." };
-    throw { message: text.slice(0, 300) };
-  }
-  return JSON.parse(text || "{}");
-}
-
-/**
- * Turns on the web app for the teacher (the old manual "Deploy → New deployment → Web app" steps).
- * Access settings come from appsscript.json: Execute as Me, Anyone. Safe to run again.
- */
-function turnOnApp_() {
-  if (webAppUrl_()) return { ok: true };
-  try {
-    const v = scriptApi_("post", "/versions", { description: "3D Design Academy " + BUILD.version });
-    const d = scriptApi_("post", "/deployments", { versionNumber: v.versionNumber, manifestFileName: "appsscript", description: "3D Design Academy web app" });
-    const web = (d.entryPoints || []).filter(function (e) { return e.entryPointType === "WEB_APP"; })[0];
-    const webApp = (web && web.webApp) || {};
-    const url = webApp.url || "https://script.google.com/macros/s/" + d.deploymentId + "/exec";
-    const props = PropertiesService.getScriptProperties();
-    props.setProperty("WEBAPP_URL", url);
-    props.setProperty("WEBAPP_SCRIPT", ScriptApp.getScriptId());
-    const access = webApp.entryPointConfig && webApp.entryPointConfig.access;
-    if (access && access !== "ANYONE_ANONYMOUS") {
-      return { ok: true, auto: true, warning: "Your school's Google settings only allowed \"" + access + "\" access, so the website may not be able to reach this Sheet. Ask your Google admin to allow web apps shared with \"Anyone\"." };
-    }
-    return { ok: true, auto: true };
-  } catch (e) {
-    return { ok: false, needsApi: !!e.needsApi, needsProjectApi: !!e.needsProjectApi, enableUrl: e.enableUrl || null, error: e.message || String(e) };
-  }
+/** True when this copy runs through the loader (it keeps itself up to date). */
+function viaLoader_() {
+  return typeof ACADEMY_LOADER !== "undefined" && typeof academyRefresh_ === "function";
 }
 
 function latestVersion_() {
@@ -1123,16 +1079,16 @@ function sidebarState() {
     classes: classes.map(function (c) { return { id: c.id, name: c.name + (c.section ? " · " + c.section : ""), link: link("&class=" + encodeURIComponent(c.id)) }; }),
     version: BUILD.version,
     latest: latestVersion_(),
+    autoUpdates: viaLoader_(),
+    pasteUrl: BUILD.site ? BUILD.site + "apps-script/paste.html" : null,
+    editorUrl: "https://script.google.com/d/" + ScriptApp.getScriptId() + "/edit",
   };
 }
 
-/** Runs right after the teacher allows permissions: prepares the Sheet and turns on the app, no clicks needed. */
+/** Runs right after the teacher allows permissions: prepares the Sheet. Turning on the web app is one manual Deploy. */
 function sidebarAutoSetup() {
   setup();
-  const turnOn = turnOnApp_();
-  const state = sidebarState();
-  state.turnOn = turnOn;
-  return state;
+  return sidebarState();
 }
 
 function sidebarPrepare() {
@@ -1155,27 +1111,14 @@ function sidebarCreateClass(c) {
 }
 
 /**
- * One-click update: downloads the newest script from the website and installs it into this project with the
- * Apps Script API, then points the existing web app at the new version (same link — nothing to re-share).
- * Needs "Google Apps Script API" turned on once at https://script.google.com/home/usersettings.
+ * "Update now". Copies that run through the loader just fetch the newest code (no Google switches needed;
+ * Google doesn't let Sheet copies use the Apps Script API). Older pasted copies need the loader pasted once.
  */
 function sidebarUpdate() {
-  if (!BUILD.site) return { ok: false, error: "This copy doesn't know where updates come from." };
-  const res = UrlFetchApp.fetch(BUILD.site + "apps-script/update.json?t=" + Date.now(), { muteHttpExceptions: true });
-  if (res.getResponseCode() !== 200) return { ok: false, error: "Couldn't download the update (" + res.getResponseCode() + "). Try again later." };
-  const pack = JSON.parse(res.getContentText());
-  const files = pack.files.map(function (f) {
-    return { name: f.name, type: f.type, source: Utilities.newBlob(Utilities.base64Decode(f.source)).getDataAsString() };
-  });
-  const id = ScriptApp.getScriptId();
-  try {
-    scriptApi_("put", "/content", { files: files });
-    const v = scriptApi_("post", "/versions", { description: "3D Design Academy " + pack.version });
-    const m = (webAppUrl_() || "").match(/\/s\/([\w-]+)\/exec/);
-    if (m) scriptApi_("put", "/deployments/" + m[1], { deploymentConfig: { scriptId: id, versionNumber: v.versionNumber, manifestFileName: "appsscript", description: "3D Design Academy " + pack.version } });
+  if (viaLoader_()) {
+    const version = academyRefresh_();
     CacheService.getScriptCache().remove("latest_version");
-    return { ok: true, version: pack.version, redeployed: !!m };
-  } catch (e) {
-    return { ok: false, needsApi: !!e.needsApi, needsProjectApi: !!e.needsProjectApi, enableUrl: e.enableUrl || null, error: e.needsApi || e.needsProjectApi ? e.message : "Update failed: " + (e.message || String(e)) };
+    return version ? { ok: true, version: version, redeployed: true } : { ok: false, error: "Couldn't reach the website. Try again in a minute." };
   }
+  return { ok: false, needsPaste: true, pasteUrl: BUILD.site ? BUILD.site + "apps-script/paste.html" : null, error: "This copy needs a one-time update by copy and paste." };
 }

@@ -78,8 +78,8 @@ function TeacherSteps() {
   return (
     <section aria-labelledby="steps-title" className="space-y-4">
       <div>
-        <h2 id="steps-title" className="font-display text-2xl font-bold">Set up in 4 steps</h2>
-        <p className="text-muted">About 5 minutes, one time only. Your students&apos; work is saved in a Google Sheet in <b>your</b> Drive.</p>
+        <h2 id="steps-title" className="font-display text-2xl font-bold">Set up in 5 steps</h2>
+        <p className="text-muted">About 5 minutes, one time only. You never need to touch any code. Your students&apos; work is saved in a Google Sheet in <b>your</b> Drive.</p>
       </div>
       <ol className="space-y-4">
         <Step n={1} title="Make your copy" picture={<PicCopy />}>
@@ -96,13 +96,17 @@ function TeacherSteps() {
           <p>Google asks for permission. Pick your school account. If you see <b>&ldquo;Google hasn&apos;t verified this app&rdquo;</b>, that&apos;s normal (it&apos;s your own copy). Click <b>Advanced</b>, then <b>Go to 3D Design Academy</b>, then <b>Allow</b>.</p>
           <p className="font-semibold">Then click the menu again: <b>3D Design Academy → Set up &amp; class links</b>.</p>
         </Step>
-        <Step n={4} title="Let it finish, then make a class" picture={<PicPanel />} last>
-          <p>A panel opens on the right and sets everything up by itself (about 10 seconds). Then:</p>
+        <Step n={4} title="Turn on your app" picture={<PicDeploy />}>
+          <p>The panel on the right shows you how, with a picture of each screen. In short: click <b>Open the script editor</b>, then <b>Deploy → New deployment</b>, pick <b>Web app</b>, set <b>Who has access</b> to <b>Anyone</b>, and click <b>Deploy</b>.</p>
+          <p className="text-sm text-muted">Google requires you to do this click yourself, one time. The panel moves on by itself when it&apos;s done.</p>
+        </Step>
+        <Step n={5} title="Make a class and share the link" picture={<PicPanel />} last>
           <ul className="list-disc space-y-1 pl-5">
             <li>Type a class name and click <b>Create class</b>.</li>
             <li>Click <b>Copy student link</b> and post it in Google Classroom.</li>
             <li>Click <b>Open my dashboard</b> to see your class. Bookmark that page.</li>
           </ul>
+          <p className="text-sm text-muted">From now on your Sheet updates itself. New lessons show up without you doing anything.</p>
         </Step>
       </ol>
       <Help />
@@ -129,7 +133,7 @@ function Step({ n, title, picture, children, last }: { n: number; title: string;
 function Help() {
   const items: [string, ReactNode][] = [
     ["I clicked the menu and nothing happened", <>The first click asks for permission. After you click <b>Allow</b>, click <b>3D Design Academy → Set up &amp; class links</b> one more time.</>],
-    ["The panel says to turn on the “Apps Script API”", <>Google needs one switch flipped by you. Click the link in the panel, turn <b>Google Apps Script API</b> on, go back to the Sheet, and click <b>Finish setup</b>. You only do this once.</>],
+    ["“Anyone” isn't in the “Who has access” list", <>Your school&apos;s Google settings block it. Ask your tech office to let teachers share Apps Script web apps with &ldquo;Anyone&rdquo;. Students still sign in with Google, and only students on your roster get in.</>],
     ["“Make a copy” doesn't open, or says I need access", <>Sign in to Chrome with your <b>school</b> Google account and click <b>Make my copy</b> again. If your school blocks copying outside the district, contact your tech office.</>],
     ["I keep coming back to this page", <>Open your Sheet, click <b>3D Design Academy → Set up &amp; class links</b>, and click <b>Open my dashboard</b>. Bookmark the page that opens. Don&apos;t bookmark this welcome page.</>],
     ["I have more than one class", <>Use the same Sheet. In the panel, click <b>Add another class</b>. Each class gets its own student link.</>],
@@ -230,6 +234,25 @@ function PicAllow() {
       <rect x="306" y="102" width="66" height="24" rx="12" className={blue} />
       <text x="339" y="118" textAnchor="middle" fontSize="12" fontWeight="700" className="fill-primary-fg">Allow</text>
       <rect x="300" y="96" width="78" height="36" rx="18" fill="none" className="stroke-accent" strokeWidth="3" />
+    </svg>
+  );
+}
+
+function PicDeploy() {
+  return (
+    <svg viewBox="0 0 400 150" className={W}>
+      <rect x="0" y="0" width="400" height="34" className="fill-surface" />
+      <text x="14" y="22" className={soft} fontSize="12">Apps Script · 3D Design Academy</text>
+      <rect x="300" y="6" width="88" height="22" rx="5" className={blue} />
+      <text x="344" y="21.5" textAnchor="middle" fontSize="12" fontWeight="700" className="fill-primary-fg">Deploy ▾</text>
+      <rect x="296" y="3" width="96" height="28" rx="8" fill="none" className="stroke-accent" strokeWidth="3" />
+      <rect x="40" y="46" width="220" height="96" rx="10" className={box} strokeWidth="1.5" />
+      <text x="56" y="70" className={ink} fontSize="13" fontWeight="600">New deployment · Web app</text>
+      <text x="56" y="92" className={soft} fontSize="11.5">Execute as: Me</text>
+      <text x="56" y="110" className={ink} fontSize="11.5" fontWeight="700">Who has access: Anyone</text>
+      <rect x="50" y="97" width="180" height="20" rx="5" fill="none" className="stroke-accent" strokeWidth="3" />
+      <rect x="186" y="120" width="62" height="18" rx="9" className={blue} />
+      <text x="217" y="133" textAnchor="middle" fontSize="11" fontWeight="700" className="fill-primary-fg">Deploy</text>
     </svg>
   );
 }

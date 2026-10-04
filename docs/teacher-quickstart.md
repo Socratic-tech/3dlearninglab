@@ -14,11 +14,14 @@ Google asks you to approve permissions the first time. You'll see **“Google ha
 That's expected: it's *your* copy, not a third-party app. Click **Advanced → Go to 3D Design Academy (unsafe) → Allow**.
 **Then click the menu again** — the first click only asks for permission.
 
-## 3. Let it finish, then make a class
-The panel sets everything up by itself (about 10 seconds). If it shows **One last switch**, open the link it gives,
-turn **Google Apps Script API** on (once per account), come back and click **Finish setup**.
+## 3. Turn on your app (one time, 2 minutes)
+The panel prepares your Sheet by itself, then shows a picture of each screen for this step:
+**Open the script editor → Deploy → New deployment → ⚙ Web app → Execute as: Me, Who has access: Anyone → Deploy**
+(click **Authorize access → Allow** if asked). The panel moves on by itself when it's done.
+Google requires the teacher to make this click; nothing can do it for you.
 
-Then type a class name, pick **18 weeks** or **9 weeks**, and click **Create class**.
+## 4. Make a class and share the link
+Type a class name, pick **18 weeks** or **9 weeks**, and click **Create class**.
 Click **Copy student link** and post it in Google Classroom, or **Show QR code** for the board.
 
 Click **Open my dashboard** to import rosters from Google Classroom, watch the **Right now** panel during
@@ -27,8 +30,7 @@ class, review work, and run the **print queue**. Bookmark the page that opens.
 ## Good to know
 - **Who can sign in:** your email domain is filled in for you. If students use a different domain
   (like `students.district.org`), add it under **Settings** in the panel.
-- **Updates:** when your teacher dashboard (or the Sheet panel) says a new version is ready, click **Update now**. The first time, it may ask you to turn on
-  the *Google Apps Script API* at script.google.com/home/usersettings (one switch). Links and student work don't change.
+- **Updates:** your Sheet's script is a small loader that downloads the newest app from the website (re-checked every 30 minutes; a backup copy is kept in a hidden tab). Copies made before this need a one-time paste: the dashboard banner links to the steps. Links and student work don't change.
 - **“Anyone” access** only lets the website reach your Sheet. Every student still signs in with Google, and only
   students on your roster get in. If your district blocks “Anyone” web apps or unverified apps, ask your Google admin to
   allow this one script.

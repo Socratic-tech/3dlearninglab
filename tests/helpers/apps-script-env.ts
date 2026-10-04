@@ -22,11 +22,14 @@ function fakeSheet() {
       getValues: () => data.slice(r - 1, r - 1 + nr).map((row) => Array.from({ length: nc }, (_, j) => (row[c - 1 + j] ?? ""))),
       setValues: (v: Row[]) => { v.forEach((row, i) => { data[r - 1 + i] = [...(data[r - 1 + i] ?? [])]; row.forEach((x, j) => (data[r - 1 + i][c - 1 + j] = x)); }); return range; },
       setFontWeight: () => range,
+      setNumberFormat: () => range,
       };
       return range;
     },
     appendRow: (row: Row) => data.push([...row]),
     setFrozenRows: () => {},
+    hideSheet: () => {},
+    clear: () => { data.length = 0; },
     autoResizeColumns: () => {},
     data,
   };
@@ -43,7 +46,7 @@ export const okScriptApi: ScriptApiFake = ({ method, path }) => {
   return { code: 200, body: {} };
 };
 
-export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string; scriptId?: string; scriptApi?: ScriptApiFake; updatePack?: unknown } = {}) {
+export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string; scriptId?: string; scriptApi?: ScriptApiFake; updatePack?: unknown; loader?: boolean; site?: { up: boolean; fetches: number } } = {}) {
   const scriptApiCalls: ScriptApiCall[] = [];
   const sheets = new Map<string, ReturnType<typeof fakeSheet>>();
   const book = {
@@ -59,7 +62,16 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
     console,
     SpreadsheetApp: { getActiveSpreadsheet: () => ({ ...book, getName: () => "Test book" }) },
     LockService: { getScriptLock: () => ({ tryLock: () => true, releaseLock: () => {} }) },
-    CacheService: { getScriptCache: () => ({ get: (k: string) => cache.get(k) ?? null, put: (k: string, v: string) => cache.set(k, v), remove: (k: string) => cache.delete(k) }) },
+    CacheService: {
+      getScriptCache: () => ({
+        get: (k: string) => cache.get(k) ?? null,
+        put: (k: string, v: string) => { if (v.length > 100_000) throw new Error("Argument too large"); cache.set(k, v); },
+        remove: (k: string) => cache.delete(k),
+        getAll: (keys: string[]) => Object.fromEntries(keys.filter((k) => cache.has(k)).map((k) => [k, cache.get(k)])),
+        putAll: (o: Record<string, string>) => Object.entries(o).forEach(([k, v]) => { if (v.length > 100_000) throw new Error("Argument too large"); cache.set(k, v); }),
+        removeAll: (keys: string[]) => keys.forEach((k) => cache.delete(k)),
+      }),
+    },
     Session: { getEffectiveUser: () => ({ getEmail: () => owner }), getScriptTimeZone: () => "America/Detroit" },
     PropertiesService: { getScriptProperties: () => ({ getProperty: (k: string) => props.get(k) ?? null, setProperty: (k: string, v: string) => props.set(k, v), deleteAllProperties: () => props.clear() }) },
     ScriptApp: { getService: () => ({ getUrl: () => opts.webAppUrl ?? null }), getScriptId: () => opts.scriptId ?? "script-1", getOAuthToken: () => "oauth" },
@@ -81,6 +93,8 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
       getUuid: () => Math.random().toString(36).slice(2),
       sleep: () => {},
       base64Decode: (s: string) => [...Buffer.from(s, "base64")].map((b) => (b > 127 ? b - 256 : b)),
+      base64Encode: (s: string | number[]) => (typeof s === "string" ? Buffer.from(s, "utf8") : Buffer.from(s.map((x) => x & 255))).toString("base64"),
+      Charset: { UTF_8: "UTF-8" },
       newBlob: (b: unknown, type: string, name: string) => ({ name, type, getName: () => name, getDataAsString: () => (Array.isArray(b) ? Buffer.from(b.map((x: number) => x & 255)).toString("utf8") : String(b)) }),
       formatDate: (d: Date, tz: string) => new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(d),
     },
@@ -93,6 +107,12 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
           scriptApiCalls.push(call);
           const r = (opts.scriptApi ?? okScriptApi)(call);
           return { getResponseCode: () => r.code, getContentText: () => JSON.stringify(r.body) };
+        }
+        if (url.includes("apps-script/bundle.js")) {
+          const site = opts.site ?? { up: true, fetches: 0 };
+          site.fetches++;
+          const body = site.up ? fs.readFileSync(path.join(dist, "bundle.js"), "utf8") : "<html>Service unavailable</html>";
+          return { getResponseCode: () => (site.up ? 200 : 503), getContentText: () => body };
         }
         if (url.includes("apps-script/update.json")) {
           const found = !!opts.updatePack;
@@ -109,13 +129,17 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
     ContentService: { createTextOutput: (s: string) => ({ setMimeType: () => s }), MimeType: { JSON: "json" } },
   };
   vm.createContext(ctx);
-  for (const f of ["Lib.js", "Content.js", "Code.js"]) vm.runInContext(fs.readFileSync(path.join(dist, f), "utf8"), ctx, { filename: f });
+  const load = () => {
+    // Each Apps Script execution runs every file's top level again; the loader runs it here.
+    for (const f of opts.loader ? ["Loader.js"] : ["Lib.js", "Content.js", "Code.js"]) vm.runInContext(fs.readFileSync(path.join(dist, f), "utf8"), ctx, { filename: f });
+  };
+  load();
   vm.runInContext("setup()", ctx);
   const cfg = sheets.get("Config")!;
   cfg.data.forEach((r) => { if (r[0] === "CLIENT_ID") r[1] = "client-123"; if (r[0] === "ALLOWED_DOMAINS") r[1] = "school.org"; });
   const raw = (body: string) => vm.runInContext(`doPost(${JSON.stringify({ postData: { contents: body } })})`, ctx) as string;
   const call = (email: string, action: string, args: Record<string, unknown> = {}) => JSON.parse(raw(JSON.stringify({ action, token: "tok:" + email, args })));
   const run = (code: string) => JSON.parse(vm.runInContext(`JSON.stringify(${code})`, ctx) as string);
-  return { call, raw, run, sheets, files, folders, props, scriptApiCalls };
+  return { call, raw, run, sheets, files, folders, props, scriptApiCalls, cache, load };
 }
 

@@ -8,7 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { execSync } from "node:child_process";
 import { getLesson, allBlocks } from "@/content";
-import { makeEnv, okScriptApi } from "../helpers/apps-script-env";
+import { makeEnv } from "../helpers/apps-script-env";
 
 const dist = path.join(process.cwd(), "apps-script/dist");
 if (!fs.existsSync(path.join(dist, "Code.js"))) execSync("npx tsx scripts/build-pages.ts", { stdio: "inherit" });
@@ -192,64 +192,60 @@ describe("Setup sidebar", () => {
     expect(st.teacherLink).toMatch(/#\/teacher$/);
   });
 
-  it("turns the app on by itself after permissions are allowed, then links work", () => {
+  it("setting up never touches the Apps Script API (Google blocks it in Sheet copies)", () => {
     const e = makeEnv("teacher@school.org");
     const st = e.run("sidebarAutoSetup()");
-    expect(st.turnOn).toMatchObject({ ok: true, auto: true });
-    expect(st.url).toBe("https://script.google.com/macros/s/AKfyAuto/exec");
-    expect(st.teacherLink).toContain("?api=https%3A%2F%2Fscript.google.com%2Fmacros%2Fs%2FAKfyAuto%2Fexec");
-    expect(e.scriptApiCalls.map((c) => c.method + " " + c.path)).toEqual(["post /versions", "post /deployments"]);
-    expect(e.scriptApiCalls[1].body).toMatchObject({ versionNumber: 1, manifestFileName: "appsscript" });
-    e.run("sidebarAutoSetup()"); // opening the sidebar again doesn't make a second deployment
-    expect(e.scriptApiCalls).toHaveLength(2);
+    expect(st).toMatchObject({ ready: true, url: null, autoUpdates: false });
+    expect(st.editorUrl).toBe("https://script.google.com/d/script-1/edit");
+    expect(e.scriptApiCalls).toHaveLength(0);
   });
 
-  it("asks for the one-time Apps Script API switch, then finishes on retry", () => {
-    let enabled = false;
-    const e = makeEnv("teacher@school.org", {
-      scriptApi: (c) => (enabled ? okScriptApi(c) : { code: 403, body: { error: { message: "User has not enabled the Apps Script API. Enable it by visiting https://script.google.com/home/usersettings" } } }),
-    });
-    const before = e.run("sidebarAutoSetup()");
-    expect(before.url).toBeNull();
-    expect(before.turnOn).toMatchObject({ ok: false, needsApi: true });
-    enabled = true;
-    expect(e.run("sidebarAutoSetup()").url).toBe("https://script.google.com/macros/s/AKfyAuto/exec");
-  });
-
-  it("warns when the school only allows in-domain access, and reports other errors", () => {
-    const limited = makeEnv("teacher@school.org", {
-      scriptApi: (c) => {
-        const r = okScriptApi(c);
-        if (c.path === "/deployments") (r.body as { entryPoints: { webApp: { entryPointConfig: { access: string } } }[] }).entryPoints[0].webApp.entryPointConfig.access = "DOMAIN";
-        return r;
-      },
-    });
-    expect(limited.run("sidebarAutoSetup()").turnOn.warning).toMatch(/DOMAIN/);
-    const broken = makeEnv("teacher@school.org", { scriptApi: () => ({ code: 500, body: { error: "boom" } }) });
-    expect(broken.run("sidebarAutoSetup()").turnOn).toMatchObject({ ok: false, needsApi: false, error: expect.stringMatching(/boom/) });
-  });
-
-  it("teachers can update their copy from the dashboard; students can't", () => {
-    const pack = { version: "9.9.9-abc", files: [{ name: "Code", type: "SERVER_JS", source: Buffer.from("// new").toString("base64") }] };
-    const e = makeEnv("teacher@school.org", { webAppUrl: "https://script.google.com/macros/s/AKfy123/exec", updatePack: pack });
-    const me = e.call("teacher@school.org", "me");
-    expect(me.data.app).toMatchObject({ owner: "teacher@school.org" });
-    expect(typeof me.data.app.version).toBe("string");
-    const r = e.call("teacher@school.org", "updateApp");
-    expect(r.data).toMatchObject({ ok: true, version: "9.9.9-abc", redeployed: true });
-    expect(e.scriptApiCalls.map((c) => c.method + " " + c.path)).toEqual(["put /content", "post /versions", "put /deployments/AKfy123"]);
-    expect(e.scriptApiCalls[0].body).toEqual({ files: [{ name: "Code", type: "SERVER_JS", source: "// new" }] });
-    e.call("teacher@school.org", "addStudents", { classId: me.data.classes[0]?.id, students: [{ email: "kid@school.org", name: "Kid" }] });
+  it("pasted copies are pointed to the one-time copy-and-paste page instead of a Google switch", () => {
+    const e = makeEnv("teacher@school.org", { webAppUrl: "https://script.google.com/macros/s/AKfy123/exec" });
+    expect(e.call("teacher@school.org", "updateApp").data).toMatchObject({ ok: false, needsPaste: true, pasteUrl: "https://socratic-tech.github.io/3dlearninglab/apps-script/paste.html" });
     expect(e.call("kid@school.org", "updateApp")).toMatchObject({ ok: false });
-    const off = makeEnv("teacher@school.org", { updatePack: pack, scriptApi: () => ({ code: 403, body: "Enable it at https://script.google.com/home/usersettings" }) });
-    expect(off.call("teacher@school.org", "updateApp").data).toMatchObject({ ok: false, needsApi: true });
+    expect(e.scriptApiCalls).toHaveLength(0);
   });
 
-  it("a copied template ignores the original teacher's app address", () => {
-    const e = makeEnv("teacher@school.org", { scriptId: "copy-script" });
-    e.props.set("WEBAPP_URL", "https://script.google.com/macros/s/AKfyOriginal/exec");
-    e.props.set("WEBAPP_SCRIPT", "original-script");
-    expect(e.run("sidebarState()").url).toBeNull();
+  it("the loader runs the app downloaded from the website", () => {
+    const site = { up: true, fetches: 0 };
+    const e = makeEnv("teacher@school.org", { loader: true, site, webAppUrl: "https://script.google.com/macros/s/AKfy123/exec" });
+    const st = e.run("sidebarState()");
+    expect(st).toMatchObject({ ready: true, autoUpdates: true });
+    expect(st.version).toMatch(/^0\.1\.0-/);
+    expect(e.run("typeof SIDEBAR_HTML === 'string' && SIDEBAR_HTML.indexOf('3D Design Academy') > 0")).toBe(true);
+    const cid = e.call("teacher@school.org", "createClass", { name: "Via loader" }).data.id;
+    e.call("teacher@school.org", "addStudents", { classId: cid, students: [{ email: "maya@school.org" }] });
+    expect(e.call("maya@school.org", "me").ok).toBe(true);
+    // the app was cached in pieces under 100 KB, and the next execution doesn't download again
+    expect(Number(e.cache.get("ac_n"))).toBeGreaterThan(1);
+    e.load();
+    expect(site.fetches).toBe(1);
+    expect(e.call("maya@school.org", "me").ok).toBe(true);
+  });
+
+  it("keeps working when the website is down: cache first, then the backup tab", () => {
+    const site = { up: true, fetches: 0 };
+    const e = makeEnv("teacher@school.org", { loader: true, site });
+    expect(e.sheets.get("_app_backup")!.data.length).toBeGreaterThan(1);
+    site.up = false;
+    e.cache.delete("ac_fresh"); // 30 minutes later: time to check the site, which is down
+    e.load();
+    expect(e.run("sidebarState()").autoUpdates).toBe(true);
+    e.cache.clear(); // 6 hours later: cache gone too, the site still down
+    e.load();
+    expect(e.run("sidebarState()").ready).toBe(true);
+    expect(e.call("teacher@school.org", "createClass", { name: "Still works" }).ok).toBe(true);
+  });
+
+  it("Update now through the loader fetches the newest code", () => {
+    const site = { up: true, fetches: 0 };
+    const e = makeEnv("teacher@school.org", { loader: true, site });
+    const r = e.call("teacher@school.org", "updateApp").data;
+    expect(r).toMatchObject({ ok: true, redeployed: true });
+    expect(site.fetches).toBe(2);
+    site.up = false;
+    expect(e.run("sidebarUpdate()")).toMatchObject({ ok: false, error: expect.stringMatching(/website/) });
   });
 
   it("a copied template starts fresh for the new teacher and fills in their domain", () => {

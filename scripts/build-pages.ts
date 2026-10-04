@@ -92,8 +92,6 @@ fs.writeFileSync(
         "https://www.googleapis.com/auth/classroom.profile.emails",
         "https://www.googleapis.com/auth/userinfo.email",
         "https://www.googleapis.com/auth/script.container.ui",
-        "https://www.googleapis.com/auth/script.projects",
-        "https://www.googleapis.com/auth/script.deployments",
       ],
       webapp: { executeAs: "USER_DEPLOYING", access: "ANYONE_ANONYMOUS" },
     },
@@ -146,7 +144,8 @@ function cleanClientId(raw: string) {
 const codeSrc = fs.readFileSync(path.join(root, "apps-script/src/Code.js"), "utf8");
 const files = ["Lib.js", "Content.js", "Sidebar.html", "appsscript.json"].map((f) => fs.readFileSync(path.join(dist, f), "utf8"));
 const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")) as { version: string };
-const hash = crypto.createHash("sha256").update([codeSrc, ...files, site, clientId].join("\0")).digest("hex").slice(0, 7);
+const loaderSrc = fs.readFileSync(path.join(root, "apps-script/src/Loader.js"), "utf8");
+const hash = crypto.createHash("sha256").update([codeSrc, loaderSrc, ...files, site, clientId].join("\0")).digest("hex").slice(0, 7);
 const version = `${pkg.version}-${hash}`;
 const buildLine = /const BUILD = \{[^\n]*\}; \/\/ @build/;
 if (!buildLine.test(codeSrc)) throw new Error("Code.js is missing the BUILD line");
@@ -155,45 +154,63 @@ fs.writeFileSync(path.join(dist, "Code.js"), code);
 
 const pub = path.join(root, "web/public/apps-script");
 fs.mkdirSync(pub, { recursive: true });
-const asFile = (name: string, type: string, source: string) => ({ name, type, source: Buffer.from(source).toString("base64") });
-fs.writeFileSync(
-  path.join(pub, "update.json"),
-  JSON.stringify({
-    version,
-    files: [
-      asFile("appsscript", "JSON", files[3]),
-      asFile("Code", "SERVER_JS", code),
-      asFile("Lib", "SERVER_JS", files[0]),
-      asFile("Content", "SERVER_JS", files[1]),
-      asFile("Sidebar", "HTML", files[2]),
-    ],
-  }),
-);
+fs.rmSync(path.join(pub, "update.json"), { force: true }); // old one-click installer: Google blocks the Apps Script API in Sheet copies
+
+// The whole app as one script for the loader: Lib + Content + Code + the side panel's HTML.
+// Lib's file-wide "use strict" moves inside its wrapper: a strict eval would keep every function out of reach.
+const libForBundle = files[0].replace(/^"use strict";\nvar Lib = \(\(\) => \{/m, 'var Lib = (() => {\n"use strict";');
+if (libForBundle === files[0]) throw new Error("Lib.js layout changed: update the bundle step in build-pages.ts");
+const bundle = [
+  `// 3D Design Academy bundle ${version}`,
+  libForBundle,
+  files[1],
+  code,
+  `var SIDEBAR_HTML = ${JSON.stringify(files[2])};`,
+  "",
+].join("\n");
+fs.writeFileSync(path.join(pub, "bundle.js"), bundle);
+fs.writeFileSync(path.join(dist, "bundle.js"), bundle);
+
+// The loader teachers paste once (it has no lesson content, so it's safe to publish).
+const loaderLine = /var ACADEMY_LOADER = \{[^\n]*\}; \/\/ @loader/;
+if (!loaderLine.test(loaderSrc)) throw new Error("Loader.js is missing the @loader line");
+const loader = loaderSrc.replace(loaderLine, `var ACADEMY_LOADER = ${JSON.stringify({ site, loader: 1 })}; // @loader`);
+fs.writeFileSync(path.join(dist, "Loader.js"), loader);
+
 const notes = fs.existsSync(path.join(root, "apps-script/release-notes.txt")) ? fs.readFileSync(path.join(root, "apps-script/release-notes.txt"), "utf8").trim() : "";
 fs.writeFileSync(path.join(pub, "version.json"), JSON.stringify({ version, notes, date: new Date().toISOString().slice(0, 10) }));
-// 5) A local copy-paste helper (never published: it contains the answer keys).
+// 5) The copy-paste page (published at apps-script/paste.html): the loader + manifest, with plain steps.
 const pasteFiles = [
-  { name: "Code", kind: "Script file", text: code },
-  { name: "Lib", kind: "Script file", text: files[0] },
-  { name: "Content", kind: "Script file", text: files[1] },
-  { name: "Sidebar", kind: "HTML file", text: files[2] },
-  { name: "appsscript.json", kind: "Manifest (Project Settings → Show appsscript.json)", text: files[3] },
+  { name: "Code", kind: "Replace everything in Code.gs", text: loader },
+  { name: "appsscript.json", kind: "Replace everything in appsscript.json", text: files[3] },
 ];
-const helper = `<!doctype html><html><head><meta charset="utf-8"><title>Apps Script files — copy & paste</title>
-<style>body{font:16px/1.5 system-ui,sans-serif;max-width:720px;margin:32px auto;padding:0 16px;color:#0f1b2d}
-.f{border:1px solid #cfd8e3;border-radius:12px;padding:14px 16px;margin:12px 0;display:flex;align-items:center;gap:12px}
-.f b{font-size:18px}.f span{color:#4a5a70;font-size:14px}button{margin-left:auto;background:#0b5cad;color:#fff;border:0;border-radius:9px;padding:10px 18px;font-weight:700;font-size:15px;cursor:pointer}
-button.ok{background:#15803d}textarea{position:fixed;left:-9999px}.warn{background:#fdf6dc;border:1px solid #a16207;border-radius:10px;padding:10px 14px}</style></head><body>
-<h1>Apps Script files</h1><p>Version <b>${version}</b>. In the Apps Script editor, click a file (or <b>+</b> to add it with this exact name), select all, delete, then paste.</p>
-${clientId ? "" : '<p class="warn">No Google client ID is built in. That’s fine for your own Sheet (it uses the CLIENT_ID in its Config tab), but set <code>clientId</code> in <code>apps-script/build.config.json</code> and rebuild before making the template for other teachers.</p>'}
-<div id="list"></div><textarea id="t"></textarea>
+const helper = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Update your 3D Design Academy Sheet</title>
+<style>body{font:16px/1.55 system-ui,sans-serif;max-width:680px;margin:32px auto;padding:0 16px;color:#0f1b2d}
+h1{font-size:26px;margin:0 0 4px}ol.steps{padding-left:22px}ol.steps>li{margin:14px 0}
+.f{border:1px solid #cfd8e3;border-radius:12px;padding:12px 14px;margin:8px 0;display:flex;align-items:center;gap:12px}
+.f b{font-size:17px}.f span{color:#4a5a70;font-size:14px}button{margin-left:auto;background:#0b5cad;color:#fff;border:0;border-radius:9px;padding:10px 18px;font-weight:700;font-size:15px;cursor:pointer}
+button.ok{background:#15803d}textarea{position:fixed;left:-9999px}.muted{color:#4a5a70;font-size:14px}code{background:#eef2f7;border-radius:4px;padding:0 4px}
+.warn{background:#fdf6dc;border:1px solid #a16207;border-radius:10px;padding:10px 14px}</style></head><body>
+<h1>Update your Sheet (one time)</h1><p class="muted">After this, your copy updates itself. Your links and student work stay the same. Version ${version}.</p>
+${clientId ? "" : '<p class="warn">No Google client ID is built in. Set <code>clientId</code> in <code>apps-script/build.config.json</code> and rebuild.</p>'}
+<ol class="steps">
+<li>In your class Google Sheet, click <b>Extensions → Apps Script</b>.</li>
+<li>On the left, if you see <b>Lib</b>, <b>Content</b> or <b>Sidebar</b>: click the ⋮ next to each one → <b>Delete</b>.</li>
+<li>Click <b>Code.gs</b>. Press <b>Ctrl+A</b> (Mac: <b>⌘A</b>), then paste this:<div id="f0"></div></li>
+<li>Click the gear ⚙ <b>Project Settings</b> → tick <b>Show "appsscript.json"</b>. Go back (&lt;&gt; Editor), click <b>appsscript.json</b>, select all, paste this:<div id="f1"></div></li>
+<li>Click 💾 <b>Save</b>.</li>
+<li><b>Point your app at the new script</b> (skip this if you never turned on your app): click <b>Deploy → Manage deployments</b>, click the pencil ✏, set <b>Version</b> to <b>New version</b>, and click <b>Deploy</b>. Your links stay the same.</li>
+</ol>
+<p class="muted">That's the last time. From now on your Sheet downloads updates by itself.</p>
+<textarea id="t"></textarea>
 <script>const F=${JSON.stringify(pasteFiles).replace(/</g, "\\u003c")};
-const list=document.getElementById("list"),t=document.getElementById("t");
-F.forEach(function(f){const d=document.createElement("div");d.className="f";d.innerHTML="<div><b></b><br><span></span></div><button>Copy</button>";
-d.querySelector("b").textContent=f.name;d.querySelector("span").textContent=f.kind+" · "+Math.round(f.text.length/1024)+" KB";
+const t=document.getElementById("t");
+F.forEach(function(f,i){const d=document.createElement("div");d.className="f";d.innerHTML="<div><b></b><br><span></span></div><button>Copy</button>";
+d.querySelector("b").textContent=f.name;d.querySelector("span").textContent=f.kind;
 const b=d.querySelector("button");b.onclick=function(){t.value=f.text;t.select();let ok=false;try{ok=document.execCommand("copy")}catch(e){}
 if(!ok&&navigator.clipboard){navigator.clipboard.writeText(f.text).then(function(){b.textContent="Copied ✓";b.className="ok"});return}
-b.textContent=ok?"Copied ✓":"Copy failed — try Chrome";b.className=ok?"ok":""};list.appendChild(d)});</script></body></html>`;
+b.textContent=ok?"Copied ✓":"Copy failed — try Chrome";b.className=ok?"ok":""};document.getElementById("f"+i).appendChild(d)});</script></body></html>`;
+fs.writeFileSync(path.join(pub, "paste.html"), helper);
 fs.writeFileSync(path.join(dist, "paste-helper.html"), helper);
 if (!clientId) console.warn("⚠ No Google client ID baked in: set clientId in apps-script/build.config.json (or GOOGLE_CLIENT_ID).");
 }

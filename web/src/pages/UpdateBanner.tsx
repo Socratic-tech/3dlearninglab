@@ -13,7 +13,9 @@ import { call } from "../api";
 import type { Me } from "../content";
 
 type Latest = { version: string; notes?: string };
-type Result = { ok: boolean; version?: string; redeployed?: boolean; needsApi?: boolean; needsProjectApi?: boolean; enableUrl?: string | null; error?: string };
+const PASTE_URL = `${import.meta.env.BASE_URL}apps-script/paste.html`;
+
+type Result = { ok: boolean; version?: string; redeployed?: boolean; needsPaste?: boolean; pasteUrl?: string | null; error?: string };
 const DISMISS = "academy.update.later";
 
 export function UpdateBanner({ me, apiUrl, onUpdated }: { me: Me; apiUrl: string; onUpdated: () => void }) {
@@ -41,9 +43,7 @@ export function UpdateBanner({ me, apiUrl, onUpdated }: { me: Me; apiUrl: string
   if (result?.ok) {
     return wrap(
       <Alert tone="success" title={`Updated to ${result.version}`}>
-        {result.redeployed
-          ? "Your class app is already using it. Students don't need to do anything."
-          : "One last step in Apps Script: Deploy → Manage deployments → Edit (pencil) → Version: New version → Deploy."}
+        Your class app is already using it. Students don&rsquo;t need to do anything.
       </Alert>
     );
   }
@@ -55,7 +55,8 @@ export function UpdateBanner({ me, apiUrl, onUpdated }: { me: Me; apiUrl: string
   if (!me.app) {
     return wrap(
       <Alert tone="warning" title="Your class app needs an update">
-        <p>New lessons and fixes won&rsquo;t save correctly until it&rsquo;s updated. In your class Google Sheet, open <b>3D Design Academy → Set up &amp; class links</b> and click <b>Update now</b> at the bottom. After this one time, you can update right here.</p>
+        <p>New lessons and fixes won&rsquo;t save correctly until it&rsquo;s updated. It&rsquo;s a one-time copy and paste (about 2 minutes). After that, your Sheet updates itself.</p>
+        <a className="mt-2 inline-block font-semibold underline" href={PASTE_URL} target="_blank" rel="noreferrer">Show me how</a>
         <Button variant="secondary" size="sm" className="mt-2" onClick={later}>Remind me later</Button>
       </Alert>
     );
@@ -65,19 +66,13 @@ export function UpdateBanner({ me, apiUrl, onUpdated }: { me: Me; apiUrl: string
     <Alert tone="warning" title="A new version of your class app is ready">
       {latest?.notes && <p>{latest.notes}</p>}
       <p className="mt-1 text-sm">New lessons and fixes won&rsquo;t save correctly until you update. Links and student work stay the same.</p>
-      {result?.needsApi && (
+      {result?.needsPaste && (
         <p className="mt-2 rounded-lg bg-surface p-3 text-sm">
-          {isOwner ? "One-time switch:" : `One-time switch for the Sheet's owner (${owner}):`} open{" "}
-          <a className="font-semibold underline" href="https://script.google.com/home/usersettings" target="_blank" rel="noreferrer">Apps Script settings</a>, turn <b>Google Apps Script API</b> on, then click Update now again.
+          {isOwner ? "This copy needs a one-time update:" : `The Sheet's owner (${owner}) needs to do a one-time update:`}{" "}
+          <a className="font-semibold underline" href={result.pasteUrl || PASTE_URL} target="_blank" rel="noreferrer">copy and paste one script</a> (about 2 minutes). After that, it updates itself.
         </p>
       )}
-      {result?.needsProjectApi && result.enableUrl && (
-        <p className="mt-2 rounded-lg bg-surface p-3 text-sm">
-          {isOwner ? "One-time switch:" : `One-time switch for the Sheet's owner (${owner}):`} open{" "}
-          <a className="font-semibold underline" href={result.enableUrl} target="_blank" rel="noreferrer">this Google page</a>, click <b>Enable</b>, wait a minute, then click Update now again.
-        </p>
-      )}
-      {result && !result.ok && !result.needsApi && !result.needsProjectApi && <p className="mt-2 text-sm text-danger">{result.error}</p>}
+      {result && !result.ok && !result.needsPaste && <p className="mt-2 text-sm text-danger">{result.error}</p>}
       <div className="mt-3 flex flex-wrap gap-2">
         <Button size="sm" disabled={busy} onClick={() => void update()}>{busy ? "Updating… (about 20 seconds)" : "Update now"}</Button>
         <Button variant="secondary" size="sm" disabled={busy} onClick={later}>Later</Button>

@@ -41,6 +41,12 @@
   @media (prefers-reduced-motion: reduce) { .spin { animation:none; } }
   .tick { color:var(--ok); font-weight:700; }
   .foot { margin-top:16px; }
+  .pic { display:block; width:100%; height:auto; border:1px solid var(--b); border-radius:8px; background:#fff; margin:6px 0 2px; }
+  ol.big { padding-left:0; list-style:none; counter-reset:n; }
+  ol.big > li { counter-increment:n; margin:14px 0; padding-left:30px; position:relative; }
+  ol.big > li::before { content:counter(n); position:absolute; left:0; top:0; width:22px; height:22px; border-radius:50%; background:var(--p); color:#fff; font-weight:700; font-size:12px; display:grid; place-items:center; }
+  .waiting { display:flex; align-items:center; gap:8px; color:var(--m); font-size:12.5px; margin-top:8px; }
+  .waiting .spin { width:14px; height:14px; border-width:2px; margin:0; flex-shrink:0; }
 </style>
 </head>
 <body>
@@ -53,8 +59,7 @@
 /*
  * One thing at a time:
  *   working  → "Setting up…" (runs by itself right after the teacher allows permissions)
- *   needsApi → one switch Google makes them flip, then "Finish setup"
- *   failed   → try again, or do it by hand
+ *   turn on  → the one Deploy Google makes the teacher click, with a picture of each screen
  *   noClass  → "You're set up! Create your first class"
  *   home     → dashboard button, classes with links + QR, add class, settings, updates
  */
@@ -78,46 +83,28 @@ function progress(n) {
 
 function render() {
   $("who").textContent = S ? "Signed in as " + S.owner + " · version " + S.version : "";
-  var t = (S && S.turnOn) || {};
   var h = "";
   if (working || !S) {
     h = progress(1) + '<div class="card hero" style="text-align:center"><div class="spin"></div><h2>Setting up your Sheet…</h2><p>About 10 seconds. Keep this panel open.</p></div>';
-  } else if (!S.ready || !S.url) {
-    h = progress(1);
-    if (t.needsProjectApi) {
-      h += '<div class="card hero"><h2>One last switch</h2><p>Google needs this Sheet’s API turned on. You only do it once.</p><ol>' +
-        '<li><a target="_blank" href="' + esc(t.enableUrl) + '"><b>Open this Google page</b></a> (new tab).</li>' +
-        "<li>Click the blue <b>Enable</b> button.</li>" +
-        "<li>Wait 1 minute, come back here and click the button.</li></ol>" +
-        '<button onclick="setup(this)">Finish setup</button>' +
-        '<p class="muted">If Google says you don’t have access to that page, use the steps below instead.</p></div>' + manualDeploy();
-    } else if (t.needsApi) {
-      h += '<div class="card hero"><h2>One last switch</h2><p>Google makes you flip this one yourself. You only do it once.</p><ol>' +
-        '<li><a target="_blank" href="https://script.google.com/home/usersettings?authuser=' + encodeURIComponent(S.owner) + '"><b>Open this page</b></a> (new tab).</li>' +
-        "<li>Click <b>Google Apps Script API</b> and turn it <b>On</b>.</li>" +
-        "<li>Come back here and click the button.</li></ol>" +
-        '<button onclick="setup(this)">Finish setup</button></div>';
-    } else if (t.error) {
-      h += '<div class="card hero"><h2>Setup didn’t finish</h2><p>Click <b>Try again</b>. It usually works the second time.</p>' +
-        '<button onclick="setup(this)">Try again</button><p class="muted">Details: ' + esc(t.error) + "</p></div>" + manualDeploy();
-    } else {
-      h += '<div class="card hero"><h2>Let’s set up your Sheet</h2><p>This takes about 10 seconds.</p><button onclick="setup(this)">Set up my Sheet</button></div>';
-    }
+  } else if (!S.ready) {
+    h = progress(1) + '<div class="card hero"><h2>Let’s set up your Sheet</h2><p>This takes about 10 seconds.</p><button onclick="setup(this)">Set up my Sheet</button></div>';
+  } else if (!S.url) {
+    h = progress(1) + turnOnApp();
   } else if (!S.classes.length) {
     h = progress(2) + '<div class="card good"><h2><span class="tick">✓</span> You’re set up!</h2><p>Now make your first class.</p></div>' + classForm("Create your first class");
   } else {
-    h = home(t);
+    h = home();
   }
   $("app").innerHTML = h;
   if (S) S.classes.forEach(function (c, i) { if (openQr[i] && c.link && window.QRCode) new QRCode($("qr" + i), { text: c.link, width: 150, height: 150 }); });
   bindChoices();
+  poll();
 }
 
-function home(t) {
+function home() {
   var newer = S.latest && S.latest.version && S.latest.version !== S.version;
   var h = "";
-  if (newer) h += '<div class="card hero"><h2>Update ready</h2>' + (S.latest.notes ? "<p>" + esc(S.latest.notes) + "</p>" : "") + '<button onclick="update(this)">Update now</button><p class="muted">Your links and student work stay the same.</p><div id="upd"></div></div>';
-  if (t.warning) h += '<div class="warn">' + esc(t.warning) + "</div>";
+  if (!S.autoUpdates && S.pasteUrl) h += '<div class="card hero"><h2>One-time update</h2><p>Paste one small script, and from then on this Sheet keeps itself up to date.</p><a class="btn" target="_blank" href="' + esc(S.pasteUrl) + '">Show me how (2 minutes) ↗</a><p class="muted">Your links and student work stay the same.</p></div>';
   if (!S.site) h += '<div class="warn">This copy doesn’t know the website address. Ask whoever shared it for an updated template.</div>';
   if (S.teacherLink) h += '<a class="btn" target="_blank" href="' + esc(S.teacherLink) + '">Open my dashboard ↗</a><p class="muted">See progress, review work and import rosters. Bookmark the page that opens.</p>';
 
@@ -143,7 +130,7 @@ function home(t) {
     '<button class="secondary" onclick="save(this)">Save settings</button>' +
     (S.teacherLink ? '<p style="margin-top:14px"><b>Staff link</b>: send this to the co-teachers and admins above (not to students).</p><button class="small secondary" onclick="copyText(S.teacherLink, this)">Copy staff link</button>' : "") +
     '<p style="margin-top:14px"><b>App address</b> (only if the website asks for it):</p><div class="link">' + esc(S.url) + "</div>" +
-    (newer ? "" : '<p class="muted" style="margin-top:14px">' + (S.latest ? "You’re up to date." : "") + "</p>") +
+    (S.autoUpdates ? '<p class="muted" style="margin-top:14px">Updates install by themselves.</p><button class="small secondary" onclick="update(this)">Check for updates now</button><div id="upd"></div>' : "") +
     "</details>";
   return h;
 }
@@ -165,15 +152,36 @@ function bindChoices() {
   });
 }
 
-function manualDeploy() {
-  return "<details><summary>Or do it by hand</summary><ol>" +
-    "<li>Go to <b>Extensions → Apps Script</b>.</li>" +
-    "<li>Click the blue <b>Deploy</b> button → <b>New deployment</b>.</li>" +
-    "<li>Click the gear ⚙ next to “Select type” → <b>Web app</b>.</li>" +
-    "<li>Execute as: <b>Me</b>. Who has access: <b>Anyone</b>.</li>" +
-    "<li>Click <b>Deploy</b>, then <b>Authorize access</b> and allow.</li></ol>" +
-    '<p class="muted">“Anyone” only lets the website reach this Sheet. Students still sign in with Google, and only your roster gets in.</p>' +
-    '<button class="secondary" onclick="run(\'sidebarState\', undefined, this, \'Checking…\')">I did it, check again</button></details>';
+// Google doesn't let a Sheet copy publish itself, so the teacher clicks Deploy once. Pictures for each screen.
+var PIC = {
+  deploy: '<svg class="pic" viewBox="0 0 260 92"><rect width="260" height="26" fill="#f1f3f4"/><text x="10" y="17" font-size="10" fill="#5f6368">Apps Script · 3D Design Academy</text><rect x="186" y="4" width="66" height="18" rx="4" fill="#1a73e8"/><text x="219" y="16.5" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">Deploy ▾</text><rect x="140" y="30" width="112" height="56" rx="6" fill="#fff" stroke="#dadce0"/><rect x="143" y="34" width="106" height="16" rx="3" fill="#e8f0fe"/><text x="150" y="46" font-size="10" font-weight="700" fill="#202124">New deployment</text><text x="150" y="64" font-size="10" fill="#5f6368">Manage deployments</text><text x="150" y="79" font-size="10" fill="#5f6368">Test deployments</text><rect x="141" y="32" width="110" height="20" rx="4" fill="none" stroke="#c2410c" stroke-width="2"/><rect x="184" y="2" width="70" height="22" rx="6" fill="none" stroke="#c2410c" stroke-width="2"/></svg>',
+  type: '<svg class="pic" viewBox="0 0 260 80"><text x="10" y="18" font-size="11" font-weight="700" fill="#202124">New deployment</text><text x="10" y="40" font-size="10" fill="#5f6368">Select type</text><circle cx="80" cy="37" r="7" fill="#e8eaed"/><text x="80" y="41" font-size="10" text-anchor="middle" fill="#5f6368">⚙</text><circle cx="80" cy="37" r="11" fill="none" stroke="#c2410c" stroke-width="2"/><rect x="96" y="28" width="118" height="44" rx="6" fill="#fff" stroke="#dadce0"/><text x="106" y="45" font-size="10" fill="#5f6368">API Executable</text><rect x="99" y="51" width="112" height="17" rx="3" fill="#e8f0fe"/><text x="106" y="63" font-size="10" font-weight="700" fill="#202124">Web app</text><rect x="97" y="49" width="116" height="21" rx="4" fill="none" stroke="#c2410c" stroke-width="2"/></svg>',
+  form: '<svg class="pic" viewBox="0 0 260 112"><text x="10" y="18" font-size="10" fill="#5f6368">Execute as</text><rect x="10" y="23" width="150" height="20" rx="4" fill="#fff" stroke="#c2410c" stroke-width="2"/><text x="17" y="37" font-size="10" font-weight="700" fill="#202124">Me (you@school.org)</text><text x="10" y="58" font-size="10" fill="#5f6368">Who has access</text><rect x="10" y="63" width="150" height="20" rx="4" fill="#fff" stroke="#c2410c" stroke-width="2"/><text x="17" y="77" font-size="10" font-weight="700" fill="#202124">Anyone</text><rect x="194" y="86" width="56" height="20" rx="4" fill="#1a73e8"/><text x="222" y="100" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">Deploy</text><rect x="191" y="83" width="62" height="26" rx="6" fill="none" stroke="#c2410c" stroke-width="2"/></svg>'
+};
+
+function turnOnApp() {
+  return '<div class="card good"><h2><span class="tick">✓</span> Your Sheet is ready</h2></div>' +
+    '<div class="card hero"><h2>Turn on your app (2 minutes)</h2><p>Google needs you to click this yourself, one time.</p>' +
+    '<a class="btn" target="_blank" href="' + esc(S.editorUrl) + '">Open the script editor ↗</a>' +
+    '<ol class="big">' +
+    '<li>In the new tab, click the blue <b>Deploy</b> button (top right), then <b>New deployment</b>.' + PIC.deploy + "</li>" +
+    '<li>Click the gear ⚙ next to “Select type”, then <b>Web app</b>.' + PIC.type + "</li>" +
+    '<li>Check <b>Execute as: Me</b> and <b>Who has access: Anyone</b>. Click <b>Deploy</b>.' + PIC.form + "</li>" +
+    "<li>If Google asks, click <b>Authorize access</b> and <b>Allow</b>. Then click <b>Done</b> and come back to this tab.</li></ol>" +
+    '<div class="waiting"><div class="spin"></div>Waiting for you to deploy… this panel moves on by itself.</div>' +
+    '<button class="secondary" onclick="run(\'sidebarState\', undefined, this, \'Checking…\')">I did it — check now</button></div>' +
+    '<details><summary>“Anyone” isn’t in the list</summary><p>Your school’s Google settings don’t allow it. Ask your tech office to let teachers share Apps Script web apps with “Anyone”. Students still sign in with Google, and only your roster gets in.</p></details>';
+}
+
+// While the teacher is deploying in the other tab, check every 5 seconds (only while this step is showing).
+var POLL = null;
+function poll() {
+  var waiting = S && S.ready && !S.url && !working;
+  if (waiting && !POLL) POLL = setInterval(function () {
+    if (document.hidden) return;
+    google.script.run.withSuccessHandler(function (s) { if (s.url) { S = s; clearInterval(POLL); POLL = null; render(); } }).sidebarState();
+  }, 5000);
+  if (!waiting && POLL) { clearInterval(POLL); POLL = null; }
 }
 
 function toggleQr(i) { openQr[i] = !openQr[i]; render(); }
@@ -193,19 +201,18 @@ function save(btn) {
   run("sidebarSaveSettings", { domains: $("dom").value, teacherEmails: $("tch").value, adminEmails: $("adm").value, autoEnroll: $("auto").checked }, btn, "Saving…");
 }
 function update(btn) {
-  busy(btn, "Updating…");
+  busy(btn, "Checking…");
   google.script.run.withSuccessHandler(function (r) {
-    if (r.ok) { $("upd").innerHTML = '<p><b>Updated to ' + esc(r.version) + ".</b> " + (r.redeployed ? "Your app is already using it." : "Deploy → Manage deployments → Edit → New version to finish.") + "</p><p class=\"muted\">If Google asks you to review permissions next time, click Allow.</p>"; btn.remove(); }
-    else if (r.needsProjectApi) { $("upd").innerHTML = '<div class="warn">One-time switch: <a target="_blank" href="' + esc(r.enableUrl) + '">open this Google page</a>, click <b>Enable</b>, wait 1 minute, then click Update now again.</div>'; btn.disabled = false; btn.textContent = "Update now"; }
-    else if (r.needsApi) { $("upd").innerHTML = '<div class="warn">One-time switch: <a target="_blank" href="https://script.google.com/home/usersettings?authuser=' + encodeURIComponent(S.owner) + '">open this page</a>, turn <b>Google Apps Script API</b> on, then click Update now again.</div>'; btn.disabled = false; btn.textContent = "Update now"; }
-    else { $("upd").innerHTML = '<div class="warn">' + esc(r.error) + "</div>"; btn.disabled = false; btn.textContent = "Update now"; }
-  }).withFailureHandler(function (e) { $("upd").innerHTML = '<div class="warn">' + esc(e.message) + "</div>"; btn.disabled = false; btn.textContent = "Update now"; }).sidebarUpdate();
+    if (r.ok) { $("upd").innerHTML = '<p><b>You have the newest version (' + esc(r.version) + ').</b></p>'; btn.remove(); }
+    else if (r.needsPaste) { $("upd").innerHTML = '<div class="warn">This copy needs a <a target="_blank" href="' + esc(r.pasteUrl) + '">one-time paste</a>. After that it updates by itself.</div>'; btn.disabled = false; btn.textContent = btn.dataset.t; }
+    else { $("upd").innerHTML = '<div class="warn">' + esc(r.error) + "</div>"; btn.disabled = false; btn.textContent = btn.dataset.t; }
+  }).withFailureHandler(function (e) { $("upd").innerHTML = '<div class="warn">' + esc(e.message) + "</div>"; btn.disabled = false; btn.textContent = btn.dataset.t; }).sidebarUpdate();
 }
 
 // Opening the panel right after allowing permissions finishes setup with no more clicks.
 google.script.run.withSuccessHandler(function (s) {
   S = s;
-  if (!S.ready || !S.url) setup(); else render();
+  if (!S.ready) setup(); else render();
 }).withFailureHandler(function (e) { $("app").innerHTML = '<div class="warn">' + esc(e.message || String(e)) + "</div>"; }).sidebarState();
 </script>
 </body>
