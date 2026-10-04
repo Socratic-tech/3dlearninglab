@@ -106,7 +106,7 @@ function TeacherSteps() {
             <li>Click <b>Copy student link</b> and post it in Google Classroom.</li>
             <li>Click <b>Open my dashboard</b> to see your class. Bookmark that page.</li>
           </ul>
-          <p className="text-sm text-muted">From now on your Sheet updates itself. New lessons show up without you doing anything.</p>
+          <p className="text-sm text-muted">New and improved lessons show up by themselves. Once in a while your dashboard may ask for a quick script update.</p>
         </Step>
       </ol>
       <Help />

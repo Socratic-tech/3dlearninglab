@@ -104,7 +104,7 @@ function render() {
 function home() {
   var newer = S.latest && S.latest.version && S.latest.version !== S.version;
   var h = "";
-  if (!S.autoUpdates && S.pasteUrl) h += '<div class="card hero"><h2>One-time update</h2><p>Paste one small script, and from then on this Sheet keeps itself up to date.</p><a class="btn" target="_blank" href="' + esc(S.pasteUrl) + '">Show me how (2 minutes) ↗</a><p class="muted">Your links and student work stay the same.</p></div>';
+  if (newer && S.pasteUrl) h += '<div class="card hero"><h2>Script update ready</h2>' + (S.latest.notes ? "<p>" + esc(S.latest.notes) + "</p>" : "") + '<a class="btn" target="_blank" href="' + esc(S.pasteUrl) + '">Show me how (5 minutes) ↗</a><p class="muted">Copy and paste, then Deploy → New version. Your links and student work stay the same. Lesson changes don’t need this — they arrive by themselves.</p></div>';
   if (!S.site) h += '<div class="warn">This copy doesn’t know the website address. Ask whoever shared it for an updated template.</div>';
   if (S.teacherLink) h += '<a class="btn" target="_blank" href="' + esc(S.teacherLink) + '">Open my dashboard ↗</a><p class="muted">See progress, review work and import rosters. Bookmark the page that opens.</p>';
 
@@ -130,7 +130,7 @@ function home() {
     '<button class="secondary" onclick="save(this)">Save settings</button>' +
     (S.teacherLink ? '<p style="margin-top:14px"><b>Staff link</b>: send this to the co-teachers and admins above (not to students).</p><button class="small secondary" onclick="copyText(S.teacherLink, this)">Copy staff link</button>' : "") +
     '<p style="margin-top:14px"><b>App address</b> (only if the website asks for it):</p><div class="link">' + esc(S.url) + "</div>" +
-    (S.autoUpdates ? '<p class="muted" style="margin-top:14px">Updates install by themselves.</p><button class="small secondary" onclick="update(this)">Check for updates now</button><div id="upd"></div>' : "") +
+    '<p class="muted" style="margin-top:14px">Lessons update by themselves. ' + (newer ? "A script update is ready (see the top of this panel)." : "Your script is up to date.") + "</p>" +
     "</details>";
   return h;
 }
@@ -199,14 +199,6 @@ function createClass(btn) {
 }
 function save(btn) {
   run("sidebarSaveSettings", { domains: $("dom").value, teacherEmails: $("tch").value, adminEmails: $("adm").value, autoEnroll: $("auto").checked }, btn, "Saving…");
-}
-function update(btn) {
-  busy(btn, "Checking…");
-  google.script.run.withSuccessHandler(function (r) {
-    if (r.ok) { $("upd").innerHTML = '<p><b>You have the newest version (' + esc(r.version) + ').</b></p>'; btn.remove(); }
-    else if (r.needsPaste) { $("upd").innerHTML = '<div class="warn">This copy needs a <a target="_blank" href="' + esc(r.pasteUrl) + '">one-time paste</a>. After that it updates by itself.</div>'; btn.disabled = false; btn.textContent = btn.dataset.t; }
-    else { $("upd").innerHTML = '<div class="warn">' + esc(r.error) + "</div>"; btn.disabled = false; btn.textContent = btn.dataset.t; }
-  }).withFailureHandler(function (e) { $("upd").innerHTML = '<div class="warn">' + esc(e.message) + "</div>"; btn.disabled = false; btn.textContent = btn.dataset.t; }).sidebarUpdate();
 }
 
 // Opening the panel right after allowing permissions finishes setup with no more clicks.

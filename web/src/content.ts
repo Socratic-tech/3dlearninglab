@@ -89,6 +89,6 @@ export type Me = {
   /** XP / streak / daily goal (older backends don't send it) */
   stats?: Stats | null;
   /** Teachers only: what this Apps Script copy runs and who owns it (copies before the update banner don't send it) */
-  app?: { version: string; owner: string } | null;
+  app?: { version: string; owner: string; content?: string; engineBehind?: boolean } | null;
   prints?: { id: string; lessonId: string; evidenceId: string; fileName: string | null; status: string; note: string; teacherNote: string; createdAt: string; updatedAt: string }[];
 };

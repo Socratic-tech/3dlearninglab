@@ -7,6 +7,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import { execSync } from "node:child_process";
+import vm from "node:vm";
+import { decodeFeed, encodeFeed, ENGINE, type Feed } from "@/lib/content-feed";
 import { getLesson, allBlocks } from "@/content";
 import { makeEnv } from "../helpers/apps-script-env";
 
@@ -195,58 +197,20 @@ describe("Setup sidebar", () => {
   it("setting up never touches the Apps Script API (Google blocks it in Sheet copies)", () => {
     const e = makeEnv("teacher@school.org");
     const st = e.run("sidebarAutoSetup()");
-    expect(st).toMatchObject({ ready: true, url: null, autoUpdates: false });
+    expect(st).toMatchObject({ ready: true, url: null });
     expect(st.editorUrl).toBe("https://script.google.com/d/script-1/edit");
     expect(e.scriptApiCalls).toHaveLength(0);
   });
 
-  it("pasted copies are pointed to the one-time copy-and-paste page instead of a Google switch", () => {
+  it("engine updates are a copy and paste: the panel links the published paste page, and there is no update action", () => {
     const e = makeEnv("teacher@school.org", { webAppUrl: "https://script.google.com/macros/s/AKfy123/exec" });
-    expect(e.call("teacher@school.org", "updateApp").data).toMatchObject({ ok: false, needsPaste: true, pasteUrl: "https://socratic-tech.github.io/3dlearninglab/apps-script/paste.html" });
-    expect(e.call("kid@school.org", "updateApp")).toMatchObject({ ok: false });
+    expect(e.run("sidebarState()").pasteUrl).toBe("https://socratic-tech.github.io/3dlearninglab/apps-script/paste.html");
+    expect(e.call("teacher@school.org", "updateApp")).toMatchObject({ ok: false });
     expect(e.scriptApiCalls).toHaveLength(0);
   });
 
-  it("the loader runs the app downloaded from the website", () => {
-    const site = { up: true, fetches: 0 };
-    const e = makeEnv("teacher@school.org", { loader: true, site, webAppUrl: "https://script.google.com/macros/s/AKfy123/exec" });
-    const st = e.run("sidebarState()");
-    expect(st).toMatchObject({ ready: true, autoUpdates: true });
-    expect(st.version).toMatch(/^0\.1\.0-/);
-    expect(e.run("typeof SIDEBAR_HTML === 'string' && SIDEBAR_HTML.indexOf('3D Design Academy') > 0")).toBe(true);
-    const cid = e.call("teacher@school.org", "createClass", { name: "Via loader" }).data.id;
-    e.call("teacher@school.org", "addStudents", { classId: cid, students: [{ email: "maya@school.org" }] });
-    expect(e.call("maya@school.org", "me").ok).toBe(true);
-    // the app was cached in pieces under 100 KB, and the next execution doesn't download again
-    expect(Number(e.cache.get("ac_n"))).toBeGreaterThan(1);
-    e.load();
-    expect(site.fetches).toBe(1);
-    expect(e.call("maya@school.org", "me").ok).toBe(true);
-  });
 
-  it("keeps working when the website is down: cache first, then the backup tab", () => {
-    const site = { up: true, fetches: 0 };
-    const e = makeEnv("teacher@school.org", { loader: true, site });
-    expect(e.sheets.get("_app_backup")!.data.length).toBeGreaterThan(1);
-    site.up = false;
-    e.cache.delete("ac_fresh"); // 30 minutes later: time to check the site, which is down
-    e.load();
-    expect(e.run("sidebarState()").autoUpdates).toBe(true);
-    e.cache.clear(); // 6 hours later: cache gone too, the site still down
-    e.load();
-    expect(e.run("sidebarState()").ready).toBe(true);
-    expect(e.call("teacher@school.org", "createClass", { name: "Still works" }).ok).toBe(true);
-  });
 
-  it("Update now through the loader fetches the newest code", () => {
-    const site = { up: true, fetches: 0 };
-    const e = makeEnv("teacher@school.org", { loader: true, site });
-    const r = e.call("teacher@school.org", "updateApp").data;
-    expect(r).toMatchObject({ ok: true, redeployed: true });
-    expect(site.fetches).toBe(2);
-    site.up = false;
-    expect(e.run("sidebarUpdate()")).toMatchObject({ ok: false, error: expect.stringMatching(/website/) });
-  });
 
   it("a copied template starts fresh for the new teacher and fills in their domain", () => {
     const e = makeEnv("teacher@school.org");
@@ -282,5 +246,77 @@ describe("Setup sidebar", () => {
     expect(me.data.user).toMatchObject({ role: "teacher", admin: true });
     expect(e.call("principal@resa.org", "createClass", { name: "Admin test" }).ok).toBe(true);
     expect(e.call("stranger@resa.org", "me").ok).toBe(false);
+  });
+});
+
+describe("Lesson content feed", () => {
+  const builtIn = () => {
+    const ctx: { CONTENT_FEED?: Feed } = {};
+    vm.runInNewContext(fs.readFileSync(path.join(dist, "Content.js"), "utf8").replace("var CONTENT_FEED", "this.CONTENT_FEED"), ctx);
+    return decodeFeed(ctx.CONTENT_FEED!) as { lessons: Record<string, { blocks: Record<string, { correctOptionIds?: string[]; options?: { id: string }[] }> }> };
+  };
+  const holesSkill = () => {
+    const mc = allBlocks(getLesson("holes")!).find((b) => b.type === "multipleChoice" && b.check === "skill")!;
+    if (mc.type !== "multipleChoice") throw new Error();
+    return { mc, other: mc.options.find((o) => !mc.correctOptionIds.includes(o.id))!.id };
+  };
+  const setup = (body: string | null) => {
+    const feed = { body, fetches: 0 };
+    const e = makeEnv("teacher@school.org", { feed });
+    const cls = e.call("teacher@school.org", "createClass", { name: "Feed", pathId: "18-week" }).data.id;
+    e.call("teacher@school.org", "addStudents", { classId: cls, students: [{ email: "maya@school.org" }] });
+    return { e, feed };
+  };
+  const answer = (e: ReturnType<typeof makeEnv>, optionId: string) =>
+    e.call("maya@school.org", "answerBlock", { lessonId: "holes", blockId: holesSkill().mc.id, response: { type: "multipleChoice", optionIds: [optionId] } }).data.correct;
+
+  it("uses edited lessons from the website without any engine update", () => {
+    const { mc, other } = holesSkill();
+    const c = builtIn();
+    c.lessons.holes.blocks[mc.id].correctOptionIds = [other]; // the lesson was edited: a different answer is right now
+    const { e, feed } = setup(JSON.stringify(encodeFeed(c, "v-edit")));
+    expect(answer(e, other)).toBe(true);
+    expect(e.call("teacher@school.org", "me").data.app).toMatchObject({ content: "v-edit", engineBehind: false });
+    // cached in pieces under the 100 KB limit; the next request doesn't download again
+    expect(Number(e.cache.get("cf_n"))).toBeGreaterThan(1);
+    const before = feed.fetches;
+    answer(e, other);
+    expect(feed.fetches).toBe(before);
+  });
+
+  it("refuses a damaged, malformed or too-new feed and keeps the last good lessons", () => {
+    const { mc, other } = holesSkill();
+    const good = encodeFeed(builtIn(), "v-good");
+    const tampered = { ...good, data: good.data.slice(0, -40) + "A".repeat(40) };
+    const broken = builtIn() as unknown as Record<string, unknown>;
+    delete broken.paths;
+    const tooNew = encodeFeed(builtIn(), "v-new", 99);
+    for (const body of ["<html>captive portal</html>", JSON.stringify(tampered), JSON.stringify(encodeFeed(broken, "v-bad")), JSON.stringify(tooNew), null]) {
+      const { e } = setup(body);
+      expect([String(body).slice(0, 30), answer(e, other)]).toEqual([String(body).slice(0, 30), false]); // built-in answer key still used
+      expect(answer(e, mc.correctOptionIds[0])).toBe(true);
+      expect(e.call("teacher@school.org", "me").data.app.content).toBe("built-in");
+    }
+    const { e } = setup(JSON.stringify(tooNew));
+    expect(e.call("teacher@school.org", "me").data.app.engineBehind).toBe(true);
+  });
+
+  it("when the website goes down, keeps using the last good copy", () => {
+    const { mc, other } = holesSkill();
+    const c = builtIn();
+    c.lessons.holes.blocks[mc.id].correctOptionIds = [other];
+    const { e, feed } = setup(JSON.stringify(encodeFeed(c, "v-edit")));
+    expect(answer(e, other)).toBe(true);
+    feed.body = null;
+    e.cache.delete("cf_fresh"); // 15 minutes later: time to check, and the site is down
+    expect(answer(e, other)).toBe(true);
+    expect(e.call("teacher@school.org", "me").data.app.content).toBe("v-edit");
+  });
+
+  it("the published feed matches the lessons and passes validation", () => {
+    const f = JSON.parse(fs.readFileSync(path.join(process.cwd(), "web/public/apps-script/content.json"), "utf8"));
+    expect(f).toMatchObject({ format: 1, engine: ENGINE });
+    expect(JSON.stringify(f)).not.toContain("correctOptionIds"); // answer keys aren't readable in the file
+    expect(fs.readFileSync(path.join(dist, "Content.js"), "utf8")).not.toContain("correctOptionIds"); // nor in the paste page's Content file
   });
 });

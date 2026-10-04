@@ -46,7 +46,7 @@ export const okScriptApi: ScriptApiFake = ({ method, path }) => {
   return { code: 200, body: {} };
 };
 
-export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string; scriptId?: string; scriptApi?: ScriptApiFake; updatePack?: unknown; loader?: boolean; site?: { up: boolean; fetches: number } } = {}) {
+export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string; scriptId?: string; scriptApi?: ScriptApiFake; updatePack?: unknown; feed?: { body: string | null; fetches: number } } = {}) {
   const scriptApiCalls: ScriptApiCall[] = [];
   const sheets = new Map<string, ReturnType<typeof fakeSheet>>();
   const book = {
@@ -65,10 +65,16 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
     CacheService: {
       getScriptCache: () => ({
         get: (k: string) => cache.get(k) ?? null,
-        put: (k: string, v: string) => { if (v.length > 100_000) throw new Error("Argument too large"); cache.set(k, v); },
+        put: (k: string, v: string) => {
+          if (Buffer.byteLength(v) > 100 * 1024) throw new Error("Argument too large: value");
+          cache.set(k, v);
+        },
+        putAll: (o: Record<string, string>) => Object.entries(o).forEach(([k, v]) => {
+          if (Buffer.byteLength(v) > 100 * 1024) throw new Error("Argument too large: value");
+          cache.set(k, v);
+        }),
+        getAll: (keys: string[]) => Object.fromEntries(keys.filter((k) => cache.has(k)).map((k) => [k, cache.get(k)!])),
         remove: (k: string) => cache.delete(k),
-        getAll: (keys: string[]) => Object.fromEntries(keys.filter((k) => cache.has(k)).map((k) => [k, cache.get(k)])),
-        putAll: (o: Record<string, string>) => Object.entries(o).forEach(([k, v]) => { if (v.length > 100_000) throw new Error("Argument too large"); cache.set(k, v); }),
         removeAll: (keys: string[]) => keys.forEach((k) => cache.delete(k)),
       }),
     },
@@ -108,11 +114,10 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
           const r = (opts.scriptApi ?? okScriptApi)(call);
           return { getResponseCode: () => r.code, getContentText: () => JSON.stringify(r.body) };
         }
-        if (url.includes("apps-script/bundle.js")) {
-          const site = opts.site ?? { up: true, fetches: 0 };
-          site.fetches++;
-          const body = site.up ? fs.readFileSync(path.join(dist, "bundle.js"), "utf8") : "<html>Service unavailable</html>";
-          return { getResponseCode: () => (site.up ? 200 : 503), getContentText: () => body };
+        if (url.includes("apps-script/content.json")) {
+          if (opts.feed) opts.feed.fetches++;
+          const body = opts.feed?.body ?? null;
+          return { getResponseCode: () => (body === null ? 404 : 200), getContentText: () => body ?? "" };
         }
         if (url.includes("apps-script/update.json")) {
           const found = !!opts.updatePack;
@@ -130,8 +135,8 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
   };
   vm.createContext(ctx);
   const load = () => {
-    // Each Apps Script execution runs every file's top level again; the loader runs it here.
-    for (const f of opts.loader ? ["Loader.js"] : ["Lib.js", "Content.js", "Code.js"]) vm.runInContext(fs.readFileSync(path.join(dist, f), "utf8"), ctx, { filename: f });
+    // Each Apps Script execution runs every file's top level again.
+    for (const f of ["Lib.js", "Content.js", "Code.js"]) vm.runInContext(fs.readFileSync(path.join(dist, f), "utf8"), ctx, { filename: f });
   };
   load();
   vm.runInContext("setup()", ctx);

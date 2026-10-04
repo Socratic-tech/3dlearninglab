@@ -10,7 +10,8 @@
  * run setup() once, then Deploy → New deployment → Web app → Execute as: Me, Who has access: Anyone.
  * ("Anyone" is required so the Pages site can call it; every request is still authenticated by Google ID token.)
  *
- * Globals provided by the other files: Lib (scoring/mastery, bundled from src/lib), CONTENT (answer keys etc.).
+ * Globals provided by the other files: Lib (scoring/mastery, bundled from src/lib), CONTENT_FEED (built-in
+ * copy of the lessons, scrambled; normally replaced by the newer feed from the website — see content_()).
  */
 
 const API_VERSION = "1";
@@ -114,6 +115,7 @@ function userError_(message) {
 function handle_(req) {
   MEMO_ = {};
   LOCK_MEMO_ = {};
+  CONTENT_MEMO_ = null;
   STUDENT_HELD_ = {};
   REQ_LANG_ = req && req.args && req.args.lang === "es" ? "es" : "en";
   try {
@@ -396,10 +398,118 @@ function parse_(s, fallback) {
   try { return JSON.parse(s); } catch (e) { return fallback; }
 }
 
+// ───────────────────────── Lesson content feed ─────────────────────────
+// Lessons and answer keys are DATA downloaded from the website (apps-script/content.json), never code. The feed is
+// checked (format, engine version, checksum, shape) before it's used; anything wrong keeps the last good copy, and
+// with no good copy at all the built-in copy from Content.js is used. Student data never leaves this Sheet.
+var CONTENT_MEMO_ = null;
+const FEED_FRESH_SECS_ = 900; // re-check the website every 15 minutes while classes are using the app
+const FEED_CHUNK_ = 30000;    // cache values are limited to 100 KB; 30k characters is safe for any text
+
+function content_() {
+  if (!CONTENT_MEMO_) {
+    let c = null;
+    try { c = feedContent_(); } catch (e) { c = null; }
+    CONTENT_MEMO_ = c || builtInContent_();
+  }
+  return CONTENT_MEMO_.data;
+}
+function contentVersion_() {
+  content_();
+  return CONTENT_MEMO_.version;
+}
+
+function feedContent_() {
+  const cache = CacheService.getScriptCache();
+  const cached = readFeedCache_(cache);
+  if (cached && cache.get("cf_fresh")) return cached;
+  const got = fetchFeed_(cache);
+  if (got) {
+    writeFeedCache_(cache, got);
+    cache.put("cf_fresh", "1", FEED_FRESH_SECS_);
+    return got;
+  }
+  cache.put("cf_fresh", "1", 300); // website down or feed rejected: try again in 5 minutes
+  return cached;
+}
+
+/** The lessons that came with this copy (Content.js holds the same scrambled feed the website publishes). */
+function builtInContent_() {
+  const got = decodeFeed_(CONTENT_FEED);
+  if (!got) throw new Error("Content.js is damaged: paste it again from the update page.");
+  return { data: got.data, version: "built-in", text: got.text };
+}
+
+function decodeFeed_(feed) {
+  if (!feed || feed.format !== Lib.FEED_FORMAT || typeof feed.data !== "string" || typeof feed.version !== "string") return null;
+  try {
+    const bytes = Utilities.base64Decode(feed.data);
+    const ks = Lib.feedKeystream(feed.version, bytes.length);
+    for (let i = 0; i < bytes.length; i++) {
+      const v = (bytes[i] & 255) ^ ks[i];
+      bytes[i] = v > 127 ? v - 256 : v;
+    }
+    const text = Utilities.newBlob(bytes).getDataAsString("UTF-8");
+    if (Lib.checksum(text) !== feed.checksum) return null;
+    const data = JSON.parse(text);
+    if (Lib.validateServerContent(data)) return null;
+    return { data: data, version: feed.version, text: text };
+  } catch (e) {
+    return null;
+  }
+}
+
+function fetchFeed_(cache) {
+  if (!BUILD.site) return null;
+  let feed;
+  try {
+    const r = UrlFetchApp.fetch(BUILD.site + "apps-script/content.json?t=" + Date.now(), { muteHttpExceptions: true });
+    if (r.getResponseCode() !== 200) return null;
+    feed = JSON.parse(r.getContentText());
+  } catch (e) {
+    return null;
+  }
+  if (!feed || feed.format !== Lib.FEED_FORMAT) return null;
+  if (Number(feed.engine) > Lib.ENGINE) {
+    cache.put("cf_engine_behind", String(feed.engine), 21600); // newer lessons need an engine update (shown to teachers)
+    return null;
+  }
+  cache.remove("cf_engine_behind");
+  return decodeFeed_(feed);
+}
+
+function writeFeedCache_(cache, got) {
+  const parts = {};
+  let n = 0;
+  for (let i = 0; i < got.text.length; i += FEED_CHUNK_) parts["cf_" + n++] = got.text.slice(i, i + FEED_CHUNK_);
+  parts.cf_n = String(n);
+  parts.cf_v = got.version;
+  cache.putAll(parts, 21600);
+}
+
+function readFeedCache_(cache) {
+  const n = Number(cache.get("cf_n"));
+  if (!n) return null;
+  const keys = [];
+  for (let i = 0; i < n; i++) keys.push("cf_" + i);
+  const got = cache.getAll(keys.concat(["cf_v"]));
+  let text = "";
+  for (let i = 0; i < n; i++) {
+    if (typeof got["cf_" + i] !== "string") return null;
+    text += got["cf_" + i];
+  }
+  try {
+    const data = JSON.parse(text);
+    return Lib.validateServerContent(data) ? null : { data: data, version: got.cf_v || "cached", text: text };
+  } catch (e) {
+    return null;
+  }
+}
+
 // ───────────────────────── Learning logic ─────────────────────────
 
 function lessonOf_(lessonId) {
-  const l = CONTENT.lessons[lessonId];
+  const l = content_().lessons[lessonId];
   if (!l) throw userError_("That mission doesn't exist.");
   return l;
 }
@@ -525,7 +635,7 @@ function liveView_(progressRows) {
   }).map(function (email) { return { email: email, lessonId: last[email].lessonId, minutes: Math.round((now - last[email].t) / 60000) }; });
   const missed = Object.keys(wrong).map(function (k) {
     const w = wrong[k];
-    const b = (CONTENT.lessons[w.lessonId] || { blocks: {} }).blocks[w.blockId] || {};
+    const b = (content_().lessons[w.lessonId] || { blocks: {} }).blocks[w.blockId] || {};
     return { lessonId: w.lessonId, blockId: w.blockId, prompt: String(b.prompt || "").replace(/[*_`#]/g, "").slice(0, 140), count: w.students.length, students: w.students };
   }).sort(function (a, b) { return b.count - a.count; }).slice(0, 5);
   const activeToday = Object.keys(last).filter(function (email) { return Utilities.formatDate(new Date(last[email].t), tz_(), "yyyy-MM-dd") === today; }).length;
@@ -588,16 +698,8 @@ const ACTIONS = {
         journals: journals,
         stats: user.role === "student" ? stats_(user.email) : null,
         prints: table_("Prints").filter(function (r) { return r.email === user.email; }).map(printOut_),
-        app: user.role === "teacher" ? { version: BUILD.version, owner: String(Session.getEffectiveUser().getEmail() || "").toLowerCase() } : null,
+        app: user.role === "teacher" ? { version: BUILD.version, owner: String(Session.getEffectiveUser().getEmail() || "").toLowerCase(), content: contentVersion_(), engineBehind: !!CacheService.getScriptCache().get("cf_engine_behind") } : null,
       };
-    },
-  },
-
-  /** One-click update from the teacher dashboard (same as the sidebar's Update now). Runs as the Sheet's owner. */
-  updateApp: {
-    role: "teacher",
-    run: function () {
-      return sidebarUpdate();
     },
   },
 
@@ -612,7 +714,7 @@ const ACTIONS = {
       const prev = (row ? parse_(row.blockState, {}) : {})[a.blockId] || {};
       if (prev.result && prev.result.locked) return prev.result;
       // feedback, explanations and headlines in the student's language (Spanish text lives only here, like the answer keys)
-      const shown = REQ_LANG_ === "es" && CONTENT.es && CONTENT.es[a.lessonId] ? Lib.localizeBlock(block, CONTENT.es[a.lessonId]) : block;
+      const shown = REQ_LANG_ === "es" && content_().es && content_().es[a.lessonId] ? Lib.localizeBlock(block, content_().es[a.lessonId]) : block;
       let score;
       try { score = Lib.scoreBlock(shown, a.response, REQ_LANG_); } catch (e) { throw userError_("That answer couldn't be read. Try again."); }
       const attempts = (prev.attempts || 0) + 1;
@@ -621,7 +723,7 @@ const ACTIONS = {
       saveBlockEntry_(user.email, a.lessonId, a.blockId, { response: a.response, correct: score.correct === null ? undefined : score.correct, attempts: attempts, done: true, result: result });
       addXp_(user.email, [{ kind: "attempt", at: now_(), lessonId: a.lessonId, blockId: a.blockId, correct: score.correct }]);
       if (block.competencyId && block.check) {
-        recordLevel_(user.email, block.competencyId, Lib.autoLevel({ correct: score.correct === true, check: block.check, autoAssessable: !!CONTENT.autoAssessable[block.competencyId] }), (block.check === "skill" ? "Skill check" : "Practice") + " in " + lesson.title, "");
+        recordLevel_(user.email, block.competencyId, Lib.autoLevel({ correct: score.correct === true, check: block.check, autoAssessable: !!content_().autoAssessable[block.competencyId] }), (block.check === "skill" ? "Skill check" : "Practice") + " in " + lesson.title, "");
       }
       return result;
       });
@@ -678,7 +780,7 @@ const ACTIONS = {
 
   saveJournal: {
     run: function (user, a) {
-      if (!/^[a-z0-9-]{1,40}$/.test(String(a.projectKey)) || CONTENT.journalPrompts.indexOf(a.promptId) < 0) throw userError_("Unknown journal entry.");
+      if (!/^[a-z0-9-]{1,40}$/.test(String(a.projectKey)) || content_().journalPrompts.indexOf(a.promptId) < 0) throw userError_("Unknown journal entry.");
       return withStudentLock_(user.email, function () {
         const t = table_("Journals");
         const row = t.find(function (r) { return r.email === user.email && r.projectKey === a.projectKey; });
@@ -702,10 +804,10 @@ const ACTIONS = {
         table_("Progress").upsert(function (r) { return r.email === user.email && r.lessonId === a.lessonId; }, { status: "completed", completedAt: (row && row.completedAt) || now_(), updatedAt: now_() });
       });
       addXp_(user.email, [{ kind: "lesson", at: now_(), lessonId: a.lessonId }]);
-      const path = CONTENT.paths[classOut_(classFor_(user, a.classId)).pathId];
+      const path = content_().paths[classOut_(classFor_(user, a.classId)).pathId];
       const i = path.indexOf(a.lessonId);
       const next = i >= 0 && i < path.length - 1 ? path[i + 1] : null;
-      const unlocked = path.filter(function (id) { return (CONTENT.lessons[id].prerequisites || []).indexOf(a.lessonId) >= 0; });
+      const unlocked = path.filter(function (id) { return (content_().lessons[id].prerequisites || []).indexOf(a.lessonId) >= 0; });
       return { nextLessonId: next, unlocked: unlocked, stats: stats_(user.email) };
     },
   },
@@ -786,7 +888,7 @@ const ACTIONS = {
   override: {
     role: "teacher",
     run: function (user, a) {
-      if (Lib.LEVELS.indexOf(a.level) < 0 || !CONTENT.competencyIds[a.competencyId]) throw userError_("Choose a competency and level.");
+      if (Lib.LEVELS.indexOf(a.level) < 0 || !content_().competencyIds[a.competencyId]) throw userError_("Choose a competency and level.");
       withStudentLock_(a.email, function () {
         const t = table_("Levels");
         const row = t.find(function (r) { return r.email === a.email && r.competencyId === a.competencyId; });
@@ -990,9 +1092,7 @@ function onOpen() {
 }
 
 function showSidebar() {
-  // Loaded by the loader: the panel's HTML travels inside the bundle. Pasted copies have a Sidebar file.
-  const html = typeof SIDEBAR_HTML !== "undefined" ? HtmlService.createHtmlOutput(SIDEBAR_HTML) : HtmlService.createHtmlOutputFromFile("Sidebar");
-  SpreadsheetApp.getUi().showSidebar(html.setTitle("3D Design Academy"));
+  SpreadsheetApp.getUi().showSidebar(HtmlService.createHtmlOutputFromFile("Sidebar").setTitle("3D Design Academy"));
 }
 
 /** Creates tabs and settings. Safe to run again. */
@@ -1030,11 +1130,6 @@ function webAppUrl_() {
   try { url = ScriptApp.getService().getUrl(); } catch (e) { url = null; }
   if (!url || /\/dev$/.test(url)) return null;
   return url.replace(/\/a\/macros\/[^/]+\/s\//, "/macros/s/");
-}
-
-/** True when this copy runs through the loader (it keeps itself up to date). */
-function viaLoader_() {
-  return typeof ACADEMY_LOADER !== "undefined" && typeof academyRefresh_ === "function";
 }
 
 function latestVersion_() {
@@ -1079,7 +1174,6 @@ function sidebarState() {
     classes: classes.map(function (c) { return { id: c.id, name: c.name + (c.section ? " · " + c.section : ""), link: link("&class=" + encodeURIComponent(c.id)) }; }),
     version: BUILD.version,
     latest: latestVersion_(),
-    autoUpdates: viaLoader_(),
     pasteUrl: BUILD.site ? BUILD.site + "apps-script/paste.html" : null,
     editorUrl: "https://script.google.com/d/" + ScriptApp.getScriptId() + "/edit",
   };
@@ -1110,15 +1204,3 @@ function sidebarCreateClass(c) {
   return sidebarState();
 }
 
-/**
- * "Update now". Copies that run through the loader just fetch the newest code (no Google switches needed;
- * Google doesn't let Sheet copies use the Apps Script API). Older pasted copies need the loader pasted once.
- */
-function sidebarUpdate() {
-  if (viaLoader_()) {
-    const version = academyRefresh_();
-    CacheService.getScriptCache().remove("latest_version");
-    return version ? { ok: true, version: version, redeployed: true } : { ok: false, error: "Couldn't reach the website. Try again in a minute." };
-  }
-  return { ok: false, needsPaste: true, pasteUrl: BUILD.site ? BUILD.site + "apps-script/paste.html" : null, error: "This copy needs a one-time update by copy and paste." };
-}

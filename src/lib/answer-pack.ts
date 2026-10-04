@@ -11,7 +11,7 @@
  */
 import type { LessonBlock } from "@/content/schema";
 
-function keystream(seed: string, n: number): Uint8Array {
+export function keystream(seed: string, n: number): Uint8Array {
   let h = 2166136261;
   for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
   const out = new Uint8Array(n);

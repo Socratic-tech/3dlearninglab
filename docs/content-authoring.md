@@ -73,3 +73,17 @@ Style: second person, short, a little funny. No slang cosplay, no brand mascots 
 `tests/unit/flavor.test.ts` checks every lesson has a hook and every client/theme points at a real challenge.
 
 `failGallery` blocks (Print Detective, Print Failures) show nicknamed fails with a clue, then reveal cause and fix.
+
+## How lesson edits reach classes (Pages edition)
+
+Each teacher's Apps Script copy is only the **engine** (sign-in, rosters, saving work, scoring). Lessons, questions
+and answer keys are **data**: the build publishes them as `apps-script/content.json` on the website, and every
+engine downloads it, checks it, and keeps the last good copy.
+
+- **Edit a lesson → push.** After GitHub's checks pass and the site deploys, every class picks it up within about
+  15–25 minutes. Teachers do nothing.
+- The engine only ever reads this file as data — no code from the website runs in a teacher's Sheet. A broken or
+  incomplete file is refused and the class keeps the last good lessons.
+- **A new kind of question** (a new scorable block type) needs new engine code: bump `ENGINE` in
+  `src/lib/content-feed.ts`. Engines older than that keep the previous lessons, and teachers see the update banner.
+- Student work never leaves the teacher's Sheet; the feed only flows from the website to the Sheet.
