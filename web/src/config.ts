@@ -38,8 +38,30 @@ export function normalizeApiUrl(raw: string | null | undefined): string | null {
   return m ? `https://script.google.com/macros/s/${m[1]}/exec` : null;
 }
 
+/**
+ * "Start over on this device": forgets the class link, app address, cached pages and the signed-in account, and
+ * stops Google from signing the same account in automatically. Unsaved work in the save queue is kept (it is
+ * stored per student and uploads when that student signs in again). Also reachable as <site>/?reset
+ */
+export function resetDevice() {
+  memory.clear();
+  for (const store of [localStorage, sessionStorage]) {
+    try {
+      for (const k of Object.keys(store)) if (k.startsWith("academy.") && !k.startsWith("academy.queue.")) store.removeItem(k);
+    } catch { /* storage blocked */ }
+  }
+  try { localStorage.setItem("academy.signedout", "1"); } catch { /* ignore */ }
+  document.cookie = "g_state=; Max-Age=0; path=/";
+}
+
 export function readConfig() {
   const params = new URLSearchParams(location.search);
+  if (params.has("reset")) {
+    resetDevice();
+    params.delete("reset");
+    const rest = params.toString();
+    history.replaceState(null, "", location.pathname + (rest ? "?" + rest : "") + location.hash);
+  }
   const api = params.get("api");
   const cid = params.get("cid");
   const cls = params.get("class");

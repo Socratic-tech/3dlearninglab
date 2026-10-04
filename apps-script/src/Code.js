@@ -1042,8 +1042,16 @@ function scriptApi_(method, path, body) {
   const r = UrlFetchApp.fetch("https://script.googleapis.com/v1/projects/" + ScriptApp.getScriptId() + path, opts);
   const text = r.getContentText();
   if (r.getResponseCode() >= 300) {
-    const needsApi = /usersettings|not enabled|has not been used/i.test(text);
-    throw { needsApi: needsApi, message: needsApi ? "Turn on the Google Apps Script API first." : text.slice(0, 300) };
+    // Two different Google switches, two different fixes:
+    //  - this Sheet's own Google project has the API off ("has not been used in project N … or it is disabled")
+    //  - the teacher's account setting is off ("User has not enabled the Apps Script API … usersettings")
+    const project = text.match(/has not been used in project (\d+)|project=(\d+)/);
+    if (project && /has not been used|is disabled/i.test(text)) {
+      const id = project[1] || project[2];
+      throw { needsProjectApi: true, enableUrl: "https://console.cloud.google.com/apis/library/script.googleapis.com?project=" + id + "&authuser=" + encodeURIComponent(Session.getEffectiveUser().getEmail()), message: "Turn on the Apps Script API for this Sheet's Google project first." };
+    }
+    if (/usersettings|has not enabled|not enabled/i.test(text)) throw { needsApi: true, message: "Turn on the Google Apps Script API first." };
+    throw { message: text.slice(0, 300) };
   }
   return JSON.parse(text || "{}");
 }
@@ -1069,7 +1077,7 @@ function turnOnApp_() {
     }
     return { ok: true, auto: true };
   } catch (e) {
-    return { ok: false, needsApi: !!e.needsApi, error: e.message || String(e) };
+    return { ok: false, needsApi: !!e.needsApi, needsProjectApi: !!e.needsProjectApi, enableUrl: e.enableUrl || null, error: e.message || String(e) };
   }
 }
 
@@ -1168,6 +1176,6 @@ function sidebarUpdate() {
     CacheService.getScriptCache().remove("latest_version");
     return { ok: true, version: pack.version, redeployed: !!m };
   } catch (e) {
-    return { ok: false, needsApi: !!e.needsApi, error: e.needsApi ? e.message : "Update failed: " + (e.message || String(e)) };
+    return { ok: false, needsApi: !!e.needsApi, needsProjectApi: !!e.needsProjectApi, enableUrl: e.enableUrl || null, error: e.needsApi || e.needsProjectApi ? e.message : "Update failed: " + (e.message || String(e)) };
   }
 }

@@ -20,9 +20,17 @@ export function currentToken(): string | null {
   }
 }
 
+const SIGNED_OUT = "academy.signedout";
+
 export function signOut() {
   try { sessionStorage.removeItem(KEY); } catch { /* ignore */ }
+  // after a sign-out, don't let Google sign the same account straight back in (shared computers)
+  try { localStorage.setItem(SIGNED_OUT, "1"); } catch { /* ignore */ }
   window.google?.accounts.id.disableAutoSelect();
+}
+
+function signedOut() {
+  try { return localStorage.getItem(SIGNED_OUT) === "1"; } catch { return false; }
 }
 
 function whenGis(): Promise<Gis> {
@@ -36,9 +44,10 @@ export async function renderSignIn(el: HTMLElement, clientId: string, onToken: (
   const g = await whenGis();
   g.accounts.id.initialize({
     client_id: clientId,
-    auto_select: true,
+    auto_select: !signedOut(),
     callback: (r: { credential: string }) => {
       try { sessionStorage.setItem(KEY, r.credential); } catch { /* ignore */ }
+      try { localStorage.removeItem(SIGNED_OUT); } catch { /* ignore */ }
       onToken(r.credential);
     },
   });

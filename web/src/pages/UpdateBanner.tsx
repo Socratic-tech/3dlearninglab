@@ -13,7 +13,7 @@ import { call } from "../api";
 import type { Me } from "../content";
 
 type Latest = { version: string; notes?: string };
-type Result = { ok: boolean; version?: string; redeployed?: boolean; needsApi?: boolean; error?: string };
+type Result = { ok: boolean; version?: string; redeployed?: boolean; needsApi?: boolean; needsProjectApi?: boolean; enableUrl?: string | null; error?: string };
 const DISMISS = "academy.update.later";
 
 export function UpdateBanner({ me, apiUrl, onUpdated }: { me: Me; apiUrl: string; onUpdated: () => void }) {
@@ -71,7 +71,13 @@ export function UpdateBanner({ me, apiUrl, onUpdated }: { me: Me; apiUrl: string
           <a className="font-semibold underline" href="https://script.google.com/home/usersettings" target="_blank" rel="noreferrer">Apps Script settings</a>, turn <b>Google Apps Script API</b> on, then click Update now again.
         </p>
       )}
-      {result && !result.ok && !result.needsApi && <p className="mt-2 text-sm text-danger">{result.error}</p>}
+      {result?.needsProjectApi && result.enableUrl && (
+        <p className="mt-2 rounded-lg bg-surface p-3 text-sm">
+          {isOwner ? "One-time switch:" : `One-time switch for the Sheet's owner (${owner}):`} open{" "}
+          <a className="font-semibold underline" href={result.enableUrl} target="_blank" rel="noreferrer">this Google page</a>, click <b>Enable</b>, wait a minute, then click Update now again.
+        </p>
+      )}
+      {result && !result.ok && !result.needsApi && !result.needsProjectApi && <p className="mt-2 text-sm text-danger">{result.error}</p>}
       <div className="mt-3 flex flex-wrap gap-2">
         <Button size="sm" disabled={busy} onClick={() => void update()}>{busy ? "Updating… (about 20 seconds)" : "Update now"}</Button>
         <Button variant="secondary" size="sm" disabled={busy} onClick={later}>Later</Button>

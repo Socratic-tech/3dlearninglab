@@ -84,9 +84,16 @@ function render() {
     h = progress(1) + '<div class="card hero" style="text-align:center"><div class="spin"></div><h2>Setting up your Sheet…</h2><p>About 10 seconds. Keep this panel open.</p></div>';
   } else if (!S.ready || !S.url) {
     h = progress(1);
-    if (t.needsApi) {
+    if (t.needsProjectApi) {
+      h += '<div class="card hero"><h2>One last switch</h2><p>Google needs this Sheet’s API turned on. You only do it once.</p><ol>' +
+        '<li><a target="_blank" href="' + esc(t.enableUrl) + '"><b>Open this Google page</b></a> (new tab).</li>' +
+        "<li>Click the blue <b>Enable</b> button.</li>" +
+        "<li>Wait 1 minute, come back here and click the button.</li></ol>" +
+        '<button onclick="setup(this)">Finish setup</button>' +
+        '<p class="muted">If Google says you don’t have access to that page, use the steps below instead.</p></div>' + manualDeploy();
+    } else if (t.needsApi) {
       h += '<div class="card hero"><h2>One last switch</h2><p>Google makes you flip this one yourself. You only do it once.</p><ol>' +
-        '<li><a target="_blank" href="https://script.google.com/home/usersettings"><b>Open this page</b></a> (new tab).</li>' +
+        '<li><a target="_blank" href="https://script.google.com/home/usersettings?authuser=' + encodeURIComponent(S.owner) + '"><b>Open this page</b></a> (new tab).</li>' +
         "<li>Click <b>Google Apps Script API</b> and turn it <b>On</b>.</li>" +
         "<li>Come back here and click the button.</li></ol>" +
         '<button onclick="setup(this)">Finish setup</button></div>';
@@ -189,7 +196,8 @@ function update(btn) {
   busy(btn, "Updating…");
   google.script.run.withSuccessHandler(function (r) {
     if (r.ok) { $("upd").innerHTML = '<p><b>Updated to ' + esc(r.version) + ".</b> " + (r.redeployed ? "Your app is already using it." : "Deploy → Manage deployments → Edit → New version to finish.") + "</p><p class=\"muted\">If Google asks you to review permissions next time, click Allow.</p>"; btn.remove(); }
-    else if (r.needsApi) { $("upd").innerHTML = '<div class="warn">One-time switch: <a target="_blank" href="https://script.google.com/home/usersettings">open this page</a>, turn <b>Google Apps Script API</b> on, then click Update now again.</div>'; btn.disabled = false; btn.textContent = "Update now"; }
+    else if (r.needsProjectApi) { $("upd").innerHTML = '<div class="warn">One-time switch: <a target="_blank" href="' + esc(r.enableUrl) + '">open this Google page</a>, click <b>Enable</b>, wait 1 minute, then click Update now again.</div>'; btn.disabled = false; btn.textContent = "Update now"; }
+    else if (r.needsApi) { $("upd").innerHTML = '<div class="warn">One-time switch: <a target="_blank" href="https://script.google.com/home/usersettings?authuser=' + encodeURIComponent(S.owner) + '">open this page</a>, turn <b>Google Apps Script API</b> on, then click Update now again.</div>'; btn.disabled = false; btn.textContent = "Update now"; }
     else { $("upd").innerHTML = '<div class="warn">' + esc(r.error) + "</div>"; btn.disabled = false; btn.textContent = "Update now"; }
   }).withFailureHandler(function (e) { $("upd").innerHTML = '<div class="warn">' + esc(e.message) + "</div>"; btn.disabled = false; btn.textContent = "Update now"; }).sidebarUpdate();
 }

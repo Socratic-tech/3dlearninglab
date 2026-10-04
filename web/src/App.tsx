@@ -7,7 +7,7 @@ import { DisplayMenu } from "./display";
 import { LogoMark } from "@/components/nav/logo";
 import { Alert } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { readConfig, setCurrentClassId } from "./config";
+import { readConfig, resetDevice, setCurrentClassId } from "./config";
 import { currentToken, renderSignIn, signOut, tokenEmail } from "./auth";
 import { cachedMe, clearCachedData, saveMe, withPending } from "./cache";
 import { resumeSync, startSync, subscribeSync, syncState } from "./sync";
@@ -86,7 +86,7 @@ export function App() {
 
   if (!cfg.apiUrl || !cfg.clientId || hash.startsWith("#/setup")) return <Frame><SetupPage cfg={cfg} onSaved={() => { setCfg(readConfig()); location.hash = "#/"; }} /></Frame>;
   if (!token) return <Frame><SignIn key={locale} clientId={cfg.clientId} onToken={setToken} /></Frame>;
-  if (error) return <Frame onSignOut={() => { clearCachedData(tokenEmail()); signOut(); setToken(null); setMe(null); }}><div className="mx-auto max-w-lg py-10"><Alert tone="danger" title={tr("We couldn't open your class")}>{error}</Alert><Button className="mt-4" onClick={() => void load()}>{tr("Try again")}</Button></div></Frame>;
+  if (error) return <Frame onSignOut={() => { clearCachedData(tokenEmail()); signOut(); setToken(null); setMe(null); }}><div className="mx-auto max-w-lg py-10"><Alert tone="danger" title={tr("We couldn't open your class")}>{error}</Alert><div className="mt-4 flex flex-wrap gap-2"><Button onClick={() => void load()}>{tr("Try again")}</Button><Button variant="secondary" onClick={() => { signOut(); resetDevice(); location.replace(location.pathname); }}>{tr("Start over on this device")}</Button></div><p className="mt-2 text-sm text-muted">{tr("Start over forgets the class link and Google account on this computer. Then open the right link again.")}</p></div></Frame>;
   if (!me || !localeContentReady(locale)) return <Frame><p className="py-20 text-center text-muted" role="status">{tr("Loading your class…")}</p></Frame>;
 
   const route = hash.replace(/^#/, "");
