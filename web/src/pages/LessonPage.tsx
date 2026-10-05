@@ -9,10 +9,11 @@ import type { BlockEntry } from "@/components/lesson/types";
 import { allBlocks, isRequiredBlock } from "@/content/schema";
 import { assetsFor, buildsOnFor, competencyTitleFor, goalsFor, journalPromptsFor, lessonFor, type Me } from "../content";
 import { googleLessonApi } from "../api";
-import { actsAsStaff, studentStates, useStudentView } from "../state";
+import { actsAsStaff, studentStates, usePreviewUnlock, useStudentView } from "../state";
 
 export function LessonPage({ me, apiUrl, lessonId, focusBlockId, onChange }: { me: Me; apiUrl: string; lessonId: string; focusBlockId?: string; onChange: () => void }) {
   useStudentView(); // re-render when a teacher switches student view on or off
+  usePreviewUnlock();
   const lesson = lessonFor(lessonId);
   const api = useMemo(() => googleLessonApi(apiUrl, onChange), [apiUrl, onChange]);
   if (!lesson) return <Alert tone="warning" title={tr("That mission doesn't exist.")} />;

@@ -12,7 +12,7 @@ import { currentToken, renderSignIn, signOut, tokenEmail } from "./auth";
 import { cachedMe, clearCachedData, saveMe, withPending } from "./cache";
 import { resumeSync, startSync, subscribeSync, syncState } from "./sync";
 import { SyncPill } from "./sync-pill";
-import { identityOf, isStaff, setStudentView, useStudentView } from "./state";
+import { identityOf, isStaff, setPreviewUnlock, setStudentView, usePreviewUnlock, useStudentView } from "./state";
 import { call } from "./api";
 import type { Me } from "./content";
 import { StudentHome } from "./pages/StudentHome";
@@ -129,6 +129,7 @@ export function App() {
 function Frame({ children, me, onSignOut, onSwitch, onReset }: { children: ReactNode; me?: Me; onSignOut?: () => void; onSwitch?: (classId: string) => void; onReset?: () => Promise<boolean> }) {
   const studentView = useStudentView() && !!me && (isStaff(me) || !!me.user.preview);
   const [resetStep, setResetStep] = useState<"idle" | "sure" | "busy">("idle");
+  const unlocked = usePreviewUnlock();
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-30 border-b border-border bg-bg/90 backdrop-blur print:hidden">
@@ -156,6 +157,7 @@ function Frame({ children, me, onSignOut, onSwitch, onReset }: { children: React
           <div className="border-t border-accent bg-accent-soft">
             <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2 text-sm">
               <p className="min-w-0 flex-1"><strong>{tr("Student view")}</strong> · {tr("You're your own test student: XP, avatar, store and rewards all work. It shows on your dashboard as \"(test student)\".")}</p>
+              <label className="flex items-center gap-1.5 font-semibold"><input type="checkbox" className="size-4" checked={unlocked} onChange={(e) => setPreviewUnlock(e.target.checked)} /> {tr("Unlock all missions")}</label>
               {onReset && <button className="rounded-lg px-3 py-1 font-semibold underline" disabled={resetStep === "busy"} onClick={() => {
                 if (resetStep === "idle") { setResetStep("sure"); return; }
                 setResetStep("busy");

@@ -11,12 +11,13 @@ import { allBlocks, isRequiredBlock } from "@/content/schema";
 import { ProgressRing, ProgressBar } from "@/components/ui/progress";
 import { rank } from "@/lib/mastery";
 import { competencies, domainsFor, lessonFor, pathTitle, type Me } from "../content";
-import { isStaff, setStudentView, studentStates, useStudentView } from "../state";
+import { isStaff, setStudentView, studentStates, usePreviewUnlock, useStudentView } from "../state";
 
 const initialsOf = (name: string) => name.split(/\s+/).filter(Boolean).map((w) => w[0]).join("").slice(0, 2);
 
 export function StudentHome({ me, apiUrl, onChange }: { me: Me; apiUrl: string; onChange: () => void }) {
   const studentView = useStudentView();
+  usePreviewUnlock(); // re-render when the test student unlocks everything
   const { items, states } = studentStates(me);
   const done = items.filter((x) => states.get(x.lesson.id) === "completed").length;
   const inPath = new Set(items.flatMap((x) => x.lesson.competencyIds));

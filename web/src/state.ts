@@ -22,6 +22,22 @@ export function setStudentView(on: boolean) {
 export function useStudentView(): boolean {
   return useSyncExternalStore((f) => { svListeners.add(f); return () => { svListeners.delete(f); }; }, studentViewOn, () => false);
 }
+// ── Test student only: open every mission so a teacher can check any lesson without finishing the ones before it.
+const UNLOCK_KEY = "academy.previewUnlock";
+const unlockListeners = new Set<() => void>();
+let unlockMemory = false;
+export function previewUnlockOn(): boolean {
+  try { return localStorage.getItem(UNLOCK_KEY) === "1"; } catch { return unlockMemory; }
+}
+export function setPreviewUnlock(on: boolean) {
+  unlockMemory = on;
+  try { if (on) localStorage.setItem(UNLOCK_KEY, "1"); else localStorage.removeItem(UNLOCK_KEY); } catch { /* memory only */ }
+  unlockListeners.forEach((f) => f());
+}
+export function usePreviewUnlock(): boolean {
+  return useSyncExternalStore((f) => { unlockListeners.add(f); return () => { unlockListeners.delete(f); }; }, previewUnlockOn, () => false);
+}
+
 /** Saved copies and the upload queue are kept apart for the teacher and their test student. */
 export const identityOf = (email: string | null) => (email && studentViewOn() ? email + "#student" : email);
 /** Staff powers apply, unless the teacher switched to student view. */
@@ -33,7 +49,7 @@ export function studentStates(me: Me) {
   const states = lessonStates({
     lessons: items.map((x) => ({ id: x.lesson.id, prerequisites: x.lesson.prerequisites })),
     enabled: () => true,
-    manuallyUnlocked: () => staff || !!me.cls?.unlockAll,
+    manuallyUnlocked: () => staff || !!me.cls?.unlockAll || (!!me.user.preview && previewUnlockOn()),
     status: (id) => me.progress[id]?.status as "in_progress" | "completed" | undefined,
   });
   return { items, states };
