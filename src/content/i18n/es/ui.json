@@ -326,5 +326,19 @@
   "Sign in again to save": "Vuelve a iniciar sesión para guardar",
   "Offline · saved on this device": "Sin conexión · guardado en este dispositivo",
   "Teacher view:": "Vista del maestro:",
-  "every mission is open to you, no matter what's completed. Students still unlock them in order.": "todas las misiones están abiertas para ti, sin importar lo que se haya completado. Los estudiantes las siguen desbloqueando en orden."
+  "every mission is open to you, no matter what's completed. Students still unlock them in order.": "todas las misiones están abiertas para ti, sin importar lo que se haya completado. Los estudiantes las siguen desbloqueando en orden.",
+  "Submission checklist": "Lista de entrega",
+  "Submitted {n} items! Your teacher will review them.": "¡Entregaste {n} elementos! Tu maestro o maestra los revisará.",
+  "Choose the kind of evidence below. You can select several photos at once, or submit one kind and then use this form again to add another.": "Elige abajo el tipo de evidencia. Puedes seleccionar varias fotos a la vez, o entregar un tipo y volver a usar este formulario para agregar otro.",
+  "Photos or sketches": "Fotos o dibujos",
+  "Photos": "Fotos",
+  "Select every image this checklist asks for. You may choose several at once.": "Selecciona todas las imágenes que pide la lista. Puedes elegir varias a la vez.",
+  "Submit everything checked above": "Entregar todo lo marcado arriba",
+  "Check each requirement when your evidence includes it.": "Marca cada requisito cuando tu evidencia lo incluya.",
+  "Use this as a planning checklist. Check an item when you know how your work will meet it.": "Usa esta lista para planear. Marca un elemento cuando sepas cómo lo cumplirá tu trabajo.",
+  "View every step, or choose Read it, before continuing.": "Mira todos los pasos o elige Leer antes de continuar.",
+  "Review {n}/{total}": "Repaso {n}/{total}",
+  "Submit your load-test evidence": "Entrega la evidencia de tu prueba de carga",
+  "Submit your Fit Lab results": "Entrega los resultados del Laboratorio de Ajuste",
+  "Submit your final mission work": "Entrega el trabajo final de la misión"
 }

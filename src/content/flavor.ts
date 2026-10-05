@@ -124,7 +124,7 @@ export const FLAVOR: Record<string, Flavor> = {
     clients: { prove: { name: "Riley", who: "streams every night", message: "My headphones are always on the floor. I need a hanger that clamps under my desk — and it can't snap when I yank them off mid-game." } },
   },
   strength: {
-    hook: { headline: "Two identical files. Which one holds more?", body: "Race teams and drone builders test printed parts until they break — on purpose. That's how they learn where the weak spot is before it fails for real." },
+    hook: { headline: "Race teams break parts on purpose.", body: "Race teams and drone builders test printed parts until they break — on purpose. That's how they learn where the weak spot is before it fails for real." },
     clients: { prove: { name: "Marcus", who: "makes gear for climbers", message: "This hook has to print standing up — it won't fit the other way. Make it survive more weight. I'll trust your test numbers." } },
   },
   overhangs: {

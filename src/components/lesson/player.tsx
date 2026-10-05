@@ -69,6 +69,10 @@ export function LessonPlayer(p: PlayerProps) {
   }, []);
   const [dismissed, setDismissed] = useState<ClientResult | undefined>();
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [viewedDirections, setViewedDirections] = useState<Set<string>>(() => new Set());
+  const markDirectionsViewed = useCallback((id: string) => {
+    setViewedDirections((current) => current.has(id) ? current : new Set(current).add(id));
+  }, []);
   // practice questions that can be scored instantly (scrambled answer packs from the build)
   const packs = useMemo(() => {
     const out: Record<string, LessonBlock> = {};
@@ -151,7 +155,7 @@ export function LessonPlayer(p: PlayerProps) {
       case "diagram": return <S.DiagramBlock b={b} />;
       case "image": return <S.ImageBlock b={b} />;
       case "video": return <S.VideoBlock b={b} />;
-      case "showMe": return <S.ShowMeBlock b={b} />;
+      case "showMe": return <S.ShowMeBlock b={b} onViewed={() => markDirectionsViewed(b.id)} />;
       case "modelViewer": return <S.ModelViewerBlock b={b} assets={p.assets} />;
       case "tinkercadLaunch": return <S.TinkercadBlock b={b} classUrl={p.tinkercadClassUrl} />;
       case "modelDownload": return <S.ModelDownloadBlock b={b} assets={p.assets} />;
@@ -273,6 +277,8 @@ export function LessonPlayer(p: PlayerProps) {
   const cur = steps[Math.min(step, steps.length - 1)];
   const curPhase = onFinish ? p.lesson.sections.length : cur.section;
   const checkBlock = onFinish ? undefined : cur.blocks.find(isScorable);
+  const directionBlocks = onFinish ? [] : cur.blocks.filter((b): b is Extract<LessonBlock, { type: "showMe" }> => b.type === "showMe");
+  const directionsReady = p.readOnly || p.freeNav || directionBlocks.every((b) => viewedDirections.has(b.id));
   const chk = checkBlock ? checks[checkBlock.id] : undefined;
   const attempted = !!checkBlock && doneIds.has(checkBlock.id);
   const shown = chk?.result ?? (checkBlock ? entries[checkBlock.id]?.result : undefined);
@@ -283,6 +289,7 @@ export function LessonPlayer(p: PlayerProps) {
   const freshXp = sheet && checkBlock && sheet !== before?.result ? answerXp(sheet.attempts, sheet.correct, before?.result?.correct === true) : 0;
   // uploads and reflections can wait (they may need a print or Tinkercad time); questions can't
   const laterHint = !onFinish && !checkBlock && cur.blocks.some((b) => p.requiredBlockIds.includes(b.id) && !doneIds.has(b.id)) ? "You can come back to this one." : "";
+  const directionHint = !directionsReady ? "View every step, or choose Read it, before continuing." : "";
 
   return (
     <I.LessonCtx.Provider value={ctx}>
@@ -294,7 +301,7 @@ export function LessonPlayer(p: PlayerProps) {
             const state = i < curPhase ? "done" : i === curPhase ? "now" : "next";
             return (
               <li key={i}>
-                <button onClick={() => first >= 0 && go(first)} aria-current={state === "now" ? "step" : undefined}
+                <button onClick={() => first >= 0 && go(first)} disabled={first > step && !directionsReady} aria-current={state === "now" ? "step" : undefined}
                   className={cn("w-full rounded-lg px-1 py-1.5 text-center text-[11px] font-bold uppercase tracking-wider sm:text-xs",
                     state === "now" ? "bg-primary text-primary-fg" : state === "done" ? "bg-primary-soft text-primary" : "bg-surface-2 text-muted")}>
                   {state === "done" && <span aria-hidden className="hidden sm:inline">✓ </span>}{tr(PHASE_LABEL[s.phase])}{state === "done" && <span className="sr-only"> {tr("(done)")}</span>}
@@ -308,7 +315,7 @@ export function LessonPlayer(p: PlayerProps) {
           <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface-2" role="progressbar" aria-label={tr("Mission progress")} aria-valuemin={1} aria-valuemax={total} aria-valuenow={step + 1}>
             <div className="h-full rounded-full bg-accent transition-[width] duration-500" style={{ width: `${((step + 1) / total) * 100}%` }} />
           </div>
-          <span className="font-mono text-xs text-muted">{step + 1}/{total}</span>
+          <span className="font-mono text-xs text-muted">{p.completed ? tr("Review {n}/{total}", { n: step + 1, total }) : `${step + 1}/${total}`}</span>
         </div>
 
         <div key={step} ref={stepRef} className="animate-fade-up space-y-4">
@@ -327,7 +334,7 @@ export function LessonPlayer(p: PlayerProps) {
         </div>
 
         {/* Bottom bar: Check → feedback → Continue (always in the same place) */}
-        <div className={cn("sticky z-10 mt-8 lg:bottom-4", p.bottomNav === false ? "bottom-2" : "bottom-20")}>
+        <div className={cn("lesson-actions sticky z-10 mt-8 lg:bottom-4", p.bottomNav === false ? "bottom-2" : "bottom-20")}>
           {sheet && (
             <div role="status" aria-live="polite" className={cn("animate-fade-up rounded-t-2xl border-2 border-b-0 p-4 sm:p-5", sheetTone)}>
               <div className="flex items-start gap-3">
@@ -335,11 +342,11 @@ export function LessonPlayer(p: PlayerProps) {
                 <div className="min-w-0 flex-1">
                   <p className="font-display text-xl font-bold">{sheet.headline}</p>
                   {sheet.feedback && <p className="mt-1">{sheet.feedback}</p>}
-                  {sheet.explanation && (why ? <Md text={sheet.explanation} className="mt-2" /> : null)}
+                  {sheet.explanation && (why || sheet.correct === true ? <Md text={sheet.explanation} className="mt-2" /> : null)}
                 </div>
                 {freshXp > 0 && <span className="shrink-0 rounded-full bg-accent px-3 py-1 font-display text-sm font-bold text-primary-fg animate-unlock">+{freshXp} XP</span>}
               </div>
-              {sheet.explanation && (
+              {sheet.explanation && sheet.correct !== true && (
                 <button className="mt-2 text-sm font-semibold underline" onClick={() => setWhy(!why)} aria-expanded={why}>{why ? tr("Hide why") : tr("Why?")}</button>
               )}
             </div>
@@ -355,7 +362,7 @@ export function LessonPlayer(p: PlayerProps) {
             <ReadAloud key={step} target={stepRef} />
             <StuckHelp vocabulary={p.lesson.vocabulary} />
             <span className="min-w-0 flex-1 text-center text-xs text-muted sm:text-sm" aria-live="polite">
-              {checkBlock && !attempted && !sheet ? (chk?.ready ? "" : tr("Answer to continue")) : laterHint && tr(laterHint)}
+              {checkBlock && !attempted && !sheet ? (chk?.ready ? "" : tr("Answer to continue")) : tr(directionHint || laterHint)}
             </span>
             {checkBlock && sheet && sheet.correct === false && !sheet.locked && (
               <Button variant="secondary" size="lg" onClick={() => { setDismissed(sheet); setWhy(false); }}>{tr("Try again")}</Button>
@@ -368,7 +375,7 @@ export function LessonPlayer(p: PlayerProps) {
                 {chk?.pending ? tr("Checking…") : tr(chk?.label ?? "Check")}
               </Button>
             ) : step < total - 1 ? (
-              <Button size="lg" variant={laterHint ? "secondary" : "primary"} disabled={!!checkBlock && !attempted && !p.freeNav} onClick={() => go(step + 1)}>
+              <Button size="lg" variant={laterHint ? "secondary" : "primary"} disabled={!directionsReady || (!!checkBlock && !attempted && !p.freeNav)} onClick={() => go(step + 1)}>
                 {laterHint ? tr("Do it later") : tr("Continue →")}
               </Button>
             ) : null}
@@ -510,7 +517,12 @@ function blockLabel(b: LessonBlock): string {
     case "hotspot": return "Find the problem";
     case "measurement": return "Measure it";
     case "slider": return "Try it";
-    case "uploadEvidence": return "Submit your design";
+    case "uploadEvidence": {
+      if (b.id === "lab-evidence") return "Submit your load-test evidence";
+      if (b.id === "record-results") return "Submit your Fit Lab results";
+      const first = b.prompt.split(/[.!?]/)[0].trim();
+      return first.length <= 64 ? first : "Submit your final mission work";
+    }
     case "reflection": return "Reflect";
     default: return b.type;
   }

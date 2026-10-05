@@ -111,7 +111,7 @@ export const lesson: LessonInput = {
           hint: "Walls are the outer skin, infill is the inside, and orientation sets which way the layers run.",
           pairs: [
             { id: "walls-up", left: "2 walls → 4 walls", right: "Thin parts like hooks get much stiffer" },
-            { id: "infill-up", left: "15% → 80% infill", right: "Heavier and slower; stronger, but with diminishing returns" },
+            { id: "infill-up", left: "15% → 80% infill", right: "Heavier and slower; stronger, but each extra increase helps less" },
             { id: "infill-down", left: "15% → 5% infill", right: "Faster and lighter, but top surfaces may sag" },
             { id: "orient", left: "Standing → flat", right: "Load runs along layers instead of across them" },
           ],
@@ -164,7 +164,7 @@ export const lesson: LessonInput = {
           prompt: "Sometimes a part MUST print standing up (for example, it won't fit on the plate lying down). Redesign the hook so it survives more weight while still printing standing up. You decide how.",
           requirements: [
             "Prints standing up, same overall height (58 mm)",
-            "At least one design change aimed at the weak bend (thickness, a gusset, a rounded inside corner…)",
+            "At least one design change aimed at the weak bend (more thickness, a triangle-shaped brace called a gusset, or a rounded inside corner…)",
             "Recommend wall count and infill, with a reason for each",
             "Predict how much more weight it will hold — and if printed, record the real result",
           ],

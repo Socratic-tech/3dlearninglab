@@ -68,6 +68,7 @@ function INDIRECT() {
     "Do this in Tinkercad", "Do this offline — paper, tools or real objects", "Part offline, part in Tinkercad", "In person, with your teacher",
     "CC0 (public domain)", "Public domain", "Permissive license",
     "Make a prediction", "Skill check", "Put the steps in order", "Match them up", "Measure it", "Submit your design",
+    "Submit your load-test evidence", "Submit your Fit Lab results", "Submit your final mission work",
     "You can come back to this one.",
     "Waiting for teacher", "Approved — in line", "Printing now", "Ready to pick up", "Print failed", "Cancelled",
     "Micro challenge", "Prove it", "Boss battle",

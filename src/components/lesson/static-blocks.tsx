@@ -139,10 +139,13 @@ export function VideoBlock({ b }: { b: BlockOf<"video"> }) {
 }
 
 /** SHOW ME (step carousel) and READ IT (all steps as text) — spec §33. */
-export function ShowMeBlock({ b }: { b: BlockOf<"showMe"> }) {
+export function ShowMeBlock({ b, onViewed }: { b: BlockOf<"showMe">; onViewed?: () => void }) {
   const [mode, setMode] = useState<"show" | "read">("show");
   const [i, setI] = useState(0);
   const step = b.steps[i];
+  useEffect(() => {
+    if (mode === "read" || i === b.steps.length - 1) onViewed?.();
+  }, [b.steps.length, i, mode, onViewed]);
   return (
     <BlockFrame label={tr("Show me")} icon={<Eye className="size-4" aria-hidden />}>
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -465,6 +468,7 @@ export function ChallengeBlock({ b, assets, skillTitle, classUrl = null, client,
           </p>
         )}
         <p className="mt-5 text-xs font-bold uppercase tracking-widest opacity-75">{tr("Requirements · {done}/{total} checked", { done, total: b.requirements.length })}</p>
+        <p className="mt-1 text-sm opacity-80">{tr("Use this as a planning checklist. Check an item when you know how your work will meet it.")}</p>
         <ul className="mt-2 space-y-2">
           {b.requirements.map((r, i) => (
             <li key={i}>

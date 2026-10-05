@@ -9,7 +9,7 @@ import { studentContext } from "@/server/queries/student";
 import { openLesson } from "@/server/services/progress";
 import { AppError, ForbiddenError, NotFoundError } from "@/server/errors";
 import { actorOf } from "@/app/actions/_run";
-import { allBlocks, assetsForLesson, competencies, getLesson, journalPrompts } from "@/content";
+import { allBlocks, assetsForLesson, competencies, domains, getLesson, journalPrompts } from "@/content";
 import { StudentLessonPlayer } from "@/components/lesson/student-player";
 import { Alert, Pill } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button";
@@ -66,7 +66,7 @@ export default async function LessonPage(props: PageProps<"/student/lessons/[les
           <Link href="/student/missions" className="hover:text-fg">
             Missions
           </Link>{" "}
-          / {base.domain && <span>Domain {base.domain}</span>}
+          / {base.domain && <span>{domains.find((d) => d.id === base.domain)?.shortTitle ?? "Design skills"}</span>}
         </nav>
         <h1 className="mt-1 font-display text-2xl font-bold tracking-tight sm:text-3xl">{base.title} <span className="text-lg font-normal text-muted">· {base.subtitle}</span></h1>
         <div className="mt-3 flex flex-wrap gap-2">

@@ -502,19 +502,29 @@ export function UploadEvidenceBlock({ b, existing }: { b: BlockOf<"uploadEvidenc
   const ctx = useLesson();
   const [kind, setKind] = useState<(typeof b.accepts)[number]>(b.accepts[0]);
   const [list, setList] = useState(existing);
+  const [checklistChecks, setChecklistChecks] = useState<boolean[]>(() => b.checklist.map(() => false));
   const [error, setError] = useState<{ error: string; details?: string } | null>(null);
   const [ok, setOk] = useState("");
   const [pending, start] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
   const needsFile = kind === "screenshot" || kind === "stl" || kind === "obj";
+  const allowsManyImages = kind === "screenshot" || kind === "physical_test" || kind === "written";
+  const checklistReady = checklistChecks.every(Boolean);
   return (
     <BlockFrame label={tr("Submit evidence")} icon={<Upload className="size-4" aria-hidden />} tone="check">
       <Md text={b.prompt} className="font-semibold" />
       {b.checklist.length > 0 && (
-        <ul className="mt-2 space-y-1 text-sm">
+        <ul className="mt-3 space-y-2 text-sm" aria-label={tr("Submission checklist")}>
           {b.checklist.map((c, i) => (
-            <li key={i} className="flex gap-2">
-              <span aria-hidden>☐</span> {c}
+            <li key={i}>
+              {ctx.readOnly ? (
+                <span className="flex gap-2"><span aria-hidden>☐</span> {c}</span>
+              ) : (
+                <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-border p-2 hover:bg-surface-2">
+                  <input type="checkbox" className="mt-0.5 size-4" checked={checklistChecks[i]} onChange={() => setChecklistChecks((v) => v.map((x, j) => (i === j ? !x : x)))} />
+                  <span>{c}</span>
+                </label>
+              )}
             </li>
           ))}
         </ul>
@@ -548,16 +558,34 @@ export function UploadEvidenceBlock({ b, existing }: { b: BlockOf<"uploadEvidenc
               fd.set("lessonId", ctx.lessonId);
               fd.set("blockId", b.id);
               fd.set("kind", kind);
-              const r = await ctx.api.submitEvidence(fd);
-              if (r.ok) {
-                setList([{ ...r.data, status: "submitted", teacherComment: null, teacherRating: null, blockId: b.id }, ...list]);
-                setOk(tr("Submitted! Your teacher will review it."));
-                formRef.current?.reset();
-                ctx.markDone(b.id);
-              } else setError(r);
+              const files = fd.getAll("file").filter((v): v is File => v instanceof File && v.size > 0);
+              const uploads: EvidenceSummary[] = [];
+              const send = async (file?: File) => {
+                const one = new FormData();
+                for (const [key, value] of fd.entries()) if (key !== "file") one.append(key, value);
+                if (file) one.set("file", file);
+                return ctx.api.submitEvidence(one);
+              };
+              for (const file of files.length ? files : [undefined]) {
+                const r = await send(file);
+                if (!r.ok) {
+                  if (uploads.length) setList([...uploads, ...list]);
+                  setError(r);
+                  return;
+                }
+                uploads.push({ ...r.data, status: "submitted", teacherComment: null, teacherRating: null, blockId: b.id });
+              }
+              setList([...uploads, ...list]);
+              setOk(uploads.length > 1 ? tr("Submitted {n} items! Your teacher will review them.", { n: uploads.length }) : tr("Submitted! Your teacher will review it."));
+              formRef.current?.reset();
+              setChecklistChecks(b.checklist.map(() => false));
+              ctx.markDone(b.id);
             })
           }
         >
+          <p className="rounded-lg bg-primary-soft p-3 text-sm text-primary">
+            {tr("Choose the kind of evidence below. You can select several photos at once, or submit one kind and then use this form again to add another.")}
+          </p>
           {b.accepts.length > 1 && (
             <fieldset>
               <legend className="text-sm font-semibold">{tr("What are you submitting?")}</legend>
@@ -577,8 +605,8 @@ export function UploadEvidenceBlock({ b, existing }: { b: BlockOf<"uploadEvidenc
             </Field>
           )}
           {(needsFile || kind === "physical_test" || kind === "written") && (
-            <Field label={kind === "physical_test" || kind === "written" ? tr("Photo or sketch (optional)") : tr("File")} htmlFor={`${b.id}-file`}>
-              <input id={`${b.id}-file`} name="file" type="file" required={needsFile} accept={kind === "stl" ? ".stl" : kind === "obj" ? ".obj" : "image/png,image/jpeg,image/webp,image/gif,image/heic,image/heif,.heic,.heif"} className="text-sm" />
+            <Field label={kind === "physical_test" || kind === "written" ? tr("Photos or sketches") : allowsManyImages ? tr("Photos") : tr("File")} htmlFor={`${b.id}-file`} hint={allowsManyImages ? tr("Select every image this checklist asks for. You may choose several at once.") : undefined}>
+              <input id={`${b.id}-file`} name="file" type="file" required={needsFile} multiple={allowsManyImages} accept={kind === "stl" ? ".stl" : kind === "obj" ? ".obj" : "image/png,image/jpeg,image/webp,image/gif,image/heic,image/heif,.heic,.heif"} className="text-sm" />
             </Field>
           )}
           <Field label={kind === "physical_test" ? tr("Test result — what happened?") : kind === "written" ? tr("Your explanation") : tr("Note for your teacher (optional)")} htmlFor={`${b.id}-note`}>
@@ -593,7 +621,8 @@ export function UploadEvidenceBlock({ b, existing }: { b: BlockOf<"uploadEvidenc
               <input type="checkbox" name="requestPrint" className="size-4" /> {tr("Also send this to the class print queue")}
             </label>
           )}
-          <Button disabled={pending}>{pending ? tr("Uploading…") : tr("Submit")}</Button>
+          <Button disabled={pending || !checklistReady}>{pending ? tr("Uploading…") : tr("Submit everything checked above")}</Button>
+          {!checklistReady && <p className="text-sm text-muted">{tr("Check each requirement when your evidence includes it.")}</p>}
           <p role="status" className="text-sm text-success">
             {ok}
           </p>

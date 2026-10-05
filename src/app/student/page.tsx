@@ -55,6 +55,7 @@ export default async function StudentHome() {
             <div>
               <dt className="text-xs font-semibold uppercase tracking-wide text-muted">Designer level</dt>
               <dd className="font-display text-3xl font-bold">{sum.designerLevel}</dd>
+              <p className="text-xs text-muted">Grows as you complete missions and show new skills.</p>
             </div>
             <div>
               <dt className="text-xs font-semibold uppercase tracking-wide text-muted">Skills mastered</dt>
@@ -107,11 +108,10 @@ export default async function StudentHome() {
                 <>
                   <p className="mt-3 text-sm font-semibold">Still to prove:</p>
                   <ul className="mt-1 space-y-1 text-sm">
-                    {sum.nextBadge.missing.slice(0, 4).map((c) => (
-                      <li key={c} className="flex gap-2">
-                        <span className="font-mono text-xs text-muted">{c}</span> {getCompetency(c)?.title}
-                      </li>
-                    ))}
+                    {sum.nextBadge.missing.slice(0, 4).map((c) => {
+                      const skill = getCompetency(c);
+                      return <li key={c}>{skill?.canStatement ?? skill?.title ?? "Show this skill"}</li>;
+                    })}
                   </ul>
                 </>
               )}

@@ -188,6 +188,13 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Short school-laptop and tablet screens: keep lesson controls in the page flow so they never cover the activity. */
+@media (max-height: 760px) {
+  .lesson-actions {
+    position: static;
+  }
+}
+
 /* Blueprint grid background utility */
 .bg-blueprint {
   background-image:
