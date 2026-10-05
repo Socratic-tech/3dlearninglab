@@ -9,9 +9,10 @@ import { MissionPath, StreakCard } from "@/components/student/mission-path";
 import { ProgressRing, ProgressBar } from "@/components/ui/progress";
 import { rank } from "@/lib/mastery";
 import { competencies, domainsFor, lessonFor, pathTitle, type Me } from "../content";
-import { isStaff, studentStates } from "../state";
+import { isStaff, setStudentView, studentStates, useStudentView } from "../state";
 
 export function StudentHome({ me, apiUrl, onChange }: { me: Me; apiUrl: string; onChange: () => void }) {
+  const studentView = useStudentView();
   const { items, states } = studentStates(me);
   const current = items.find((x) => states.get(x.lesson.id) === "in_progress") ?? items.find((x) => states.get(x.lesson.id) === "available");
   const done = items.filter((x) => states.get(x.lesson.id) === "completed").length;
@@ -37,10 +38,11 @@ export function StudentHome({ me, apiUrl, onChange }: { me: Me; apiUrl: string; 
         )}
       </section>
 
-      {isStaff(me) && (
-        <p role="note" className="rounded-2xl border border-primary/40 bg-primary-soft px-4 py-3 text-sm">
-          <strong>{tr("Teacher view:")}</strong> {tr("every mission is open to you, no matter what's completed. Students still unlock them in order.")}
-        </p>
+      {isStaff(me) && !studentView && (
+        <div role="note" className="flex flex-wrap items-center gap-3 rounded-2xl border border-primary/40 bg-primary-soft px-4 py-3 text-sm">
+          <p className="min-w-0 flex-1"><strong>{tr("Teacher view:")}</strong> {tr("every mission is open to you, no matter what's completed. Students still unlock them in order.")}</p>
+          <button className="rounded-lg border border-primary px-3 py-1.5 font-semibold text-primary hover:bg-surface" onClick={() => setStudentView(true)}>{tr("See it as a student")}</button>
+        </div>
       )}
       {me.stats && <StreakCard stats={me.stats} />}
       {me.stats && me.store && !isStaff(me) && <Looks store={me.store} apiUrl={apiUrl} onChange={onChange} />}

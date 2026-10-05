@@ -10,6 +10,7 @@ import { groupLevel, LEVEL_LABEL, LEVELS } from "@/lib/mastery";
 import { cn } from "@/lib/cn";
 import { call } from "../api";
 import { classLink, setCurrentClassId, staffLink } from "../config";
+import { setStudentView } from "../state";
 import type { ClassInfo, Me } from "../content";
 import { competencies, competencyTitle, heatmapGroups, lessonById, lessons as allLessons, pathLessons } from "../content";
 import { offlineChallenges } from "./HandoutPage";
@@ -68,7 +69,6 @@ function StaffLinkButton({ apiUrl, clientId }: { apiUrl: string; clientId: strin
     <Button
       size="sm"
       variant="secondary"
-      className="ml-auto"
       title="Copy a dashboard link for co-teachers and administrators. Add their email under Who can sign in first."
       onClick={() => {
         navigator.clipboard?.writeText(link).then(() => setCopied(true), () => prompt("Copy this link:", link));
@@ -113,6 +113,7 @@ function ClassView({ classId, apiUrl, clientId, onChange }: { classId: string; a
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <h1 className="font-display text-2xl font-bold">{data.cls.name}{data.cls.section && <span className="text-muted"> · {data.cls.section}</span>}</h1>
         <Pill tone="primary">{data.cls.pathId}</Pill>
+        <Button size="sm" variant="secondary" className="ml-auto" title="See the missions exactly as a student does: locks, required answers and all." onClick={() => { setStudentView(true); location.hash = "#/student"; }}>Student view</Button>
         <StaffLinkButton apiUrl={apiUrl} clientId={clientId} />
         <Button size="sm" variant="secondary" onClick={() => void load()}>Refresh</Button>
       </div>

@@ -121,7 +121,7 @@ function Toggle({ label, hint, checked, onChange }: { label: string; hint?: stri
 }
 
 /** Flip to true when the Spanish translation is complete (npm run i18n:check shows 0 missing). */
-export const SPANISH_READY = false;
+export const SPANISH_READY = true;
 const LANG_KEY = "academy.lang";
 /** Saved language, else the browser's (Spanish browsers start in Spanish). */
 export function initialLocale(): Locale {

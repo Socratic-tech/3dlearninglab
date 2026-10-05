@@ -9,15 +9,16 @@ import type { BlockEntry } from "@/components/lesson/types";
 import { allBlocks, isRequiredBlock } from "@/content/schema";
 import { assetsFor, buildsOnFor, competencyTitleFor, goalsFor, journalPromptsFor, lessonFor, type Me } from "../content";
 import { googleLessonApi } from "../api";
-import { isStaff, studentStates } from "../state";
+import { actsAsStaff, studentStates, useStudentView } from "../state";
 
 export function LessonPage({ me, apiUrl, lessonId, focusBlockId, onChange }: { me: Me; apiUrl: string; lessonId: string; focusBlockId?: string; onChange: () => void }) {
+  useStudentView(); // re-render when a teacher switches student view on or off
   const lesson = lessonFor(lessonId);
   const api = useMemo(() => googleLessonApi(apiUrl, onChange), [apiUrl, onChange]);
   if (!lesson) return <Alert tone="warning" title={tr("That mission doesn't exist.")} />;
   const { states } = studentStates(me);
   const st = states.get(lessonId);
-  if (!isStaff(me) && (!st || st === "locked")) {
+  if (!actsAsStaff(me) && (!st || st === "locked")) {
     return (
       <div className="mx-auto max-w-lg space-y-4 py-10">
         <h1 className="font-display text-2xl font-bold">{lesson.title}</h1>
@@ -27,7 +28,7 @@ export function LessonPage({ me, apiUrl, lessonId, focusBlockId, onChange }: { m
     );
   }
   const p = me.progress[lessonId];
-  const preview = isStaff(me);
+  const preview = actsAsStaff(me);
   const evidence = me.evidence.filter((e) => e.lessonId === lessonId).map((e) => ({ id: e.id, type: e.type, fileName: e.fileName, url: e.url, createdAt: e.createdAt, status: e.status, teacherComment: e.comment, teacherRating: e.rating, blockId: e.blockId }));
   return (
     <article>

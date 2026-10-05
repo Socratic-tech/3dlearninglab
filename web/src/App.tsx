@@ -12,7 +12,7 @@ import { currentToken, renderSignIn, signOut, tokenEmail } from "./auth";
 import { cachedMe, clearCachedData, saveMe, withPending } from "./cache";
 import { resumeSync, startSync, subscribeSync, syncState } from "./sync";
 import { SyncPill } from "./sync-pill";
-import { isStaff } from "./state";
+import { isStaff, setStudentView, useStudentView } from "./state";
 import { call } from "./api";
 import type { Me } from "./content";
 import { StudentHome } from "./pages/StudentHome";
@@ -32,6 +32,7 @@ function useHash() {
 }
 
 export function App() {
+  const studentView = useStudentView();
   const [cfg, setCfg] = useState(readConfig);
   const [token, setToken] = useState(currentToken);
   // show the last saved copy instantly (plus anything not yet uploaded), then refresh from Google
@@ -96,7 +97,7 @@ export function App() {
     const [lessonId, focus] = route.slice(8).split("/");
     page = <LessonPage key={route} me={me} apiUrl={cfg.apiUrl} lessonId={lessonId} focusBlockId={focus} onChange={load} />;
   } else if (route.startsWith("/print/")) page = <HandoutPage me={me} lessonId={route.slice(7)} />;
-  else if (me.user.role === "teacher" && (route.startsWith("/teacher") || route === "/")) page = <TeacherPage me={me} apiUrl={cfg.apiUrl} clientId={cfg.clientId} onChange={load} />;
+  else if (me.user.role === "teacher" && (route.startsWith("/teacher") || (route === "/" && !studentView))) page = <TeacherPage me={me} apiUrl={cfg.apiUrl} clientId={cfg.clientId} onChange={load} />;
   else page = <StudentHome me={me} apiUrl={cfg.apiUrl} onChange={load} />;
 
   return (
@@ -107,6 +108,7 @@ export function App() {
 }
 
 function Frame({ children, me, onSignOut, onSwitch }: { children: ReactNode; me?: Me; onSignOut?: () => void; onSwitch?: (classId: string) => void }) {
+  const studentView = useStudentView() && !!me && isStaff(me);
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-30 border-b border-border bg-bg/90 backdrop-blur print:hidden">
@@ -123,13 +125,21 @@ function Frame({ children, me, onSignOut, onSwitch }: { children: ReactNode; me?
             <span className="hidden truncate text-sm text-muted sm:inline">· {me.cls.name}{me.cls.section ? ` · ${me.cls.section}` : ""}</span>
           ) : null}
           <div className="ml-auto flex shrink-0 items-center gap-1">
-            {me?.user.role === "teacher" && <a href="#/teacher" className="rounded-lg px-3 py-2 text-sm font-semibold hover:bg-surface-2">{tr("Teacher")}</a>}
+            {me?.user.role === "teacher" && !studentView && <a href="#/teacher" className="rounded-lg px-3 py-2 text-sm font-semibold hover:bg-surface-2">{tr("Teacher")}</a>}
             {me && <a href="#/student" className="rounded-lg px-3 py-2 text-sm font-semibold hover:bg-surface-2">{tr("Missions")}</a>}
             {me && <SyncPill />}
             <DisplayMenu allLooks={!!me && isStaff(me)} />
             {onSignOut && me && <button onClick={onSignOut} className="rounded-lg p-2 text-muted hover:bg-surface-2" aria-label={tr("Sign out")}><LogOut className="size-5" aria-hidden /></button>}
           </div>
         </div>
+        {studentView && (
+          <div className="border-t border-accent bg-accent-soft">
+            <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2 text-sm">
+              <p className="min-w-0 flex-1"><strong>{tr("Student view")}</strong> · {tr("You see exactly what students see, locks and all. Your answers go to your own test record.")}</p>
+              <button className="rounded-lg border border-accent px-3 py-1 font-semibold" onClick={() => { setStudentView(false); location.hash = "#/teacher"; }}>{tr("Back to teacher view")}</button>
+            </div>
+          </div>
+        )}
       </header>
       <main id="main" className="mx-auto max-w-5xl px-4 pb-24 pt-6">{children}</main>
     </div>
