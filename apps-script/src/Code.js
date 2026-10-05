@@ -1336,10 +1336,9 @@ function sidebarUpdate() {
   if (viaLoader_()) {
     const r = academyRefresh_();
     CacheService.getScriptCache().remove("latest_version");
-    if (typeof r === "string") return { ok: true, version: r, redeployed: true }; // loader 1
-    if (!r) return { ok: false, error: "Couldn't reach the website. Try again in a minute." };
-    if (r.ok) r.redeployed = true;
-    return r;
+    if (!r) return { ok: false, error: (typeof academyLastError_ === "function" && academyLastError_()) || "Couldn't reach the website. Try again in a minute." };
+    // loader 1 returns a version string; loader 2 a version string carrying .same
+    return { ok: true, version: String(r), same: !!r.same, redeployed: true };
   }
   return {
     ok: false,

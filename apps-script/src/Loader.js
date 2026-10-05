@@ -137,16 +137,29 @@ function academyInstalled_() {
   return academyFromCache_(CacheService.getScriptCache()) || academyReadTab_(ACADEMY_TABS_.current);
 }
 
-/** "Update now": download, check, install. Returns { ok, version, same?, error? }. */
+var ACADEMY_LAST_ERROR_ = null;
+function academyLastError_() { return ACADEMY_LAST_ERROR_; }
+
+/**
+ * "Update now": download, check, install. Returns the installed version as a string (with .ok/.version/.same),
+ * or null with the reason in academyLastError_(). A plain string keeps older app versions' panels readable.
+ */
 function academyRefresh_() {
+  ACADEMY_LAST_ERROR_ = null;
   var fresh = academyDownload_();
-  if (!fresh) return { ok: false, error: "Couldn't reach the website. Try again in a minute." };
+  if (!fresh) { ACADEMY_LAST_ERROR_ = "Couldn't reach the website. Try again in a minute."; return null; }
   var current = academyInstalled_();
-  if (current && current.version === fresh.version) return { ok: true, version: fresh.version, same: true };
-  var bad = academyCheck_(fresh.code);
-  if (bad) return { ok: false, error: "The new version didn't pass its safety check (" + bad + "), so your Sheet kept the version it has. Nothing changed for your students." };
-  academyInstall_(fresh, current);
-  return { ok: true, version: fresh.version };
+  var same = !!(current && current.version === fresh.version);
+  if (!same) {
+    var bad = academyCheck_(fresh.code);
+    if (bad) { ACADEMY_LAST_ERROR_ = "The new version didn't pass its safety check (" + bad + "), so your Sheet kept the version it has. Nothing changed for your students."; return null; }
+    academyInstall_(fresh, current);
+  }
+  var out = new String(fresh.version); // eslint-disable-line no-new-wrappers
+  out.ok = true;
+  out.version = fresh.version;
+  out.same = same;
+  return out;
 }
 
 /** "Undo last update": put the previous version back (and keep the current one as the new "previous"). */
@@ -188,7 +201,10 @@ function sidebarAutoSetup() { throw new Error(academyNotLoaded_()); }
 function sidebarPrepare() { throw new Error(academyNotLoaded_()); }
 function sidebarSaveSettings() { throw new Error(academyNotLoaded_()); }
 function sidebarCreateClass() { throw new Error(academyNotLoaded_()); }
-function sidebarUpdate() { return academyRefresh_(); } // still works if the installed app is broken
+function sidebarUpdate() { // still works if the installed app is broken
+  var r = academyRefresh_();
+  return r ? { ok: true, version: String(r) } : { ok: false, error: academyLastError_() };
+}
 function sidebarUndo() { return academyUndo_(); }
 
 (function academyLoad_() {
