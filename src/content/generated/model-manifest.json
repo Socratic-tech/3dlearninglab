@@ -48,7 +48,7 @@
   },
   "toolbox-parts": {
     "file": "/models/original/toolbox-parts.stl",
-    "triangles": 68,
+    "triangles": 52,
     "min": [
       0,
       0,
@@ -127,7 +127,7 @@
   },
   "broken-tag": {
     "file": "/models/original/broken-tag.stl",
-    "triangles": 800,
+    "triangles": 336,
     "min": [
       0,
       0,
@@ -169,7 +169,7 @@
   },
   "bad-phone-stand": {
     "file": "/models/original/bad-phone-stand.stl",
-    "triangles": 60,
+    "triangles": 96,
     "min": [
       0,
       0,
@@ -258,7 +258,7 @@
   },
   "excessive-support-object": {
     "file": "/models/original/excessive-support-object.stl",
-    "triangles": 35,
+    "triangles": 28,
     "min": [
       0,
       0,
@@ -295,7 +295,7 @@
   },
   "redesigned-support-object": {
     "file": "/models/original/redesigned-support-object.stl",
-    "triangles": 68,
+    "triangles": 32,
     "min": [
       0,
       0,
@@ -327,7 +327,7 @@
   },
   "peg-10mm": {
     "file": "/models/original/peg-10mm.stl",
-    "triangles": 1331,
+    "triangles": 772,
     "min": [
       -8,
       -8,
@@ -354,7 +354,7 @@
   },
   "hole-10mm": {
     "file": "/models/original/hole-10mm.stl",
-    "triangles": 1041,
+    "triangles": 400,
     "min": [
       -12.5,
       -12.5,
@@ -381,7 +381,7 @@
   },
   "hole-10-2mm": {
     "file": "/models/original/hole-10-2mm.stl",
-    "triangles": 1034,
+    "triangles": 400,
     "min": [
       -12.5,
       -12.5,
@@ -408,7 +408,7 @@
   },
   "hole-10-4mm": {
     "file": "/models/original/hole-10-4mm.stl",
-    "triangles": 1050,
+    "triangles": 400,
     "min": [
       -12.5,
       -12.5,
@@ -435,7 +435,7 @@
   },
   "thin-wall-test": {
     "file": "/models/original/thin-wall-test.stl",
-    "triangles": 232,
+    "triangles": 108,
     "min": [
       0,
       0,
@@ -524,7 +524,7 @@
   },
   "axis-cube-20mm": {
     "file": "/models/original/axis-cube-20mm.stl",
-    "triangles": 188,
+    "triangles": 108,
     "min": [
       0,
       0,
@@ -561,7 +561,7 @@
   },
   "overhang-test": {
     "file": "/models/original/overhang-test.stl",
-    "triangles": 170,
+    "triangles": 92,
     "min": [
       0,
       0,
@@ -692,7 +692,7 @@
   },
   "half-bracket": {
     "file": "/models/original/half-bracket.stl",
-    "triangles": 64,
+    "triangles": 36,
     "min": [
       0,
       0,

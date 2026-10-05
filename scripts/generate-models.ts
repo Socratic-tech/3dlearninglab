@@ -12,7 +12,9 @@ import fs from "node:fs";
 import path from "node:path";
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import { Brush, Evaluator, SUBTRACTION, ADDITION } from "three-bvh-csg";
+import type ManifoldModule from "manifold-3d";
+// manifold-3d is ESM-only and this script runs as CommonJS: load it with a real dynamic import
+const loadManifold = new Function("return import('manifold-3d')") as () => Promise<{ default: typeof ManifoldModule }>;
 
 const originalWarn = console.warn;
 console.warn = (...args: unknown[]) => {
@@ -76,27 +78,56 @@ function profile(pts: [number, number][], width: number, y0 = 0) {
   return g;
 }
 
-const evaluator = new Evaluator();
-evaluator.attributes = ["position", "normal"];
+// CSG with manifold-3d: every result is a closed, watertight solid (slicers print it without repairs).
+type Wasm = Awaited<ReturnType<typeof ManifoldModule>>;
+let M: Wasm;
 
-function brush(g: THREE.BufferGeometry) {
-  const b = new Brush(clean(g));
-  b.updateMatrixWorld();
-  return b;
+/** three.js geometry → Manifold (vertices welded by position so the solid is closed). */
+function toManifold(g: THREE.BufferGeometry) {
+  const pos = clean(g).getAttribute("position");
+  const index = new Map<string, number>();
+  const verts: number[] = [];
+  const tris: number[] = [];
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const k = `${x.toFixed(5)},${y.toFixed(5)},${z.toFixed(5)}`;
+    let v = index.get(k);
+    if (v === undefined) { v = verts.length / 3; index.set(k, v); verts.push(x, y, z); }
+    tris.push(v);
+  }
+  // drop triangles that collapsed to a line after welding
+  const kept: number[] = [];
+  for (let i = 0; i < tris.length; i += 3) if (tris[i] !== tris[i + 1] && tris[i + 1] !== tris[i + 2] && tris[i] !== tris[i + 2]) kept.push(tris[i], tris[i + 1], tris[i + 2]);
+  const mesh = new M.Mesh({ numProp: 3, vertProperties: new Float32Array(verts), triVerts: new Uint32Array(kept) });
+  mesh.merge();
+  const man = new M.Manifold(mesh);
+  if (man.status() !== "NoError") throw new Error(`Input shape is not closed (${man.status()})`);
+  return man;
+}
+
+function fromManifold(man: InstanceType<Wasm["Manifold"]>) {
+  const mesh = man.getMesh();
+  const out = new Float32Array(mesh.numTri * 9);
+  for (let t = 0; t < mesh.numTri; t++) {
+    for (let c = 0; c < 3; c++) {
+      const v = mesh.triVerts[t * 3 + c];
+      for (let a = 0; a < 3; a++) out[t * 9 + c * 3 + a] = mesh.vertProperties[v * mesh.numProp + a];
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(out, 3));
+  g.computeVertexNormals();
+  return g;
 }
 
 function subtract(a: THREE.BufferGeometry, ...cutters: THREE.BufferGeometry[]) {
-  let result = brush(a);
-  for (const c of cutters) {
-    result = evaluator.evaluate(result, brush(c), SUBTRACTION) as Brush;
-  }
-  return result.geometry;
+  let result = toManifold(a);
+  for (const c of cutters) result = result.subtract(toManifold(c));
+  return fromManifold(result);
 }
 
 function union(...parts: THREE.BufferGeometry[]) {
-  let result = brush(parts[0]);
-  for (const p of parts.slice(1)) result = evaluator.evaluate(result, brush(p), ADDITION) as Brush;
-  return result.geometry;
+  return fromManifold(M.Manifold.union(parts.map(toManifold)));
 }
 
 /** Several separate shells in one file (like ungrouped objects). */
@@ -177,7 +208,7 @@ const models: Record<string, () => Built> = {
     // Overhanging shelf that needs support
     const shelf = box(40, 0, 60, 30, 70, 3);
     return {
-      geometry: shells(base, lip, neck, back, shelf),
+      geometry: union(base, lip, neck, back, shelf), // one solid: the flaws are in the shape, not the mesh
       anchors: {
         slot: [15, 35, 20],
         neck: [18.6, 35, 15.5],
@@ -330,7 +361,7 @@ const models: Record<string, () => Built> = {
     const anchors: Record<string, Vec3> = {};
     let y = 0;
     for (const s of spans) {
-      parts.push(box(0, y, 0, 6, 8, 12), box(6 + s, y, 0, 6, 8, 12), box(0, y, 12, 12 + s, 8, 2));
+      parts.push(union(box(0, y, 0, 6, 8, 12), box(6 + s, y, 0, 6, 8, 12), box(0, y, 12, 12 + s, 8, 2)));
       anchors[`span_${s}`] = [6 + s / 2, y + 4, 13];
       y += 14;
     }
@@ -416,6 +447,9 @@ function round(v: number) {
   return Math.round(v * 100) / 100;
 }
 
+async function main() {
+M = await (await loadManifold()).default();
+M.setup();
 fs.mkdirSync(OUT_DIR, { recursive: true });
 fs.mkdirSync(path.dirname(MANIFEST), { recursive: true });
 const manifest: Record<string, unknown> = {};
@@ -437,3 +471,5 @@ for (const [id, build] of Object.entries(models)) {
 }
 fs.writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2) + "\n");
 console.log(`\nWrote ${Object.keys(models).length} models → ${path.relative(process.cwd(), OUT_DIR)}`);
+}
+void main();
