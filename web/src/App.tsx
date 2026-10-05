@@ -31,6 +31,10 @@ function useHash() {
   return hash;
 }
 
+/** A usable class reply: anything else (an old saved copy, an unexpected answer) must never blank the site. */
+const isMe = (x: unknown): x is Me => !!x && typeof x === "object" && !!(x as Me).user && typeof (x as Me).user.role === "string" && !!(x as Me).progress;
+const goodCached = (api: string, email: string | null) => { const c = cachedMe(api, email); return isMe(c) ? c : null; };
+
 export function App() {
   const studentView = useStudentView();
   const [cfg, setCfg] = useState(readConfig);
@@ -40,7 +44,7 @@ export function App() {
     const email = identityOf(tokenEmail());
     if (!cfg.apiUrl || !email) return null;
     startSync(cfg.apiUrl, email);
-    const cached = cachedMe(cfg.apiUrl, email);
+    const cached = goodCached(cfg.apiUrl, email);
     return cached ? withPending(cached) : null;
   });
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +61,10 @@ export function App() {
     const email = identityOf(tokenEmail());
     if (email) startSync(cfg.apiUrl, email);
     const r = await call<Me>(cfg.apiUrl, "me");
-    if (r.ok) {
+    if (r.ok && !isMe(r.data)) {
+      console.error("Unexpected class reply", r.data);
+      setError(tr("Your class Sheet sent an answer this page doesn't understand. Open the Sheet's side panel, click Update now, then reload this page.") + " (" + JSON.stringify(r.data ?? null).slice(0, 120) + ")");
+    } else if (r.ok) {
       saveMe(cfg.apiUrl, email, r.data);
       setMe(withPending(r.data));
       setError(null);
@@ -71,7 +78,7 @@ export function App() {
     if (lastView.current === studentView) return;
     lastView.current = studentView;
     const email = identityOf(tokenEmail());
-    const cached = cfg.apiUrl && email ? cachedMe(cfg.apiUrl, email) : null;
+    const cached = cfg.apiUrl && email ? goodCached(cfg.apiUrl, email) : null;
     setMe(cached ? withPending(cached) : null);
     hasMe.current = !!cached;
     void load();
@@ -100,7 +107,7 @@ export function App() {
 
   if (!cfg.apiUrl || !cfg.clientId || hash.startsWith("#/setup")) return <Frame><SetupPage cfg={cfg} onSaved={() => { setCfg(readConfig()); location.hash = "#/"; }} /></Frame>;
   if (!token) return <Frame><SignIn key={locale} clientId={cfg.clientId} onToken={setToken} /></Frame>;
-  if (error) return <Frame onSignOut={() => { clearCachedData(tokenEmail()); signOut(); setToken(null); setMe(null); }}><div className="mx-auto max-w-lg py-10"><Alert tone="danger" title={tr("We couldn't open your class")}>{error}</Alert><div className="mt-4 flex flex-wrap gap-2"><Button onClick={() => void load()}>{tr("Try again")}</Button><Button variant="secondary" onClick={() => { signOut(); resetDevice(); location.replace(location.pathname); }}>{tr("Start over on this device")}</Button></div><p className="mt-2 text-sm text-muted">{tr("Start over forgets the class link and Google account on this computer. Then open the right link again.")}</p></div></Frame>;
+  if (error) return <Frame onSignOut={() => { clearCachedData(tokenEmail()); signOut(); setToken(null); setMe(null); }}><div className="mx-auto max-w-lg py-10"><Alert tone="danger" title={tr("We couldn't open your class")}>{error}</Alert><div className="mt-4 flex flex-wrap gap-2"><Button onClick={() => void load()}>{tr("Try again")}</Button>{studentView && <Button variant="secondary" onClick={() => { setError(null); setStudentView(false); location.hash = "#/teacher"; }}>{tr("Back to teacher view")}</Button>}<Button variant="secondary" onClick={() => { signOut(); resetDevice(); location.replace(location.pathname); }}>{tr("Start over on this device")}</Button></div><p className="mt-2 text-sm text-muted">{tr("Start over forgets the class link and Google account on this computer. Then open the right link again.")}</p></div></Frame>;
   if (!me || !localeContentReady(locale)) return <Frame><p className="py-20 text-center text-muted" role="status">{tr("Loading your class…")}</p></Frame>;
 
   const route = hash.replace(/^#/, "");
