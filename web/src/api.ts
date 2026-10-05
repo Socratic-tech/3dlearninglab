@@ -5,6 +5,7 @@ import type { LessonApi } from "@/components/lesson/api";
 import { currentToken } from "./auth";
 import { currentClassId } from "./config";
 import { enqueue } from "./sync";
+import { studentViewOn } from "./state";
 
 /** POST to the class's Apps Script. text/plain avoids a CORS preflight, which Apps Script can't answer. */
 /**
@@ -30,7 +31,7 @@ export async function callOnce<T>(apiUrl: string, action: string, args: Record<s
   const token = currentToken();
   if (!token) return { ok: false, error: "Your sign-in expired. Please sign in again." };
   try {
-    const res = await fetch(apiUrl, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action, token, requestId, args: { classId: currentClassId(), lang: getLocale(), ...args } }) });
+    const res = await fetch(apiUrl, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action, token, requestId, args: { classId: currentClassId(), lang: getLocale(), asStudent: studentViewOn(), ...args } }) });
     const text = await res.text();
     if (!res.ok) return { ok: false, retryable: true, error: `Google storage didn't answer (HTTP ${res.status}). Your work wasn't lost — try again.`, details: text.slice(0, 500) };
     try {

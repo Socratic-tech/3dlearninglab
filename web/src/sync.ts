@@ -9,6 +9,7 @@
  */
 import type { ActionResult } from "@/server/errors";
 import { callOnce } from "./api";
+import { studentViewOn } from "./state";
 
 export type QueueItem = { id: string; action: string; args: Record<string, unknown>; coalesce?: string; tries: number; at: number };
 export type SyncState = { pending: number; status: "idle" | "saving" | "offline" | "signin"; lastError: string | null };
@@ -60,7 +61,8 @@ export function startSync(url: string, email: string) {
  * the promise). Coalesced items resolve with the newest item's result.
  */
 export function enqueue<T>(action: string, args: Record<string, unknown>, coalesce?: string): Promise<ActionResult<T>> {
-  const item: QueueItem = { id: crypto.randomUUID(), action, args, coalesce, tries: 0, at: Date.now() };
+  // remember whose work this is (teacher or their test student), even if Student view is switched before it uploads
+  const item: QueueItem = { id: crypto.randomUUID(), action, args: { asStudent: studentViewOn(), ...args }, coalesce, tries: 0, at: Date.now() };
   if (coalesce) {
     const old = items.findIndex((x) => x.coalesce === coalesce && !inFlight.has(x.id));
     if (old >= 0) {

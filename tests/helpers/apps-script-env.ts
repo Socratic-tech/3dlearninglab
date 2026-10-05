@@ -28,6 +28,7 @@ function fakeSheet() {
       return range;
     },
     appendRow: (row: Row) => data.push([...row]),
+    deleteRow: (r: number) => { data.splice(r - 1, 1); },
     setFrozenRows: () => {},
     hideSheet: () => {},
     clear: () => { data.length = 0; },

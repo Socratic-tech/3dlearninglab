@@ -382,7 +382,6 @@
   "Screenshot or photo (PNG/JPG)": "Captura de pantalla o fotografía (PNG/JPG)",
   "Write or say it": "Escríbelo o dilo",
   "Student view": "Vista de estudiante",
-  "You see exactly what students see, locks and all. Your answers go to your own test record.": "Ves exactamente lo que ven los estudiantes, con los candados incluidos. Tus respuestas van a tu propio registro de prueba.",
   "Back to teacher view": "Volver a la vista del maestro",
   "See it as a student": "Verlo como estudiante",
   "1 unit done": "1 unidad terminada",
@@ -490,5 +489,9 @@
   "Visor": "Visor",
   "CAD Surgeon": "Cirujano del CAD",
   "Sprint Champion": "Campeón del sprint",
-  "Quiet (no animation)": "Tranquilo (sin animación)"
+  "Quiet (no animation)": "Tranquilo (sin animación)",
+  "You're your own test student: XP, avatar, store and rewards all work. It shows on your dashboard as \"(test student)\".": "Eres tu propio estudiante de prueba: la XP, el avatar, la tienda y los premios funcionan. En tu panel aparece como \"(test student)\".",
+  "Reset test student": "Reiniciar estudiante de prueba",
+  "Click again to erase the test student's work": "Haz clic otra vez para borrar el trabajo del estudiante de prueba",
+  "Resetting…": "Reiniciando…"
 }

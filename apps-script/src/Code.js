@@ -125,7 +125,9 @@ function handle_(req) {
     const action = ACTIONS[req && req.action];
     if (!action) throw userError_("Unknown request.");
     ensureClasses_();
-    const user = authenticate_(req.token, (req.args || {}).classId);
+    let user = authenticate_(req.token, (req.args || {}).classId);
+    // Student view: a teacher works as their own test student (a real student record, see previewStudent_).
+    if (user.role === "teacher" && req.args && req.args.asStudent === true) user = previewStudent_(user, req.args.classId);
     if (action.role === "teacher" && user.role !== "teacher") throw userError_("You don't have access to that.");
     // Retries from the site reuse the same requestId: return the first answer instead of doing the work twice.
     const cache = CacheService.getScriptCache();
@@ -218,6 +220,27 @@ function activeEnrollments_(email) {
 }
 
 /** Call inside withLock_. Idempotent. */
+// ── Test student for teachers: "name+student@school" — Google never signs anyone in with a "+" address, so only the
+// teacher (through Student view) can act as it. It is a normal student record: XP, store, avatar, rewards, review.
+function previewEmail_(email) {
+  const at = email.lastIndexOf("@");
+  return email.slice(0, at) + "+student" + email.slice(at);
+}
+function previewStudent_(teacher, classId) {
+  const email = previewEmail_(teacher.email);
+  const cls = classFor_(teacher, classId);
+  const name = String(teacher.name || teacher.email).split(/[\s@]/)[0] + " (test student)";
+  const row = table_("Users").find(function (r) { return r.email === email; });
+  const enrolled = row && activeEnrollments_(email).some(function (e) { return e.classId === cls.classId; });
+  if (!row || row.status === "archived" || !enrolled) {
+    withLock_(function () {
+      table_("Users").upsert(function (r) { return r.email === email; }, { email: email, name: name, role: "student", sub: "", status: "active", createdAt: row ? row.createdAt : now_(), lastSeen: now_() });
+      enroll_(email, cls.classId, "preview");
+    });
+  }
+  return { email: email, name: (row && row.name) || name, role: "student", preview: true };
+}
+
 function enroll_(email, classId, source) {
   table_("Enrollments").upsert(function (e) { return e.email === email && e.classId === classId; }, { email: email, classId: classId, status: "active", source: source || "manual", createdAt: now_() });
 }
@@ -860,7 +883,7 @@ const ACTIONS = {
       const journals = {};
       table_("Journals").filter(function (r) { return r.email === user.email; }).forEach(function (r) { journals[r.projectKey] = parse_(r.entries, {}); });
       return {
-        user: { email: user.email, name: user.name, role: user.role, admin: !!user.admin },
+        user: { email: user.email, name: user.name, role: user.role, admin: !!user.admin, preview: !!user.preview },
         cls: cls ? classOut_(cls) : null,
         classes: classes.map(classOut_),
         progress: progress,
@@ -1115,6 +1138,28 @@ const ACTIONS = {
         table_("Redemptions").append({ id: "rd" + Utilities.getUuid().slice(0, 8), email: user.email, classId: cls.classId, rewardId: reward.id, rewardName: reward.name, price: price, status: "requested", teacherNote: "", createdAt: now_(), updatedAt: now_() });
         return storeState_(user.email, cls.classId);
       });
+    },
+  },
+
+  /** Teacher: wipe your test student's work (answers, XP, store, requests) so you can start fresh. */
+  resetPreview: {
+    role: "teacher",
+    run: function (user) {
+      const email = previewEmail_(user.email);
+      let removed = 0;
+      withLock_(function () {
+        Object.keys(TABLES).forEach(function (name) {
+          const col = TABLES[name].indexOf("email");
+          if (name === "Users" || name === "Enrollments" || col < 0) return;
+          const sh = ss_().getSheetByName(name);
+          if (!sh || sh.getLastRow() < 2) return;
+          const vals = sh.getRange(2, col + 1, sh.getLastRow() - 1, 1).getValues();
+          for (let i = vals.length - 1; i >= 0; i--) if (String(vals[i][0]).toLowerCase() === email) { sh.deleteRow(i + 2); removed++; }
+        });
+      });
+      MEMO_ = {};
+      LOCK_MEMO_ = {};
+      return { removed: removed };
     },
   },
 

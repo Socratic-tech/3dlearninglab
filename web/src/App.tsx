@@ -12,7 +12,7 @@ import { currentToken, renderSignIn, signOut, tokenEmail } from "./auth";
 import { cachedMe, clearCachedData, saveMe, withPending } from "./cache";
 import { resumeSync, startSync, subscribeSync, syncState } from "./sync";
 import { SyncPill } from "./sync-pill";
-import { isStaff, setStudentView, useStudentView } from "./state";
+import { identityOf, isStaff, setStudentView, useStudentView } from "./state";
 import { call } from "./api";
 import type { Me } from "./content";
 import { StudentHome } from "./pages/StudentHome";
@@ -37,7 +37,7 @@ export function App() {
   const [token, setToken] = useState(currentToken);
   // show the last saved copy instantly (plus anything not yet uploaded), then refresh from Google
   const [me, setMe] = useState<Me | null>(() => {
-    const email = tokenEmail();
+    const email = identityOf(tokenEmail());
     if (!cfg.apiUrl || !email) return null;
     startSync(cfg.apiUrl, email);
     const cached = cachedMe(cfg.apiUrl, email);
@@ -54,7 +54,7 @@ export function App() {
   useEffect(() => { hasMe.current = !!me; }, [me]);
   const load = useCallback(async () => {
     if (!cfg.apiUrl || !currentToken()) return;
-    const email = tokenEmail();
+    const email = identityOf(tokenEmail());
     if (email) startSync(cfg.apiUrl, email);
     const r = await call<Me>(cfg.apiUrl, "me");
     if (r.ok) {
@@ -64,6 +64,18 @@ export function App() {
       if (r.data.cls) setCurrentClassId(r.data.cls.id);
     } else if (!hasMe.current) setError(r.error); // otherwise keep showing the saved copy while Google is slow or offline
   }, [cfg.apiUrl]);
+
+  // Student view on/off switches between the teacher and their test student: show that person's saved copy, then refresh
+  const lastView = useRef(studentView);
+  useEffect(() => {
+    if (lastView.current === studentView) return;
+    lastView.current = studentView;
+    const email = identityOf(tokenEmail());
+    const cached = cfg.apiUrl && email ? cachedMe(cfg.apiUrl, email) : null;
+    setMe(cached ? withPending(cached) : null);
+    hasMe.current = !!cached;
+    void load();
+  }, [studentView, cfg.apiUrl, load]);
 
 
   // once the background queue has uploaded everything, pull the official numbers (XP, unlocks) quietly
@@ -101,14 +113,15 @@ export function App() {
   else page = <StudentHome me={me} apiUrl={cfg.apiUrl} onChange={load} />;
 
   return (
-    <Frame me={me} onSwitch={(id) => { setCurrentClassId(id); void load(); }} onSignOut={() => { clearCachedData(tokenEmail()); signOut(); setToken(null); setMe(null); }}>
+    <Frame me={me} onReset={async () => { const r = await call(cfg.apiUrl ?? "", "resetPreview", { asStudent: false }); if (r.ok) { clearCachedData(identityOf(tokenEmail())); await load(); } return r.ok; }} onSwitch={(id) => { setCurrentClassId(id); void load(); }} onSignOut={() => { clearCachedData(tokenEmail()); signOut(); setToken(null); setMe(null); }}>
       {page}
     </Frame>
   );
 }
 
-function Frame({ children, me, onSignOut, onSwitch }: { children: ReactNode; me?: Me; onSignOut?: () => void; onSwitch?: (classId: string) => void }) {
-  const studentView = useStudentView() && !!me && isStaff(me);
+function Frame({ children, me, onSignOut, onSwitch, onReset }: { children: ReactNode; me?: Me; onSignOut?: () => void; onSwitch?: (classId: string) => void; onReset?: () => Promise<boolean> }) {
+  const studentView = useStudentView() && !!me && (isStaff(me) || !!me.user.preview);
+  const [resetStep, setResetStep] = useState<"idle" | "sure" | "busy">("idle");
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-30 border-b border-border bg-bg/90 backdrop-blur print:hidden">
@@ -135,7 +148,12 @@ function Frame({ children, me, onSignOut, onSwitch }: { children: ReactNode; me?
         {studentView && (
           <div className="border-t border-accent bg-accent-soft">
             <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2 text-sm">
-              <p className="min-w-0 flex-1"><strong>{tr("Student view")}</strong> · {tr("You see exactly what students see, locks and all. Your answers go to your own test record.")}</p>
+              <p className="min-w-0 flex-1"><strong>{tr("Student view")}</strong> · {tr("You're your own test student: XP, avatar, store and rewards all work. It shows on your dashboard as \"(test student)\".")}</p>
+              {onReset && <button className="rounded-lg px-3 py-1 font-semibold underline" disabled={resetStep === "busy"} onClick={() => {
+                if (resetStep === "idle") { setResetStep("sure"); return; }
+                setResetStep("busy");
+                void onReset().then(() => { setResetStep("idle"); location.hash = "#/student"; });
+              }}>{resetStep === "sure" ? tr("Click again to erase the test student's work") : resetStep === "busy" ? tr("Resetting…") : tr("Reset test student")}</button>}
               <button className="rounded-lg border border-accent px-3 py-1 font-semibold" onClick={() => { setStudentView(false); location.hash = "#/teacher"; }}>{tr("Back to teacher view")}</button>
             </div>
           </div>

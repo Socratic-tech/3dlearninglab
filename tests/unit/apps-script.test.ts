@@ -468,6 +468,24 @@ describe("XP store and class rewards", () => {
     expect(e.call("maya@school.org", "buyLook", { lookId: "neon" }).error).toMatch(/50 more XP/);
   });
 
+  it("Student view: the teacher works as a real test student, and can reset it; students can't use the switch", () => {
+    const { e, classId } = setupClass();
+    const me = e.call("teacher@school.org", "me", { classId, asStudent: true }).data;
+    expect(me.user).toMatchObject({ email: "teacher+student@school.org", role: "student", preview: true });
+    const lesson = getLesson("holes")!;
+    const mc = allBlocks(lesson).find((b) => b.type === "multipleChoice" && b.check === "skill")!;
+    if (mc.type !== "multipleChoice") throw new Error();
+    const right = e.call("teacher@school.org", "answerBlock", { classId, asStudent: true, lessonId: "holes", blockId: mc.id, response: { type: "multipleChoice", optionIds: mc.correctOptionIds } });
+    expect(right.data.correct).toBe(true);
+    expect(e.call("teacher@school.org", "me", { classId, asStudent: true }).data.stats.xp).toBeGreaterThan(0);
+    expect(e.call("teacher@school.org", "me", { classId }).data.user.role).toBe("teacher"); // switch off: teacher again
+    expect(e.call("teacher@school.org", "rewards", { classId, asStudent: true }).ok).toBe(false); // no teacher powers as the student
+    expect(e.call("teacher@school.org", "resetPreview", { classId }).data.removed).toBeGreaterThan(0);
+    expect(e.call("teacher@school.org", "me", { classId, asStudent: true }).data.stats.xp).toBe(0);
+    expect(e.call("maya@school.org", "me", { classId, asStudent: true }).data.user.email).toBe("maya@school.org");
+    expect(e.call("maya@school.org", "resetPreview", { classId }).ok).toBe(false);
+  });
+
   it("class rewards: teacher creates, student requests (XP held), decline gives it back, students can't approve", () => {
     const { e, classId } = setupClass();
     give(e, 500);

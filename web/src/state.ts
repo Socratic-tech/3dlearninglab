@@ -22,6 +22,8 @@ export function setStudentView(on: boolean) {
 export function useStudentView(): boolean {
   return useSyncExternalStore((f) => { svListeners.add(f); return () => { svListeners.delete(f); }; }, studentViewOn, () => false);
 }
+/** Saved copies and the upload queue are kept apart for the teacher and their test student. */
+export const identityOf = (email: string | null) => (email && studentViewOn() ? email + "#student" : email);
 /** Staff powers apply, unless the teacher switched to student view. */
 export const actsAsStaff = (me: Me) => isStaff(me) && !studentViewOn();
 

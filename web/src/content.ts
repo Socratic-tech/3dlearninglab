@@ -87,7 +87,7 @@ export const pathTitle = (pathId: string) => {
 export type ClassInfo = { id: string; name: string; section: string; pathId: string; tinkercadUrl: string | null; unlockAll: boolean; googleCourseId: string | null };
 
 export type Me = {
-  user: { email: string; name: string; role: "student" | "teacher"; admin?: boolean };
+  user: { email: string; name: string; role: "student" | "teacher"; admin?: boolean; preview?: boolean };
   cls: ClassInfo | null;
   classes: ClassInfo[];
   progress: Record<string, { status: string; blockState: Record<string, unknown>; startedAt?: string }>;
