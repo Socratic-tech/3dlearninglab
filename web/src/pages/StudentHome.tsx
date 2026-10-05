@@ -1,11 +1,13 @@
 import { tr, trn } from "@/lib/i18n";
 import { useEffect, useState } from "react";
-import { ArrowRight, Printer, RotateCcw } from "lucide-react";
+import { Printer, RotateCcw } from "lucide-react";
 import { Pill } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { call } from "../api";
 import { applySkin, SKINS, SkinPicker, type SkinId } from "../skins";
-import { MissionPath, StreakCard } from "@/components/student/mission-path";
+import { StreakCard } from "@/components/student/mission-path";
+import { NextUpPath } from "@/components/student/next-up";
+import { allBlocks, isRequiredBlock } from "@/content/schema";
 import { ProgressRing, ProgressBar } from "@/components/ui/progress";
 import { rank } from "@/lib/mastery";
 import { competencies, domainsFor, lessonFor, pathTitle, type Me } from "../content";
@@ -14,28 +16,18 @@ import { isStaff, setStudentView, studentStates, useStudentView } from "../state
 export function StudentHome({ me, apiUrl, onChange }: { me: Me; apiUrl: string; onChange: () => void }) {
   const studentView = useStudentView();
   const { items, states } = studentStates(me);
-  const current = items.find((x) => states.get(x.lesson.id) === "in_progress") ?? items.find((x) => states.get(x.lesson.id) === "available");
   const done = items.filter((x) => states.get(x.lesson.id) === "completed").length;
   const inPath = new Set(items.flatMap((x) => x.lesson.competencyIds));
   const mastered = [...inPath].filter((c) => rank(me.levels[c]) >= 2).length;
   return (
     <div className="space-y-8">
-      <section className="bg-blueprint flex flex-col items-center gap-6 rounded-3xl border border-border bg-surface p-6 text-center sm:flex-row sm:text-left">
-        <ProgressRing value={inPath.size ? (mastered / inPath.size) * 100 : 0} size={104} stroke={10} label={tr("Skills mastered")} />
+      <section className="bg-blueprint flex items-center gap-4 rounded-3xl border border-border bg-surface p-4 sm:gap-6 sm:p-6">
+        <ProgressRing value={inPath.size ? (mastered / inPath.size) * 100 : 0} size={76} stroke={8} label={tr("Skills mastered")} />
         <div className="flex-1">
           <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-primary">{tr("Welcome back")}</p>
-          <h1 className="font-display text-3xl font-bold">{me.user.name.split(" ")[0]}</h1>
-          <p className="text-muted">{tr("{m} of {n} skills mastered · {d} of {t} missions done", { m: mastered, n: inPath.size, d: done, t: items.length })}</p>
+          <h1 className="font-display text-2xl font-bold sm:text-3xl">{me.user.name.split(" ")[0]}</h1>
+          <p className="text-sm text-muted sm:text-base">{tr("{m} of {n} skills mastered · {d} of {t} missions done", { m: mastered, n: inPath.size, d: done, t: items.length })}</p>
         </div>
-        {current && (
-          <a href={`#/lesson/${current.lesson.id}`} className="flex items-center gap-3 rounded-2xl bg-primary px-6 py-4 text-left text-primary-fg shadow-sm hover:brightness-110">
-            <span>
-              <span className="block text-xs font-semibold uppercase tracking-wide opacity-80">{tr("Continue mission")}</span>
-              <span className="block font-display text-lg font-bold">{current.lesson.title}</span>
-            </span>
-            <ArrowRight className="size-6" aria-hidden />
-          </a>
-        )}
       </section>
 
       {isStaff(me) && !studentView && (
@@ -44,18 +36,30 @@ export function StudentHome({ me, apiUrl, onChange }: { me: Me; apiUrl: string; 
           <button className="rounded-lg border border-primary px-3 py-1.5 font-semibold text-primary hover:bg-surface" onClick={() => setStudentView(true)}>{tr("See it as a student")}</button>
         </div>
       )}
+      <NextUpPath
+        items={items.map((x) => {
+          const st = states.get(x.lesson.id) ?? "locked";
+          const req = allBlocks(x.lesson).filter(isRequiredBlock).map((b) => b.id);
+          const saved = me.progress[x.lesson.id]?.blockState ?? {};
+          return {
+            id: x.lesson.id,
+            title: x.lesson.title,
+            subtitle: x.lesson.subtitle,
+            minutes: x.lesson.estimatedMinutes,
+            kind: x.lesson.kind,
+            state: st,
+            href: `#/lesson/${x.lesson.id}`,
+            week: x.week,
+            weekTitle: x.weekTitle,
+            steps: st === "in_progress" ? { done: req.filter((id) => id in saved).length, total: req.length } : undefined,
+          };
+        })}
+      />
       {me.stats && <StreakCard stats={me.stats} />}
       {me.stats && me.store && !isStaff(me) && <Looks store={me.store} apiUrl={apiUrl} onChange={onChange} />}
 
       <ReviewDeck me={me} />
 
-      <section aria-labelledby="mis-h">
-        <h2 id="mis-h" className="mb-1 text-center font-display text-2xl font-bold">{tr("Your path")}</h2>
-        <p className="mb-6 text-center text-sm text-muted">{me.cls ? `${me.cls.name}${me.cls.section ? ` · ${me.cls.section}` : ""} — ${pathTitle(me.cls.pathId)}` : ""}</p>
-        <MissionPath
-          items={items.map((x) => ({ id: x.lesson.id, title: x.lesson.title, kind: x.lesson.kind, state: states.get(x.lesson.id) ?? "locked", href: `#/lesson/${x.lesson.id}`, week: x.week, weekTitle: x.weekTitle }))}
-        />
-      </section>
 
       <MyPrints me={me} apiUrl={apiUrl} onChange={onChange} />
 

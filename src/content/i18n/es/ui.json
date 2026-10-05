@@ -384,5 +384,17 @@
   "Student view": "Vista de estudiante",
   "You see exactly what students see, locks and all. Your answers go to your own test record.": "Ves exactamente lo que ven los estudiantes, con los candados incluidos. Tus respuestas van a tu propio registro de prueba.",
   "Back to teacher view": "Volver a la vista del maestro",
-  "See it as a student": "Verlo como estudiante"
+  "See it as a student": "Verlo como estudiante",
+  "1 unit done": "1 unidad terminada",
+  "{n} units done": "{n} unidades terminadas",
+  "{n} missions": "{n} misiones",
+  "{n} more units": "{n} unidades más",
+  "to {last}": "hasta {last}",
+  "Your next mission": "Tu próxima misión",
+  "Up next": "Lo que sigue",
+  "about {n} min": "unos {n} min",
+  "{done} of {total} activities done": "{done} de {total} actividades hechas",
+  "Continue": "Continuar",
+  "You finished every mission!": "¡Terminaste todas las misiones!",
+  "Open any mission below to look back at your work.": "Abre cualquier misión de abajo para repasar tu trabajo."
 }
