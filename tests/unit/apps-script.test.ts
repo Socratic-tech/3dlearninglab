@@ -273,6 +273,44 @@ describe("Setup sidebar", () => {
     expect(e.run("sidebarUpdate()")).toMatchObject({ ok: false, error: expect.stringMatching(/website/) });
   });
 
+  it("safe updates: a new version installs only when a teacher clicks, a broken one is refused, and Undo goes back", () => {
+    const published = fs.readFileSync(path.join(process.cwd(), "web/public/apps-script/bundle.js"), "utf8");
+    const current = published.match(/^\/\/ 3D Design Academy bundle ([\w.-]+)/)![1];
+    const site: { up: boolean; fetches: number; body?: string } = { up: true, fetches: 0 };
+    const e = makeEnv("teacher@school.org", { site, webAppUrl: "https://script.google.com/macros/s/AKfy123/exec" });
+    expect(e.run("sidebarState()")).toMatchObject({ version: current, safeUpdates: true, previousVersion: null });
+
+    // A newer version is published. Nothing changes until a teacher asks, even after the cache expires.
+    const next = published.replace(/^\/\/ 3D Design Academy bundle [\w.-]+/, "// 3D Design Academy bundle 9.9.9-next").replace(/const BUILD = \{"version":"[^"]+"/, 'const BUILD = {"version":"9.9.9-next"');
+    site.body = next;
+    e.cache.clear();
+    e.load();
+    expect(e.run("sidebarState().version")).toBe(current);
+
+    // A broken version is refused by the safety check; the Sheet keeps working on what it has.
+    site.body = next.replace("function doPost(", "function doPostBroken(");
+    const refused = e.call("teacher@school.org", "updateApp").data;
+    expect(refused).toMatchObject({ ok: false, error: expect.stringMatching(/safety check/) });
+    e.cache.clear();
+    e.load();
+    expect(e.run("sidebarState().version")).toBe(current);
+    site.body = next.replace("var Lib = (", "throw new Error('boom');\nvar Lib = (");
+    expect(e.run("sidebarUpdate()")).toMatchObject({ ok: false, error: expect.stringMatching(/boom/) });
+
+    // A good version installs on click…
+    site.body = next;
+    expect(e.call("teacher@school.org", "updateApp").data).toMatchObject({ ok: true, version: "9.9.9-next" });
+    e.load();
+    expect(e.run("sidebarState().version")).toBe("9.9.9-next");
+    expect(e.call("teacher@school.org", "me").data.app).toMatchObject({ safeUpdates: true, previous: current });
+    // …and Undo puts the earlier version back (also after the cache is gone).
+    expect(e.call("teacher@school.org", "undoUpdate").data).toMatchObject({ ok: true, version: current });
+    e.cache.clear();
+    e.load();
+    expect(e.run("sidebarState().version")).toBe(current);
+    expect(e.call("maya@school.org", "undoUpdate").ok).toBe(false); // students can't
+  });
+
   it("a copied template starts fresh for the new teacher and fills in their domain", () => {
     const e = makeEnv("teacher@school.org");
     e.props.set("UPLOAD_FOLDER_ID", "someone-elses-folder");

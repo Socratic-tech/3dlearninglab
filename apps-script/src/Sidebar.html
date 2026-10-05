@@ -104,7 +104,8 @@ function render() {
 function home() {
   var newer = S.latest && S.latest.version && S.latest.version !== S.version;
   var h = "";
-  if (!S.autoUpdates && S.pasteUrl) h += '<div class="card hero"><h2>One-time update</h2><p>Paste the two-file loader, and from then on this Sheet keeps itself up to date.</p><a class="btn" target="_blank" href="' + esc(S.pasteUrl) + '">Show me how (2 minutes) ↗</a><p class="muted">Your links and student work stay the same.</p></div>';
+  if (!S.safeUpdates && S.pasteUrl) h += '<div class="card hero"><h2>One-time update</h2><p>Paste the new loader once. After that, updates install only when you click <b>Update now</b>, each one is safety-checked first, and you can undo.</p><a class="btn" target="_blank" href="' + esc(S.pasteUrl) + '">Show me how (2 minutes) ↗</a><p class="muted">Your links and student work stay the same.</p></div>';
+  else if (newer) h += '<div class="card hero"><h2>Update available</h2>' + (S.latest.notes ? "<p>" + esc(S.latest.notes) + "</p>" : "") + '<button onclick="update(this)">Update now</button><p class="muted">It’s checked before it installs, and you can undo it. Links and student work stay the same.</p><div id="upd"></div></div>';
   if (!S.site) h += '<div class="warn">This copy doesn’t know the website address. Ask whoever shared it for an updated template.</div>';
   if (S.teacherLink) h += '<a class="btn" target="_blank" href="' + esc(S.teacherLink) + '">Open my dashboard ↗</a><p class="muted">See progress, review work and import rosters. Bookmark the page that opens.</p>';
 
@@ -130,7 +131,8 @@ function home() {
     '<button class="secondary" onclick="save(this)">Save settings</button>' +
     (S.teacherLink ? '<p style="margin-top:14px"><b>Staff link</b>: send this to the co-teachers and admins above (not to students).</p><button class="small secondary" onclick="copyText(S.teacherLink, this)">Copy staff link</button>' : "") +
     '<p style="margin-top:14px"><b>App address</b> (only if the website asks for it):</p><div class="link">' + esc(S.url) + "</div>" +
-    (S.autoUpdates ? '<p class="muted" style="margin-top:14px">The app and lessons update by themselves.</p><button class="small secondary" onclick="update(this)">Check for updates now</button><div id="upd"></div>' : "") +
+    (S.safeUpdates ? '<p class="muted" style="margin-top:14px">Version ' + esc(S.version) + '. Lessons update by themselves; app updates install when you click Update now.</p>' +
+      (S.previousVersion ? '<button class="small secondary" onclick="undo(this)">Undo last update (back to ' + esc(S.previousVersion) + ')</button>' : "") + '<div id="undo"></div>' : "") +
     "</details>";
   return h;
 }
@@ -203,10 +205,19 @@ function save(btn) {
 function update(btn) {
   busy(btn, "Checking…");
   google.script.run.withSuccessHandler(function (r) {
-    if (r.ok) { $("upd").innerHTML = '<p><b>You have the newest version (' + esc(r.version) + ').</b></p>'; btn.remove(); }
+    if (r.ok) { $("upd").innerHTML = '<p><b>' + (r.same ? "You already have" : "Installed") + ' version ' + esc(r.version) + '.</b> Close and reopen this panel to see it.</p>'; btn.remove(); }
     else if (r.needsPaste) { $("upd").innerHTML = '<div class="warn">This copy needs the <a target="_blank" href="' + esc(r.pasteUrl) + '">one-time two-file loader</a>. After that it updates by itself.</div>'; btn.disabled = false; btn.textContent = btn.dataset.t; }
     else { $("upd").innerHTML = '<div class="warn">' + esc(r.error) + "</div>"; btn.disabled = false; btn.textContent = btn.dataset.t; }
   }).withFailureHandler(function (e) { $("upd").innerHTML = '<div class="warn">' + esc(e.message) + "</div>"; btn.disabled = false; btn.textContent = btn.dataset.t; }).sidebarUpdate();
+}
+
+function undo(btn) {
+  if (!btn.dataset.sure) { btn.dataset.sure = "1"; btn.textContent = "Click again to confirm undo"; return; }
+  busy(btn, "Undoing…");
+  google.script.run.withSuccessHandler(function (r) {
+    $("undo").innerHTML = r.ok ? '<p><b>Back to version ' + esc(r.version) + '.</b> Close and reopen this panel.</p>' : '<div class="warn">' + esc(r.error) + "</div>";
+    if (r.ok) btn.remove(); else { btn.disabled = false; btn.textContent = btn.dataset.t; }
+  }).withFailureHandler(function (e) { $("undo").innerHTML = '<div class="warn">' + esc(e.message) + "</div>"; btn.disabled = false; btn.textContent = btn.dataset.t; }).sidebarUndo();
 }
 
 // Opening the panel right after allowing permissions finishes setup with no more clicks.

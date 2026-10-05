@@ -747,12 +747,20 @@ const ACTIONS = {
         stats: user.role === "student" ? stats_(user.email) : null,
         store: user.role === "student" ? storeState_(user.email) : null,
         prints: table_("Prints").filter(function (r) { return r.email === user.email; }).map(printOut_),
-        app: user.role === "teacher" ? { version: BUILD.version, owner: String(Session.getEffectiveUser().getEmail() || "").toLowerCase(), content: contentVersion_(), engineBehind: !!CacheService.getScriptCache().get("cf_engine_behind"), autoUpdates: viaLoader_() } : null,
+        app: user.role === "teacher" ? { version: BUILD.version, owner: String(Session.getEffectiveUser().getEmail() || "").toLowerCase(), content: contentVersion_(), engineBehind: !!CacheService.getScriptCache().get("cf_engine_behind"), autoUpdates: viaLoader_(), safeUpdates: loaderInfo_().safe, previous: loaderInfo_().previous } : null,
       };
     },
   },
 
   /** Ask the permanent loader to fetch the newest website bundle immediately. */
+  /** Undo the last app update (same as the side panel's Undo). */
+  undoUpdate: {
+    role: "teacher",
+    run: function () {
+      return sidebarUndo();
+    },
+  },
+
   updateApp: {
     role: "teacher",
     run: function () {
@@ -1241,6 +1249,14 @@ function viaLoader_() {
   return typeof ACADEMY_LOADER !== "undefined" && typeof academyRefresh_ === "function";
 }
 
+/** Loader 2+ installs updates only when a teacher asks, checks them first, and can undo. */
+function loaderInfo_() {
+  if (!viaLoader_()) return { loader: 0, safe: false, previous: null };
+  const st = typeof academyState_ === "function" ? academyState_() : null;
+  const n = Number((ACADEMY_LOADER && ACADEMY_LOADER.loader) || 1);
+  return { loader: n, safe: n >= 2, previous: st && st.previous ? st.previous : null };
+}
+
 function latestVersion_() {
   if (!BUILD.site) return null;
   const cache = CacheService.getScriptCache();
@@ -1284,6 +1300,8 @@ function sidebarState() {
     version: BUILD.version,
     latest: latestVersion_(),
     autoUpdates: viaLoader_(),
+    safeUpdates: loaderInfo_().safe,
+    previousVersion: loaderInfo_().previous,
     pasteUrl: BUILD.site ? BUILD.site + "apps-script/paste.html" : null,
     editorUrl: "https://script.google.com/d/" + ScriptApp.getScriptId() + "/edit",
   };
@@ -1316,11 +1334,12 @@ function sidebarCreateClass(c) {
 
 function sidebarUpdate() {
   if (viaLoader_()) {
-    const version = academyRefresh_();
+    const r = academyRefresh_();
     CacheService.getScriptCache().remove("latest_version");
-    return version
-      ? { ok: true, version: version, redeployed: true }
-      : { ok: false, error: "Couldn't reach the website. Try again in a minute." };
+    if (typeof r === "string") return { ok: true, version: r, redeployed: true }; // loader 1
+    if (!r) return { ok: false, error: "Couldn't reach the website. Try again in a minute." };
+    if (r.ok) r.redeployed = true;
+    return r;
   }
   return {
     ok: false,
@@ -1328,4 +1347,12 @@ function sidebarUpdate() {
     pasteUrl: BUILD.site ? BUILD.site + "apps-script/paste.html" : null,
     error: "This copy needs the one-time two-file loader update.",
   };
+}
+
+/** "Undo last update" (loader 2+): goes back to the version installed before the last update. */
+function sidebarUndo() {
+  if (typeof academyUndo_ !== "function") return { ok: false, error: "Undo needs the newest loader (paste it once from the update page)." };
+  const r = academyUndo_();
+  CacheService.getScriptCache().remove("latest_version");
+  return r;
 }

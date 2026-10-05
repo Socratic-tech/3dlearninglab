@@ -99,6 +99,6 @@ export type Me = {
   /** Spendable cosmetic rewards. Accessibility and learning supports are never store items. */
   store?: { balance: number; spent: number; ownedLooks: string[]; activeLook: string } | null;
   /** Teachers only: what this Apps Script copy runs and who owns it (copies before the update banner don't send it) */
-  app?: { version: string; owner: string; content?: string; engineBehind?: boolean; autoUpdates?: boolean } | null;
+  app?: { version: string; owner: string; content?: string; engineBehind?: boolean; autoUpdates?: boolean; safeUpdates?: boolean; previous?: string | null } | null;
   prints?: { id: string; lessonId: string; evidenceId: string; fileName: string | null; status: string; note: string; teacherNote: string; createdAt: string; updatedAt: string }[];
 };

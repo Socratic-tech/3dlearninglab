@@ -47,7 +47,7 @@ export const okScriptApi: ScriptApiFake = ({ method, path }) => {
   return { code: 200, body: {} };
 };
 
-export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string; scriptId?: string; scriptApi?: ScriptApiFake; feed?: { body: string | null; fetches: number }; site?: { up: boolean; fetches: number } } = {}) {
+export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string; scriptId?: string; scriptApi?: ScriptApiFake; feed?: { body: string | null; fetches: number }; site?: { up: boolean; fetches: number; body?: string } } = {}) {
   const scriptApiCalls: ScriptApiCall[] = [];
   const sheets = new Map<string, ReturnType<typeof fakeSheet>>();
   const book = {
@@ -123,7 +123,7 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
         if (url.includes("apps-script/bundle.js")) {
           const site = opts.site ?? { up: true, fetches: 0 };
           site.fetches++;
-          const body = site.up ? fs.readFileSync(path.join(published, "bundle.js"), "utf8") : "<html>Service unavailable</html>";
+          const body = site.up ? (site.body ?? fs.readFileSync(path.join(published, "bundle.js"), "utf8")) : "<html>Service unavailable</html>";
           return { getResponseCode: () => (site.up ? 200 : 503), getContentText: () => body };
         }
         const email = emailFromToken(decodeURIComponent(url.split("id_token=")[1]));

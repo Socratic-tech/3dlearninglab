@@ -181,7 +181,7 @@ fs.writeFileSync(path.join(pub, "bundle.js"), bundle);
 
 const loaderLine = /var ACADEMY_LOADER = \{[^\n]*\}; \/\/ @loader/;
 if (!loaderLine.test(loaderSrc)) throw new Error("Loader.js is missing the @loader line");
-const loader = loaderSrc.replace(loaderLine, `var ACADEMY_LOADER = ${JSON.stringify({ site, loader: 1 })}; // @loader`);
+const loader = loaderSrc.replace(loaderLine, `var ACADEMY_LOADER = ${JSON.stringify({ site, loader: 2 })}; // @loader`);
 fs.writeFileSync(path.join(dist, "Code.js"), loader);
 
 const notes = fs.existsSync(path.join(root, "apps-script/release-notes.txt")) ? fs.readFileSync(path.join(root, "apps-script/release-notes.txt"), "utf8").trim() : "";
@@ -199,7 +199,7 @@ h1{font-size:26px;margin:0 0 4px}ol.steps{padding-left:22px}ol.steps>li{margin:1
 .f b{font-size:17px}.f span{color:#4a5a70;font-size:14px}button{margin-left:auto;background:#0b5cad;color:#fff;border:0;border-radius:9px;padding:10px 18px;font-weight:700;font-size:15px;cursor:pointer}
 button.ok{background:#15803d}textarea{position:fixed;left:-9999px}.muted{color:#4a5a70;font-size:14px}code{background:#eef2f7;border-radius:4px;padding:0 4px}
 .warn{background:#fdf6dc;border:1px solid #a16207;border-radius:10px;padding:10px 14px}</style></head><body>
-<h1>Install the two-file loader</h1><p class="muted">This is a one-time change. Afterward, the app and lessons update from the website automatically. Your links and student work stay the same. Version ${version}.</p>
+<h1>Install the loader (one time)</h1><p class="muted">Afterward, lessons update by themselves, and app updates install only when you click <b>Update now</b> — each one is safety-checked first and can be undone. Your links and student work stay the same. Version ${version}.</p>
 ${clientId ? "" : '<p class="warn">No Google client ID is built in. Set <code>clientId</code> in <code>apps-script/build.config.json</code> and rebuild.</p>'}
 <ol class="steps">
 <li>In your class Google Sheet, click <b>Extensions → Apps Script</b>.</li>
