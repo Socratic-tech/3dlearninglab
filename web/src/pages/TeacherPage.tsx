@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Copy } from "lucide-react";
 import type { Proficiency } from "@/content/schema";
 import { Alert, Card, CardTitle, EmptyState, Pill, Stat } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import { call } from "../api";
 import { classLink, setCurrentClassId, staffLink } from "../config";
 import { setStudentView } from "../state";
 import { currentToken } from "../auth";
+import { fetchClass, savedClass, type Snapshot } from "../class-cache";
 import type { ClassInfo, Me } from "../content";
 import { competencies, competencyTitle, heatmapGroups, lessonById, lessons as allLessons, pathLessons } from "../content";
 import { offlineChallenges } from "./HandoutPage";
@@ -82,29 +83,40 @@ function StaffLinkButton({ apiUrl, clientId }: { apiUrl: string; clientId: strin
   );
 }
 
-const classKey = (id: string) => `academy.classdata.${id}`;
+/** "Updated just now / 3 min ago", ticking on its own. */
+function Ago({ at }: { at: number }) {
+  const [now, setNow] = useState(at);
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30_000); return () => clearInterval(t); }, []);
+  const min = Math.max(0, Math.floor((Math.max(now, at) - at) / 60_000));
+  return <>{min < 1 ? "Updated just now" : min < 60 ? `Updated ${min} min ago` : `Updated ${Math.floor(min / 60)} h ago`}</>;
+}
+
 function ClassView({ classId, apiUrl, clientId, onChange }: { classId: string; apiUrl: string; clientId: string; onChange: () => void }) {
-  // open instantly from the last snapshot (this browser tab only), then refresh from Google
-  const [data, setData] = useState<ClassData | null>(() => {
-    try { return JSON.parse(sessionStorage.getItem(classKey(classId)) ?? "null"); } catch { return null; }
-  });
+  // open instantly from the last copy (kept until sign-out), then keep refreshing from Google in the background
+  const [snap, setSnap] = useState<Snapshot<ClassData> | null>(() => savedClass<ClassData>(classId));
+  const data = snap?.data ?? null;
+  const [refreshing, setRefreshing] = useState(false);
   const [err, setErr] = useState<{ error: string; details?: string } | null>(null);
   const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
   const load = useCallback(async () => {
-    const r = await call<ClassData>(apiUrl, "classData");
+    setRefreshing(true);
+    const r = await fetchClass<ClassData>(apiUrl, classId);
+    setRefreshing(false);
     if (r.ok) {
-      setData(r.data);
+      setSnap({ at: Date.now(), data: r.data });
       setErr(null);
-      try { sessionStorage.setItem(classKey(classId), JSON.stringify(r.data)); } catch { /* too big: skip */ }
     } else setErr(r);
   }, [apiUrl, classId]);
   useEffect(() => { void load(); }, [load]);
-  // keep "Right now" fresh during class (only while the Overview tab is visible)
+  // keep everything fresh in the background: every minute while the page is visible, and right away on coming back
+  const atRef = useRef(snap?.at ?? 0);
+  useEffect(() => { atRef.current = snap?.at ?? 0; }, [snap]);
   useEffect(() => {
-    if (tab !== "Overview") return;
     const t = setInterval(() => { if (document.visibilityState === "visible") void load(); }, 60_000);
-    return () => clearInterval(t);
-  }, [tab, load]);
+    const onVisible = () => { if (document.visibilityState === "visible" && Date.now() - atRef.current > 30_000) void load(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { clearInterval(t); document.removeEventListener("visibilitychange", onVisible); };
+  }, [load]);
   if (err && !data) return <FriendlyError {...err} integration onRetry={() => void load()} />;
   if (!data) return <p role="status" className="py-20 text-center text-muted">Loading class data from Google Sheets…</p>;
   const name = (email: string) => data.students.find((s) => s.email === email)?.name ?? email;
@@ -119,7 +131,8 @@ function ClassView({ classId, apiUrl, clientId, onChange }: { classId: string; a
         <Pill tone="primary">{data.cls.pathId}</Pill>
         <Button size="sm" variant="secondary" className="ml-auto" title="See the missions exactly as a student does: locks, required answers and all." onClick={() => { setStudentView(true); location.hash = "#/student"; }}>Student view</Button>
         <StaffLinkButton apiUrl={apiUrl} clientId={clientId} />
-        <Button size="sm" variant="secondary" onClick={() => void load()}>Refresh</Button>
+        <span className="text-xs text-muted" role="status">{refreshing ? "Refreshing…" : snap ? <Ago at={snap.at} /> : null}</span>
+        <Button size="sm" variant="secondary" disabled={refreshing} onClick={() => void load()}>Refresh</Button>
       </div>
       <nav className="mb-6 flex gap-1 overflow-x-auto border-b border-border" aria-label="Teacher sections">
         {TABS.map((t) => (
@@ -658,11 +671,16 @@ function LessonLibrary({ data }: { data: ClassData }) {
         <span className="font-mono text-xs text-muted" title="Students in this class who completed it">{done(lesson.id)}/{data.students.length} done</span>
         <a href={`#/lesson/${lesson.id}`} className="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-fg hover:brightness-110">Open</a>
         {offline && <a href={`#/print/${lesson.id}`} className="rounded-lg border border-border px-3 py-1.5 text-sm font-semibold hover:bg-surface-2">Handout</a>}
+        <a href={`#/guide/${lesson.id}`} className="rounded-lg border border-border px-3 py-1.5 text-sm font-semibold hover:bg-surface-2">Teacher guide</a>
       </li>
     );
   };
   return (
     <div className="space-y-4">
+      <a href="#/kit" className="flex flex-wrap items-center gap-3 rounded-2xl border border-primary bg-primary-soft p-3 hover:brightness-105">
+        <span className="min-w-0 flex-1"><strong>Print kit</strong> <span className="text-sm text-muted">· every print this course needs, in teaching order, with STL downloads and optional Printables extras</span></span>
+        <span className="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-fg">Open</span>
+      </a>
       <p className="text-sm text-muted">All lessons are open to teachers and admins at any time. Opening one shows it exactly as students see it; your answers go to your own test record, not to the class.</p>
       <Input aria-label="Search lessons" placeholder="Search lessons…" value={q} onChange={(e) => setQ(e.target.value)} />
       <ul className="space-y-2">{inPath.map(({ lesson, week }) => row(lesson, week))}</ul>

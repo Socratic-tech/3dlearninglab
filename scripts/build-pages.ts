@@ -126,6 +126,15 @@ const publicEs = lessons.map((l) => {
   return { ...rest, sections: rest.sections.map((s) => ({ ...s, blocks: s.blocks.map(publish) })) };
 });
 fs.writeFileSync(path.join(gen, "lessons.es.json"), JSON.stringify(publicEs));
+// Teacher prep notes (prints, setup, settings, talking points) for the teacher guide and print kit. Answer guidance
+// is left out on purpose, so nothing here helps a student who reads the site's files. Loaded only by teachers.
+const prep = Object.fromEntries(
+  lessons.filter((l) => l.teacher).map((l) => {
+    const t = l.teacher!;
+    return [l.id, { purpose: t.purpose, preparation: t.preparation, equipment: t.equipment, printableObjects: t.printableObjects, slicerSettings: t.slicerSettings, troubleshooting: t.troubleshooting, misconceptions: t.misconceptions, discussionQuestions: t.discussionQuestions, alternatives: t.alternatives }];
+  }),
+);
+fs.writeFileSync(path.join(gen, "teacher-prep.json"), JSON.stringify(prep));
 // Model files are served by the static site too (single source: public/models).
 fs.cpSync(path.join(root, "public/models"), path.join(root, "web/public/models"), { recursive: true });
 

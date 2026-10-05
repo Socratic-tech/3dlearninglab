@@ -7,12 +7,14 @@ import { DisplayMenu } from "./display";
 import { LogoMark } from "@/components/nav/logo";
 import { Alert } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { readConfig, resetDevice, setCurrentClassId } from "./config";
+import { currentClassId, readConfig, resetDevice, setCurrentClassId } from "./config";
 import { currentToken, renderSignIn, renewSignIn, signOut, tokenEmail, tokenExpiresAt } from "./auth";
 import { cachedMe, clearCachedData, saveMe, withPending } from "./cache";
 import { resumeSync, startSync, subscribeSync, syncState } from "./sync";
 import { SyncPill } from "./sync-pill";
-import { identityOf, isStaff, setPreviewUnlock, setStudentView, usePreviewUnlock, useStudentView } from "./state";
+import { fetchClass } from "./class-cache";
+import { PrintKitPage, TeacherGuidePage } from "./pages/TeacherGuidePage";
+import { identityOf, isStaff, studentViewOn, setPreviewUnlock, setStudentView, usePreviewUnlock, useStudentView } from "./state";
 import { call } from "./api";
 import type { Me } from "./content";
 import { StudentHome } from "./pages/StudentHome";
@@ -60,6 +62,10 @@ export function App() {
     if (!cfg.apiUrl || !currentToken()) return;
     const email = identityOf(tokenEmail());
     if (email) startSync(cfg.apiUrl, email);
+    // teachers: ask for the class numbers at the same time as the profile (the dashboard picks up the same request)
+    const known = goodCached(cfg.apiUrl, email);
+    const cid = currentClassId() ?? known?.cls?.id;
+    if (known?.user.role === "teacher" && !studentViewOn() && cid) void fetchClass(cfg.apiUrl, cid);
     const r = await call<Me>(cfg.apiUrl, "me");
     if (r.ok && !isMe(r.data)) {
       console.error("Unexpected class reply", r.data);
@@ -133,6 +139,8 @@ export function App() {
     const [lessonId, focus] = route.slice(8).split("/");
     page = <LessonPage key={route} me={me} apiUrl={cfg.apiUrl} lessonId={lessonId} focusBlockId={focus} onChange={load} />;
   } else if (route.startsWith("/print/")) page = <HandoutPage me={me} lessonId={route.slice(7)} />;
+  else if (me.user.role === "teacher" && route.startsWith("/guide/")) page = <TeacherGuidePage lessonId={route.slice(7)} />;
+  else if (me.user.role === "teacher" && route === "/kit") page = <PrintKitPage me={me} />;
   else if (me.user.role === "teacher" && (route.startsWith("/teacher") || (route === "/" && !studentView))) page = <TeacherPage me={me} apiUrl={cfg.apiUrl} clientId={cfg.clientId} onChange={load} />;
   else page = <StudentHome me={me} apiUrl={cfg.apiUrl} onChange={load} />;
 
