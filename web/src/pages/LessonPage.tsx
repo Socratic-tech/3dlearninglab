@@ -57,6 +57,7 @@ export function LessonPage({ me, apiUrl, lessonId, focusBlockId, onChange }: { m
         assets={assetsFor(lesson)}
         competencyTitles={competencyTitleFor()}
         goals={goalsFor(lesson.competencyIds)}
+        celebration={me.store?.equipped?.celebration}
         buildsOn={buildsOnFor(lesson.prerequisites)}
         journalPrompts={journalPromptsFor()}
         journals={me.journals}

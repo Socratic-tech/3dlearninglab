@@ -4,7 +4,7 @@ import { Printer, RotateCcw } from "lucide-react";
 import { Pill } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { call } from "../api";
-import { applySkin, SKINS, SkinPicker, type SkinId } from "../skins";
+import { Avatar, itemName, XpStore } from "../store";
 import { StreakCard } from "@/components/student/mission-path";
 import { NextUpPath } from "@/components/student/next-up";
 import { allBlocks, isRequiredBlock } from "@/content/schema";
@@ -22,10 +22,11 @@ export function StudentHome({ me, apiUrl, onChange }: { me: Me; apiUrl: string; 
   return (
     <div className="space-y-8">
       <section className="bg-blueprint flex items-center gap-4 rounded-3xl border border-border bg-surface p-4 sm:gap-6 sm:p-6">
-        <ProgressRing value={inPath.size ? (mastered / inPath.size) * 100 : 0} size={76} stroke={8} label={tr("Skills mastered")} />
-        <div className="flex-1">
+        {me.store?.equipped ? <Avatar eq={me.store.equipped} size={76} label={tr("Your avatar")} /> : <ProgressRing value={inPath.size ? (mastered / inPath.size) * 100 : 0} size={76} stroke={8} label={tr("Skills mastered")} />}
+        <div className="min-w-0 flex-1">
           <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-primary">{tr("Welcome back")}</p>
           <h1 className="font-display text-2xl font-bold sm:text-3xl">{me.user.name.split(" ")[0]}</h1>
+          {me.store?.equipped?.title && <p className="font-display text-sm font-bold text-accent">★ {itemName(me.store.equipped.title)}</p>}
           <p className="text-sm text-muted sm:text-base">{tr("{m} of {n} skills mastered · {d} of {t} missions done", { m: mastered, n: inPath.size, d: done, t: items.length })}</p>
         </div>
       </section>
@@ -56,7 +57,7 @@ export function StudentHome({ me, apiUrl, onChange }: { me: Me; apiUrl: string; 
         })}
       />
       {me.stats && <StreakCard stats={me.stats} />}
-      {me.stats && me.store && !isStaff(me) && <Looks store={me.store} apiUrl={apiUrl} onChange={onChange} />}
+      {me.stats && me.store && !isStaff(me) && <XpStore store={me.store} apiUrl={apiUrl} onChange={onChange} />}
 
       <ReviewDeck me={me} />
 
@@ -179,20 +180,3 @@ function MyPrints({ me, apiUrl, onChange }: { me: Me; apiUrl: string; onChange: 
   );
 }
 
-function Looks({ store, apiUrl, onChange }: { store: NonNullable<Me["store"]>; apiUrl: string; onChange: () => void }) {
-  const safe = (id: string): SkinId => SKINS.some((s) => s.id === id) ? id as SkinId : "blueprint";
-  const [skin, setSkin] = useState<SkinId>(() => safe(store.activeLook));
-  const [busy, setBusy] = useState<SkinId | null>(null);
-  const [msg, setMsg] = useState("");
-  useEffect(() => { const id = safe(store.activeLook); applySkin(id); setSkin(id); }, [store.activeLook]);
-  const act = async (action: "buyLook" | "selectLook", id: SkinId) => {
-    setBusy(id);
-    const r = await call(apiUrl, action, { lookId: id });
-    setBusy(null);
-    if (!r.ok) { setMsg(r.error); return; }
-    setMsg(action === "buyLook" ? tr("Bought! Choose Use to turn it on.") : tr("Your look is on."));
-    if (action === "selectLook") { applySkin(id); setSkin(id); }
-    onChange();
-  };
-  return <div><SkinPicker balance={store.balance} owned={store.ownedLooks.map(safe)} current={skin} busy={busy} onBuy={(id) => void act("buyLook", id)} onChange={(id) => void act("selectLook", id)} /><p role="status" className="mt-2 text-sm">{msg}</p></div>;
-}

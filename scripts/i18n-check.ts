@@ -75,5 +75,11 @@ function INDIRECT() {
     "Blueprint", "Neon", "Arcade", "Sunset", "Galaxy",
     "done", "locked", "keep going", "start here", "ready",
     "Drag to orbit · Right-drag/two-finger to pan · Scroll/pinch to zoom",
+    // XP store (web/src/store.tsx): item names and tab labels reach tr() through variables
+    "Avatar", "Titles", "Celebrations", "Looks", "Class rewards",
+    "Robot", "Cube", "Octo", "Dragon", "UFO", "Blue", "Orange", "Green", "Purple", "Pink", "Gold",
+    "No hat", "Safety goggles", "Headphones", "Wizard hat", "Crown", "Nothing", "Wrench", "Calipers", "Filament spool", "Trophy",
+    "Rookie Maker", "Layer Legend", "CAD Wizard", "Support Slayer", "Tolerance Tamer", "Bridge Boss", "Infill Icon", "Master Maker",
+    "Confetti", "Fireworks", "Pixel burst", "Print a trophy", "Rocket launch",
   ];
 }

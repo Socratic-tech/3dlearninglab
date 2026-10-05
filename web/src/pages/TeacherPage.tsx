@@ -37,7 +37,7 @@ type Live = {
 };
 export type PrintJob = { id: string; email: string; lessonId: string; fileName: string | null; fileUrl: string | null; status: string; note: string; teacherNote: string; createdAt: string; updatedAt: string };
 
-const TABS = ["Overview", "Lessons", "Heatmap", "Review", "Prints", "Roster", "Classes"] as const;
+const TABS = ["Overview", "Lessons", "Heatmap", "Review", "Prints", "Rewards", "Roster", "Classes"] as const;
 
 export function TeacherPage(p: { me: Me; apiUrl: string; clientId: string; onChange: () => void }) {
   return (
@@ -129,6 +129,7 @@ function ClassView({ classId, apiUrl, clientId, onChange }: { classId: string; a
       {tab === "Heatmap" && <Heatmap data={data} apiUrl={apiUrl} onSaved={load} />}
       {tab === "Review" && <Review queue={queue} name={name} apiUrl={apiUrl} onSaved={load} />}
       {tab === "Prints" && <Prints jobs={data.prints ?? []} name={name} apiUrl={apiUrl} onSaved={load} />}
+      {tab === "Rewards" && <Rewards apiUrl={apiUrl} />}
       {tab === "Roster" && <Roster data={data} apiUrl={apiUrl} onSaved={load} onClassesChanged={onChange} />}
       {tab === "Classes" && <Classes data={data} apiUrl={apiUrl} onChange={() => { onChange(); void load(); }} />}
     </div>
@@ -474,6 +475,86 @@ const PRINT_ACTIONS: Record<string, { status: string; label: string }[]> = {
   failed: [{ status: "queued", label: "Return to queue" }, { status: "redo", label: "Send to redo" }],
   cancelled: [{ status: "queued", label: "Reopen" }],
 };
+
+type Reward = { id: string; name: string; description: string; price: number; active: boolean };
+type RewardRequest = { id: string; email: string; studentName: string; name: string; price: number; status: string; teacherNote: string; createdAt: string };
+const REWARD_IDEAS: { name: string; description: string; price: number }[] = [
+  { name: "Pick the filament color", description: "For your next print", price: 200 },
+  { name: "Front of the print queue", description: "Your next print goes first", price: 400 },
+  { name: "Choose the class music", description: "10 minutes during work time", price: 250 },
+  { name: "Print a design of your choice", description: "Small, under 1 hour, teacher-approved", price: 600 },
+  { name: "Be the class tech helper", description: "Help classmates for a day", price: 150 },
+  { name: "Show your design to the class", description: "2-minute spotlight", price: 100 },
+];
+
+/** Classroom perks the teacher creates. Students spend XP to ask; the teacher approves, declines (XP back) or marks given. */
+function Rewards({ apiUrl }: { apiUrl: string }) {
+  const [data, setData] = useState<{ rewards: Reward[]; requests: RewardRequest[] } | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [form, setForm] = useState({ name: "", description: "", price: "200" });
+  const run = useCallback(async (action: string, args: Record<string, unknown> = {}) => {
+    setBusy(true);
+    const r = await call<{ rewards: Reward[]; requests: RewardRequest[] }>(apiUrl, action, args);
+    setBusy(false);
+    if (r.ok) { setData(r.data); setErr(null); return true; }
+    setErr(r.error);
+    return false;
+  }, [apiUrl]);
+  useEffect(() => { void run("rewards"); }, [run]);
+  if (!data) return <p role="status" className="py-10 text-center text-muted">{err ?? "Loading rewards…"}</p>;
+  const pending = data.requests.filter((q) => q.status === "requested");
+  const approved = data.requests.filter((q) => q.status === "approved");
+  return (
+    <div className="space-y-6">
+      {err && <Alert tone="danger">{err}</Alert>}
+      <Card>
+        <CardTitle>Requests waiting ({pending.length})</CardTitle>
+        {pending.length === 0 && approved.length === 0 ? <p className="mt-2 text-sm text-muted">No requests right now.</p> : (
+          <ul className="mt-3 divide-y divide-border">
+            {[...pending, ...approved].map((q) => (
+              <li key={q.id} className="flex flex-wrap items-center gap-2 py-2 text-sm">
+                <span className="min-w-0 flex-1"><strong>{q.studentName}</strong> · {q.name} <span className="text-muted">({q.price} XP)</span> {q.status === "approved" && <Pill tone="success">approved</Pill>}</span>
+                {q.status === "requested" && <Button size="sm" disabled={busy} onClick={() => void run("decideReward", { id: q.id, status: "approved" })}>Approve</Button>}
+                <Button size="sm" variant="secondary" disabled={busy} onClick={() => void run("decideReward", { id: q.id, status: "given" })}>Mark given</Button>
+                {q.status === "requested" && <Button size="sm" variant="ghost" disabled={busy} onClick={() => { const note = prompt("Optional note for the student (they get their XP back):") ?? ""; void run("decideReward", { id: q.id, status: "declined", note }); }}>Decline</Button>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+      <Card>
+        <CardTitle>Your class rewards</CardTitle>
+        <p className="mt-1 text-sm text-muted">Real perks students can spend XP on. Keep them fun, not academic (no grade boosts), so every student can earn them by learning.</p>
+        <ul className="mt-3 divide-y divide-border">
+          {data.rewards.map((w) => (
+            <li key={w.id} className="flex flex-wrap items-center gap-2 py-2 text-sm">
+              <span className={cn("min-w-0 flex-1", !w.active && "text-muted line-through")}><strong>{w.name}</strong> · {w.price} XP {w.description && <span className="text-muted">— {w.description}</span>}</span>
+              <Button size="sm" variant="secondary" disabled={busy} onClick={() => void run("saveReward", { ...w, active: !w.active })}>{w.active ? "Hide" : "Show"}</Button>
+            </li>
+          ))}
+          {data.rewards.length === 0 && <li className="py-2 text-sm text-muted">None yet. Add one below or start from an idea.</li>}
+        </ul>
+        <form
+          className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_7rem_auto] sm:items-end"
+          onSubmit={(e) => { e.preventDefault(); void run("saveReward", { name: form.name, description: form.description, price: Number(form.price) }).then((ok) => ok && setForm({ name: "", description: "", price: "200" })); }}
+        >
+          <Field label="Reward" htmlFor="rw-name"><Input id="rw-name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Pick the filament color" /></Field>
+          <Field label="Details (optional)" htmlFor="rw-desc"><Input id="rw-desc" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field>
+          <Field label="Price (XP)" htmlFor="rw-price"><Input id="rw-price" type="number" min={10} max={5000} required value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} /></Field>
+          <Button disabled={busy}>Add reward</Button>
+        </form>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <span className="text-sm text-muted">Ideas:</span>
+          {REWARD_IDEAS.filter((i) => !data.rewards.some((w) => w.name === i.name)).map((i) => (
+            <button key={i.name} className="rounded-full border border-border px-3 py-1 text-sm hover:bg-surface-2" onClick={() => setForm({ name: i.name, description: i.description, price: String(i.price) })}>+ {i.name}</button>
+          ))}
+        </div>
+        <p className="mt-3 text-xs text-muted">For scale: a student earns roughly 100–200 XP in a typical mission, and the daily goal is 50.</p>
+      </Card>
+    </div>
+  );
+}
 
 function Prints({ jobs, name, apiUrl, onSaved }: { jobs: PrintJob[]; name: (e: string) => string; apiUrl: string; onSaved: () => void }) {
   const [filter, setFilter] = useState<"open" | "all">("open");

@@ -423,3 +423,50 @@ describe("Lesson content feed", () => {
     expect(fallback![1]).not.toContain("correctOptionIds");
   });
 });
+
+describe("XP store and class rewards", () => {
+  const give = (e: ReturnType<typeof makeEnv>, xp: number) => e.run(`(MEMO_ = {}, addXp_("maya@school.org", []), table_("Summary").upsert(function (r) { return r.email === "maya@school.org"; }, { xp: ${xp} }), true)`);
+  const setupClass = () => {
+    const e = makeEnv("teacher@school.org");
+    const classId = e.call("teacher@school.org", "createClass", { name: "Store" }).data.id;
+    e.call("teacher@school.org", "addStudents", { classId, students: [{ email: "maya@school.org" }] });
+    return { e, classId };
+  };
+
+  it("buys and equips cosmetic items; prices come from the server; free items are owned from the start", () => {
+    const { e } = setupClass();
+    give(e, 300);
+    let store = e.call("maya@school.org", "me").data.store;
+    expect(store.owned).toEqual(expect.arrayContaining(["blueprint", "body-bot", "title-rookie", "fx-confetti"]));
+    expect(store.equipped).toMatchObject({ look: "blueprint", body: "body-bot", title: "title-rookie", celebration: "fx-confetti" });
+    expect(e.call("maya@school.org", "equipItem", { itemId: "hat-crown" }).error).toMatch(/Get that item/);
+    store = e.call("maya@school.org", "buyItem", { itemId: "title-cad-wizard" }).data;
+    expect(store.balance).toBe(100);
+    expect(e.call("maya@school.org", "buyItem", { itemId: "hat-crown" }).error).toMatch(/250 more XP/);
+    store = e.call("maya@school.org", "equipItem", { itemId: "title-cad-wizard" }).data;
+    expect(store.equipped.title).toBe("title-cad-wizard");
+    expect(e.call("maya@school.org", "buyItem", { itemId: "made-up" }).error).toMatch(/doesn't exist/);
+    // looks still work through the old actions
+    expect(e.call("maya@school.org", "buyLook", { lookId: "neon" }).error).toMatch(/50 more XP/);
+  });
+
+  it("class rewards: teacher creates, student requests (XP held), decline gives it back, students can't approve", () => {
+    const { e, classId } = setupClass();
+    give(e, 500);
+    const made = e.call("teacher@school.org", "saveReward", { classId, name: "Pick the filament colour", price: 200 }).data;
+    const reward = made.rewards[0];
+    expect(e.call("maya@school.org", "me", { classId }).data.store.rewards).toEqual([expect.objectContaining({ name: "Pick the filament colour", price: 200 })]);
+    let store = e.call("maya@school.org", "requestReward", { classId, rewardId: reward.id }).data;
+    expect(store.balance).toBe(300);
+    expect(store.requests[0]).toMatchObject({ status: "requested", name: "Pick the filament colour" });
+    expect(e.call("maya@school.org", "requestReward", { classId, rewardId: reward.id }).error).toMatch(/already asked/);
+    const list = e.call("teacher@school.org", "rewards", { classId }).data;
+    expect(list.requests[0]).toMatchObject({ studentName: expect.any(String), status: "requested" });
+    expect(e.call("maya@school.org", "decideReward", { classId, id: list.requests[0].id, status: "approved" }).ok).toBe(false);
+    e.call("teacher@school.org", "decideReward", { classId, id: list.requests[0].id, status: "declined", note: "Next week!" });
+    store = e.call("maya@school.org", "me", { classId }).data.store;
+    expect(store.balance).toBe(500);
+    expect(store.requests[0]).toMatchObject({ status: "declined", teacherNote: "Next week!" });
+    expect(e.call("teacher@school.org", "saveReward", { classId, name: "Too cheap", price: 1 }).error).toMatch(/between 10/);
+  });
+});

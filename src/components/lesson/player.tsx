@@ -15,6 +15,7 @@ import { cn } from "@/lib/cn";
 import * as S from "./static-blocks";
 import * as I from "./interactive-blocks";
 import { Md } from "./static-blocks";
+import { Celebration } from "@/components/student/celebration";
 import { decodePack } from "@/lib/answer-pack";
 import { localizedFlavor } from "@/content/i18n/localize";
 
@@ -49,6 +50,8 @@ export type PlayerProps = {
   goals?: string[];
   /** Titles of the lessons this one builds on */
   buildsOn?: string[];
+  /** Mission-complete effect the student chose in the XP store */
+  celebration?: string;
 };
 
 export function LessonPlayer(p: PlayerProps) {
@@ -180,7 +183,7 @@ export function LessonPlayer(p: PlayerProps) {
     <section aria-label={tr("Finish this mission")} className="rounded-3xl border border-border bg-surface p-6 text-center sm:p-10">
       {completed ? (
         <div className="relative animate-unlock">
-          {result && <Confetti />}
+          {result && <Celebration kind={p.celebration} />}
           <CircleCheck className="mx-auto size-16 text-success" aria-hidden />
           <p className="mt-3 font-display text-3xl font-bold">{tr("Mission complete!")}</p>
           {pending && !result?.stats && <p className="mt-4 animate-pulse text-sm text-muted">{tr("Adding up your XP…")}</p>}
@@ -469,20 +472,6 @@ function ReadAloud({ target }: { target: React.RefObject<HTMLDivElement | null> 
 }
 
 /** A short burst of confetti (skipped when reduce motion is on — the animation becomes instant). */
-function Confetti() {
-  const colors = ["var(--accent)", "var(--primary)", "var(--success)", "var(--warning)"];
-  return (
-    <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-6 h-0 overflow-visible">
-      {Array.from({ length: 24 }, (_, i) => (
-        <span
-          key={i}
-          className="confetti absolute top-0 block h-3 w-2 rounded-sm"
-          style={{ left: `${(i * 37) % 100}%`, background: colors[i % 4], animationDelay: `${(i % 6) * 60}ms`, ["--dx" as string]: `${((i * 53) % 80) - 40}px` }}
-        />
-      ))}
-    </div>
-  );
-}
 
 const LIGHT: LessonBlock["type"][] = ["text", "callout"];
 

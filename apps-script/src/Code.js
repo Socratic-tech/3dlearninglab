@@ -29,7 +29,9 @@ const TABLES = {
   History: ["at", "email", "competencyId", "from", "to", "reason", "actor"],
   Evidence: ["id", "email", "lessonId", "blockId", "competencyIds", "type", "url", "fileId", "fileName", "text", "status", "rating", "comment", "reviewedBy", "reviewedAt", "createdAt"],
   Journals: ["email", "projectKey", "entries", "updatedAt"],
-  Summary: ["email", "xp", "days", "seen", "byLesson", "updatedAt", "spentXp", "ownedLooks", "activeLook"],
+  Summary: ["email", "xp", "days", "seen", "byLesson", "updatedAt", "spentXp", "ownedLooks", "activeLook", "owned", "equipped"],
+  Rewards: ["id", "classId", "name", "description", "price", "active", "createdAt", "updatedAt"],
+  Redemptions: ["id", "email", "classId", "rewardId", "rewardName", "price", "status", "teacherNote", "createdAt", "updatedAt"],
   Prints: ["id", "email", "classId", "lessonId", "evidenceId", "fileId", "fileName", "status", "note", "teacherNote", "createdAt", "updatedAt"],
 };
 
@@ -592,28 +594,114 @@ function summaryOf_(row) {
   return { xp: Number(row.xp) || 0, days: parse_(row.days, {}), seen: parse_(row.seen, []), byLesson: parse_(row.byLesson, {}) };
 }
 
-// Cosmetic rewards only. Reading, contrast, text size and other access tools are always free.
-const STORE_LOOKS = [
-  { id: "blueprint", name: "Blueprint", price: 0 },
-  { id: "neon", name: "Neon", price: 150 },
-  { id: "arcade", name: "Arcade", price: 300 },
-  { id: "sunset", name: "Sunset", price: 500 },
-  { id: "galaxy", name: "Galaxy", price: 800 },
+// ── XP store ──
+// Cosmetic items only (looks, avatar parts, titles, celebrations) plus classroom perks a teacher creates.
+// Reading, contrast, text size, read aloud and other access tools are never sold. Prices live here (the server
+// decides); the website only shows them.
+const STORE_ITEMS = [
+  // looks (colour themes)
+  { id: "blueprint", kind: "look", price: 0 }, { id: "neon", kind: "look", price: 150 }, { id: "arcade", kind: "look", price: 300 },
+  { id: "sunset", kind: "look", price: 500 }, { id: "galaxy", kind: "look", price: 800 },
+  // avatar: body, colour, hat, tool
+  { id: "body-bot", kind: "body", price: 0 }, { id: "body-cube", kind: "body", price: 80 }, { id: "body-octo", kind: "body", price: 200 },
+  { id: "body-dragon", kind: "body", price: 400 }, { id: "body-ufo", kind: "body", price: 600 },
+  { id: "color-blue", kind: "color", price: 0 }, { id: "color-orange", kind: "color", price: 0 }, { id: "color-green", kind: "color", price: 40 },
+  { id: "color-purple", kind: "color", price: 60 }, { id: "color-pink", kind: "color", price: 60 }, { id: "color-gold", kind: "color", price: 300 },
+  { id: "hat-none", kind: "hat", price: 0 }, { id: "hat-goggles", kind: "hat", price: 80 }, { id: "hat-headphones", kind: "hat", price: 120 },
+  { id: "hat-wizard", kind: "hat", price: 200 }, { id: "hat-crown", kind: "hat", price: 350 },
+  { id: "tool-none", kind: "tool", price: 0 }, { id: "tool-wrench", kind: "tool", price: 60 }, { id: "tool-calipers", kind: "tool", price: 150 },
+  { id: "tool-spool", kind: "tool", price: 220 }, { id: "tool-trophy", kind: "tool", price: 500 },
+  // titles under your name
+  { id: "title-rookie", kind: "title", price: 0 }, { id: "title-layer-legend", kind: "title", price: 100 }, { id: "title-cad-wizard", kind: "title", price: 200 },
+  { id: "title-support-slayer", kind: "title", price: 250 }, { id: "title-tolerance-tamer", kind: "title", price: 300 },
+  { id: "title-bridge-boss", kind: "title", price: 350 }, { id: "title-infill-icon", kind: "title", price: 400 }, { id: "title-master-maker", kind: "title", price: 1000 },
+  // what happens when you finish a mission
+  { id: "fx-confetti", kind: "celebration", price: 0 }, { id: "fx-fireworks", kind: "celebration", price: 120 }, { id: "fx-pixels", kind: "celebration", price: 180 },
+  { id: "fx-trophy", kind: "celebration", price: 250 }, { id: "fx-rocket", kind: "celebration", price: 350 },
 ];
+const STORE_DEFAULTS = { look: "blueprint", body: "body-bot", color: "color-blue", hat: "hat-none", tool: "tool-none", title: "title-rookie", celebration: "fx-confetti" };
+// kept for older pages that still ask for looks
+const STORE_LOOKS = STORE_ITEMS.filter(function (x) { return x.kind === "look"; }).map(function (x) { return { id: x.id, price: x.price }; });
 
-function storeOf_(row) {
-  const owned = parse_(row && row.ownedLooks, ["blueprint"]).filter(function (id) { return STORE_LOOKS.some(function (x) { return x.id === id; }); });
-  if (owned.indexOf("blueprint") < 0) owned.unshift("blueprint");
-  const active = row && owned.indexOf(row.activeLook) >= 0 ? row.activeLook : "blueprint";
-  const earned = Number(row && row.xp) || 0;
-  const spent = Math.max(0, Number(row && row.spentXp) || 0);
-  return { balance: Math.max(0, earned - spent), spent: spent, ownedLooks: owned, activeLook: active };
+function storeItem_(id) {
+  return STORE_ITEMS.filter(function (x) { return x.id === id; })[0] || null;
 }
 
-function storeState_(email) {
+function storeOf_(row) {
+  const free = STORE_ITEMS.filter(function (x) { return x.price === 0; }).map(function (x) { return x.id; });
+  const owned = free.slice();
+  parse_(row && row.ownedLooks, []).concat(parse_(row && row.owned, [])).forEach(function (id) { if (storeItem_(id) && owned.indexOf(id) < 0) owned.push(id); });
+  const saved = parse_(row && row.equipped, {});
+  const equipped = {};
+  Object.keys(STORE_DEFAULTS).forEach(function (slot) {
+    const want = slot === "look" ? saved.look || (row && row.activeLook) : saved[slot];
+    const item = storeItem_(want);
+    equipped[slot] = item && item.kind === slot && owned.indexOf(want) >= 0 ? want : STORE_DEFAULTS[slot];
+  });
+  const earned = Number(row && row.xp) || 0;
+  const spent = Math.max(0, Number(row && row.spentXp) || 0);
+  return {
+    balance: Math.max(0, earned - spent), spent: spent, owned: owned, equipped: equipped,
+    prices: STORE_ITEMS.reduce(function (o, x) { o[x.id] = x.price; return o; }, {}),
+    // older pages
+    ownedLooks: owned.filter(function (id) { return storeItem_(id).kind === "look"; }), activeLook: equipped.look,
+  };
+}
+
+function storeRow_(email) {
+  const t = table_("Summary");
+  let row = t.find(function (r) { return r.email === email; });
+  if (!row) {
+    const base = Lib.applyEvents(Lib.emptySummary(), xpEventsFromHistory_(email), tz_());
+    row = t.upsert(function (r) { return r.email === email; }, { email: email, xp: base.xp, days: JSON.stringify(base.days), seen: JSON.stringify(base.seen), byLesson: JSON.stringify(base.byLesson), updatedAt: now_() });
+  }
+  return { t: t, row: row };
+}
+
+function storeState_(email, classId) {
   let row = table_("Summary").find(function (r) { return r.email === email; });
   if (!row) { addXp_(email, []); row = table_("Summary", true).find(function (r) { return r.email === email; }); }
-  return storeOf_(row);
+  const out = storeOf_(row);
+  out.rewards = classId ? table_("Rewards").filter(function (r) { return r.classId === classId && String(r.active).toUpperCase() !== "FALSE"; }).map(rewardOut_) : [];
+  out.requests = table_("Redemptions").filter(function (r) { return r.email === email; }).map(redemptionOut_).slice(-20).reverse();
+  return out;
+}
+
+function buyItem_(email, id) {
+  const item = storeItem_(id);
+  if (!item) throw userError_("That store item doesn't exist.");
+  return withStudentLock_(email, function () {
+    const got = storeRow_(email);
+    const store = storeOf_(got.row);
+    if (store.owned.indexOf(id) >= 0) return store;
+    if (store.balance < item.price) throw userError_("You need " + (item.price - store.balance) + " more XP for that.");
+    const bought = parse_(got.row.owned, []).concat([id]);
+    const saved = got.t.upsert(function (r) { return r.email === email; }, { spentXp: store.spent + item.price, owned: JSON.stringify(bought), updatedAt: now_() });
+    return storeOf_(saved);
+  });
+}
+
+function equipItem_(email, id) {
+  const item = storeItem_(id);
+  if (!item) throw userError_("That store item doesn't exist.");
+  return withStudentLock_(email, function () {
+    const got = storeRow_(email);
+    const store = storeOf_(got.row);
+    if (store.owned.indexOf(id) < 0) throw userError_("Get that item before using it.");
+    const eq = store.equipped;
+    eq[item.kind] = id;
+    const patch = { equipped: JSON.stringify(eq), updatedAt: now_() };
+    if (item.kind === "look") patch.activeLook = id;
+    return storeOf_(got.t.upsert(function (r) { return r.email === email; }, patch));
+  });
+}
+
+// ── Class rewards: real perks the teacher creates (e.g. pick the filament colour). Students request; teachers decide.
+function rewardOut_(r) {
+  return { id: r.id, name: r.name, description: r.description || "", price: Number(r.price) || 0, active: String(r.active).toUpperCase() !== "FALSE" };
+}
+function redemptionOut_(r) {
+  return { id: r.id, email: r.email, rewardId: r.rewardId, name: r.rewardName, price: Number(r.price) || 0, status: r.status, teacherNote: r.teacherNote || "", createdAt: r.createdAt, updatedAt: r.updatedAt };
 }
 
 /** Add XP events to the student's running summary (the Summary tab), so nobody has to re-read every answer. */
@@ -745,7 +833,7 @@ const ACTIONS = {
         evidence: evidence,
         journals: journals,
         stats: user.role === "student" ? stats_(user.email) : null,
-        store: user.role === "student" ? storeState_(user.email) : null,
+        store: user.role === "student" ? storeState_(user.email, cls ? cls.classId : null) : null,
         prints: table_("Prints").filter(function (r) { return r.email === user.email; }).map(printOut_),
         app: user.role === "teacher" ? { version: BUILD.version, owner: String(Session.getEffectiveUser().getEmail() || "").toLowerCase(), content: contentVersion_(), engineBehind: !!CacheService.getScriptCache().get("cf_engine_behind"), autoUpdates: viaLoader_(), safeUpdates: loaderInfo_().safe, previous: loaderInfo_().previous } : null,
       };
@@ -923,40 +1011,99 @@ const ACTIONS = {
   buyLook: {
     run: function (user, a) {
       if (user.role !== "student") throw userError_("You don't have access to that.");
-      const item = STORE_LOOKS.filter(function (x) { return x.id === a.lookId; })[0];
-      if (!item) throw userError_("That store item doesn't exist.");
-      return withStudentLock_(user.email, function () {
-        const t = table_("Summary");
-        let row = t.find(function (r) { return r.email === user.email; });
-        if (!row) {
-          const base = Lib.applyEvents(Lib.emptySummary(), xpEventsFromHistory_(user.email), tz_());
-          row = t.upsert(function (r) { return r.email === user.email; }, { email: user.email, xp: base.xp, days: JSON.stringify(base.days), seen: JSON.stringify(base.seen), byLesson: JSON.stringify(base.byLesson), updatedAt: now_() });
-        }
-        const store = storeOf_(row);
-        if (store.ownedLooks.indexOf(item.id) >= 0) return store;
-        if (store.balance < item.price) throw userError_("You need " + (item.price - store.balance) + " more XP for that look.");
-        store.ownedLooks.push(item.id);
-        const saved = t.upsert(function (r) { return r.email === user.email; }, { spentXp: store.spent + item.price, ownedLooks: JSON.stringify(store.ownedLooks), updatedAt: now_() });
-        return storeOf_(saved);
-      });
+      return buyItem_(user.email, a.lookId);
     },
   },
 
   selectLook: {
     run: function (user, a) {
       if (user.role !== "student") throw userError_("You don't have access to that.");
+      return equipItem_(user.email, a.lookId);
+    },
+  },
+
+  buyItem: {
+    run: function (user, a) {
+      if (user.role !== "student") throw userError_("You don't have access to that.");
+      return buyItem_(user.email, String(a.itemId || ""));
+    },
+  },
+
+  equipItem: {
+    run: function (user, a) {
+      if (user.role !== "student") throw userError_("You don't have access to that.");
+      return equipItem_(user.email, String(a.itemId || ""));
+    },
+  },
+
+  /** Student asks for a class reward. The XP is held right away and given back if the teacher says no. */
+  requestReward: {
+    run: function (user, a) {
+      if (user.role !== "student") throw userError_("You don't have access to that.");
+      const cls = classFor_(user, a.classId);
+      const reward = table_("Rewards").find(function (r) { return r.id === a.rewardId && r.classId === cls.classId && String(r.active).toUpperCase() !== "FALSE"; });
+      if (!reward) throw userError_("That reward isn't available right now.");
+      const price = Math.max(0, Math.round(Number(reward.price) || 0));
       return withStudentLock_(user.email, function () {
-        const t = table_("Summary");
-        let row = t.find(function (r) { return r.email === user.email; });
-        if (!row) {
-          const base = Lib.applyEvents(Lib.emptySummary(), xpEventsFromHistory_(user.email), tz_());
-          row = t.upsert(function (r) { return r.email === user.email; }, { email: user.email, xp: base.xp, days: JSON.stringify(base.days), seen: JSON.stringify(base.seen), byLesson: JSON.stringify(base.byLesson), ownedLooks: JSON.stringify(["blueprint"]), updatedAt: now_() });
-        }
-        const store = storeOf_(row);
-        if (store.ownedLooks.indexOf(a.lookId) < 0) throw userError_("Buy that look before using it.");
-        const saved = t.upsert(function (r) { return r.email === user.email; }, { activeLook: a.lookId, updatedAt: now_() });
-        return storeOf_(saved);
+        const pending = table_("Redemptions").filter(function (r) { return r.email === user.email && r.rewardId === reward.id && r.status === "requested"; });
+        if (pending.length) throw userError_("You already asked for this one. Your teacher will get back to you.");
+        const got = storeRow_(user.email);
+        const store = storeOf_(got.row);
+        if (store.balance < price) throw userError_("You need " + (price - store.balance) + " more XP for that.");
+        got.t.upsert(function (r) { return r.email === user.email; }, { spentXp: store.spent + price, updatedAt: now_() });
+        table_("Redemptions").append({ id: "rd" + Utilities.getUuid().slice(0, 8), email: user.email, classId: cls.classId, rewardId: reward.id, rewardName: reward.name, price: price, status: "requested", teacherNote: "", createdAt: now_(), updatedAt: now_() });
+        return storeState_(user.email, cls.classId);
       });
+    },
+  },
+
+  /** Teacher: the class's rewards and requests. */
+  rewards: {
+    role: "teacher",
+    run: function (user, a) {
+      const cls = classFor_(user, a.classId);
+      const names = {};
+      table_("Users").filter(function () { return true; }).forEach(function (u) { names[u.email] = u.name || u.email; });
+      return {
+        rewards: table_("Rewards").filter(function (r) { return r.classId === cls.classId; }).map(rewardOut_),
+        requests: table_("Redemptions").filter(function (r) { return r.classId === cls.classId; }).map(function (r) { const o = redemptionOut_(r); o.studentName = names[r.email] || r.email; return o; }).reverse(),
+      };
+    },
+  },
+
+  saveReward: {
+    role: "teacher",
+    run: function (user, a) {
+      const cls = classFor_(user, a.classId);
+      const name = String(a.name || "").trim().slice(0, 80);
+      const price = Math.round(Number(a.price));
+      if (!name) throw userError_("Give the reward a name.");
+      if (!(price >= 10 && price <= 5000)) throw userError_("Set a price between 10 and 5,000 XP.");
+      const id = a.id || "rw" + Utilities.getUuid().slice(0, 8);
+      withLock_(function () {
+        table_("Rewards").upsert(function (r) { return r.id === id; }, { id: id, classId: cls.classId, name: name, description: String(a.description || "").slice(0, 200), price: price, active: a.active === false ? "FALSE" : "TRUE", createdAt: now_(), updatedAt: now_() });
+      });
+      return ACTIONS.rewards.run(user, a);
+    },
+  },
+
+  /** approved = XP stays spent; declined = XP goes back; given = marked as handed out. */
+  decideReward: {
+    role: "teacher",
+    run: function (user, a) {
+      const cls = classFor_(user, a.classId);
+      if (["approved", "declined", "given"].indexOf(a.status) < 0) throw userError_("Choose approve, decline or given.");
+      const req = table_("Redemptions").find(function (r) { return r.id === a.id && r.classId === cls.classId; });
+      if (!req) throw userError_("That request doesn't exist.");
+      if (req.status === "declined") throw userError_("That request was already declined.");
+      withStudentLock_(req.email, function () {
+        if (a.status === "declined") {
+          const got = storeRow_(req.email);
+          got.t.upsert(function (r) { return r.email === req.email; }, { spentXp: Math.max(0, (Number(got.row.spentXp) || 0) - (Number(req.price) || 0)), updatedAt: now_() });
+        }
+        table_("Redemptions").upsert(function (r) { return r.id === req.id; }, { status: a.status, teacherNote: String(a.note || "").slice(0, 200), updatedAt: now_() });
+      });
+      return ACTIONS.rewards.run(user, a);
     },
   },
 

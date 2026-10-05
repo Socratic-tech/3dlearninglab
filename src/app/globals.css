@@ -242,13 +242,23 @@ body {
   100% { transform: translate(var(--dx, 0), 220px) rotate(540deg); opacity: 0; }
 }
 .confetti { animation: confetti-fall 1400ms ease-in both; }
+@keyframes fx-burst { 0% { transform: translate(0,0) scale(1); opacity: 1; } 100% { transform: translate(var(--x), var(--y)) scale(.4); opacity: 0; } }
+.fx-burst { animation: fx-burst 900ms ease-out both; }
+@keyframes fx-pixel { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(var(--h)); opacity: 0; } }
+.fx-pixel { animation: fx-pixel 1200ms steps(8) both; image-rendering: pixelated; }
+@keyframes fx-rocket { 0% { transform: translate(-50%, 60px) rotate(-45deg); opacity: 1; } 100% { transform: translate(-50%, -260px) rotate(-45deg); opacity: 0; } }
+.fx-rocket { animation: fx-rocket 1300ms ease-in both; }
+@keyframes fx-smoke { 0% { transform: translate(-50%, 80px) scale(.5); opacity: .7; } 100% { transform: translate(calc(-50% + var(--x)), 20px) scale(2); opacity: 0; } }
+.fx-smoke { animation: fx-smoke 1100ms ease-out both; }
+@keyframes fx-print { 0% { clip-path: inset(100% 0 0 0); } 100% { clip-path: inset(0 0 0 0); } }
+.fx-print { animation: fx-print 1600ms steps(10) both; }
 
 /* Reduced motion: OS preference or user setting */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
-:root[data-motion="reduce"] .confetti { display: none; }
-@media (prefers-reduced-motion: reduce) { .confetti { display: none; } }
+:root[data-motion="reduce"] :is(.confetti, .fx-burst, .fx-pixel, .fx-rocket, .fx-smoke) { display: none; }
+@media (prefers-reduced-motion: reduce) { :is(.confetti, .fx-burst, .fx-pixel, .fx-rocket, .fx-smoke) { display: none; } }
 :root[data-motion="reduce"] *, :root[data-motion="reduce"] *::before, :root[data-motion="reduce"] *::after {
   animation-duration: 0.01ms !important;
   transition-duration: 0.01ms !important;
