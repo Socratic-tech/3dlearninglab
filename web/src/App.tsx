@@ -8,7 +8,7 @@ import { LogoMark } from "@/components/nav/logo";
 import { Alert } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { readConfig, resetDevice, setCurrentClassId } from "./config";
-import { currentToken, renderSignIn, signOut, tokenEmail } from "./auth";
+import { currentToken, renderSignIn, renewSignIn, signOut, tokenEmail, tokenExpiresAt } from "./auth";
 import { cachedMe, clearCachedData, saveMe, withPending } from "./cache";
 import { resumeSync, startSync, subscribeSync, syncState } from "./sync";
 import { SyncPill } from "./sync-pill";
@@ -96,6 +96,23 @@ export function App() {
   }, [load]);
   useEffect(() => { if (token) resumeSync(); }, [token]);
 
+  // Google sign-ins last about an hour: renew quietly a few minutes before, and again when the tab comes back.
+  const [expired, setExpired] = useState(false);
+  const renewed = useCallback((t: string) => { setToken(t); setExpired(false); resumeSync(); }, []);
+  useEffect(() => {
+    if (!token || !cfg.clientId) return;
+    const clientId = cfg.clientId;
+    const check = () => {
+      const left = tokenExpiresAt() - Date.now();
+      if (left < 6 * 60_000) void renewSignIn(clientId, renewed);
+      setExpired(!currentToken());
+    };
+    const t = setInterval(check, 60_000);
+    const onVisible = () => { if (document.visibilityState === "visible") check(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { clearInterval(t); document.removeEventListener("visibilitychange", onVisible); };
+  }, [token, cfg.clientId, renewed]);
+
   // load once, then refresh XP, streak and progress whenever a student comes back to their path
   const atHome = hash === "#/" || hash === "#/student";
   const loaded = useRef(false);
@@ -120,13 +137,13 @@ export function App() {
   else page = <StudentHome me={me} apiUrl={cfg.apiUrl} onChange={load} />;
 
   return (
-    <Frame me={me} onReset={async () => { const r = await call(cfg.apiUrl ?? "", "resetPreview", { asStudent: false }); if (r.ok) { clearCachedData(identityOf(tokenEmail())); await load(); } return r.ok; }} onSwitch={(id) => { setCurrentClassId(id); void load(); }} onSignOut={() => { clearCachedData(tokenEmail()); signOut(); setToken(null); setMe(null); }}>
+    <Frame me={me} expired={expired ? <SignInBar clientId={cfg.clientId} onToken={renewed} /> : null} onReset={async () => { const r = await call(cfg.apiUrl ?? "", "resetPreview", { asStudent: false }); if (r.ok) { clearCachedData(identityOf(tokenEmail())); await load(); } return r.ok; }} onSwitch={(id) => { setCurrentClassId(id); void load(); }} onSignOut={() => { clearCachedData(tokenEmail()); signOut(); setToken(null); setMe(null); }}>
       {page}
     </Frame>
   );
 }
 
-function Frame({ children, me, onSignOut, onSwitch, onReset }: { children: ReactNode; me?: Me; onSignOut?: () => void; onSwitch?: (classId: string) => void; onReset?: () => Promise<boolean> }) {
+function Frame({ children, me, onSignOut, onSwitch, onReset, expired }: { children: ReactNode; me?: Me; onSignOut?: () => void; onSwitch?: (classId: string) => void; onReset?: () => Promise<boolean>; expired?: ReactNode }) {
   const studentView = useStudentView() && !!me && (isStaff(me) || !!me.user.preview);
   const [resetStep, setResetStep] = useState<"idle" | "sure" | "busy">("idle");
   const unlocked = usePreviewUnlock();
@@ -168,7 +185,22 @@ function Frame({ children, me, onSignOut, onSwitch, onReset }: { children: React
           </div>
         )}
       </header>
+      {expired}
       <main id="main" className="mx-auto max-w-5xl px-4 pb-24 pt-6">{children}</main>
+    </div>
+  );
+}
+
+/** Shown over the page (nothing is cleared) when the sign-in ran out and couldn't renew by itself. */
+function SignInBar({ clientId, onToken }: { clientId: string; onToken: (t: string) => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (ref.current) void renderSignIn(ref.current, clientId, onToken); }, [clientId, onToken]);
+  return (
+    <div role="alert" className="border-b border-warning bg-warning-soft print:hidden">
+      <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-3 px-4 py-2 text-sm">
+        <p className="min-w-0 flex-1"><strong>{tr("Your Google sign-in timed out.")}</strong> {tr("Sign in again to keep saving. Nothing on this page was lost.")}</p>
+        <div ref={ref} />
+      </div>
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { cn } from "@/lib/cn";
 import { call } from "../api";
 import { classLink, setCurrentClassId, staffLink } from "../config";
 import { setStudentView } from "../state";
+import { currentToken } from "../auth";
 import type { ClassInfo, Me } from "../content";
 import { competencies, competencyTitle, heatmapGroups, lessonById, lessons as allLessons, pathLessons } from "../content";
 import { offlineChallenges } from "./HandoutPage";
@@ -104,13 +105,15 @@ function ClassView({ classId, apiUrl, clientId, onChange }: { classId: string; a
     const t = setInterval(() => { if (document.visibilityState === "visible") void load(); }, 60_000);
     return () => clearInterval(t);
   }, [tab, load]);
-  if (err) return <FriendlyError {...err} integration onRetry={() => void load()} />;
+  if (err && !data) return <FriendlyError {...err} integration onRetry={() => void load()} />;
   if (!data) return <p role="status" className="py-20 text-center text-muted">Loading class data from Google Sheets…</p>;
   const name = (email: string) => data.students.find((s) => s.email === email)?.name ?? email;
   const queue = data.evidence.filter((e) => e.status === "submitted");
   const openPrints = (data.prints ?? []).filter((p) => ["queued", "redo", "printing"].includes(p.status)).length;
   return (
     <div>
+      {/* a refresh that fails (Google slow, sign-in timed out) keeps the last numbers on screen */}
+      {err && currentToken() && <div className="mb-4"><FriendlyError {...err} integration onRetry={() => void load()} /></div>}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <h1 className="font-display text-2xl font-bold">{data.cls.name}{data.cls.section && <span className="text-muted"> · {data.cls.section}</span>}</h1>
         <Pill tone="primary">{data.cls.pathId}</Pill>

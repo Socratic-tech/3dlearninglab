@@ -20,6 +20,35 @@ export function currentToken(): string | null {
   }
 }
 
+/** When the current Google sign-in runs out (ms), or 0 if there is none. */
+export function tokenExpiresAt(): number {
+  try {
+    const t = sessionStorage.getItem(KEY);
+    if (!t) return 0;
+    return (JSON.parse(atob(t.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))).exp as number) * 1000;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Google sign-ins last about an hour. Ask Google for a fresh one without a click (it's silent when the person is
+ * still signed in to Google in this browser). Calls onToken with the new sign-in.
+ */
+export async function renewSignIn(clientId: string, onToken: (t: string) => void) {
+  if (signedOut()) return;
+  const g = await whenGis();
+  g.accounts.id.initialize({
+    client_id: clientId,
+    auto_select: true,
+    callback: (r: { credential: string }) => {
+      try { sessionStorage.setItem(KEY, r.credential); } catch { /* ignore */ }
+      onToken(r.credential);
+    },
+  });
+  g.accounts.id.prompt();
+}
+
 const SIGNED_OUT = "academy.signedout";
 
 export function signOut() {
