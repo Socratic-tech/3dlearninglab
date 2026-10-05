@@ -107,7 +107,7 @@ function ClassView({ classId, apiUrl, clientId, onChange }: { classId: string; a
   if (!data) return <p role="status" className="py-20 text-center text-muted">Loading class data from Google Sheets…</p>;
   const name = (email: string) => data.students.find((s) => s.email === email)?.name ?? email;
   const queue = data.evidence.filter((e) => e.status === "submitted");
-  const openPrints = (data.prints ?? []).filter((p) => p.status === "requested" || p.status === "approved" || p.status === "printing").length;
+  const openPrints = (data.prints ?? []).filter((p) => ["queued", "redo", "printing"].includes(p.status)).length;
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -464,20 +464,21 @@ function RightNow({ live, name, revisions }: { live?: Live; name: (e: string) =>
   );
 }
 
-const PRINT_STEPS: { status: string; label: string }[] = [
-  { status: "requested", label: "Requested" },
-  { status: "approved", label: "Approved" },
-  { status: "printing", label: "Printing" },
-  { status: "done", label: "Done" },
-  { status: "failed", label: "Failed" },
-  { status: "cancelled", label: "Cancelled" },
-];
+const PRINT_LABELS: Record<string, string> = { queued: "Queue", redo: "Redo", printing: "Printing", printed: "Printed", failed: "Failed", cancelled: "Cancelled" };
+const PRINT_ACTIONS: Record<string, { status: string; label: string }[]> = {
+  queued: [{ status: "printing", label: "Start printing" }, { status: "redo", label: "Send to redo" }, { status: "cancelled", label: "Cancel" }],
+  redo: [{ status: "queued", label: "Return to queue" }, { status: "cancelled", label: "Cancel" }],
+  printing: [{ status: "printed", label: "Mark printed" }, { status: "failed", label: "Mark failed" }, { status: "redo", label: "Send to redo" }],
+  printed: [{ status: "queued", label: "Reprint" }],
+  failed: [{ status: "queued", label: "Return to queue" }, { status: "redo", label: "Send to redo" }],
+  cancelled: [{ status: "queued", label: "Reopen" }],
+};
 
 function Prints({ jobs, name, apiUrl, onSaved }: { jobs: PrintJob[]; name: (e: string) => string; apiUrl: string; onSaved: () => void }) {
   const [filter, setFilter] = useState<"open" | "all">("open");
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<{ error: string } | null>(null);
-  const shown = jobs.filter((j) => filter === "all" || ["requested", "approved", "printing"].includes(j.status)).sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
+  const shown = jobs.filter((j) => filter === "all" || ["queued", "redo", "printing"].includes(j.status)).sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
   const save = async (id: string, patch: { status?: string; teacherNote?: string }) => {
     setBusy(id);
     const r = await call(apiUrl, "updatePrint", { printId: id, ...patch });
@@ -487,7 +488,7 @@ function Prints({ jobs, name, apiUrl, onSaved }: { jobs: PrintJob[]; name: (e: s
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <p className="text-sm text-muted">Students ask for prints when they upload an STL. Oldest first.</p>
+        <p className="text-sm text-muted">Student STL files enter the queue. Send one to redo with clear feedback, start the print, then mark it printed. Oldest first.</p>
         <div className="ml-auto flex gap-1" role="group" aria-label="Show">
           {(["open", "all"] as const).map((f) => <Button key={f} size="sm" variant={filter === f ? "primary" : "secondary"} onClick={() => setFilter(f)}>{f === "open" ? "To do" : "All"}</Button>)}
         </div>
@@ -501,13 +502,17 @@ function Prints({ jobs, name, apiUrl, onSaved }: { jobs: PrintJob[]; name: (e: s
               <div className="flex flex-wrap items-center gap-2">
                 <strong>{name(j.email)}</strong>
                 <span className="text-sm text-muted">{lessonById.get(j.lessonId)?.title} · {new Date(j.createdAt).toLocaleDateString()}</span>
-                <Pill tone={j.status === "done" ? "success" : j.status === "failed" ? "danger" : j.status === "printing" ? "accent" : "neutral"}>{PRINT_STEPS.find((p) => p.status === j.status)?.label ?? j.status}</Pill>
+                <Pill tone={j.status === "printed" ? "success" : j.status === "failed" || j.status === "redo" ? "danger" : j.status === "printing" ? "accent" : "neutral"}>{PRINT_LABELS[j.status] ?? j.status}</Pill>
                 {j.fileUrl && <a href={j.fileUrl} target="_blank" rel="noopener noreferrer" className="ml-auto text-sm font-semibold text-primary underline">{j.fileName ?? "Open file"} ↗</a>}
               </div>
               {j.note && <p className="rounded-lg bg-surface-2 p-2 text-sm">Student: {j.note}</p>}
-              <div className="flex flex-wrap gap-1" role="group" aria-label="Set status">
-                {PRINT_STEPS.map((p) => (
-                  <Button key={p.status} size="sm" variant={j.status === p.status ? "primary" : "secondary"} disabled={busy === j.id} aria-pressed={j.status === p.status} onClick={() => void save(j.id, { status: p.status })}>{p.label}</Button>
+              <div className="flex flex-wrap gap-1" role="group" aria-label="Next print step">
+                {(PRINT_ACTIONS[j.status] ?? []).map((p) => (
+                  <Button key={p.status} size="sm" variant={p.status === "redo" ? "secondary" : "primary"} disabled={busy === j.id} onClick={() => {
+                    if (p.status !== "redo" || j.teacherNote.trim()) { void save(j.id, { status: p.status }); return; }
+                    const note = window.prompt("What should the student change before printing?");
+                    if (note?.trim()) void save(j.id, { status: p.status, teacherNote: note.trim() });
+                  }}>{p.label}</Button>
                 ))}
               </div>
               <PrintNote job={j} onSave={(t) => void save(j.id, { teacherNote: t })} />

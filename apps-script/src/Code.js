@@ -29,7 +29,7 @@ const TABLES = {
   History: ["at", "email", "competencyId", "from", "to", "reason", "actor"],
   Evidence: ["id", "email", "lessonId", "blockId", "competencyIds", "type", "url", "fileId", "fileName", "text", "status", "rating", "comment", "reviewedBy", "reviewedAt", "createdAt"],
   Journals: ["email", "projectKey", "entries", "updatedAt"],
-  Summary: ["email", "xp", "days", "seen", "byLesson", "updatedAt"],
+  Summary: ["email", "xp", "days", "seen", "byLesson", "updatedAt", "spentXp", "ownedLooks", "activeLook"],
   Prints: ["id", "email", "classId", "lessonId", "evidenceId", "fileId", "fileName", "status", "note", "teacherNote", "createdAt", "updatedAt"],
 };
 
@@ -271,6 +271,12 @@ function sheet_(name) {
     sh = book.insertSheet(name);
     sh.getRange(1, 1, 1, TABLES[name].length).setValues([TABLES[name]]).setFontWeight("bold");
     sh.setFrozenRows(1);
+  } else if (name === "Summary") {
+    // Older class Sheets have the original six Summary columns. Add store columns in place;
+    // student work and earned XP stay untouched.
+    const headers = TABLES[name];
+    const current = sh.getRange(1, 1, 1, headers.length).getValues()[0];
+    if (headers.some(function (h, i) { return current[i] !== h; })) sh.getRange(1, 1, 1, headers.length).setValues([headers]);
   }
   return sh;
 }
@@ -586,6 +592,30 @@ function summaryOf_(row) {
   return { xp: Number(row.xp) || 0, days: parse_(row.days, {}), seen: parse_(row.seen, []), byLesson: parse_(row.byLesson, {}) };
 }
 
+// Cosmetic rewards only. Reading, contrast, text size and other access tools are always free.
+const STORE_LOOKS = [
+  { id: "blueprint", name: "Blueprint", price: 0 },
+  { id: "neon", name: "Neon", price: 150 },
+  { id: "arcade", name: "Arcade", price: 300 },
+  { id: "sunset", name: "Sunset", price: 500 },
+  { id: "galaxy", name: "Galaxy", price: 800 },
+];
+
+function storeOf_(row) {
+  const owned = parse_(row && row.ownedLooks, ["blueprint"]).filter(function (id) { return STORE_LOOKS.some(function (x) { return x.id === id; }); });
+  if (owned.indexOf("blueprint") < 0) owned.unshift("blueprint");
+  const active = row && owned.indexOf(row.activeLook) >= 0 ? row.activeLook : "blueprint";
+  const earned = Number(row && row.xp) || 0;
+  const spent = Math.max(0, Number(row && row.spentXp) || 0);
+  return { balance: Math.max(0, earned - spent), spent: spent, ownedLooks: owned, activeLook: active };
+}
+
+function storeState_(email) {
+  let row = table_("Summary").find(function (r) { return r.email === email; });
+  if (!row) { addXp_(email, []); row = table_("Summary", true).find(function (r) { return r.email === email; }); }
+  return storeOf_(row);
+}
+
 /** Add XP events to the student's running summary (the Summary tab), so nobody has to re-read every answer. */
 function addXp_(email, events) {
   return withStudentLock_(email, function () {
@@ -645,13 +675,27 @@ function liveView_(progressRows) {
 
 // ───────────────────────── Print queue ─────────────────────────
 
-const PRINT_STATUSES = ["requested", "approved", "printing", "done", "failed", "cancelled"];
+const PRINT_STATUSES = ["queued", "redo", "printing", "printed", "failed", "cancelled"];
+const PRINT_TRANSITIONS = {
+  queued: ["redo", "printing", "cancelled"],
+  redo: ["queued", "cancelled"],
+  printing: ["printed", "failed", "redo"],
+  printed: ["queued"],
+  failed: ["queued", "redo"],
+  cancelled: ["queued"],
+};
+
+function printStatus_(status) {
+  if (status === "requested" || status === "approved") return "queued";
+  if (status === "done") return "printed";
+  return PRINT_STATUSES.indexOf(status) >= 0 ? status : "queued";
+}
 
 function printOut_(r) {
   return {
     id: r.id, email: r.email, classId: r.classId, lessonId: r.lessonId, evidenceId: r.evidenceId, fileName: r.fileName || null,
     fileUrl: r.fileId ? "https://drive.google.com/file/d/" + r.fileId + "/view" : null,
-    status: r.status || "requested", note: r.note || "", teacherNote: r.teacherNote || "", createdAt: r.createdAt, updatedAt: r.updatedAt,
+    status: printStatus_(r.status), note: r.note || "", teacherNote: r.teacherNote || "", createdAt: r.createdAt, updatedAt: r.updatedAt,
   };
 }
 
@@ -659,9 +703,13 @@ function newPrint_(user, classId, ev, note) {
   const cls = classFor_(user, classId);
   return withStudentLock_(user.email, function () {
     const t = table_("Prints");
-    const open = t.find(function (r) { return r.evidenceId === ev.id && ["requested", "approved", "printing"].indexOf(r.status) >= 0; });
+    const open = t.find(function (r) { return r.evidenceId === ev.id && ["queued", "redo", "printing", "requested", "approved"].indexOf(r.status) >= 0; });
     if (open) return printOut_(open);
-    const row = { id: "p" + Utilities.getUuid().slice(0, 8), email: user.email, classId: cls.classId, lessonId: ev.lessonId, evidenceId: ev.id, fileId: ev.fileId, fileName: ev.fileName, status: "requested", note: String(note || "").slice(0, 500), teacherNote: "", createdAt: now_(), updatedAt: now_() };
+    // A corrected file replaces an older redo request from the same mission, so the queue stays clear.
+    t.filter(function (r) { return r.email === user.email && r.lessonId === ev.lessonId && printStatus_(r.status) === "redo"; }).forEach(function (old) {
+      t.upsert(function (r) { return r.id === old.id; }, { status: "cancelled", updatedAt: now_() });
+    });
+    const row = { id: "p" + Utilities.getUuid().slice(0, 8), email: user.email, classId: cls.classId, lessonId: ev.lessonId, evidenceId: ev.id, fileId: ev.fileId, fileName: ev.fileName, status: "queued", note: String(note || "").slice(0, 500), teacherNote: "", createdAt: now_(), updatedAt: now_() };
     t.append(row);
     return printOut_(row);
   });
@@ -697,8 +745,9 @@ const ACTIONS = {
         evidence: evidence,
         journals: journals,
         stats: user.role === "student" ? stats_(user.email) : null,
+        store: user.role === "student" ? storeState_(user.email) : null,
         prints: table_("Prints").filter(function (r) { return r.email === user.email; }).map(printOut_),
-        app: user.role === "teacher" ? { version: BUILD.version, owner: String(Session.getEffectiveUser().getEmail() || "").toLowerCase(), content: contentVersion_(), engineBehind: !!CacheService.getScriptCache().get("cf_engine_behind") } : null,
+        app: user.role === "teacher" ? { version: BUILD.version, owner: String(Session.getEffectiveUser().getEmail() || "").toLowerCase(), content: contentVersion_(), engineBehind: !!CacheService.getScriptCache().get("cf_engine_behind"), autoUpdates: viaLoader_() } : null,
       };
     },
   },
@@ -863,6 +912,46 @@ const ACTIONS = {
     },
   },
 
+  buyLook: {
+    run: function (user, a) {
+      if (user.role !== "student") throw userError_("You don't have access to that.");
+      const item = STORE_LOOKS.filter(function (x) { return x.id === a.lookId; })[0];
+      if (!item) throw userError_("That store item doesn't exist.");
+      return withStudentLock_(user.email, function () {
+        const t = table_("Summary");
+        let row = t.find(function (r) { return r.email === user.email; });
+        if (!row) {
+          const base = Lib.applyEvents(Lib.emptySummary(), xpEventsFromHistory_(user.email), tz_());
+          row = t.upsert(function (r) { return r.email === user.email; }, { email: user.email, xp: base.xp, days: JSON.stringify(base.days), seen: JSON.stringify(base.seen), byLesson: JSON.stringify(base.byLesson), updatedAt: now_() });
+        }
+        const store = storeOf_(row);
+        if (store.ownedLooks.indexOf(item.id) >= 0) return store;
+        if (store.balance < item.price) throw userError_("You need " + (item.price - store.balance) + " more XP for that look.");
+        store.ownedLooks.push(item.id);
+        const saved = t.upsert(function (r) { return r.email === user.email; }, { spentXp: store.spent + item.price, ownedLooks: JSON.stringify(store.ownedLooks), updatedAt: now_() });
+        return storeOf_(saved);
+      });
+    },
+  },
+
+  selectLook: {
+    run: function (user, a) {
+      if (user.role !== "student") throw userError_("You don't have access to that.");
+      return withStudentLock_(user.email, function () {
+        const t = table_("Summary");
+        let row = t.find(function (r) { return r.email === user.email; });
+        if (!row) {
+          const base = Lib.applyEvents(Lib.emptySummary(), xpEventsFromHistory_(user.email), tz_());
+          row = t.upsert(function (r) { return r.email === user.email; }, { email: user.email, xp: base.xp, days: JSON.stringify(base.days), seen: JSON.stringify(base.seen), byLesson: JSON.stringify(base.byLesson), ownedLooks: JSON.stringify(["blueprint"]), updatedAt: now_() });
+        }
+        const store = storeOf_(row);
+        if (store.ownedLooks.indexOf(a.lookId) < 0) throw userError_("Buy that look before using it.");
+        const saved = t.upsert(function (r) { return r.email === user.email; }, { activeLook: a.lookId, updatedAt: now_() });
+        return storeOf_(saved);
+      });
+    },
+  },
+
   updatePrint: {
     role: "teacher",
     run: function (user, a) {
@@ -872,7 +961,13 @@ const ACTIONS = {
         const row = t.find(function (r) { return r.id === a.printId; });
         if (!row) throw userError_("That print request no longer exists.");
         const patch = { updatedAt: now_() };
-        if (a.status) patch.status = a.status;
+        if (a.status) {
+          const from = printStatus_(row.status);
+          if ((PRINT_TRANSITIONS[from] || []).indexOf(a.status) < 0) throw userError_("That print can't move from " + from + " to " + a.status + ".");
+          const note = a.teacherNote !== undefined ? String(a.teacherNote).trim() : String(row.teacherNote || "").trim();
+          if (a.status === "redo" && !note) throw userError_("Add a note telling the student what to change.");
+          patch.status = a.status;
+        }
         if (a.teacherNote !== undefined) patch.teacherNote = String(a.teacherNote).slice(0, 500);
         return printOut_(t.upsert(function (r) { return r.id === a.printId; }, patch));
       });

@@ -1,10 +1,10 @@
 import { tr, trn } from "@/lib/i18n";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, Printer, RotateCcw } from "lucide-react";
 import { Pill } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { call } from "../api";
-import { applySkin, savedSkin, SKINS, SkinPicker, type SkinId } from "../skins";
+import { applySkin, SKINS, SkinPicker, type SkinId } from "../skins";
 import { MissionPath, StreakCard } from "@/components/student/mission-path";
 import { ProgressRing, ProgressBar } from "@/components/ui/progress";
 import { rank } from "@/lib/mastery";
@@ -43,7 +43,7 @@ export function StudentHome({ me, apiUrl, onChange }: { me: Me; apiUrl: string; 
         </p>
       )}
       {me.stats && <StreakCard stats={me.stats} />}
-      {me.stats && !isStaff(me) && <Looks xp={me.stats.xp} />}
+      {me.stats && me.store && !isStaff(me) && <Looks store={me.store} apiUrl={apiUrl} onChange={onChange} />}
 
       <ReviewDeck me={me} />
 
@@ -114,10 +114,10 @@ function ReviewDeck({ me }: { me: Me }) {
 }
 
 const PRINT_LABEL: Record<string, { label: string; tone: "neutral" | "primary" | "accent" | "success" | "danger" }> = {
-  requested: { label: "Waiting for teacher", tone: "neutral" },
-  approved: { label: "Approved — in line", tone: "primary" },
+  queued: { label: "In the print queue", tone: "primary" },
+  redo: { label: "Changes needed", tone: "danger" },
   printing: { label: "Printing now", tone: "accent" },
-  done: { label: "Ready to pick up", tone: "success" },
+  printed: { label: "Printed — ready to pick up", tone: "success" },
   failed: { label: "Print failed", tone: "danger" },
   cancelled: { label: "Cancelled", tone: "neutral" },
 };
@@ -142,6 +142,7 @@ function MyPrints({ me, apiUrl, onChange }: { me: Me; apiUrl: string; onChange: 
                 <span className="text-sm text-muted">{lessonFor(p.lessonId)?.title}</span>
                 <span className="ml-auto"><Pill tone={st.tone}>{tr(st.label)}</Pill></span>
                 {p.teacherNote && <p className="w-full text-sm">{tr("Teacher:")} {p.teacherNote}</p>}
+                {p.status === "redo" && <p className="w-full rounded-lg bg-danger-soft p-2 text-sm">{tr("Fix your design, upload the corrected STL in the mission, then request a print again. The corrected file will replace this one in the queue.")}</p>}
               </li>
             );
           })}
@@ -172,13 +173,20 @@ function MyPrints({ me, apiUrl, onChange }: { me: Me; apiUrl: string; onChange: 
   );
 }
 
-function Looks({ xp }: { xp: number }) {
-  const [skin, setSkin] = useState<SkinId>(() => {
-    // a shared device: don't keep a look this student hasn't earned
-    const s = savedSkin();
-    const need = SKINS.find((x) => x.id === s)?.xp ?? 0;
-    if (xp < need) { applySkin("blueprint"); return "blueprint"; }
-    return s;
-  });
-  return <SkinPicker xp={xp} current={skin} onChange={(id) => { applySkin(id); setSkin(id); }} />;
+function Looks({ store, apiUrl, onChange }: { store: NonNullable<Me["store"]>; apiUrl: string; onChange: () => void }) {
+  const safe = (id: string): SkinId => SKINS.some((s) => s.id === id) ? id as SkinId : "blueprint";
+  const [skin, setSkin] = useState<SkinId>(() => safe(store.activeLook));
+  const [busy, setBusy] = useState<SkinId | null>(null);
+  const [msg, setMsg] = useState("");
+  useEffect(() => { const id = safe(store.activeLook); applySkin(id); setSkin(id); }, [store.activeLook]);
+  const act = async (action: "buyLook" | "selectLook", id: SkinId) => {
+    setBusy(id);
+    const r = await call(apiUrl, action, { lookId: id });
+    setBusy(null);
+    if (!r.ok) { setMsg(r.error); return; }
+    setMsg(action === "buyLook" ? tr("Bought! Choose Use to turn it on.") : tr("Your look is on."));
+    if (action === "selectLook") { applySkin(id); setSkin(id); }
+    onChange();
+  };
+  return <div><SkinPicker balance={store.balance} owned={store.ownedLooks.map(safe)} current={skin} busy={busy} onBuy={(id) => void act("buyLook", id)} onChange={(id) => void act("selectLook", id)} /><p role="status" className="mt-2 text-sm">{msg}</p></div>;
 }

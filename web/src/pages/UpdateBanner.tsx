@@ -29,7 +29,8 @@ export function UpdateBanner({ me, apiUrl, onUpdated }: { me: Me; apiUrl: string
 
   const mine = me.app?.version;
   const outdated = !!latest && mine !== "dev" && mine !== latest.version;
-  if (me.user.role !== "teacher" || (!outdated && !result)) return null;
+  const needsMigration = me.app?.autoUpdates !== true;
+  if (me.user.role !== "teacher" || (!needsMigration && !outdated && !result)) return null;
   if (hidden && !result) return null;
 
   if (result?.ok) {
@@ -43,7 +44,7 @@ export function UpdateBanner({ me, apiUrl, onUpdated }: { me: Me; apiUrl: string
   const owner = me.app?.owner;
   const isOwner = !owner || owner === me.user.email.toLowerCase();
 
-  if (!me.app) {
+  if (needsMigration) {
     return wrap(
       <Alert tone="warning" title="Install the two-file loader once">
         <p>{isOwner ? "This Sheet" : `The Sheet owned by ${owner}`} still uses the old multi-file setup. After this one-time change, the app updates itself.</p>

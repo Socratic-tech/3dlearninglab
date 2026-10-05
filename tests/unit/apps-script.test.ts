@@ -171,12 +171,41 @@ describe("lost replies", () => {
     expect(up.ok).toBe(true);
     const cd = env.call("teacher@school.org", "classData", { classId }).data;
     expect(cd.prints).toHaveLength(1);
-    expect(cd.prints[0]).toMatchObject({ status: "requested", note: "red please", fileName: "box.stl" });
+    expect(cd.prints[0]).toMatchObject({ status: "queued", note: "red please", fileName: "box.stl" });
     // asking twice for the same file doesn't create a duplicate
     expect(env.call("maya@school.org", "requestPrint", { evidenceId: up.data.id }).data.id).toBe(cd.prints[0].id);
     expect(env.call("maya@school.org", "updatePrint", { printId: cd.prints[0].id, status: "done" }).ok).toBe(false);
-    env.call("teacher@school.org", "updatePrint", { printId: cd.prints[0].id, status: "done", teacherNote: "Bin 3" });
-    expect(env.call("maya@school.org", "me").data.prints[0]).toMatchObject({ status: "done", teacherNote: "Bin 3" });
+    expect(env.call("teacher@school.org", "updatePrint", { printId: cd.prints[0].id, status: "redo" }).error).toMatch(/note/);
+    env.call("teacher@school.org", "updatePrint", { printId: cd.prints[0].id, status: "printing" });
+    env.call("teacher@school.org", "updatePrint", { printId: cd.prints[0].id, status: "printed", teacherNote: "Bin 3" });
+    expect(env.call("maya@school.org", "me").data.prints[0]).toMatchObject({ status: "printed", teacherNote: "Bin 3" });
+  });
+
+  it("routes a print to redo and replaces it when the student submits a corrected STL", () => {
+    env.call("teacher@school.org", "addStudents", { classId, students: [{ email: "maya@school.org" }] });
+    const stl = Buffer.from("solid x\nendsolid x").toString("base64");
+    const first = env.call("maya@school.org", "submitEvidence", { lessonId: "holes", blockId: "submit", kind: "stl", file: { name: "box-v1.stl", base64: stl }, requestPrint: true });
+    const job = env.call("teacher@school.org", "classData", { classId }).data.prints[0];
+    expect(env.call("teacher@school.org", "updatePrint", { printId: job.id, status: "redo", teacherNote: "Make the wall 2 mm thick." }).data.status).toBe("redo");
+    const second = env.call("maya@school.org", "submitEvidence", { lessonId: "holes", blockId: "submit", kind: "stl", file: { name: "box-v2.stl", base64: stl }, requestPrint: true });
+    expect(second.data.id).not.toBe(first.data.id);
+    const jobs = env.call("teacher@school.org", "classData", { classId }).data.prints;
+    expect(jobs.map((p: { status: string }) => p.status)).toEqual(["cancelled", "queued"]);
+    expect(jobs[1].fileName).toBe("box-v2.stl");
+  });
+
+  it("lets students spend XP on cosmetic looks without reducing lifetime XP", () => {
+    env.call("teacher@school.org", "addStudents", { classId, students: [{ email: "maya@school.org" }] });
+    env.call("maya@school.org", "me");
+    const summary = env.sheets.get("Summary")!.data;
+    summary[1][1] = 500;
+    const bought = env.call("maya@school.org", "buyLook", { lookId: "arcade" });
+    expect(bought.data).toMatchObject({ balance: 200, spent: 300, ownedLooks: ["blueprint", "arcade"] });
+    expect(env.call("maya@school.org", "selectLook", { lookId: "arcade" }).data.activeLook).toBe("arcade");
+    const me = env.call("maya@school.org", "me").data;
+    expect(me.stats.xp).toBe(500);
+    expect(me.store).toMatchObject({ balance: 200, activeLook: "arcade" });
+    expect(env.call("maya@school.org", "buyLook", { lookId: "galaxy" }).error).toMatch(/more XP/);
   });
 });
 
@@ -309,7 +338,7 @@ describe("Lesson content feed", () => {
     c.lessons.holes.blocks[mc.id].correctOptionIds = [other]; // the lesson was edited: a different answer is right now
     const { e, feed } = setup(JSON.stringify(encodeFeed(c, "v-edit")));
     expect(answer(e, other)).toBe(true);
-    expect(e.call("teacher@school.org", "me").data.app).toMatchObject({ content: "v-edit", engineBehind: false });
+    expect(e.call("teacher@school.org", "me").data.app).toMatchObject({ content: "v-edit", engineBehind: false, autoUpdates: true });
     // cached in pieces under the 100 KB limit; the next request doesn't download again
     expect(Number(e.cache.get("cf_n"))).toBeGreaterThan(1);
     const before = feed.fetches;
