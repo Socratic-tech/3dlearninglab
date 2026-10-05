@@ -506,7 +506,14 @@ function Rewards({ apiUrl }: { apiUrl: string }) {
     setBusy(true);
     const r = await call<{ rewards: Reward[]; requests: RewardRequest[] }>(apiUrl, action, args);
     setBusy(false);
-    if (r.ok) { setData(r.data); setErr(null); return true; }
+    if (r.ok) {
+      const d = (r.data ?? {}) as Partial<{ rewards: Reward[]; requests: RewardRequest[] }>;
+      // An older app copy in the Sheet can answer without these lists; show what we can instead of crashing.
+      const complete = Array.isArray(d.rewards) && Array.isArray(d.requests);
+      setData({ rewards: Array.isArray(d.rewards) ? d.rewards : [], requests: Array.isArray(d.requests) ? d.requests : [] });
+      setErr(complete ? null : "Your class Sheet is running an older copy of the app. Open the Sheet's side panel and click Update now, then reload this page.");
+      return complete;
+    }
     setErr(r.error);
     return false;
   }, [apiUrl]);
