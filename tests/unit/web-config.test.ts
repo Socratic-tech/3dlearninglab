@@ -57,6 +57,7 @@ describe("web config", () => {
     for (const u of [
       EXEC,
       "https://script.google.com/a/macros/school.org/s/AKfy123/exec",
+      "https://script.google.com/a/school.org/macros/s/AKfy123/exec",
       "https://script.google.com/macros/u/1/s/AKfy123/exec",
       "https://script.google.com/a/macros/school.org/u/0/s/AKfy123/exec",
       EXEC + "/",

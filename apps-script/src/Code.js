@@ -1495,7 +1495,8 @@ function webAppUrl_() {
   let url = null;
   try { url = ScriptApp.getService().getUrl(); } catch (e) { url = null; }
   if (!url || /\/dev$/.test(url)) return null;
-  return url.replace(/\/a\/macros\/[^/]+\/s\//, "/macros/s/");
+  // Workspace accounts get /a/macros/<domain>/s/… or /a/<domain>/macros/s/…; both mean the same public address
+  return url.replace(/\/a\/macros\/[^/]+\/s\//, "/macros/s/").replace(/\/a\/[^/]+\/macros\/s\//, "/macros/s/");
 }
 
 function viaLoader_() {
