@@ -273,6 +273,17 @@ describe("Setup sidebar", () => {
     expect(e.run("sidebarUpdate()")).toMatchObject({ ok: false, error: expect.stringMatching(/website/) });
   });
 
+  it("Update now reads every loader's reply (no [object Object])", () => {
+    const e = makeEnv("teacher@school.org", { site: { up: true, fetches: 0 } });
+    // the first loader 2 (still in some Sheets) answered with a plain object
+    e.run("(academyRefresh_ = function () { return { ok: true, version: '1.2.3', same: true }; }, 0)");
+    expect(e.run("sidebarUpdate()")).toMatchObject({ ok: true, version: "1.2.3", same: true });
+    e.run("(academyRefresh_ = function () { return { ok: false, error: 'nope' }; }, 0)");
+    expect(e.run("sidebarUpdate()")).toMatchObject({ ok: false, error: "nope" });
+    e.run("(academyRefresh_ = function () { return '1.2.4'; }, 0)");
+    expect(e.run("sidebarUpdate()")).toMatchObject({ ok: true, version: "1.2.4" });
+  });
+
   it("safe updates: a new version installs only when a teacher clicks, a broken one is refused, and Undo goes back", () => {
     const published = fs.readFileSync(path.join(process.cwd(), "web/public/apps-script/bundle.js"), "utf8");
     const current = published.match(/^\/\/ 3D Design Academy bundle ([\w.-]+)/)![1];

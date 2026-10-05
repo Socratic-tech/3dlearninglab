@@ -1544,9 +1544,15 @@ function sidebarUpdate() {
   if (viaLoader_()) {
     const r = academyRefresh_();
     CacheService.getScriptCache().remove("latest_version");
-    if (!r) return { ok: false, error: (typeof academyLastError_ === "function" && academyLastError_()) || "Couldn't reach the website. Try again in a minute." };
-    // loader 1 returns a version string; loader 2 a version string carrying .same
-    return { ok: true, version: String(r), same: !!r.same, redeployed: true };
+    const fail = (typeof academyLastError_ === "function" && academyLastError_()) || "Couldn't reach the website. Try again in a minute.";
+    if (!r) return { ok: false, error: fail };
+    // Loaders in the wild answer three ways: a version string (loader 1), a plain { ok, version, same, error }
+    // object (first loader 2), or a version string carrying .ok/.version/.same (current loader 2).
+    if (typeof r === "object" && Object.prototype.toString.call(r) !== "[object String]") {
+      if (r.ok === false) return { ok: false, error: String(r.error || fail) };
+      return { ok: true, version: String(r.version || ""), same: !!r.same, redeployed: true };
+    }
+    return { ok: true, version: String(r.version || r), same: !!r.same, redeployed: true };
   }
   return {
     ok: false,
