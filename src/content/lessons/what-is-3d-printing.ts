@@ -62,7 +62,7 @@ export const lesson: LessonInput = {
           type: "showMe",
           title: "From idea to object",
           steps: [
-            { text: "Design the object in CAD software, such as Tinkercad.", diagram: "xyz-axes" },
+            { text: "Design the object in CAD software, such as Tinkercad.", diagram: "group-hole" },
             { text: "Export the design as an STL file: a description of its outside surface." },
             { text: "A slicer cuts the model into hundreds of thin layers and plans the nozzle's path for each one.", diagram: "layers-stack" },
             { text: "The printer melts filament and draws layer 1 on the build plate, then layer 2 on top of it, and so on.", diagram: "fdm-printer" },
@@ -100,7 +100,7 @@ export const lesson: LessonInput = {
           answer: 100,
           tolerance: 0,
           unit: "layers",
-          hint: "How many 0.2s fit into 20? Try 20 ÷ 0.2.",
+          hint: "Five 0.2 mm layers stack up to 1 mm (0.2 + 0.2 + 0.2 + 0.2 + 0.2). So how many layers make 20 mm? You can use the calculator.",
           explanation: "20 ÷ 0.2 = 100 layers. Thinner layers look smoother but take longer.",
           competencyId: "D1",
           check: "practice",

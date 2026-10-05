@@ -10,7 +10,7 @@ import { cn } from "@/lib/cn";
 import { Celebration } from "@/components/student/celebration";
 import { call } from "./api";
 import { applySkin, SKINS, type SkinId } from "./skins";
-import type { Me } from "./content";
+import { lessonFor, type Me } from "./content";
 
 type Store = NonNullable<Me["store"]>;
 type Slot = "body" | "color" | "hat" | "tool" | "title" | "celebration" | "look";
@@ -18,6 +18,7 @@ type Slot = "body" | "color" | "hat" | "tool" | "title" | "celebration" | "look"
 const ITEMS: { id: string; slot: Slot; name: string }[] = [
   { id: "body-bot", slot: "body", name: "Robot" }, { id: "body-cube", slot: "body", name: "Cube" }, { id: "body-octo", slot: "body", name: "Octo" },
   { id: "body-dragon", slot: "body", name: "Dragon" }, { id: "body-ufo", slot: "body", name: "UFO" },
+  { id: "body-initials", slot: "body", name: "Initials badge" }, { id: "body-pixel", slot: "body", name: "Pixel" }, { id: "body-visor", slot: "body", name: "Visor" },
   { id: "color-blue", slot: "color", name: "Blue" }, { id: "color-orange", slot: "color", name: "Orange" }, { id: "color-green", slot: "color", name: "Green" },
   { id: "color-purple", slot: "color", name: "Purple" }, { id: "color-pink", slot: "color", name: "Pink" }, { id: "color-gold", slot: "color", name: "Gold" },
   { id: "hat-none", slot: "hat", name: "No hat" }, { id: "hat-goggles", slot: "hat", name: "Safety goggles" }, { id: "hat-headphones", slot: "hat", name: "Headphones" },
@@ -26,8 +27,9 @@ const ITEMS: { id: string; slot: Slot; name: string }[] = [
   { id: "tool-spool", slot: "tool", name: "Filament spool" }, { id: "tool-trophy", slot: "tool", name: "Trophy" },
   { id: "title-rookie", slot: "title", name: "Rookie Maker" }, { id: "title-layer-legend", slot: "title", name: "Layer Legend" }, { id: "title-cad-wizard", slot: "title", name: "CAD Wizard" },
   { id: "title-support-slayer", slot: "title", name: "Support Slayer" }, { id: "title-tolerance-tamer", slot: "title", name: "Tolerance Tamer" },
-  { id: "title-bridge-boss", slot: "title", name: "Bridge Boss" }, { id: "title-infill-icon", slot: "title", name: "Infill Icon" }, { id: "title-master-maker", slot: "title", name: "Master Maker" },
-  { id: "fx-confetti", slot: "celebration", name: "Confetti" }, { id: "fx-fireworks", slot: "celebration", name: "Fireworks" }, { id: "fx-pixels", slot: "celebration", name: "Pixel burst" },
+  { id: "title-bridge-boss", slot: "title", name: "Bridge Boss" }, { id: "title-infill-icon", slot: "title", name: "Infill Icon" },
+  { id: "title-cad-surgeon", slot: "title", name: "CAD Surgeon" }, { id: "title-sprint-champion", slot: "title", name: "Sprint Champion" }, { id: "title-master-maker", slot: "title", name: "Master Maker" },
+  { id: "fx-none", slot: "celebration", name: "Quiet (no animation)" }, { id: "fx-confetti", slot: "celebration", name: "Confetti" }, { id: "fx-fireworks", slot: "celebration", name: "Fireworks" }, { id: "fx-pixels", slot: "celebration", name: "Pixel burst" },
   { id: "fx-trophy", slot: "celebration", name: "Print a trophy" }, { id: "fx-rocket", slot: "celebration", name: "Rocket launch" },
   ...SKINS.map((s) => ({ id: s.id as string, slot: "look" as Slot, name: s.name as string })),
 ];
@@ -39,7 +41,7 @@ const COLOR: Record<string, [string, string]> = {
 };
 
 /** The student's maker avatar, drawn from equipped parts. Decorative unless a label is given. */
-export function Avatar({ eq, size = 64, label }: { eq?: Record<string, string>; size?: number; label?: string }) {
+export function Avatar({ eq, size = 64, label, initials = "" }: { eq?: Record<string, string>; size?: number; label?: string; initials?: string }) {
   const body = eq?.body ?? "body-bot";
   const [c, d] = COLOR[eq?.color ?? "color-blue"] ?? COLOR["color-blue"];
   const hat = eq?.hat ?? "hat-none";
@@ -59,6 +61,22 @@ export function Avatar({ eq, size = 64, label }: { eq?: Record<string, string>; 
   } else if (body === "body-ufo") {
     eyeY = 44;
     shape = (<><path d="M30 50 a20 22 0 0 1 40 0 z" fill="#bae6fd" opacity=".9" /><ellipse cx="50" cy="58" rx="40" ry="12" fill={c} /><ellipse cx="50" cy="55" rx="40" ry="8" fill={d} />{[24, 42, 58, 76].map((x) => <circle key={x} cx={x} cy="61" r="3" fill="#fde047" />)}</>);
+  } else if (body === "body-initials") {
+    // a clean badge with your initials: no character, no hat or tool
+    return (
+      <svg viewBox="0 0 100 100" width={size} height={size} role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true}>
+        <path d="M50 4 L90 27 L90 73 L50 96 L10 73 L10 27 Z" fill={c} />
+        <path d="M50 12 L83 31 L83 69 L50 88 L17 69 L17 31 Z" fill="none" stroke="#fff" strokeOpacity=".5" strokeWidth="2" />
+        <text x="50" y="62" textAnchor="middle" fontFamily="system-ui, sans-serif" fontWeight="800" fontSize="32" fill="#fff">{(initials || "?").slice(0, 2).toUpperCase()}</text>
+      </svg>
+    );
+  } else if (body === "body-pixel") {
+    eyeY = -100; // pixel face draws its own eyes
+    const px = [[3, 1], [4, 1], [5, 1], [6, 1], [2, 2], [7, 2], [2, 3], [7, 3], [2, 4], [7, 4], [2, 5], [7, 5], [3, 6], [4, 6], [5, 6], [6, 6]];
+    shape = (<><rect x="26" y="26" width="48" height="48" fill={c} />{px.map(([x, y]) => <rect key={`${x}-${y}`} x={18 + x * 8} y={18 + y * 8} width="8" height="8" fill={d} />)}<rect x="38" y="42" width="8" height="8" fill="#fff" /><rect x="58" y="42" width="8" height="8" fill="#fff" /><rect x="42" y="58" width="20" height="4" fill={d} /></>);
+  } else if (body === "body-visor") {
+    eyeY = -100; // the visor hides the eyes
+    shape = (<><path d="M22 58 a28 30 0 0 1 56 0 v10 a8 8 0 0 1 -8 8 h-40 a8 8 0 0 1 -8 -8 z" fill={c} /><path d="M28 46 h44 a6 6 0 0 1 6 6 v6 a6 6 0 0 1 -6 6 h-44 a6 6 0 0 1 -6 -6 v-6 a6 6 0 0 1 6 -6 z" fill="#0f172a" /><path d="M32 50 h20" stroke="#38bdf8" strokeWidth="3" strokeLinecap="round" /><rect x="40" y="76" width="20" height="10" rx="3" fill={d} /></>);
   } else {
     shape = (<><line x1="50" y1="14" x2="50" y2="24" stroke={d} strokeWidth="4" /><circle cx="50" cy="12" r="5" fill="var(--accent, #c2410c)" /><rect x="24" y="24" width="52" height="44" rx="12" fill={c} /><rect x="32" y="70" width="36" height="16" rx="5" fill={d} /><rect x="38" y="58" width="24" height="4" rx="2" fill={d} /></>);
   }
@@ -66,7 +84,7 @@ export function Avatar({ eq, size = 64, label }: { eq?: Record<string, string>; 
     <svg viewBox="0 0 100 100" width={size} height={size} role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true}>
       <circle cx="50" cy="50" r="49" fill="var(--surface-2, #eef2f7)" />
       {shape}
-      {eyes(eyeY)}
+      {eyeY > 0 && eyes(eyeY)}
       {hat === "hat-goggles" && <><rect x="26" y={eyeY - 9} width="48" height="18" rx="9" fill="none" stroke="#f59e0b" strokeWidth="4" /><circle cx="40" cy={eyeY} r="7" fill="#fde68a" opacity=".55" /><circle cx="60" cy={eyeY} r="7" fill="#fde68a" opacity=".55" /></>}
       {hat === "hat-headphones" && <><path d={`M22 ${eyeY} a28 28 0 0 1 56 0`} stroke="#0f172a" strokeWidth="5" fill="none" /><rect x="15" y={eyeY - 6} width="12" height="18" rx="5" fill="#ef4444" /><rect x="73" y={eyeY - 6} width="12" height="18" rx="5" fill="#ef4444" /></>}
       {hat === "hat-wizard" && <><path d="M30 26 L50 -4 L70 26 Z" fill="#4338ca" /><rect x="26" y="24" width="48" height="6" rx="3" fill="#312e81" /><circle cx="50" cy="12" r="2.5" fill="#fde047" /><circle cx="56" cy="20" r="1.8" fill="#fde047" /></>}
@@ -84,7 +102,7 @@ const TABS = [
   { id: "look", label: "Looks" }, { id: "rewards", label: "Class rewards" },
 ] as const;
 
-export function XpStore({ store, apiUrl, onChange }: { store: Store; apiUrl: string; onChange: () => void }) {
+export function XpStore({ store, apiUrl, onChange, initials = "" }: { store: Store; apiUrl: string; onChange: () => void; initials?: string }) {
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("avatar");
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
@@ -116,7 +134,9 @@ export function XpStore({ store, apiUrl, onChange }: { store: Store; apiUrl: str
         {picture}
         <span className="mt-1 leading-tight">{itemName(id)}</span>
         {extra}
-        {has ? (
+        {!has && store.earn?.[id] ? (
+          <span className="mt-1 w-full rounded-lg bg-surface-2 px-2 py-1 text-muted"><Lock className="mr-1 inline size-3" aria-hidden />{tr("Finish {mission}", { mission: lessonFor(store.earn[id])?.title ?? store.earn[id] })}</span>
+        ) : has ? (
           <button disabled={on || busy === id} onClick={() => void act("equipItem", { itemId: id }, tr("Done! You're using {name}.", { name: itemName(id) }))} className={cn("mt-1 w-full rounded-lg px-2 py-1", on ? "text-primary" : "border border-border hover:bg-surface-2")}>
             {on ? <><Check className="mr-1 inline size-3" aria-hidden />{tr("Using")}</> : tr("Use")}
           </button>
@@ -151,7 +171,7 @@ export function XpStore({ store, apiUrl, onChange }: { store: Store; apiUrl: str
         {tab === "avatar" && (
           <div className="grid gap-4 sm:grid-cols-[10rem_1fr]">
             <div className="flex flex-col items-center gap-1 sm:sticky sm:top-20 sm:self-start">
-              <Avatar eq={eq} size={128} label={tr("Your avatar")} />
+              <Avatar eq={eq} size={128} label={tr("Your avatar")} initials={initials} />
               <p className="font-display font-bold">{itemName(eq.title)}</p>
             </div>
             <div className="space-y-4">
@@ -159,7 +179,7 @@ export function XpStore({ store, apiUrl, onChange }: { store: Store; apiUrl: str
                 <div key={slot}>
                   <p className="mb-1 text-sm font-bold">{{ body: tr("Character"), color: tr("Color"), hat: tr("Hat"), tool: tr("Holding") }[slot]}</p>
                   <ul className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-                    {slotItems(slot).map((id) => card(id, <Avatar eq={{ ...eq, [slot]: id }} size={52} />))}
+                    {slotItems(slot).map((id) => card(id, <Avatar eq={{ ...eq, [slot]: id }} size={52} initials={initials} />))}
                   </ul>
                 </div>
               ))}
@@ -169,7 +189,7 @@ export function XpStore({ store, apiUrl, onChange }: { store: Store; apiUrl: str
 
         {tab === "title" && (
           <>
-            <p className="mb-2 text-sm text-muted">{tr("Your title shows under your name on your home page.")}</p>
+            <p className="mb-2 text-sm text-muted">{tr("Titles can't be bought — you earn each one by finishing its mission. Your title shows under your name.")}</p>
             <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {slotItems("title").map((id) => card(id, <span className="mt-1 rounded-full bg-accent-soft px-2 py-1 font-display text-sm text-accent">★</span>))}
             </ul>
@@ -183,7 +203,7 @@ export function XpStore({ store, apiUrl, onChange }: { store: Store; apiUrl: str
               {slotItems("celebration").map((id) => card(id, (
                 <button className="relative grid h-16 w-full place-items-center overflow-visible rounded-xl bg-surface-2 text-xs text-primary underline" onClick={() => setPreview({ id, n: (preview?.n ?? 0) + 1 })}>
                   {preview?.id === id && <Celebration key={preview.n} kind={id} />}
-                  {preview?.id === id && id === "fx-trophy" ? null : tr("Preview")}
+                  {preview?.id === id && id === "fx-trophy" ? null : id === "fx-none" ? tr("No animation") : tr("Preview")}
                 </button>
               )))}
             </ul>

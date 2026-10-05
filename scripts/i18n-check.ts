@@ -81,5 +81,6 @@ function INDIRECT() {
     "No hat", "Safety goggles", "Headphones", "Wizard hat", "Crown", "Nothing", "Wrench", "Calipers", "Filament spool", "Trophy",
     "Rookie Maker", "Layer Legend", "CAD Wizard", "Support Slayer", "Tolerance Tamer", "Bridge Boss", "Infill Icon", "Master Maker",
     "Confetti", "Fireworks", "Pixel burst", "Print a trophy", "Rocket launch",
+    "Initials badge", "Pixel", "Visor", "CAD Surgeon", "Sprint Champion", "Quiet (no animation)",
   ];
 }

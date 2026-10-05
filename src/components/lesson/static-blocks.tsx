@@ -1,7 +1,7 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
-import { Fragment, useEffect, useState, type ReactNode } from "react";
+import { createContext, Fragment, useContext, useEffect, useState, type ReactNode } from "react";
 import { BookOpen, Download, ExternalLink, Eye, Globe2, Lightbulb, MessageCircle, Monitor, PencilRuler, PlayCircle, ShieldAlert, Swords, Timer, TriangleAlert, Users } from "lucide-react";
 import type { Client, Hook, Theme } from "@/content/flavor";
 import type { BlockOf, ModelAsset } from "@/content/schema";
@@ -11,10 +11,55 @@ import { buttonClass } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 
 /** Tiny, safe markdown: paragraphs, "- " lists, **bold**, `code`. No HTML is ever injected. */
+// ── Tap-to-define: lesson vocabulary (plus a few common technical words) can be tapped wherever it appears ──
+export type Term = { term: string; definition: string };
+export const VocabContext = createContext<Term[]>([]);
+
+function escapeRe(s: string) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+
+/** A word you can tap (or focus and press Enter) to see what it means. */
+function Defined({ word, definition }: { word: string; definition: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <span className="relative inline">
+      <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="cursor-help underline decoration-primary decoration-dotted decoration-2 underline-offset-4 hover:text-primary">
+        {word}
+      </button>
+      {open && (
+        <span role="note" className="absolute left-0 top-full z-20 mt-1 block w-64 rounded-xl border border-border bg-surface p-3 text-left text-sm font-normal normal-case tracking-normal text-fg shadow-lg">
+          <strong className="block">{word}</strong>
+          {definition}
+          <button type="button" onClick={() => setOpen(false)} className="mt-1 block text-xs font-semibold text-primary underline">{tr("Got it")}</button>
+        </span>
+      )}
+    </span>
+  );
+}
+
 export function Md({ text, className }: { text: string; className?: string }) {
+  const vocab = useContext(VocabContext);
+  const pattern = vocab.length ? new RegExp(`\\b(${vocab.map((v) => escapeRe(v.term)).sort((a, b) => b.length - a.length).join("|")})(?:s|es)?\\b`, "i") : null;
+  const used = new Set<string>(); // define each word once per paragraph group, so text doesn't fill with underlines
+  const withTerms = (s: string, key: number): ReactNode => {
+    if (!pattern) return <Fragment key={key}>{s}</Fragment>;
+    const out: ReactNode[] = [];
+    let rest = s;
+    let n = 0;
+    for (let m = rest.match(pattern); m && m.index !== undefined; m = rest.match(pattern)) {
+      const entry = vocab.find((v) => v.term.toLowerCase() === m[1].toLowerCase());
+      const before = rest.slice(0, m.index);
+      if (entry && !used.has(entry.term.toLowerCase())) {
+        used.add(entry.term.toLowerCase());
+        out.push(before, <Defined key={`${key}-${n++}`} word={m[0]} definition={entry.definition} />);
+      } else out.push(before + m[0]);
+      rest = rest.slice(m.index + m[0].length);
+    }
+    out.push(rest);
+    return <Fragment key={key}>{out}</Fragment>;
+  };
   const inline = (s: string) =>
     s.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).map((part, i) =>
-      part.startsWith("**") ? <strong key={i}>{part.slice(2, -2)}</strong> : part.startsWith("`") ? <code key={i}>{part.slice(1, -1)}</code> : <Fragment key={i}>{part}</Fragment>,
+      part.startsWith("**") ? <strong key={i}>{withTerms(part.slice(2, -2), i)}</strong> : part.startsWith("`") ? <code key={i}>{part.slice(1, -1)}</code> : withTerms(part, i),
     );
   const blocks = text.trim().split(/\n\s*\n/);
   return (
@@ -179,7 +224,7 @@ export function ShowMeBlock({ b, onViewed }: { b: BlockOf<"showMe">; onViewed?: 
             <button className={buttonClass("secondary", "sm")} disabled={i === 0} onClick={() => setI(i - 1)}>
               {tr("Back")}
             </button>
-            <button className={buttonClass("primary", "sm")} disabled={i === b.steps.length - 1} onClick={() => setI(i + 1)}>
+            <button data-next-step className={buttonClass("primary", "sm")} disabled={i === b.steps.length - 1} onClick={() => setI(i + 1)}>
               {tr("Next step")}
             </button>
           </div>

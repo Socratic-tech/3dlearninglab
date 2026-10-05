@@ -30,6 +30,7 @@ const TABLES = {
   Evidence: ["id", "email", "lessonId", "blockId", "competencyIds", "type", "url", "fileId", "fileName", "text", "status", "rating", "comment", "reviewedBy", "reviewedAt", "createdAt"],
   Journals: ["email", "projectKey", "entries", "updatedAt"],
   Summary: ["email", "xp", "days", "seen", "byLesson", "updatedAt", "spentXp", "ownedLooks", "activeLook", "owned", "equipped"],
+  Gallery: ["id", "classId", "evidenceId", "email", "lessonId", "caption", "createdAt"],
   Rewards: ["id", "classId", "name", "description", "price", "active", "createdAt", "updatedAt"],
   Redemptions: ["id", "email", "classId", "rewardId", "rewardName", "price", "status", "teacherNote", "createdAt", "updatedAt"],
   Prints: ["id", "email", "classId", "lessonId", "evidenceId", "fileId", "fileName", "status", "note", "teacherNote", "createdAt", "updatedAt"],
@@ -605,30 +606,41 @@ const STORE_ITEMS = [
   // avatar: body, colour, hat, tool
   { id: "body-bot", kind: "body", price: 0 }, { id: "body-cube", kind: "body", price: 80 }, { id: "body-octo", kind: "body", price: 200 },
   { id: "body-dragon", kind: "body", price: 400 }, { id: "body-ufo", kind: "body", price: 600 },
+  { id: "body-initials", kind: "body", price: 0 }, { id: "body-pixel", kind: "body", price: 150 }, { id: "body-visor", kind: "body", price: 250 },
   { id: "color-blue", kind: "color", price: 0 }, { id: "color-orange", kind: "color", price: 0 }, { id: "color-green", kind: "color", price: 40 },
   { id: "color-purple", kind: "color", price: 60 }, { id: "color-pink", kind: "color", price: 60 }, { id: "color-gold", kind: "color", price: 300 },
   { id: "hat-none", kind: "hat", price: 0 }, { id: "hat-goggles", kind: "hat", price: 80 }, { id: "hat-headphones", kind: "hat", price: 120 },
   { id: "hat-wizard", kind: "hat", price: 200 }, { id: "hat-crown", kind: "hat", price: 350 },
   { id: "tool-none", kind: "tool", price: 0 }, { id: "tool-wrench", kind: "tool", price: 60 }, { id: "tool-calipers", kind: "tool", price: 150 },
   { id: "tool-spool", kind: "tool", price: 220 }, { id: "tool-trophy", kind: "tool", price: 500 },
-  // titles under your name
-  { id: "title-rookie", kind: "title", price: 0 }, { id: "title-layer-legend", kind: "title", price: 100 }, { id: "title-cad-wizard", kind: "title", price: 200 },
-  { id: "title-support-slayer", kind: "title", price: 250 }, { id: "title-tolerance-tamer", kind: "title", price: 300 },
-  { id: "title-bridge-boss", kind: "title", price: 350 }, { id: "title-infill-icon", kind: "title", price: 400 }, { id: "title-master-maker", kind: "title", price: 1000 },
+  // titles under your name: EARNED by finishing a mission (they can't be bought)
+  { id: "title-rookie", kind: "title", price: 0 },
+  { id: "title-layer-legend", kind: "title", price: 0, earn: "layers" }, { id: "title-cad-wizard", kind: "title", price: 0, earn: "boss-nametag" },
+  { id: "title-support-slayer", kind: "title", price: 0, earn: "supports" }, { id: "title-tolerance-tamer", kind: "title", price: 0, earn: "tolerances" },
+  { id: "title-bridge-boss", kind: "title", price: 0, earn: "bridging" }, { id: "title-infill-icon", kind: "title", price: 0, earn: "strength" },
+  { id: "title-cad-surgeon", kind: "title", price: 0, earn: "cad-er" }, { id: "title-sprint-champion", kind: "title", price: 0, earn: "mini-design-sprint" },
+  { id: "title-master-maker", kind: "title", price: 0, earn: "final-capstone" },
   // what happens when you finish a mission
-  { id: "fx-confetti", kind: "celebration", price: 0 }, { id: "fx-fireworks", kind: "celebration", price: 120 }, { id: "fx-pixels", kind: "celebration", price: 180 },
+  { id: "fx-none", kind: "celebration", price: 0 }, { id: "fx-confetti", kind: "celebration", price: 0 }, { id: "fx-fireworks", kind: "celebration", price: 120 }, { id: "fx-pixels", kind: "celebration", price: 180 },
   { id: "fx-trophy", kind: "celebration", price: 250 }, { id: "fx-rocket", kind: "celebration", price: 350 },
 ];
 const STORE_DEFAULTS = { look: "blueprint", body: "body-bot", color: "color-blue", hat: "hat-none", tool: "tool-none", title: "title-rookie", celebration: "fx-confetti" };
 // kept for older pages that still ask for looks
 const STORE_LOOKS = STORE_ITEMS.filter(function (x) { return x.kind === "look"; }).map(function (x) { return { id: x.id, price: x.price }; });
 
+function completedOf_(email) {
+  const out = {};
+  table_("Progress").filter(function (r) { return r.email === email && r.status === "completed"; }).forEach(function (r) { out[r.lessonId] = true; });
+  return out;
+}
+
 function storeItem_(id) {
   return STORE_ITEMS.filter(function (x) { return x.id === id; })[0] || null;
 }
 
-function storeOf_(row) {
-  const free = STORE_ITEMS.filter(function (x) { return x.price === 0; }).map(function (x) { return x.id; });
+function storeOf_(row, completed) {
+  const done = completed || {};
+  const free = STORE_ITEMS.filter(function (x) { return x.price === 0 && (!x.earn || done[x.earn]); }).map(function (x) { return x.id; });
   const owned = free.slice();
   parse_(row && row.ownedLooks, []).concat(parse_(row && row.owned, [])).forEach(function (id) { if (storeItem_(id) && owned.indexOf(id) < 0) owned.push(id); });
   const saved = parse_(row && row.equipped, {});
@@ -643,6 +655,7 @@ function storeOf_(row) {
   return {
     balance: Math.max(0, earned - spent), spent: spent, owned: owned, equipped: equipped,
     prices: STORE_ITEMS.reduce(function (o, x) { o[x.id] = x.price; return o; }, {}),
+    earn: STORE_ITEMS.reduce(function (o, x) { if (x.earn) o[x.id] = x.earn; return o; }, {}),
     // older pages
     ownedLooks: owned.filter(function (id) { return storeItem_(id).kind === "look"; }), activeLook: equipped.look,
   };
@@ -661,7 +674,7 @@ function storeRow_(email) {
 function storeState_(email, classId) {
   let row = table_("Summary").find(function (r) { return r.email === email; });
   if (!row) { addXp_(email, []); row = table_("Summary", true).find(function (r) { return r.email === email; }); }
-  const out = storeOf_(row);
+  const out = storeOf_(row, completedOf_(email));
   out.rewards = classId ? table_("Rewards").filter(function (r) { return r.classId === classId && String(r.active).toUpperCase() !== "FALSE"; }).map(rewardOut_) : [];
   out.requests = table_("Redemptions").filter(function (r) { return r.email === email; }).map(redemptionOut_).slice(-20).reverse();
   return out;
@@ -672,12 +685,14 @@ function buyItem_(email, id) {
   if (!item) throw userError_("That store item doesn't exist.");
   return withStudentLock_(email, function () {
     const got = storeRow_(email);
-    const store = storeOf_(got.row);
+    const done = completedOf_(email);
+    const store = storeOf_(got.row, done);
     if (store.owned.indexOf(id) >= 0) return store;
+    if (item.earn) throw userError_("You earn this title by finishing the " + ((content_().lessons[item.earn] || {}).title || item.earn) + " mission.");
     if (store.balance < item.price) throw userError_("You need " + (item.price - store.balance) + " more XP for that.");
     const bought = parse_(got.row.owned, []).concat([id]);
     const saved = got.t.upsert(function (r) { return r.email === email; }, { spentXp: store.spent + item.price, owned: JSON.stringify(bought), updatedAt: now_() });
-    return storeOf_(saved);
+    return storeOf_(saved, done);
   });
 }
 
@@ -686,17 +701,37 @@ function equipItem_(email, id) {
   if (!item) throw userError_("That store item doesn't exist.");
   return withStudentLock_(email, function () {
     const got = storeRow_(email);
-    const store = storeOf_(got.row);
-    if (store.owned.indexOf(id) < 0) throw userError_("Get that item before using it.");
+    const done = completedOf_(email);
+    const store = storeOf_(got.row, done);
+    if (store.owned.indexOf(id) < 0) throw userError_(item.earn ? "Finish the " + ((content_().lessons[item.earn] || {}).title || item.earn) + " mission to earn this title." : "Get that item before using it.");
     const eq = store.equipped;
     eq[item.kind] = id;
     const patch = { equipped: JSON.stringify(eq), updatedAt: now_() };
     if (item.kind === "look") patch.activeLook = id;
-    return storeOf_(got.t.upsert(function (r) { return r.email === email; }, patch));
+    return storeOf_(got.t.upsert(function (r) { return r.email === email; }, patch), done);
   });
 }
 
 // ── Class rewards: real perks the teacher creates (e.g. pick the filament colour). Students request; teachers decide.
+/** The class gallery as students see it: first names only, the teacher's caption, and a design link when there is one. */
+function galleryFor_(classId) {
+  if (!classId) return [];
+  const users = {};
+  table_("Users").filter(function () { return true; }).forEach(function (u) { users[u.email] = u.name || ""; });
+  const evs = {};
+  table_("Evidence").filter(function () { return true; }).forEach(function (e) { evs[e.id] = e; });
+  const looks = {};
+  table_("Summary").filter(function () { return true; }).forEach(function (r) { looks[r.email] = parse_(r.equipped, {}); });
+  return table_("Gallery").filter(function (g) { return g.classId === classId && evs[g.evidenceId]; }).slice(-24).reverse().map(function (g) {
+    const ev = evs[g.evidenceId];
+    const name = String(users[g.email] || "").trim();
+    return {
+      id: g.id, firstName: name.split(/\s+/)[0] || "A classmate", initials: name.split(/\s+/).map(function (w) { return w[0] || ""; }).join("").slice(0, 2),
+      lessonId: g.lessonId, caption: g.caption || "", url: ev.type === "design_url" ? ev.url || null : null, avatar: looks[g.email] || {},
+    };
+  });
+}
+
 function rewardOut_(r) {
   return { id: r.id, name: r.name, description: r.description || "", price: Number(r.price) || 0, active: String(r.active).toUpperCase() !== "FALSE" };
 }
@@ -834,6 +869,7 @@ const ACTIONS = {
         journals: journals,
         stats: user.role === "student" ? stats_(user.email) : null,
         store: user.role === "student" ? storeState_(user.email, cls ? cls.classId : null) : null,
+        gallery: cls ? galleryFor_(cls.classId) : [],
         prints: table_("Prints").filter(function (r) { return r.email === user.email; }).map(printOut_),
         app: user.role === "teacher" ? { version: BUILD.version, owner: String(Session.getEffectiveUser().getEmail() || "").toLowerCase(), content: contentVersion_(), engineBehind: !!CacheService.getScriptCache().get("cf_engine_behind"), autoUpdates: viaLoader_(), safeUpdates: loaderInfo_().safe, previous: loaderInfo_().previous } : null,
       };
@@ -874,7 +910,7 @@ const ACTIONS = {
       const result = Lib.toClientResult(shown, score, attempts);
       table_("Attempts").append({ at: now_(), email: user.email, lessonId: a.lessonId, blockId: a.blockId, competencyId: block.competencyId || "", correct: score.correct === null ? "" : score.correct, misconceptionId: score.misconceptionId || "", response: JSON.stringify(a.response).slice(0, 2000) });
       saveBlockEntry_(user.email, a.lessonId, a.blockId, { response: a.response, correct: score.correct === null ? undefined : score.correct, attempts: attempts, done: true, result: result });
-      addXp_(user.email, [{ kind: "attempt", at: now_(), lessonId: a.lessonId, blockId: a.blockId, correct: score.correct }]);
+      addXp_(user.email, [{ kind: "attempt", at: now_(), lessonId: a.lessonId, blockId: a.blockId, correct: score.correct, attempt: attempts }]);
       if (block.competencyId && block.check) {
         recordLevel_(user.email, block.competencyId, Lib.autoLevel({ correct: score.correct === true, check: block.check, autoAssessable: !!content_().autoAssessable[block.competencyId] }), (block.check === "skill" ? "Skill check" : "Practice") + " in " + lesson.title, "");
       }
@@ -952,7 +988,11 @@ const ACTIONS = {
       const row = progressRow_(user.email, a.lessonId);
       const state = row ? parse_(row.blockState, {}) : {};
       const evBlocks = table_("Evidence").filter(function (r) { return r.email === user.email && r.lessonId === a.lessonId; }).map(function (r) { return r.blockId; });
-      const missing = lesson.required.filter(function (id) { return !(state[id] && state[id].done) && evBlocks.indexOf(id) < 0; });
+      // Test out: every skill check right = the practice questions are optional (uploads and reflections still count).
+      const skill = Object.keys(lesson.blocks).filter(function (id) { return Lib.isScorable(lesson.blocks[id]) && lesson.blocks[id].check === "skill"; });
+      const testedOut = skill.length > 0 && skill.every(function (id) { return state[id] && state[id].correct === true; });
+      const optional = function (id) { return testedOut && lesson.blocks[id] && Lib.isScorable(lesson.blocks[id]) && skill.indexOf(id) < 0; };
+      const missing = lesson.required.filter(function (id) { return !(state[id] && state[id].done) && evBlocks.indexOf(id) < 0 && !optional(id); });
       if (missing.length) throw userError_("Almost there — " + missing.length + " required activit" + (missing.length === 1 ? "y is" : "ies are") + " still open.");
       withStudentLock_(user.email, function () {
         table_("Progress").upsert(function (r) { return r.email === user.email && r.lessonId === a.lessonId; }, { status: "completed", completedAt: (row && row.completedAt) || now_(), updatedAt: now_() });
@@ -996,7 +1036,28 @@ const ACTIONS = {
         levels: levels,
         evidence: evidence,
         struggles: live.stuck,
+        galleryIds: table_("Gallery").filter(function (g) { return g.classId === cls.classId; }).map(function (g) { return g.evidenceId; }),
       };
+    },
+  },
+
+  /** Teacher: add a student's work to (or take it off) the class gallery. Classmates see first name, caption and a design link. */
+  galleryToggle: {
+    role: "teacher",
+    run: function (user, a) {
+      const cls = classFor_(user, a.classId);
+      const ev = table_("Evidence").find(function (r) { return r.id === a.evidenceId; });
+      if (!ev) throw userError_("That submission doesn't exist.");
+      withLock_(function () {
+        const t = table_("Gallery");
+        const existing = t.find(function (g) { return g.classId === cls.classId && g.evidenceId === ev.id; });
+        if (a.on === false) {
+          if (existing) t.upsert(function (g) { return g.id === existing.id; }, { classId: "" }); // hidden from every class
+        } else {
+          t.upsert(function (g) { return g.classId === cls.classId && g.evidenceId === ev.id; }, { id: existing ? existing.id : "g" + Utilities.getUuid().slice(0, 8), classId: cls.classId, evidenceId: ev.id, email: ev.email, lessonId: ev.lessonId, caption: String(a.caption || "").slice(0, 140), createdAt: existing ? existing.createdAt : now_() });
+        }
+      });
+      return { galleryIds: table_("Gallery").filter(function (g) { return g.classId === cls.classId; }).map(function (g) { return g.evidenceId; }) };
     },
   },
 

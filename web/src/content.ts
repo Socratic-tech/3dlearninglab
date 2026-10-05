@@ -97,9 +97,11 @@ export type Me = {
   /** XP / streak / daily goal (older backends don't send it) */
   stats?: Stats | null;
   /** Spendable cosmetic rewards. Accessibility and learning supports are never store items. */
+  /** Work the teacher picked for the class gallery (first names only) */
+  gallery?: { id: string; firstName: string; initials: string; lessonId: string; caption: string; url: string | null; avatar: Record<string, string> }[];
   store?: {
     balance: number; spent: number; ownedLooks: string[]; activeLook: string;
-    owned?: string[]; equipped?: Record<string, string>; prices?: Record<string, number>;
+    owned?: string[]; equipped?: Record<string, string>; prices?: Record<string, number>; earn?: Record<string, string>;
     rewards?: { id: string; name: string; description: string; price: number }[];
     requests?: { id: string; rewardId: string; name: string; price: number; status: string; teacherNote: string; createdAt: string }[];
   } | null;

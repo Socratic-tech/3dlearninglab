@@ -45,7 +45,7 @@
   "sections.1.blocks:viewer.caption": "Un cubo de 20 mm. Arrastra el control deslizante de capa para ver cómo se construye desde la placa hacia arriba. Las muescas marcan X (1), Y (2) y la parte superior, Z (3).",
   "sections.1.blocks:count-layers.prompt": "Este cubo mide 20 mm de alto. La impresora utiliza capas de 0.2 mm. ¿Cuántas capas imprime?",
   "sections.1.blocks:count-layers.unit": "capas",
-  "sections.1.blocks:count-layers.hint": "¿Cuántos 0.2 caben en 20? Prueba 20 ÷ 0.2.",
+  "sections.1.blocks:count-layers.hint": "Cinco capas de 0.2 mm suman 1 mm (0.2 + 0.2 + 0.2 + 0.2 + 0.2). Entonces, ¿cuántas capas hacen 20 mm? Puedes usar la calculadora.",
   "sections.1.blocks:count-layers.explanation": "20 ÷ 0.2 = 100 capas. Las capas más finas parecen más suaves pero tardan más.",
   "sections.1.blocks:slide-layers.prompt": "Esta cúpula mide 20 mm de altura. Elige la altura de la capa que la construye en exactamente **100 capas**.",
   "sections.1.blocks:slide-layers.unit": "mm",

@@ -277,16 +277,26 @@ export function MatchingBlock({ b }: { b: BlockOf<"matching"> }) {
   });
   const [pairs, setPairs] = useState<Record<string, string>>(prev?.type === "matching" ? prev.pairs : {});
   const good = new Set((result?.reveal.correctPairIds as string[]) ?? []);
+  // after a wrong check, mark each row: green = right, red = change this one (cleared as soon as they change it)
+  const [edits, setEdits] = useState<{ after: unknown; ids: string[] }>({ after: null, ids: [] });
+  const changed = new Set(edits.after === result ? edits.ids : []);
+  const checked = !!result && result.correct === false;
   return (
     <BlockFrame tone="check">
       <Header label="Match" prompt={b.prompt} check={b.check} hint={b.hint} />
       <div className="mt-3 space-y-2">
-        {b.pairs.map((p) => (
-          <div key={p.id} className={cn("grid gap-2 rounded-xl border p-3 sm:grid-cols-2 sm:items-center", good.has(p.id) ? "border-success bg-success-soft" : "border-border")}>
+        {b.pairs.map((p) => {
+          const marked = checked && !changed.has(p.id);
+          const ok = good.has(p.id) && !changed.has(p.id);
+          return (
+          <div key={p.id} className={cn("grid gap-2 rounded-xl border-2 p-3 sm:grid-cols-2 sm:items-center", ok ? "border-success bg-success-soft" : marked ? "border-danger/60" : "border-border")}>
             <label htmlFor={`${b.id}-${p.id}`} className="font-semibold">
+              {ok ? <span className="mr-1 text-success" aria-hidden>✓</span> : marked ? <span className="mr-1 text-danger" aria-hidden>✗</span> : null}
               {p.left}
+              {marked && !ok && <span className="block text-xs font-normal text-muted">{tr("Try a different match for this one")}</span>}
+              {marked && <span className="sr-only">{ok ? tr("(right)") : tr("(not yet)")}</span>}
             </label>
-            <Select id={`${b.id}-${p.id}`} value={pairs[p.id] ?? ""} disabled={locked} onChange={(e) => setPairs({ ...pairs, [p.id]: e.target.value })}>
+            <Select id={`${b.id}-${p.id}`} value={pairs[p.id] ?? ""} disabled={locked} onChange={(e) => { setPairs({ ...pairs, [p.id]: e.target.value }); setEdits({ after: result, ids: [...changed, p.id] }); }}>
               <option value="">{tr("Choose…")}</option>
               {rights.map((r) => (
                 <option key={r.id} value={r.id}>
@@ -295,7 +305,8 @@ export function MatchingBlock({ b }: { b: BlockOf<"matching"> }) {
               ))}
             </Select>
           </div>
-        ))}
+          );
+        })}
       </div>
       <CheckButton blockId={b.id} label="Check" ready={b.pairs.every((p) => pairs[p.id])} pending={pending} run={() => submit({ type: "matching", pairs })} result={result} error={error} locked={locked} />
       <InlineError error={error} />
@@ -348,6 +359,35 @@ export function HotspotBlock({ b }: { b: BlockOf<"hotspot"> }) {
   );
 }
 
+/**
+ * A small calculator for number questions (UDL: tools for working it out). Accepts + − × ÷ ( ) and decimals.
+ * "Use this number" copies the result into the answer box.
+ */
+function MiniCalc({ onUse }: { onUse: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [expr, setExpr] = useState("");
+  const clean = expr.replace(/×/g, "*").replace(/÷/g, "/").replace(/,/g, ".");
+  let value: number | null = null;
+  if (/^[0-9+\-*/().\s]+$/.test(clean) && /[0-9]/.test(clean)) {
+    try {
+      const v = Function(`"use strict"; return (${clean});`)() as unknown;
+      if (typeof v === "number" && Number.isFinite(v)) value = Math.round(v * 1e6) / 1e6;
+    } catch { value = null; }
+  }
+  if (!open) return <button type="button" className="mt-2 text-sm font-semibold text-primary underline" onClick={() => setOpen(true)}>🧮 {tr("Calculator")}</button>;
+  return (
+    <div className="mt-3 rounded-xl border border-border bg-surface-2 p-3">
+      <label className="block text-sm font-semibold" htmlFor="mini-calc">{tr("Calculator")} <span className="font-normal text-muted">({tr("type something like 20 / 0.2")})</span></label>
+      <div className="mt-1 flex flex-wrap items-center gap-2">
+        <Input id="mini-calc" inputMode="decimal" value={expr} onChange={(e) => setExpr(e.target.value)} className="w-44 font-mono" />
+        <span className="font-mono text-lg" aria-live="polite">= {value ?? "…"}</span>
+        {value !== null && <Button type="button" size="sm" variant="secondary" onClick={() => onUse(String(value))}>{tr("Use this number")}</Button>}
+        <button type="button" className="text-sm text-muted underline" onClick={() => setOpen(false)}>{tr("Close")}</button>
+      </div>
+    </div>
+  );
+}
+
 export function MeasurementBlock({ b }: { b: BlockOf<"measurement"> }) {
   const ctx = useLesson();
   const { result, error, pending, submit, locked, prev } = useAnswer(b.id);
@@ -372,6 +412,7 @@ export function MeasurementBlock({ b }: { b: BlockOf<"measurement"> }) {
         </Field>
         {!locked && !ctx.registerCheck && <Button disabled={!v || !Number.isFinite(n) || pending}>{pending ? tr("Checking…") : tr("Check")}</Button>}
       </form>
+      {!locked && <MiniCalc onUse={(x) => setV(x)} />}
       <CheckButton blockId={b.id} label="Check" ready={!!v && Number.isFinite(n)} pending={pending} run={() => v && Number.isFinite(n) && submit({ type: "measurement", value: n })} result={result} error={error} locked />
       <InlineError error={error} />
       <ResultPanel result={result} />

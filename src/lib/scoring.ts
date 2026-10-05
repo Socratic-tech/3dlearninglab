@@ -39,7 +39,7 @@ const ES_HEADLINES: Record<string, string> = {
   "Test result: sequence works.": "Resultado: el orden funciona.",
   "Test result: {n} of {total} in the right place.": "Resultado: {n} de {total} en el lugar correcto.",
   "Test result: every match holds.": "Resultado: todas las parejas son correctas.",
-  "Test result: {n} of {total} matches hold.": "Resultado: {n} de {total} parejas son correctas.",
+  "Test result: {n} of {total} matches hold — the green ones are right.": "Resultado: {n} de {total} parejas son correctas — las verdes están bien.",
   "Found it: {label}.": "¡Lo encontraste! {label}.",
   "Test result: {label} looks okay.": "Resultado: {label} se ve bien.",
   "Test result: nothing wrong there. Look again.": "Resultado: ahí no hay ningún problema. Vuelve a mirar.",
@@ -118,7 +118,7 @@ export function scoreBlock(block: LessonBlock, response: BlockResponse, lang: La
       const correct = right === block.pairs.length;
       return {
         correct,
-        headline: correct ? H(lang, "Test result: every match holds.") : H(lang, "Test result: {n} of {total} matches hold.", { n: right, total: block.pairs.length }),
+        headline: correct ? H(lang, "Test result: every match holds.") : H(lang, "Test result: {n} of {total} matches hold — the green ones are right.", { n: right, total: block.pairs.length }),
         feedback: correct ? undefined : block.hint,
         explanation: block.explanation,
         reveal: correct ? {} : { correctPairIds: block.pairs.filter(ok).map((p) => p.id) },

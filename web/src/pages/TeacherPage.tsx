@@ -27,6 +27,7 @@ type ClassData = {
   struggles: { email: string; lessonId: string; blockId: string; attempts: number }[];
   live?: Live;
   prints?: PrintJob[];
+  galleryIds?: string[];
 };
 type Live = {
   stuck: { email: string; lessonId: string; blockId: string; attempts: number; since: string }[];
@@ -127,7 +128,7 @@ function ClassView({ classId, apiUrl, clientId, onChange }: { classId: string; a
       {tab === "Overview" && <Overview data={data} name={name} apiUrl={apiUrl} clientId={clientId} />}
       {tab === "Lessons" && <LessonLibrary data={data} />}
       {tab === "Heatmap" && <Heatmap data={data} apiUrl={apiUrl} onSaved={load} />}
-      {tab === "Review" && <Review queue={queue} name={name} apiUrl={apiUrl} onSaved={load} />}
+      {tab === "Review" && <Review queue={queue} name={name} apiUrl={apiUrl} onSaved={load} galleryIds={data.galleryIds ?? []} />}
       {tab === "Prints" && <Prints jobs={data.prints ?? []} name={name} apiUrl={apiUrl} onSaved={load} />}
       {tab === "Rewards" && <Rewards apiUrl={apiUrl} />}
       {tab === "Roster" && <Roster data={data} apiUrl={apiUrl} onSaved={load} onClassesChanged={onChange} />}
@@ -230,12 +231,13 @@ function OverrideForm({ email, comps, apiUrl, onSaved }: { email: string; comps:
   );
 }
 
-function Review({ queue, name, apiUrl, onSaved }: { queue: Ev[]; name: (e: string) => string; apiUrl: string; onSaved: () => void }) {
+function Review({ queue, name, apiUrl, onSaved, galleryIds }: { queue: Ev[]; name: (e: string) => string; apiUrl: string; onSaved: () => void; galleryIds: string[] }) {
   if (!queue.length) return <EmptyState title="Nothing waiting for review" />;
-  return <ul className="space-y-4">{queue.map((e) => <li key={e.id}><ReviewCard e={e} name={name(e.email)} apiUrl={apiUrl} onSaved={onSaved} /></li>)}</ul>;
+  return <ul className="space-y-4">{queue.map((e) => <li key={e.id}><ReviewCard e={e} name={name(e.email)} apiUrl={apiUrl} onSaved={onSaved} inGallery={galleryIds.includes(e.id)} /></li>)}</ul>;
 }
 
-function ReviewCard({ e, name, apiUrl, onSaved }: { e: Ev; name: string; apiUrl: string; onSaved: () => void }) {
+function ReviewCard({ e, name, apiUrl, onSaved, inGallery }: { e: Ev; name: string; apiUrl: string; onSaved: () => void; inGallery: boolean }) {
+  const [shown, setShown] = useState(inGallery);
   const [rating, setRating] = useState<number | "">("");
   const [comment, setComment] = useState("");
   const [revise, setRevise] = useState(false);
@@ -264,6 +266,13 @@ function ReviewCard({ e, name, apiUrl, onSaved }: { e: Ev; name: string; apiUrl:
         setBusy(false);
         if (r.ok) onSaved(); else setErr(r.error);
       }}>{busy ? "Saving…" : "Save review"}</Button>
+      <button className="ml-3 mt-3 text-sm font-semibold text-primary underline" disabled={busy} onClick={async () => {
+        const caption = shown ? "" : prompt("Caption for the class gallery (optional, e.g. what's great about it):") ?? "";
+        setBusy(true);
+        const r = await call(apiUrl, "galleryToggle", { evidenceId: e.id, on: !shown, caption });
+        setBusy(false);
+        if (r.ok) setShown(!shown); else setErr(r.error);
+      }}>{shown ? "★ In class gallery (remove)" : "☆ Add to class gallery"}</button>
       {err && <p role="alert" className="mt-2 text-sm text-danger">{err}</p>}
     </Card>
   );

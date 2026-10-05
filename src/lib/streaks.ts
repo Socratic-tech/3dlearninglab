@@ -4,11 +4,17 @@
  * Next.js edition and the Apps Script backend (bundled into Lib.js).
  */
 
-export const XP = { firstTry: 10, firstCorrect: 5, work: 20, lesson: 50 } as const;
+/**
+ * XP rules. Questions pay for getting it right, more for fewer tries: 15 on the first try, 10 on the second,
+ * 5 on the third, nothing once the explanation has been revealed (no XP for clicking anything).
+ * Predictions have no right answer, so making one earns 10.
+ */
+export const XP = { correctByTry: [15, 10, 5], predict: 10, work: 20, lesson: 50 } as const;
+export const correctXp = (attempt: number) => XP.correctByTry[Math.max(1, attempt) - 1] ?? 0;
 export const DAILY_GOAL = 50;
 
 export type XpEvent =
-  | { kind: "attempt"; at: string | Date; lessonId: string; blockId: string; correct: boolean | null }
+  | { kind: "attempt"; at: string | Date; lessonId: string; blockId: string; correct: boolean | null; attempt?: number }
   | { kind: "work"; at: string | Date; lessonId: string; blockId: string } // reflection or evidence
   | { kind: "lesson"; at: string | Date; lessonId: string };
 
@@ -49,6 +55,7 @@ export const emptySummary = (): XpSummary => ({ xp: 0, days: {}, seen: [], byLes
 export function applyEvents(summary: XpSummary, events: XpEvent[], timeZone = "America/Detroit"): XpSummary {
   const out: XpSummary = { xp: summary.xp || 0, days: { ...(summary.days || {}) }, seen: [...(summary.seen || [])], byLesson: { ...(summary.byLesson || {}) } };
   const seen = new Set(out.seen);
+  const tries = new Map<string, number>(); // attempt numbers for events that don't carry one
   const sorted = events
     .map((e) => ({ e, t: new Date(e.at).getTime() }))
     .filter((x) => Number.isFinite(x.t))
@@ -57,8 +64,11 @@ export function applyEvents(summary: XpSummary, events: XpEvent[], timeZone = "A
     let gain = 0;
     const mark = (k: string, pts: number) => { if (!seen.has(k)) { seen.add(k); gain += pts; } };
     if (e.kind === "attempt") {
-      mark(`a${e.lessonId}|${e.blockId}`, XP.firstTry);
-      if (e.correct === true) mark(`c${e.lessonId}|${e.blockId}`, XP.firstCorrect);
+      const key = `${e.lessonId}|${e.blockId}`;
+      const n = e.attempt ?? (tries.get(key) ?? 0) + 1;
+      tries.set(key, n);
+      if (e.correct === null) mark(`a${key}`, XP.predict);
+      else if (e.correct === true) mark(`c${key}`, correctXp(n));
     } else if (e.kind === "work") mark(`w${e.lessonId}|${e.blockId}`, XP.work);
     else mark(`l${e.lessonId}`, XP.lesson);
     if (!gain) continue;
@@ -95,5 +105,6 @@ export function computeStats(events: XpEvent[], opts: { now?: Date; timeZone?: s
 
 /** XP the browser can show right after an answer (mirrors computeStats). */
 export function answerXp(attempts: number, correct: boolean | null, wasCorrectBefore: boolean): number {
-  return (attempts === 1 ? XP.firstTry : 0) + (correct === true && !wasCorrectBefore ? XP.firstCorrect : 0);
+  if (correct === null) return attempts === 1 ? XP.predict : 0;
+  return correct === true && !wasCorrectBefore ? correctXp(attempts) : 0;
 }

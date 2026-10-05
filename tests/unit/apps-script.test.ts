@@ -51,7 +51,7 @@ describe("Apps Script API", () => {
     const me = env.call("maya@school.org", "me");
     expect(me.data.levels.B3).toBe("developing"); // CAD skill: auto check alone never reaches proficient
     // XP: first try 10 + first correct 5; today counts toward the goal and starts a streak
-    expect(me.data.stats).toMatchObject({ xp: 15, todayXp: 15, streak: 1, goal: 50 });
+    expect(me.data.stats).toMatchObject({ xp: 10, todayXp: 10, streak: 1, goal: 50 }); // right on the 2nd try = 10 XP (the wrong try earns nothing)
   });
 
   it("teacher review and override update levels; best level wins", () => {
@@ -440,11 +440,18 @@ describe("XP store and class rewards", () => {
     expect(store.owned).toEqual(expect.arrayContaining(["blueprint", "body-bot", "title-rookie", "fx-confetti"]));
     expect(store.equipped).toMatchObject({ look: "blueprint", body: "body-bot", title: "title-rookie", celebration: "fx-confetti" });
     expect(e.call("maya@school.org", "equipItem", { itemId: "hat-crown" }).error).toMatch(/Get that item/);
-    store = e.call("maya@school.org", "buyItem", { itemId: "title-cad-wizard" }).data;
+    store = e.call("maya@school.org", "buyItem", { itemId: "body-octo" }).data;
     expect(store.balance).toBe(100);
     expect(e.call("maya@school.org", "buyItem", { itemId: "hat-crown" }).error).toMatch(/250 more XP/);
+    store = e.call("maya@school.org", "equipItem", { itemId: "body-octo" }).data;
+    expect(store.equipped.body).toBe("body-octo");
+    // titles are earned by finishing missions, never bought
+    expect(e.call("maya@school.org", "buyItem", { itemId: "title-cad-wizard" }).error).toMatch(/finishing the Boss Battle: The Name Tag mission/);
+    expect(e.call("maya@school.org", "equipItem", { itemId: "title-cad-wizard" }).error).toMatch(/Finish the/);
+    e.run(`(MEMO_ = {}, table_("Progress").upsert(function (r) { return r.email === "maya@school.org" && r.lessonId === "boss-nametag"; }, { email: "maya@school.org", lessonId: "boss-nametag", status: "completed" }), true)`);
     store = e.call("maya@school.org", "equipItem", { itemId: "title-cad-wizard" }).data;
     expect(store.equipped.title).toBe("title-cad-wizard");
+    expect(store.balance).toBe(100);
     expect(e.call("maya@school.org", "buyItem", { itemId: "made-up" }).error).toMatch(/doesn't exist/);
     // looks still work through the old actions
     expect(e.call("maya@school.org", "buyLook", { lookId: "neon" }).error).toMatch(/50 more XP/);
@@ -468,5 +475,54 @@ describe("XP store and class rewards", () => {
     expect(store.balance).toBe(500);
     expect(store.requests[0]).toMatchObject({ status: "declined", teacherNote: "Next week!" });
     expect(e.call("teacher@school.org", "saveReward", { classId, name: "Too cheap", price: 1 }).error).toMatch(/between 10/);
+  });
+});
+
+describe("Test out", () => {
+  const right = (b: ReturnType<typeof allBlocks>[number]) => {
+    switch (b.type) {
+      case "multipleChoice": return { type: "multipleChoice", optionIds: b.correctOptionIds };
+      case "measurement": return { type: "measurement", value: b.answer };
+      case "slider": return { type: "slider", value: b.answer };
+      case "ordering": return { type: "ordering", order: b.items.map((i) => i.id) };
+      case "matching": return { type: "matching", pairs: Object.fromEntries(b.pairs.map((p) => [p.id, p.id])) };
+      case "hotspot": { const h = b.hotspots.find((x) => x.correct)!; return { type: "hotspot", point: h.position }; }
+      default: throw new Error(b.type);
+    }
+  };
+  it("all skill checks right = practice questions become optional; uploads and reflections still required", () => {
+    const e = makeEnv("teacher@school.org");
+    const classId = e.call("teacher@school.org", "createClass", { name: "T", pathId: "18-week" }).data.id;
+    e.call("teacher@school.org", "addStudents", { classId, students: [{ email: "maya@school.org" }] });
+    const lesson = getLesson("holes")!;
+    const blocks = allBlocks(lesson);
+    const skills = blocks.filter((b) => "check" in b && b.check === "skill");
+    expect(skills.length).toBeGreaterThan(0);
+    // nothing answered yet: everything is still required
+    expect(e.call("maya@school.org", "completeLesson", { lessonId: "holes" }).error).toMatch(/still open/);
+    for (const b of skills) expect(e.call("maya@school.org", "answerBlock", { lessonId: "holes", blockId: b.id, response: right(b) }).data.correct).toBe(true);
+    const err = e.call("maya@school.org", "completeLesson", { lessonId: "holes" }).error as string;
+    const nonPractice = blocks.filter((b) => ["uploadEvidence", "reflection"].includes(b.type)).length;
+    expect(err).toMatch(new RegExp(`${nonPractice} required`)); // only the upload and reflection are left
+    e.call("maya@school.org", "submitEvidence", { lessonId: "holes", blockId: "submit", kind: "design_url", url: "https://www.tinkercad.com/things/x" });
+    const refl = blocks.find((b) => b.type === "reflection")!;
+    e.call("maya@school.org", "submitReflection", { lessonId: "holes", blockId: refl.id, text: "I learned that holes subtract material where they overlap a solid, so the depth matters a lot for my design." });
+    expect(e.call("maya@school.org", "completeLesson", { lessonId: "holes" }).ok).toBe(true);
+  });
+});
+
+describe("Class gallery", () => {
+  it("teacher-picked work shows to classmates with first name only; students can't add; removing hides it", () => {
+    const e = makeEnv("teacher@school.org");
+    const classId = e.call("teacher@school.org", "createClass", { name: "G" }).data.id;
+    e.call("teacher@school.org", "addStudents", { classId, students: [{ email: "maya@school.org", name: "Maya Okafor" }, { email: "luis@school.org", name: "Luis H" }] });
+    const ev = e.call("maya@school.org", "submitEvidence", { classId, lessonId: "holes", blockId: "submit", kind: "design_url", url: "https://www.tinkercad.com/things/abc" }).data;
+    expect(e.call("maya@school.org", "galleryToggle", { classId, evidenceId: ev.id }).ok).toBe(false);
+    expect(e.call("teacher@school.org", "galleryToggle", { classId, evidenceId: ev.id, caption: "Clean holes!" }).data.galleryIds).toEqual([ev.id]);
+    const g = e.call("luis@school.org", "me", { classId }).data.gallery;
+    expect(g).toEqual([expect.objectContaining({ firstName: "Maya", caption: "Clean holes!", lessonId: "holes", url: expect.stringContaining("tinkercad.com") })]);
+    expect(JSON.stringify(g)).not.toContain("maya@school.org");
+    e.call("teacher@school.org", "galleryToggle", { classId, evidenceId: ev.id, on: false });
+    expect(e.call("luis@school.org", "me", { classId }).data.gallery).toEqual([]);
   });
 });

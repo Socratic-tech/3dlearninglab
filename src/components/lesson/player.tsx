@@ -7,6 +7,7 @@ import { Award, CircleCheck, Flame, FlaskConical, LifeBuoy, Lock, Sparkles, Volu
 import { isScorable, type ClientResult } from "@/lib/scoring";
 import { answerXp, type Stats } from "@/lib/streaks";
 import type { Lesson, LessonBlock, ModelAsset } from "@/content/schema";
+import { allBlocks as allBlocksOf } from "@/content/schema";
 import type { BlockEntry } from "./types";
 import { readOnlyApi, defaultLinks, type LessonApi, type LessonLinks } from "./api";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -16,6 +17,7 @@ import * as S from "./static-blocks";
 import * as I from "./interactive-blocks";
 import { Md } from "./static-blocks";
 import { Celebration } from "@/components/student/celebration";
+import { GLOSSARY } from "@/content/glossary";
 import { decodePack } from "@/lib/answer-pack";
 import { localizedFlavor } from "@/content/i18n/localize";
 
@@ -90,11 +92,18 @@ export function LessonPlayer(p: PlayerProps) {
     () => new Set([...Object.entries(entries).filter(([, e]) => e?.done).map(([k]) => k), ...p.evidence.flatMap((ev) => (ev.blockId ? [ev.blockId] : []))]),
     [entries, p.evidence],
   );
-  const remaining = p.requiredBlockIds.filter((id) => !doneIds.has(id));
+  // Test out: students who already know it answer only the skill checks. All right = practice questions are skipped
+  // (uploads and reflections are still needed). The server applies the same rule when the mission is finished.
+  const skillIds = useMemo(() => allBlocksOf(p.lesson).filter((b) => isScorable(b) && "check" in b && b.check === "skill").map((b) => b.id), [p.lesson]);
+  const [testOut, setTestOut] = useState(false);
+  const passedTestOut = skillIds.length > 0 && skillIds.every((id) => entries[id]?.correct === true || (entries[id]?.result as { correct?: boolean } | undefined)?.correct === true);
+  const practiceIds = useMemo(() => new Set(allBlocksOf(p.lesson).filter((b) => isScorable(b) && !skillIds.includes(b.id)).map((b) => b.id)), [p.lesson, skillIds]);
+  const gates = (b: LessonBlock) => isScorable(b) && !(testOut && practiceIds.has(b.id));
+  const remaining = p.requiredBlockIds.filter((id) => !doneIds.has(id) && !(passedTestOut && practiceIds.has(id)));
   const steps = useMemo(() => buildSteps(p.lesson), [p.lesson]);
   // Brilliant-style: you can't jump past a question you haven't tried yet.
   const gate = (() => {
-    const i = steps.findIndex((st) => st.blocks.some((b) => isScorable(b) && !doneIds.has(b.id)));
+    const i = steps.findIndex((st) => st.blocks.some((b) => gates(b) && !doneIds.has(b.id)));
     return p.readOnly || p.freeNav ? steps.length : i < 0 ? steps.length : i;
   })();
   const [step, setStep] = useState(() => {
@@ -112,18 +121,27 @@ export function LessonPlayer(p: PlayerProps) {
     return Math.max(0, Math.min(gate, firstOpen >= 0 ? Math.min(firstOpen, last + 1) : last));
   });
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const phaseRef = useRef<HTMLOListElement>(null);
+  // words students can tap for a meaning: this lesson's vocabulary first, then common technical words (English)
+  const vocab = useMemo(() => {
+    const own = p.lesson.vocabulary;
+    const extra = getLocale() === "en" ? GLOSSARY.filter((g) => !own.some((v) => v.term.toLowerCase() === g.term.toLowerCase())) : [];
+    return [...own, ...extra];
+  }, [p.lesson.vocabulary]);
   const stepRef = useRef<HTMLDivElement>(null);
   // moving forward stops at the next question not tried yet (counted from where you are, so review links work)
   const nextGate = (from: number) => {
     if (p.readOnly || p.freeNav) return steps.length;
-    const i = steps.findIndex((st, k) => k >= from && st.blocks.some((b) => isScorable(b) && !doneIds.has(b.id)));
+    const i = steps.findIndex((st, k) => k >= from && st.blocks.some((b) => gates(b) && !doneIds.has(b.id)));
     return i < 0 ? steps.length : i;
   };
   const go = (n: number) => {
     const target = n > step ? Math.min(n, nextGate(step)) : n;
     setStep(Math.max(0, Math.min(target, steps.length + (p.readOnly ? -1 : 0))));
     setWhy(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    // Short screens (most Chromebooks): start the new step at the top so its question isn't hidden under the bar.
+    if (window.innerHeight < 900) requestAnimationFrame(() => phaseRef.current?.scrollIntoView({ block: "start", behavior: "smooth" }));
+    else window.scrollTo({ top: 0, behavior: "smooth" });
     requestAnimationFrame(() => headingRef.current?.focus({ preventScroll: true }));
   };
 
@@ -258,6 +276,7 @@ export function LessonPlayer(p: PlayerProps) {
   if (p.mode === "scroll") {
     return (
       <I.LessonCtx.Provider value={ctx}>
+      <S.VocabContext.Provider value={vocab}>
         <div className="space-y-10">
           {flavor && <S.RealWorldCard hook={flavor.hook} />}
           <S.GoalCard goals={p.goals ?? []} buildsOn={p.buildsOn ?? []} vocabulary={p.lesson.vocabulary} />
@@ -271,7 +290,8 @@ export function LessonPlayer(p: PlayerProps) {
             </section>
           ))}
         </div>
-      </I.LessonCtx.Provider>
+            </S.VocabContext.Provider>
+    </I.LessonCtx.Provider>
     );
   }
 
@@ -293,12 +313,26 @@ export function LessonPlayer(p: PlayerProps) {
   // uploads and reflections can wait (they may need a print or Tinkercad time); questions can't
   const laterHint = !onFinish && !checkBlock && cur.blocks.some((b) => p.requiredBlockIds.includes(b.id) && !doneIds.has(b.id)) ? "You can come back to this one." : "";
   const directionHint = !directionsReady ? "View every step, or choose Read it, before continuing." : "";
+  const startTestOut = () => {
+    setTestOut(true);
+    const first = steps.findIndex((st) => st.blocks.some((b) => skillIds.includes(b.id) && !doneIds.has(b.id)));
+    setStep(first >= 0 ? first : step);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  /** Scroll the first matching control on this screen into view (above the bottom bar) and focus it. */
+  const showControl = (selector: string) => {
+    const el = stepRef.current?.querySelector<HTMLElement>(selector);
+    if (!el) return;
+    el.scrollIntoView({ block: "center", behavior: "smooth" });
+    el.focus({ preventScroll: true });
+  };
 
   return (
     <I.LessonCtx.Provider value={ctx}>
+      <S.VocabContext.Provider value={vocab}>
       <div className="mx-auto max-w-3xl">
         {/* Phase strip: you are here */}
-        <ol className="mb-3 grid grid-cols-5 gap-1" aria-label={tr("Mission phases")}>
+        <ol ref={phaseRef} className="mb-2 grid scroll-mt-16 grid-cols-5 gap-1" aria-label={tr("Mission phases")}>
           {p.lesson.sections.map((s, i) => {
             const first = steps.findIndex((st) => st.section === i);
             const state = i < curPhase ? "done" : i === curPhase ? "now" : "next";
@@ -314,7 +348,7 @@ export function LessonPlayer(p: PlayerProps) {
           })}
         </ol>
         {/* Step progress */}
-        <div className="mb-6 flex items-center gap-3">
+        <div className="mb-4 flex items-center gap-3">
           <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface-2" role="progressbar" aria-label={tr("Mission progress")} aria-valuemin={1} aria-valuemax={total} aria-valuenow={step + 1}>
             <div className="h-full rounded-full bg-accent transition-[width] duration-500" style={{ width: `${((step + 1) / total) * 100}%` }} />
           </div>
@@ -331,6 +365,25 @@ export function LessonPlayer(p: PlayerProps) {
               </h2>
               {step === 0 && flavor && <S.RealWorldCard hook={flavor.hook} />}
               {step === 0 && <S.GoalCard goals={p.goals ?? []} buildsOn={p.buildsOn ?? []} vocabulary={p.lesson.vocabulary} />}
+              {step === 0 && skillIds.length > 0 && !p.completed && !p.readOnly && !testOut && !passedTestOut && (
+                <section className="flex flex-wrap items-center gap-3 rounded-2xl border border-dashed border-primary/50 p-4">
+                  <p className="min-w-0 flex-1 text-sm">
+                    <strong>{tr("Already know this?")}</strong> {trn(skillIds.length, "Test out: answer the skill check. Get it right and you can skip the practice questions.", "Test out: answer the {n} skill checks. Get them all right and you can skip the practice questions.")}
+                  </p>
+                  <Button size="sm" variant="secondary" onClick={startTestOut}>{tr("Test out")}</Button>
+                </section>
+              )}
+              {testOut && !passedTestOut && (
+                <p role="note" className="rounded-xl border border-primary/40 bg-primary-soft px-3 py-2 text-sm">
+                  <strong>{tr("Test-out mode:")}</strong> {tr("only the skill checks are required. Miss one? The practice questions are still here to help.")}{" "}
+                  <button className="font-semibold underline" onClick={() => setTestOut(false)}>{tr("Stop test-out")}</button>
+                </p>
+              )}
+              {passedTestOut && !p.completed && practiceIds.size > 0 && remaining.length < p.requiredBlockIds.filter((id) => !doneIds.has(id)).length && (
+                <p role="note" className="rounded-xl border border-success/50 bg-success-soft px-3 py-2 text-sm">
+                  <strong>{tr("You tested out!")}</strong> {tr("Practice questions are optional now. Finish any uploads or reflections, then complete the mission.")}
+                </p>
+              )}
               {cur.blocks.map((b) => <div key={b.id}>{render(b)}</div>)}
             </>
           )}
@@ -365,7 +418,11 @@ export function LessonPlayer(p: PlayerProps) {
             <ReadAloud key={step} target={stepRef} />
             <StuckHelp vocabulary={p.lesson.vocabulary} />
             <span className="min-w-0 flex-1 text-center text-xs text-muted sm:text-sm" aria-live="polite">
-              {checkBlock && !attempted && !sheet ? (chk?.ready ? "" : tr("Answer to continue")) : tr(directionHint || laterHint)}
+              {checkBlock && !attempted && !sheet ? (
+                chk?.ready ? "" : <button className="font-semibold text-primary underline" onClick={() => showControl("input:not([type=hidden]), select, textarea, [role=radio], [role=slider]")}>↓ {tr("Answer below")}</button>
+              ) : directionHint ? (
+                <button className="font-semibold text-primary underline" onClick={() => showControl("[data-next-step]")}>↓ {tr("See every step")}</button>
+              ) : tr(laterHint)}
             </span>
             {checkBlock && sheet && sheet.correct === false && !sheet.locked && (
               <Button variant="secondary" size="lg" onClick={() => { setDismissed(sheet); setWhy(false); }}>{tr("Try again")}</Button>
@@ -378,7 +435,7 @@ export function LessonPlayer(p: PlayerProps) {
                 {chk?.pending ? tr("Checking…") : tr(chk?.label ?? "Check")}
               </Button>
             ) : step < total - 1 ? (
-              <Button size="lg" variant={laterHint ? "secondary" : "primary"} disabled={!directionsReady || (!!checkBlock && !attempted && !p.freeNav)} onClick={() => go(step + 1)}>
+              <Button size="lg" variant={laterHint ? "secondary" : "primary"} disabled={!directionsReady || (!!checkBlock && !attempted && !p.freeNav && gates(checkBlock))} onClick={() => go(step + 1)}>
                 {laterHint ? tr("Do it later") : tr("Continue →")}
               </Button>
             ) : null}
@@ -386,6 +443,7 @@ export function LessonPlayer(p: PlayerProps) {
         </div>
         <p className="mt-3 text-center text-sm"><Link href={links.missions} className="text-muted underline">Back to missions</Link></p>
       </div>
+          </S.VocabContext.Provider>
     </I.LessonCtx.Provider>
   );
 }

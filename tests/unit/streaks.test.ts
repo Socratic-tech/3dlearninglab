@@ -6,7 +6,7 @@ import { getLesson, allBlocks } from "@/content";
 const at = (d: string) => `${d}T15:00:00Z`;
 
 describe("streaks and XP", () => {
-  it("counts first try, first correct, work and lessons once each", () => {
+  it("pays for right answers (more for fewer tries), work and lessons — once each, nothing for wrong clicks", () => {
     const s = computeStats(
       [
         { kind: "attempt", at: at("2026-10-01"), lessonId: "l", blockId: "b", correct: false },
@@ -18,10 +18,14 @@ describe("streaks and XP", () => {
       ],
       { now: new Date(at("2026-10-02")), timeZone: "America/Detroit" },
     );
-    expect(s.xp).toBe(XP.firstTry + XP.firstCorrect + XP.work + XP.lesson);
+    expect(s.xp).toBe(XP.correctByTry[1] + XP.work + XP.lesson); // right on the 2nd try = 10
+    const brute = computeStats([1, 2, 3, 4].map((n) => ({ kind: "attempt" as const, at: at("2026-10-01"), lessonId: "l", blockId: "q", correct: n === 4, attempt: n })), { now: new Date(at("2026-10-01")) });
+    expect(brute.xp).toBe(0); // the 4th try comes after the explanation is shown
+    expect(computeStats([{ kind: "attempt", at: at("2026-10-01"), lessonId: "l", blockId: "q", correct: false, attempt: 1 }], { now: new Date(at("2026-10-01")) }).xp).toBe(0);
     expect(s.todayXp).toBe(XP.work + XP.lesson);
     expect(s.streak).toBe(2);
     expect(s.week.at(-1)).toEqual({ day: "2026-10-02", xp: 70 });
+    expect(s.week.at(-2)).toEqual({ day: "2026-10-01", xp: 10 });
     expect(s.byLesson.l).toBe(s.xp);
   });
 

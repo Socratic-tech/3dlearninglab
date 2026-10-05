@@ -5,6 +5,7 @@
 const COLORS = ["var(--accent)", "var(--primary)", "var(--success)", "var(--warning)"];
 
 export function Celebration({ kind = "fx-confetti" }: { kind?: string }) {
+  if (kind === "fx-none") return null; // the student chose a quiet finish
   if (kind === "fx-fireworks") {
     return (
       <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-4 h-0 overflow-visible">

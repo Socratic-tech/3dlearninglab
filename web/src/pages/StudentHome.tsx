@@ -13,6 +13,8 @@ import { rank } from "@/lib/mastery";
 import { competencies, domainsFor, lessonFor, pathTitle, type Me } from "../content";
 import { isStaff, setStudentView, studentStates, useStudentView } from "../state";
 
+const initialsOf = (name: string) => name.split(/\s+/).filter(Boolean).map((w) => w[0]).join("").slice(0, 2);
+
 export function StudentHome({ me, apiUrl, onChange }: { me: Me; apiUrl: string; onChange: () => void }) {
   const studentView = useStudentView();
   const { items, states } = studentStates(me);
@@ -22,7 +24,7 @@ export function StudentHome({ me, apiUrl, onChange }: { me: Me; apiUrl: string; 
   return (
     <div className="space-y-8">
       <section className="bg-blueprint flex items-center gap-4 rounded-3xl border border-border bg-surface p-4 sm:gap-6 sm:p-6">
-        {me.store?.equipped ? <Avatar eq={me.store.equipped} size={76} label={tr("Your avatar")} /> : <ProgressRing value={inPath.size ? (mastered / inPath.size) * 100 : 0} size={76} stroke={8} label={tr("Skills mastered")} />}
+        {me.store?.equipped ? <Avatar eq={me.store.equipped} size={76} label={tr("Your avatar")} initials={initialsOf(me.user.name)} /> : <ProgressRing value={inPath.size ? (mastered / inPath.size) * 100 : 0} size={76} stroke={8} label={tr("Skills mastered")} />}
         <div className="min-w-0 flex-1">
           <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-primary">{tr("Welcome back")}</p>
           <h1 className="font-display text-2xl font-bold sm:text-3xl">{me.user.name.split(" ")[0]}</h1>
@@ -57,11 +59,30 @@ export function StudentHome({ me, apiUrl, onChange }: { me: Me; apiUrl: string; 
         })}
       />
       {me.stats && <StreakCard stats={me.stats} />}
-      {me.stats && me.store && !isStaff(me) && <XpStore store={me.store} apiUrl={apiUrl} onChange={onChange} />}
+      {me.stats && me.store && !isStaff(me) && <XpStore store={me.store} apiUrl={apiUrl} onChange={onChange} initials={initialsOf(me.user.name)} />}
 
       <ReviewDeck me={me} />
 
 
+      {(me.gallery ?? []).length > 0 && (
+        <section aria-labelledby="gal-h" className="rounded-3xl border border-border bg-surface p-5">
+          <h2 id="gal-h" className="font-display text-xl font-bold">{tr("Class gallery")}</h2>
+          <p className="text-sm text-muted">{tr("Work your teacher picked to share with the class.")}</p>
+          <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {(me.gallery ?? []).map((g) => (
+              <li key={g.id} className="flex gap-3 rounded-2xl border border-border p-3">
+                <Avatar eq={g.avatar} size={48} initials={g.initials} />
+                <div className="min-w-0">
+                  <p className="font-semibold">{g.firstName}</p>
+                  <p className="text-xs text-muted">{lessonFor(g.lessonId)?.title}</p>
+                  {g.caption && <p className="mt-1 text-sm">“{g.caption}”</p>}
+                  {g.url && <a href={g.url} target="_blank" rel="noreferrer" className="mt-1 inline-block text-sm font-semibold text-primary underline">{tr("Open design")} ↗</a>}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <MyPrints me={me} apiUrl={apiUrl} onChange={onChange} />
 
       <section aria-labelledby="sk-h" className="rounded-3xl border border-border bg-surface p-6">
