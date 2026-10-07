@@ -126,4 +126,18 @@ describe("Try-It mode", () => {
     expect(r.ok).toBe(false);
     expect(r.error).toMatch(/Try-It/);
   });
+
+  it("ignores a Google sign-in left in the tab, so Try-It shows its start screen instead of an error", async () => {
+    const header = Buffer.from(JSON.stringify({ alg: "RS256" })).toString("base64url");
+    const google = `${header}.${Buffer.from(JSON.stringify({ email: "teacher@district.org", exp: Math.floor(Date.now() / 1000) + 3600 })).toString("base64url")}.sig`;
+    sessionStorage.setItem("academy.idtoken", google);
+    localStorage.setItem("academy.api", "local:device");
+    const auth = await import("../../web/src/auth");
+    expect(auth.currentToken()).toBeNull(); // no Try-It sign-in yet: the start screen shows
+    const s = await E.startStudent("Mia", "18-week");
+    auth.setLocalToken(s.token);
+    expect(auth.currentToken()).toBe(s.token);
+    localStorage.setItem("academy.api", "https://script.google.com/macros/s/abc/exec");
+    expect(auth.currentToken()).toBe(google); // back in Google mode, the Google sign-in is used again
+  });
 });

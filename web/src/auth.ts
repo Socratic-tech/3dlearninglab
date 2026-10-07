@@ -24,9 +24,12 @@ export function setLocalToken(t: string) {
   try { sessionStorage.setItem(KEY_LOCAL_TOKEN, t); } catch { /* ignore */ }
 }
 
+/**
+ * In Try-It mode only this device's Try-It sign-in counts. A Google sign-in left in the tab from the Google edition
+ * must not be used: the local class doesn't know that account, and the student would get an error, not the start screen.
+ */
 function storedToken(): string | null {
-  const local = localToken();
-  if (local) return local;
+  if (isLocalApi(currentApiUrl())) return localToken();
   try { return sessionStorage.getItem(KEY); } catch { return null; }
 }
 
