@@ -73,3 +73,21 @@ deployment URL and student work do not change.
   teacher's “Right now” panel is built from the Progress tab — nothing re-reads the whole answer log.
 - Not in this edition yet: rubric scoring, Classroom assignment publishing/grade sync, design-journal
   review screen and teacher guides (use the Next.js edition or the docs).
+
+## Try-It mode (no Google Sheet)
+
+For trying the course, workshops and conference sessions, or classes that can't set up a Sheet yet. The welcome page's
+**Try it now** button switches the browser to Try-It mode; nothing is installed and no one signs in with Google.
+
+- **How it works:** `web/src/local-engine.ts` downloads the same `apps-script/bundle.js` a teacher's Sheet runs and executes
+  it in the browser with stand-ins for SpreadsheetApp, Drive, CacheService, etc. Scoring, mastery, XP, unlocks and the
+  teacher dashboard are the real ones. The API address is the sentinel `local:device`; `callOnce()` in `web/src/api.ts`
+  routes those requests to the local engine instead of `fetch()`.
+- **Storage:** tables in `localStorage` (`academy.trydata.book`), uploads (5 MB max) in IndexedDB (`academy-tryit`).
+  Data stays on the device. "Start over on this device" / Connect a Google Sheet leave it in place.
+- **Moving work:** students click **Save progress file** (only their own rows and uploads) and hand it in, e.g. as a
+  Google Classroom assignment. Teachers click **Add student files**: each student lands in the open class; adding a
+  newer file from the same student replaces their older work. **Back up / Restore** copies everything on a device.
+- **Limits:** no live view of other devices, no Classroom roster import or grade sync, and the answer keys are on the
+  device (the same scrambled pack the public site already serves), so use a Google Sheet for anything high-stakes.
+- Tests: `tests/unit/try-it.test.ts`.

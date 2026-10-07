@@ -9,7 +9,7 @@ import { LevelCell, LevelChip, LevelLegend } from "@/components/ui/level";
 import { groupLevel, LEVEL_LABEL, LEVELS } from "@/lib/mastery";
 import { cn } from "@/lib/cn";
 import { call } from "../api";
-import { classLink, setCurrentClassId, staffLink } from "../config";
+import { classLink, isLocalApi, setCurrentClassId, staffLink } from "../config";
 import { setStudentView } from "../state";
 import { currentToken } from "../auth";
 import { fetchClass, savedClass, type Snapshot } from "../class-cache";
@@ -56,7 +56,7 @@ function TeacherMain({ me, apiUrl, clientId, onChange }: { me: Me; apiUrl: strin
     return (
       <div className="mx-auto max-w-lg py-8">
         <h1 className="font-display text-3xl font-bold">Create your first class</h1>
-        <p className="mt-1 text-muted">All your classes live in your one Google Sheet. Add more any time.</p>
+        <p className="mt-1 text-muted">{isLocalApi(apiUrl) ? "In Try-It mode, your classes are saved in this browser. Add more any time." : "All your classes live in your one Google Sheet. Add more any time."}</p>
         <Card className="mt-6"><NewClassForm apiUrl={apiUrl} onCreated={onChange} /></Card>
       </div>
     );
@@ -130,7 +130,7 @@ function ClassView({ classId, apiUrl, clientId, onChange }: { classId: string; a
         <h1 className="font-display text-2xl font-bold">{data.cls.name}{data.cls.section && <span className="text-muted"> · {data.cls.section}</span>}</h1>
         <Pill tone="primary">{data.cls.pathId}</Pill>
         <Button size="sm" variant="secondary" className="ml-auto" title="See the missions exactly as a student does: locks, required answers and all." onClick={() => { setStudentView(true); location.hash = "#/student"; }}>Student view</Button>
-        <StaffLinkButton apiUrl={apiUrl} clientId={clientId} />
+        {!isLocalApi(apiUrl) && <StaffLinkButton apiUrl={apiUrl} clientId={clientId} />}
         <span className="text-xs text-muted" role="status">{refreshing ? "Refreshing…" : snap ? <Ago at={snap.at} /> : null}</span>
         <Button size="sm" variant="secondary" disabled={refreshing} onClick={() => void load()}>Refresh</Button>
       </div>
@@ -168,14 +168,26 @@ function Overview({ data, name, apiUrl, clientId }: { data: ClassData; name: (e:
         <Stat label="To review" value={data.evidence.filter((e) => e.status === "submitted").length} />
         <Stat label="Missions completed" value={data.progress.filter((p) => p.status === "completed").length} />
       </div>
-      <Card>
-        <CardTitle>Class link for students</CardTitle>
-        <p className="mt-1 text-sm text-muted">Post this in this class&apos;s Google Classroom. Each of your classes has its own link; all of them save to your one Google Sheet.</p>
-        <div className="mt-3 flex gap-2">
-          <Input readOnly value={link} aria-label="Class link" className="font-mono text-xs" />
-          <Button variant="secondary" onClick={() => { void navigator.clipboard.writeText(link); setCopied(true); }}><Copy className="size-4" aria-hidden /> {copied ? "Copied" : "Copy"}</Button>
-        </div>
-      </Card>
+      {isLocalApi(apiUrl) ? (
+        <Card>
+          <CardTitle>Getting students&apos; work in Try-It mode</CardTitle>
+          <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm">
+            <li>Students open this website, click <b>Try it now</b>, then <b>I&apos;m a student</b>. No accounts needed.</li>
+            <li>At the end of class they click <b>Save progress file</b> and turn the file in (for example as a Google Classroom assignment).</li>
+            <li>Download their files and click <b>Add student files</b> in the bar above. They show up here, ready to review.</li>
+          </ol>
+          <p className="mt-2 text-sm text-muted">Want students to save automatically and see them live? Click <b>Connect a Google Sheet</b> in the bar above.</p>
+        </Card>
+      ) : (
+        <Card>
+          <CardTitle>Class link for students</CardTitle>
+          <p className="mt-1 text-sm text-muted">Post this in this class&apos;s Google Classroom. Each of your classes has its own link; all of them save to your one Google Sheet.</p>
+          <div className="mt-3 flex gap-2">
+            <Input readOnly value={link} aria-label="Class link" className="font-mono text-xs" />
+            <Button variant="secondary" onClick={() => { void navigator.clipboard.writeText(link); setCopied(true); }}><Copy className="size-4" aria-hidden /> {copied ? "Copied" : "Copy"}</Button>
+          </div>
+        </Card>
+      )}
       <RightNow live={data.live} name={name} revisions={revisions} />
       <Card>
         <CardTitle>Mission completion</CardTitle>
@@ -307,6 +319,15 @@ function Roster({ data, apiUrl, onSaved, onClassesChanged }: { data: ClassData; 
           {data.students.map((s) => <li key={s.email} className="flex gap-2 py-1.5"><span className="font-semibold">{s.name}</span><span className="truncate text-muted">{s.email}</span>{s.lastSeen && <span className="ml-auto text-xs text-muted">seen {String(s.lastSeen).slice(0, 10)}</span>}</li>)}
         </ul>
       </Card>
+      {isLocalApi(apiUrl) ? (
+        <div className="space-y-6">
+          <Card>
+            <CardTitle>Adding students in Try-It mode</CardTitle>
+            <p className="mt-2 text-sm">Students join by turning in their <b>progress file</b>. Click <b>Add student files</b> in the bar above to put them in this class. Adding a newer file from the same student replaces their older work.</p>
+            <p className="mt-2 text-sm text-muted">Rosters from Google Classroom need a connected Google Sheet.</p>
+          </Card>
+        </div>
+      ) : (
       <div className="space-y-6">
         <Card>
           <CardTitle>Import from Google Classroom</CardTitle>
@@ -355,6 +376,7 @@ function Roster({ data, apiUrl, onSaved, onClassesChanged }: { data: ClassData; 
         </Card>
         {msg && <Alert tone="info">{msg}</Alert>}
       </div>
+      )}
     </div>
   );
 }

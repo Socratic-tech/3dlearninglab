@@ -7,7 +7,7 @@ import { DisplayMenu } from "./display";
 import { LogoMark } from "@/components/nav/logo";
 import { Alert } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { currentClassId, readConfig, resetDevice, setCurrentClassId } from "./config";
+import { currentClassId, isLocalApi, readConfig, resetDevice, setCurrentClassId } from "./config";
 import { currentToken, renderSignIn, renewSignIn, signOut, tokenEmail, tokenExpiresAt } from "./auth";
 import { cachedMe, clearCachedData, saveMe, withPending } from "./cache";
 import { resumeSync, startSync, subscribeSync, syncState } from "./sync";
@@ -22,6 +22,7 @@ import { LessonPage } from "./pages/LessonPage";
 import { TeacherPage } from "./pages/TeacherPage";
 import { SetupPage } from "./pages/SetupPage";
 import { HandoutPage } from "./pages/HandoutPage";
+import { TryItBar, TryItStart } from "./pages/TryItPage";
 
 function useHash() {
   const [hash, setHash] = useState(() => location.hash || "#/");
@@ -128,8 +129,11 @@ export function App() {
     if (atHome || !loaded.current) { loaded.current = true; void load(); }
   }, [token, atHome, load]);
 
-  if (!cfg.apiUrl || !cfg.clientId || hash.startsWith("#/setup")) return <Frame><SetupPage cfg={cfg} onSaved={() => { setCfg(readConfig()); location.hash = "#/"; }} /></Frame>;
-  if (!token) return <Frame><SignIn key={locale} clientId={cfg.clientId} onToken={setToken} /></Frame>;
+  const local = isLocalApi(cfg.apiUrl);
+  if (!cfg.apiUrl || (!cfg.clientId && !local) || hash.startsWith("#/setup")) return <Frame><SetupPage cfg={cfg} onSaved={() => { setCfg(readConfig()); location.hash = "#/"; }} /></Frame>;
+  if (!token && local) return <Frame><TryItStart onStarted={(t) => { setMe(null); hasMe.current = false; setToken(t); location.hash = "#/"; }} /></Frame>;
+  if (!token || (!cfg.clientId && !local)) return <Frame><SignIn key={locale} clientId={cfg.clientId ?? ""} onToken={setToken} /></Frame>;
+  const clientId = cfg.clientId ?? "";
   if (error) return <Frame onSignOut={() => { clearCachedData(tokenEmail()); signOut(); setToken(null); setMe(null); }}><div className="mx-auto max-w-lg py-10"><Alert tone="danger" title={tr("We couldn't open your class")}>{error}</Alert><div className="mt-4 flex flex-wrap gap-2"><Button onClick={() => void load()}>{tr("Try again")}</Button>{studentView && <Button variant="secondary" onClick={() => { setError(null); setStudentView(false); location.hash = "#/teacher"; }}>{tr("Back to teacher view")}</Button>}<Button variant="secondary" onClick={() => { signOut(); resetDevice(); location.replace(location.pathname); }}>{tr("Start over on this device")}</Button></div><p className="mt-2 text-sm text-muted">{tr("Start over forgets the class link and Google account on this computer. Then open the right link again.")}</p></div></Frame>;
   if (!me || !localeContentReady(locale)) return <Frame><p className="py-20 text-center text-muted" role="status">{tr("Loading your class…")}</p></Frame>;
 
@@ -141,17 +145,17 @@ export function App() {
   } else if (route.startsWith("/print/")) page = <HandoutPage me={me} lessonId={route.slice(7)} />;
   else if (me.user.role === "teacher" && route.startsWith("/guide/")) page = <TeacherGuidePage lessonId={route.slice(7)} />;
   else if (me.user.role === "teacher" && route === "/kit") page = <PrintKitPage me={me} />;
-  else if (me.user.role === "teacher" && (route.startsWith("/teacher") || (route === "/" && !studentView))) page = <TeacherPage me={me} apiUrl={cfg.apiUrl} clientId={cfg.clientId} onChange={load} />;
+  else if (me.user.role === "teacher" && (route.startsWith("/teacher") || (route === "/" && !studentView))) page = <TeacherPage me={me} apiUrl={cfg.apiUrl} clientId={clientId} onChange={load} />;
   else page = <StudentHome me={me} apiUrl={cfg.apiUrl} onChange={load} />;
 
   return (
-    <Frame me={me} expired={expired ? <SignInBar clientId={cfg.clientId} onToken={renewed} /> : null} onReset={async () => { const r = await call(cfg.apiUrl ?? "", "resetPreview", { asStudent: false }); if (r.ok) { clearCachedData(identityOf(tokenEmail())); await load(); } return r.ok; }} onSwitch={(id) => { setCurrentClassId(id); void load(); }} onSignOut={() => { clearCachedData(tokenEmail()); signOut(); setToken(null); setMe(null); }}>
+    <Frame me={me} tryIt={local ? <TryItBar me={me} studentView={studentView} /> : null} expired={expired && !local ? <SignInBar clientId={clientId} onToken={renewed} /> : null} onReset={async () => { const r = await call(cfg.apiUrl ?? "", "resetPreview", { asStudent: false }); if (r.ok) { clearCachedData(identityOf(tokenEmail())); await load(); } return r.ok; }} onSwitch={(id) => { setCurrentClassId(id); void load(); }} onSignOut={() => { clearCachedData(tokenEmail()); signOut(); setToken(null); setMe(null); }}>
       {page}
     </Frame>
   );
 }
 
-function Frame({ children, me, onSignOut, onSwitch, onReset, expired }: { children: ReactNode; me?: Me; onSignOut?: () => void; onSwitch?: (classId: string) => void; onReset?: () => Promise<boolean>; expired?: ReactNode }) {
+function Frame({ children, me, onSignOut, onSwitch, onReset, expired, tryIt }: { children: ReactNode; me?: Me; onSignOut?: () => void; onSwitch?: (classId: string) => void; onReset?: () => Promise<boolean>; expired?: ReactNode; tryIt?: ReactNode }) {
   const studentView = useStudentView() && !!me && (isStaff(me) || !!me.user.preview);
   const [resetStep, setResetStep] = useState<"idle" | "sure" | "busy">("idle");
   const unlocked = usePreviewUnlock();
@@ -193,6 +197,7 @@ function Frame({ children, me, onSignOut, onSwitch, onReset, expired }: { childr
           </div>
         )}
       </header>
+      {tryIt}
       {expired}
       <main id="main" className="mx-auto max-w-5xl px-4 pb-24 pt-6">{children}</main>
     </div>

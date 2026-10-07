@@ -11,6 +11,12 @@ const KEY_API = "academy.api";
 const KEY_CID = "academy.cid";
 const KEY_CLASS = "academy.class";
 
+/** Try-It mode: the class lives in this browser (local-engine.ts) instead of a teacher's Google Sheet. */
+export const LOCAL_API = "local:device";
+export const isLocalApi = (url: string | null | undefined) => url === LOCAL_API;
+/** This device's Try-It sign-in (kept across browser restarts, unlike Google's, which lasts an hour). */
+export const KEY_LOCAL_TOKEN = "academy.trytoken";
+
 const memory = new Map<string, string>();
 
 function safeGet(k: string) {
@@ -32,6 +38,7 @@ function safeSet(k: string, v: string) {
  */
 export function normalizeApiUrl(raw: string | null | undefined): string | null {
   if (!raw) return null;
+  if (raw.trim() === LOCAL_API) return LOCAL_API;
   // local development against scripts/pages-mock-api.ts (never in a production build)
   if (import.meta.env.MODE === "development" && /^http:\/\/localhost:\d+\/?$/.test(raw.trim())) return raw.trim().replace(/\/$/, "");
   const m = raw.trim().match(/^https:\/\/script\.google\.com\/(?:a\/macros\/[\w.-]+|a\/[\w.-]+\/macros|macros)(?:\/u\/\d+)?\/s\/([\w-]+)\/exec\/?(?:[?#].*)?$/);
@@ -47,7 +54,8 @@ export function resetDevice() {
   memory.clear();
   for (const store of [localStorage, sessionStorage]) {
     try {
-      for (const k of Object.keys(store)) if (k.startsWith("academy.") && !k.startsWith("academy.queue.")) store.removeItem(k);
+      // Try-It data (academy.trydata.*) stays: leaving Try-It mode isn't erasing it.
+      for (const k of Object.keys(store)) if (k.startsWith("academy.") && !k.startsWith("academy.queue.") && !k.startsWith("academy.trydata.")) store.removeItem(k);
     } catch { /* storage blocked */ }
   }
   try { localStorage.setItem("academy.signedout", "1"); } catch { /* ignore */ }
@@ -76,6 +84,16 @@ export function readConfig() {
     apiUrl: normalizeApiUrl(safeGet(KEY_API)),
     clientId: (import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined) || safeGet(KEY_CID),
   };
+}
+
+/** Switch this browser to Try-It mode (no Google Sheet). */
+export function enterTryIt() {
+  safeSet(KEY_API, LOCAL_API);
+}
+
+/** The remembered app address, without reading the page link (no side effects). */
+export function currentApiUrl(): string | null {
+  return normalizeApiUrl(safeGet(KEY_API));
 }
 
 /** Saves a pasted app address; returns false if it isn't a web-app address. */

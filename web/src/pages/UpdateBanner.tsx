@@ -8,6 +8,7 @@ import { Alert } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { call } from "../api";
 import type { Me } from "../content";
+import { isLocalApi } from "../config";
 
 type Latest = { version: string; notes?: string };
 type Result = { ok: boolean; version?: string; same?: boolean; undone?: boolean; needsPaste?: boolean; pasteUrl?: string | null; error?: string };
@@ -32,6 +33,8 @@ export function UpdateBanner({ me, apiUrl, onUpdated }: { me: Me; apiUrl: string
   }, []);
 
   const mine = me.app?.version;
+  // Try-It mode runs the website's own engine: it is always the current version.
+  if (isLocalApi(apiUrl)) return null;
   const outdated = !!latest && mine !== "dev" && mine !== latest.version;
   const needsMigration = me.app?.safeUpdates !== true;
   const previous = me.app?.previous ?? null;

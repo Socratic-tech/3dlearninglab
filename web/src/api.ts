@@ -3,7 +3,7 @@ import type { Stats } from "@/lib/streaks";
 import type { ActionResult } from "@/server/errors";
 import type { LessonApi } from "@/components/lesson/api";
 import { currentToken } from "./auth";
-import { currentClassId } from "./config";
+import { currentClassId, isLocalApi } from "./config";
 import { enqueue } from "./sync";
 import { studentViewOn } from "./state";
 
@@ -30,8 +30,18 @@ function strip<T>(r: Attempt<T>): ActionResult<T> {
 export async function callOnce<T>(apiUrl: string, action: string, args: Record<string, unknown>, requestId: string): Promise<Attempt<T>> {
   const token = currentToken();
   if (!token) return { ok: false, error: "Your sign-in expired. Please sign in again." };
+  const body = JSON.stringify({ action, token, requestId, args: { classId: currentClassId(), lang: getLocale(), asStudent: studentViewOn(), ...args } });
+  if (isLocalApi(apiUrl)) {
+    // Try-It mode: the same engine, running in this browser (loaded only when needed)
+    try {
+      const { localPost } = await import("./local-engine");
+      return JSON.parse(await localPost(body)) as ActionResult<T>;
+    } catch (e) {
+      return { ok: false, retryable: true, error: `Try-It mode couldn't start (${String(e).slice(0, 120)}). Reload the page and try again.`, details: String(e) };
+    }
+  }
   try {
-    const res = await fetch(apiUrl, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action, token, requestId, args: { classId: currentClassId(), lang: getLocale(), asStudent: studentViewOn(), ...args } }) });
+    const res = await fetch(apiUrl, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body });
     const text = await res.text();
     if (!res.ok) return { ok: false, retryable: true, error: `Google storage didn't answer (HTTP ${res.status}). Your work wasn't lost — try again.`, details: text.slice(0, 500) };
     try {

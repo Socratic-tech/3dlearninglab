@@ -1,10 +1,10 @@
 import { useState, type ReactNode } from "react";
-import { ExternalLink, GraduationCap, Presentation, Users } from "lucide-react";
+import { ExternalLink, GraduationCap, HardDrive, Presentation, Users } from "lucide-react";
 import { Alert, Card } from "@/components/ui/card";
 import { Button, buttonClass } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { cn } from "@/lib/cn";
-import { normalizeApiUrl, setApiUrl, setClientId } from "../config";
+import { enterTryIt, normalizeApiUrl, setApiUrl, setClientId } from "../config";
 
 const TEMPLATE = import.meta.env.VITE_TEMPLATE_URL as string;
 
@@ -23,6 +23,17 @@ export function SetupPage({ cfg, onSaved }: { cfg: { apiUrl: string | null; clie
         <p className="mt-2 text-lg text-muted">Who are you?</p>
       </header>
 
+      <Card className="flex flex-col items-center gap-3 border-2 border-accent text-center sm:flex-row sm:text-left">
+        <HardDrive className="size-8 shrink-0 text-accent" aria-hidden />
+        <div className="flex-1">
+          <p className="font-display text-xl font-semibold">Just want to try it?</p>
+          <p className="text-muted">Start in seconds: no Google account, nothing to set up. Work is saved in this browser, and students can turn in a progress file.</p>
+        </div>
+        <Button size="lg" variant="accent" onClick={() => { enterTryIt(); onSaved(); }}>Try it now</Button>
+      </Card>
+
+      <p className="text-center text-sm font-semibold uppercase tracking-wide text-muted">Or set up live class tracking with Google</p>
+
       <div className="grid gap-3 sm:grid-cols-3" role="radiogroup" aria-label="Who are you?">
         <Choice active={who === "teacher"} onClick={() => setWho("teacher")} icon={<Presentation className="size-7" aria-hidden />} title="A teacher" sub="Set up my class" />
         <Choice active={who === "student"} onClick={() => setWho("student")} icon={<GraduationCap className="size-7" aria-hidden />} title="A student" sub="Find my class" />
@@ -33,7 +44,7 @@ export function SetupPage({ cfg, onSaved }: { cfg: { apiUrl: string | null; clie
         <Card className="space-y-2 text-center">
           <p className="font-display text-xl font-semibold">You need your class link</p>
           <p className="text-lg">Open <b>Google Classroom</b> and click the 3D Design Academy link your teacher posted. Or scan the QR code on the board.</p>
-          <p className="text-muted">No link? Ask your teacher. This page can&apos;t find your class on its own.</p>
+          <p className="text-muted">No link? Ask your teacher. If your class uses <b>Try-It mode</b>, click <b>Try it now</b> above.</p>
         </Card>
       )}
 

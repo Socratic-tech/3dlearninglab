@@ -1,4 +1,5 @@
 import { getLocale } from "@/lib/i18n";
+import { KEY_LOCAL_TOKEN, currentApiUrl, isLocalApi } from "./config";
 /** Sign in with Google (Google Identity Services). The ID token is sent with every API call and verified by Apps Script. */
 type Gis = {
   accounts: { id: { initialize(o: object): void; renderButton(el: HTMLElement, o: object): void; prompt(): void; disableAutoSelect(): void } };
@@ -9,9 +10,29 @@ declare global {
 
 const KEY = "academy.idtoken";
 
+/** Try-It mode: the sign-in made on this device (see local-engine.ts). */
+function localToken(): string | null {
+  try {
+    if (!isLocalApi(currentApiUrl())) return null;
+    return localStorage.getItem(KEY_LOCAL_TOKEN) ?? sessionStorage.getItem(KEY_LOCAL_TOKEN);
+  } catch {
+    return null;
+  }
+}
+export function setLocalToken(t: string) {
+  try { localStorage.setItem(KEY_LOCAL_TOKEN, t); } catch { /* blocked: keep it for this tab */ }
+  try { sessionStorage.setItem(KEY_LOCAL_TOKEN, t); } catch { /* ignore */ }
+}
+
+function storedToken(): string | null {
+  const local = localToken();
+  if (local) return local;
+  try { return sessionStorage.getItem(KEY); } catch { return null; }
+}
+
 export function currentToken(): string | null {
   try {
-    const t = sessionStorage.getItem(KEY);
+    const t = storedToken();
     if (!t) return null;
     const exp = JSON.parse(atob(t.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))).exp as number;
     return exp * 1000 > Date.now() + 60_000 ? t : null;
@@ -23,7 +44,7 @@ export function currentToken(): string | null {
 /** When the current Google sign-in runs out (ms), or 0 if there is none. */
 export function tokenExpiresAt(): number {
   try {
-    const t = sessionStorage.getItem(KEY);
+    const t = storedToken();
     if (!t) return 0;
     return (JSON.parse(atob(t.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))).exp as number) * 1000;
   } catch {
@@ -53,6 +74,7 @@ const SIGNED_OUT = "academy.signedout";
 
 export function signOut() {
   try { sessionStorage.removeItem(KEY); } catch { /* ignore */ }
+  try { localStorage.removeItem(KEY_LOCAL_TOKEN); sessionStorage.removeItem(KEY_LOCAL_TOKEN); } catch { /* ignore */ }
   // after a sign-out, don't let Google sign the same account straight back in (shared computers)
   try { localStorage.setItem(SIGNED_OUT, "1"); } catch { /* ignore */ }
   window.google?.accounts.id.disableAutoSelect();
