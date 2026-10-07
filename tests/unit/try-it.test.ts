@@ -51,6 +51,27 @@ const right = { type: "multipleChoice", optionIds: mc.correctOptionIds };
 beforeEach(newDevice);
 
 describe("Try-It mode", () => {
+  it("the short demo completes, exports and imports without unlocking Mission 2 or awarding mastery", async () => {
+    const s = await E.startStudent("Workshop", "18-week");
+    const ids = { classId: s.classId, lessonId: "quick-demo" };
+    expect((await call(s.token, "completeLesson", ids)).ok).toBe(false);
+    expect((await call(s.token, "answerBlock", { ...ids, blockId: "predict", response: { type: "prediction", optionId: "bottom" } })).ok).toBe(true);
+    expect((await call(s.token, "answerBlock", { ...ids, blockId: "match", response: { type: "matching", pairs: { add: "add", remove: "remove" } } })).ok).toBe(true);
+    expect((await call(s.token, "submitReflection", { ...ids, blockId: "discovery", text: "The cube grows upward." })).ok).toBe(true);
+    const complete = await call(s.token, "completeLesson", ids);
+    expect(complete.ok).toBe(true);
+    expect(complete.data).toMatchObject({ nextLessonId: null, unlocked: [] });
+    const me = await call(s.token, "me", { classId: s.classId });
+    const data = me.data as { user: { email: string }; progress: Record<string, { status: string }>; levels: Record<string, unknown> };
+    expect(data.progress["quick-demo"].status).toBe("completed");
+    expect(data.progress["what-is-3d-printing"]?.status).not.toBe("completed");
+    expect(data.levels.D1).toBeUndefined();
+    const file = JSON.stringify(await E.exportProgress({ email: data.user.email, name: "Workshop" }));
+    await newDevice();
+    const imported = await E.importStudent(E.readProgressFile(file), null);
+    expect(JSON.stringify((await call(E.tokenFor(imported.email, imported.name), "me", { classId: imported.classId })).data)).toContain('"quick-demo"');
+  });
+
   it("a student starts with only a name, and the real scoring engine grades their work", async () => {
     const s = await E.startStudent("Maya", "18-week");
     const me = await call(s.token, "me", { classId: s.classId });

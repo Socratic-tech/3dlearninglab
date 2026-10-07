@@ -17,6 +17,12 @@ export type Flavor = {
 };
 
 export const FLAVOR: Record<string, Flavor> = {
+  "quick-demo": {
+    hook: {
+      headline: "A little cube. One big idea.",
+      body: "Picture a tower built from rows of bricks. A school 3D printer uses a similar idea: add one thin layer, then the next. You can explore that idea here in seven minutes, even if you have never touched a printer.",
+    },
+  },
   "what-is-3d-printing": {
     hook: {
       headline: "A rocket, a running shoe and a hearing aid walk into a printer…",

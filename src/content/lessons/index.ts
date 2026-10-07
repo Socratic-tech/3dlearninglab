@@ -27,6 +27,7 @@ import { lesson as l_print_detective } from "./print-detective";
 import { lesson as l_print_failures } from "./print-failures";
 import { lesson as l_product_design } from "./product-design";
 import { lesson as l_prototype } from "./prototype";
+import { lesson as l_quick_demo } from "./quick-demo";
 import { lesson as l_repeat_duplicate } from "./repeat-duplicate";
 import { lesson as l_rotating_objects } from "./rotating-objects";
 import { lesson as l_ruler } from "./ruler";
@@ -70,6 +71,7 @@ export const lessonInputs: LessonInput[] = [
   l_print_failures,
   l_product_design,
   l_prototype,
+  l_quick_demo,
   l_repeat_duplicate,
   l_rotating_objects,
   l_ruler,

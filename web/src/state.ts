@@ -52,5 +52,8 @@ export function studentStates(me: Me) {
     manuallyUnlocked: () => staff || !!me.cls?.unlockAll || (!!me.user.preview && previewUnlockOn()),
     status: (id) => me.progress[id]?.status as "in_progress" | "completed" | undefined,
   });
+  // The introductory demo is always open and never changes the course path.
+  const demoStatus = me.progress["quick-demo"]?.status;
+  states.set("quick-demo", demoStatus === "completed" ? "completed" : demoStatus === "in_progress" ? "in_progress" : "available");
   return { items, states };
 }
