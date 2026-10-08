@@ -384,7 +384,12 @@ export function LessonPlayer(p: PlayerProps) {
                   <strong>{tr("You tested out!")}</strong> {tr("Practice questions are optional now. Finish any uploads or reflections, then complete the mission.")}
                 </p>
               )}
-              {cur.blocks.map((b) => <div key={b.id}>{render(b)}</div>)}
+              {cur.blocks.map((b) => (
+                <div key={b.id} className="relative">
+                  {render(b)}
+                  {freshXp > 0 && b.id === checkBlock?.id && p.celebration !== "fx-none" && <XpBurst key={`${b.id}-${sheet?.attempts}`} amount={freshXp} />}
+                </div>
+              ))}
             </>
           )}
         </div>
@@ -501,6 +506,23 @@ function autoReadOn() {
 }
 function setAutoRead(on: boolean) {
   try { sessionStorage.setItem(AUTO_READ, on ? "1" : "0"); } catch { /* this screen only */ }
+}
+
+/** "+15 XP" that pops out of the middle of the card that earned it, with sparks flying outward. Decorative only. */
+const SPARKS = Array.from({ length: 12 }, (_, i) => {
+  const a = (i / 12) * Math.PI * 2;
+  const d = 70 + (i % 3) * 22;
+  return { dx: Math.round(Math.cos(a) * d), dy: Math.round(Math.sin(a) * d), delay: (i % 4) * 30 };
+});
+function XpBurst({ amount }: { amount: number }) {
+  return (
+    <div aria-hidden className="xp-burst pointer-events-none absolute inset-0 z-20 flex items-center justify-center overflow-visible">
+      {SPARKS.map((s, i) => (
+        <span key={i} className="xp-spark" style={{ "--dx": `${s.dx}px`, "--dy": `${s.dy}px`, animationDelay: `${s.delay}ms` } as React.CSSProperties} />
+      ))}
+      <span className="xp-amount rounded-full bg-accent px-5 py-2 font-display text-3xl font-bold text-primary-fg shadow-lg">+{amount} XP</span>
+    </div>
+  );
 }
 
 function ReadAloud({ target }: { target: React.RefObject<HTMLDivElement | null> }) {
