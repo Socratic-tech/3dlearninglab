@@ -18,6 +18,9 @@ export const standardInputs: S[] = [
   { id: "iste-1.5c", framework: "ISTE", code: "1.5.c", text: "Students break problems into component parts, extract key information, and develop descriptive models to understand complex systems or facilitate problem-solving." },
   { id: "iste-1.6d", framework: "ISTE", code: "1.6.d", text: "Students publish or present content that customizes the message and medium for their intended audiences." },
   // NGSS Middle School Engineering Design
+  { id: "ngss-3-5-ets1-1", framework: "NGSS", code: "3-5-ETS1-1", grade: "3–5", text: "Define a simple design problem reflecting a need or a want that includes specified criteria for success and constraints on materials, time, or cost." },
+  { id: "ngss-3-5-ets1-2", framework: "NGSS", code: "3-5-ETS1-2", grade: "3–5", text: "Generate and compare multiple possible solutions to a problem based on how well each is likely to meet the criteria and constraints of the problem." },
+  { id: "ngss-3-5-ets1-3", framework: "NGSS", code: "3-5-ETS1-3", grade: "3–5", text: "Plan and carry out fair tests in which variables are controlled and failure points are considered to identify aspects of a model or prototype that can be improved." },
   { id: "ngss-ms-ets1-1", framework: "NGSS", code: "MS-ETS1-1", grade: "6–8", text: "Define the criteria and constraints of a design problem with sufficient precision to ensure a successful solution, taking into account relevant scientific principles and potential impacts on people and the natural environment that may limit possible solutions." },
   { id: "ngss-ms-ets1-2", framework: "NGSS", code: "MS-ETS1-2", grade: "6–8", text: "Evaluate competing design solutions using a systematic process to determine how well they meet the criteria and constraints of the problem." },
   { id: "ngss-ms-ets1-3", framework: "NGSS", code: "MS-ETS1-3", grade: "6–8", text: "Analyze data from tests to determine similarities and differences among several design solutions to identify the best characteristics of each that can be combined into a new solution to better meet the criteria for success." },
@@ -39,6 +42,14 @@ export const standardInputs: S[] = [
 
 /** Many-to-many lesson ↔ standard mapping. */
 export const lessonStandards: { lessonId: string; standardIds: string[] }[] = [
+  { lessonId: "jr-layers", standardIds: ["iste-1.4a"] },
+  { lessonId: "jr-meet-tinkercad", standardIds: ["iste-1.4b"] },
+  { lessonId: "jr-move-stretch", standardIds: ["iste-1.4b"] },
+  { lessonId: "jr-shapes", standardIds: ["ngss-3-5-ets1-2"] },
+  { lessonId: "jr-holes", standardIds: ["iste-1.4b"] },
+  { lessonId: "jr-design-rules", standardIds: ["ngss-3-5-ets1-1", "ngss-3-5-ets1-3"] },
+  { lessonId: "jr-words", standardIds: ["iste-1.4b"] },
+  { lessonId: "jr-boss-bookmark", standardIds: ["ngss-3-5-ets1-1", "ngss-3-5-ets1-3", "iste-1.4c"] },
   { lessonId: "what-is-3d-printing", standardIds: ["iste-1.4a"] },
   { lessonId: "print-detective", standardIds: ["ngss-ms-ets1-3", "iste-1.5c"] },
   { lessonId: "navigating-tinkercad", standardIds: ["iste-1.4b"] },

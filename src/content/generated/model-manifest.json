@@ -325,6 +325,60 @@
     },
     "notes": "Same T, but 45° chamfers under each arm make it self-supporting."
   },
+  "bookmark-good": {
+    "file": "/models/original/bookmark-good.stl",
+    "triangles": 400,
+    "min": [
+      0,
+      0,
+      0
+    ],
+    "max": [
+      120,
+      35,
+      2
+    ],
+    "size": [
+      120,
+      35,
+      2
+    ],
+    "anchors": {
+      "hole": [
+        10,
+        17.5,
+        2
+      ]
+    },
+    "notes": "120 × 35 × 2 mm bookmark with a 6 mm tassel hole and 7 mm of plastic around it."
+  },
+  "bookmark-thin": {
+    "file": "/models/original/bookmark-thin.stl",
+    "triangles": 400,
+    "min": [
+      0,
+      0,
+      0
+    ],
+    "max": [
+      120,
+      35,
+      0.6
+    ],
+    "size": [
+      120,
+      35,
+      0.6
+    ],
+    "anchors": {
+      "hole": [
+        3.5,
+        17.5,
+        0.6
+      ]
+    },
+    "notes": "Breaks two rules: only 0.6 mm thick, and the 6 mm hole leaves 0.5 mm of plastic at the edge."
+  },
   "peg-10mm": {
     "file": "/models/original/peg-10mm.stl",
     "triangles": 772,

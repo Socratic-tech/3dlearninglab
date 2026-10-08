@@ -493,15 +493,33 @@ function StuckHelp({ vocabulary }: { vocabulary: { term: string; definition: str
  * Reads the visible text of the screen, including choices, and stops when the student moves on.
  */
 const noSubscribe = () => () => {};
+const AUTO_READ = "academy.autoRead";
+/** Grades 4–5 classes: once a student taps Listen, every next screen is read aloud too (until they tap Stop). */
+const youngerScreen = () => typeof document !== "undefined" && document.documentElement.dataset.audience === "younger";
+function autoReadOn() {
+  try { return sessionStorage.getItem(AUTO_READ) === "1"; } catch { return false; }
+}
+function setAutoRead(on: boolean) {
+  try { sessionStorage.setItem(AUTO_READ, on ? "1" : "0"); } catch { /* this screen only */ }
+}
+
 function ReadAloud({ target }: { target: React.RefObject<HTMLDivElement | null> }) {
   const [speaking, setSpeaking] = useState(false);
   const supported = useSyncExternalStore(noSubscribe, () => "speechSynthesis" in window, () => false);
+  const younger = useSyncExternalStore(noSubscribe, youngerScreen, () => false);
+  const wrapRef = useRef<HTMLSpanElement>(null);
   // remounted on every screen change (key), so leaving a screen stops the voice
   useEffect(() => () => { if ("speechSynthesis" in window) window.speechSynthesis.cancel(); }, []);
+  useEffect(() => {
+    if (!younger || !autoReadOn()) return;
+    const t = setTimeout(() => wrapRef.current?.querySelector("button")?.click(), 600);
+    return () => clearTimeout(t);
+  }, [younger]);
   if (!supported) return null;
   const toggle = () => {
     const synth = window.speechSynthesis;
-    if (speaking) { synth.cancel(); setSpeaking(false); return; }
+    if (speaking) { synth.cancel(); setSpeaking(false); if (younger) setAutoRead(false); return; }
+    if (younger) setAutoRead(true);
     const el = target.current;
     if (!el) return;
     const clone = el.cloneNode(true) as HTMLElement;
@@ -522,10 +540,12 @@ function ReadAloud({ target }: { target: React.RefObject<HTMLDivElement | null> 
     setSpeaking(true);
   };
   return (
-    <Button variant="ghost" size="lg" className="px-2 sm:px-4" onClick={toggle} aria-pressed={speaking} aria-label={speaking ? tr("Stop reading aloud") : tr("Read this screen aloud")}>
+    <span ref={wrapRef} className="contents">
+    <Button variant={younger ? "secondary" : "ghost"} size="lg" className="px-2 sm:px-4" onClick={toggle} aria-pressed={speaking} aria-label={speaking ? tr("Stop reading aloud") : tr("Read this screen aloud")}>
       {speaking ? <VolumeX className="size-5" aria-hidden /> : <Volume2 className="size-5" aria-hidden />}
-      <span className="hidden sm:inline">{speaking ? tr("Stop") : tr("Read aloud")}</span>
+      <span className={younger ? "inline" : "hidden sm:inline"}>{speaking ? tr("Stop") : younger ? tr("Listen") : tr("Read aloud")}</span>
     </Button>
+    </span>
   );
 }
 

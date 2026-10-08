@@ -1,0 +1,153 @@
+import type { LessonInput } from "../schema";
+
+export const lesson: LessonInput = {
+  id: "jr-layers",
+  number: 101,
+  title: "Printers Build in Layers",
+  subtitle: "Thin layer, thin layer, thin layer… done!",
+  domain: "D",
+  kind: "lesson",
+  summary: "See how a 3D printer stacks thin layers of plastic to make a real object, then build your own layer model.",
+  estimatedMinutes: 25,
+  printLevel: "digital",
+  competencyIds: ["D1"],
+  prerequisites: [],
+  vocabulary: [
+    { term: "3D printer", definition: "A machine that makes a real object by stacking thin layers of melted plastic." },
+    { term: "Layer", definition: "One thin flat slice. A print is many layers stacked up." },
+    { term: "Nozzle", definition: "The hot tip of the printer that the plastic comes out of." },
+  ],
+  sections: [
+    {
+      phase: "discover",
+      title: "How does a printer make things?",
+      blocks: [
+        {
+          id: "hook",
+          type: "hero",
+          title: "From nothing to something",
+          hook: "A 3D printer starts with nothing. Then it adds plastic, one thin layer at a time, until your object is done.",
+          visual: { diagram: "layers-stack", alt: "Thin layers stacked on top of each other to make a shape." },
+        },
+        {
+          id: "printer",
+          type: "diagram",
+          name: "fdm-printer",
+          caption: "Plastic string goes into a hot nozzle. The nozzle draws one layer. Then it moves up and draws the next layer.",
+          alt: "A spool of plastic feeds into a hot nozzle above a flat plate.",
+        },
+        {
+          id: "predict",
+          type: "prediction",
+          prompt: "Where does the printer start building?",
+          options: [
+            { id: "a", text: "At the bottom, on the flat plate" },
+            { id: "b", text: "At the top", misconceptionId: "top-down" },
+            { id: "c", text: "In the middle", misconceptionId: "middle-out" },
+          ],
+          expectedOptionId: "a",
+          reveal: "The printer always starts at the bottom. Each new layer sits on the one below it.",
+        },
+      ],
+    },
+    {
+      phase: "practice",
+      title: "Watch the layers",
+      blocks: [
+        {
+          id: "viewer",
+          type: "modelViewer",
+          modelId: "axis-cube-20mm",
+          caption: "Move the layer slider. Watch the cube grow from the bottom up.",
+          showLayers: true,
+        },
+        {
+          id: "order",
+          type: "ordering",
+          prompt: "Put the steps in order.",
+          hint: "First you make the design on the computer. Last, the printer builds it.",
+          items: [
+            { id: "design", text: "Make a design on the computer" },
+            { id: "send", text: "Send it to the printer" },
+            { id: "first", text: "The printer makes the bottom layer" },
+            { id: "stack", text: "The printer stacks more layers on top" },
+          ],
+          explanation: "Design, send, bottom layer, then more layers on top.",
+          competencyId: "D1",
+          check: "practice",
+        },
+        {
+          id: "layer-check",
+          type: "multipleChoice",
+          prompt: "Why can you feel little lines on the side of a 3D print?",
+          hint: "Think about how the printer builds: one thin slice at a time.",
+          options: [
+            { id: "a", text: "Each line is one layer of plastic." },
+            { id: "b", text: "Someone scratched it.", misconceptionId: "scratches" },
+            { id: "c", text: "The plastic was painted with stripes.", misconceptionId: "paint" },
+          ],
+          correctOptionIds: ["a"],
+          explanation: "Every line is one layer. A printed object is a stack of layers.",
+          competencyId: "D1",
+          check: "skill",
+        },
+      ],
+    },
+    {
+      phase: "prove",
+      title: "Build a layer model",
+      blocks: [
+        {
+          id: "prove",
+          type: "challenge",
+          where: "offline",
+          kind: "prove",
+          title: "Be the printer",
+          prompt: "Use paper, sticky notes or LEGO to build a small object one layer at a time, just like a printer.",
+          requirements: ["At least 5 layers", "Start at the bottom", "Each layer sits on the one below"],
+          skills: ["D1"],
+        },
+        {
+          id: "submit",
+          type: "uploadEvidence",
+          prompt: "Show your layer model. Take a photo, or tell about it.",
+          accepts: ["screenshot", "written"],
+          competencyIds: ["D1"],
+          checklist: ["I used at least 5 layers", "I started at the bottom"],
+        },
+      ],
+    },
+    {
+      phase: "reflect",
+      title: "Think about it",
+      blocks: [
+        {
+          id: "reflect",
+          type: "reflection",
+          prompt: "What would you like to make with a 3D printer?",
+          sentenceStarters: ["I would make… because…", "It would help me…"],
+          competencyIds: ["D1"],
+        },
+      ],
+    },
+  ],
+  teacher: {
+    purpose: "Students build the core idea that a printer stacks thin layers from the bottom up, which every later lesson depends on.",
+    preparation: [
+      "Start a small print (the 20 mm cube or the XYZ cube) a few minutes before class so students can watch layers form.",
+      "Put out paper squares, sticky notes or LEGO bricks for the layer model.",
+    ],
+    equipment: ["Student devices", "Paper, sticky notes or LEGO", "Optional: a running 3D printer or any printed object"],
+    misconceptions: [
+      { id: "top-down", text: "The printer builds from the top down.", response: "Ask: what would hold up the first bit of plastic at the top? Watch a print start on the plate." },
+      { id: "middle-out", text: "The printer starts in the middle.", response: "Show the first layer of a print: it is always flat on the plate." },
+      { id: "scratches", text: "The lines on a print are scratches.", response: "Have students run a fingernail up a print and count the bumps: each is a layer." },
+      { id: "paint", text: "The stripes are painted on.", response: "Show a print in one color: the lines are still there." },
+    ],
+    discussionQuestions: ["What else in real life is built in layers? (A cake, a brick wall, a sandwich)", "What do you think happens if one layer is missing?"],
+    printableObjects: ["axis-cube-20mm (teacher demo, printed live)"],
+    troubleshooting: ["If the layer slider is hard to use on a trackpad, use the arrow keys after clicking it."],
+    answerGuidance: ["Order: design, send, bottom layer, more layers.", "Layer model: look for at least 5 layers built from the bottom up."],
+    alternatives: { noPrinter: "Use the layer slider in the viewer and pass around any 3D printed object you can borrow." },
+  },
+};

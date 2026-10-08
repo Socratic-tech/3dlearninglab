@@ -79,7 +79,7 @@ function INDIRECT() {
     "Avatar", "Titles", "Celebrations", "Looks", "Class rewards",
     "Robot", "Cube", "Octo", "Dragon", "UFO", "Blue", "Orange", "Green", "Purple", "Pink", "Gold",
     "No hat", "Safety goggles", "Headphones", "Wizard hat", "Crown", "Nothing", "Wrench", "Calipers", "Filament spool", "Trophy",
-    "Rookie Maker", "Layer Legend", "CAD Wizard", "Support Slayer", "Tolerance Tamer", "Bridge Boss", "Infill Icon", "Master Maker",
+    "Rookie Maker", "Layer Legend", "CAD Wizard", "Support Slayer", "Tolerance Tamer", "Bridge Boss", "Infill Icon", "Master Maker", "Shape Builder", "Bookmark Boss",
     "Confetti", "Fireworks", "Pixel burst", "Print a trophy", "Rocket launch",
     "Initials badge", "Pixel", "Visor", "CAD Surgeon", "Sprint Champion", "Quiet (no animation)",
   ];

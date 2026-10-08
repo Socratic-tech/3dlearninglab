@@ -276,5 +276,18 @@
   "models:ext-support-removal-test-unclejessy.title": "Prueba de eliminación de soporte",
   "models:ext-support-removal-test-unclejessy.educationalPurpose": "Distancia de interfaz de soporte y experimentos de eliminación de soporte.",
   "models:ext-snapfit-box-keosovandara.title": "Caja de ajuste a presión",
-  "models:ext-snapfit-box-keosovandara.educationalPurpose": "Tolerancias, piezas acopladas y mecanismos de ajuste rápido."
+  "models:ext-snapfit-box-keosovandara.educationalPurpose": "Tolerancias, piezas acopladas y mecanismos de ajuste rápido.",
+  "paths:jr-starter.title": "Inicio para 4.º y 5.º grado: Maker Junior",
+  "paths:jr-starter.weeks:w1.title": "Capas y Tinkercad",
+  "paths:jr-starter.weeks:w1.focus": "Cómo construyen las impresoras y cómo moverte por Tinkercad",
+  "paths:jr-starter.weeks:w2.title": "Tamaño y figuras",
+  "paths:jr-starter.weeks:w2.focus": "Escribir tamaños y construir con figuras",
+  "paths:jr-starter.weeks:w3.title": "Agujeros y reglas",
+  "paths:jr-starter.weeks:w3.focus": "Cortar espacio y revisar un diseño",
+  "paths:jr-starter.weeks:w4.title": "Batalla final: Separador con tu nombre",
+  "paths:jr-starter.weeks:w4.focus": "Palabras que se imprimen y luego la batalla final",
+  "models:bookmark-good.title": "Separador bueno",
+  "models:bookmark-good.educationalPurpose": "Un separador de 2 mm con mucho plástico alrededor de su agujero para la borla.",
+  "models:bookmark-thin.title": "Separador demasiado delgado",
+  "models:bookmark-thin.educationalPurpose": "Solo mide 0.6 mm de grosor y tiene el agujero justo en la orilla: se dobla y se rompe."
 }

@@ -10,7 +10,7 @@ import crypto from "node:crypto";
 import { execSync } from "node:child_process";
 import path from "node:path";
 import { build } from "esbuild";
-import { allBlocks, competencies, isRequiredBlock, journalPrompts, lessons, lessonsInPath } from "../src/content";
+import { allBlocks, competencies, isRequiredBlock, journalPrompts, lessons, lessonsInPath, paths as coursePaths } from "../src/content";
 import { isScorable, redactBlock } from "../src/lib/scoring";
 import { applyOverlay, type Overlay } from "../src/lib/i18n-content";
 import { encodePack, packable } from "../src/lib/answer-pack";
@@ -53,7 +53,7 @@ const content = {
   autoAssessable: Object.fromEntries(competencies.filter((c) => c.autoAssessable).map((c) => [c.id, true])),
   competencyIds: Object.fromEntries(competencies.map((c) => [c.id, true])),
   journalPrompts: journalPrompts.map((p) => p.id),
-  paths: { "9-week": lessonsInPath("9-week").map((x) => x.lesson.id), "18-week": lessonsInPath("18-week").map((x) => x.lesson.id) },
+  paths: Object.fromEntries(coursePaths.map((p) => [p.id, lessonsInPath(p.id).map((x) => x.lesson.id)])),
   es: serverEs,
 };
 {

@@ -262,6 +262,18 @@ const models: Record<string, () => Built> = {
     };
   },
 
+  // Grades 4–5 starter unit: a good bookmark and one that breaks two rules (too thin, hole at the edge)
+  "bookmark-good": () => ({
+    geometry: subtract(box(0, 0, 0, 120, 35, 2), cyl(10, 17.5, -1, 3, 4)),
+    anchors: { hole: [10, 17.5, 2] },
+    notes: "120 × 35 × 2 mm bookmark with a 6 mm tassel hole and 7 mm of plastic around it.",
+  }),
+  "bookmark-thin": () => ({
+    geometry: subtract(box(0, 0, 0, 120, 35, 0.6), cyl(3.5, 17.5, -1, 3, 4)),
+    anchors: { hole: [3.5, 17.5, 0.6] },
+    notes: "Breaks two rules: only 0.6 mm thick, and the 6 mm hole leaves 0.5 mm of plastic at the edge.",
+  }),
+
   "peg-10mm": () => ({
     geometry: union(cyl(0, 0, 0, 5, 20), cyl(0, 0, 0, 8, 3)),
     anchors: { peg: [0, 0, 20] },

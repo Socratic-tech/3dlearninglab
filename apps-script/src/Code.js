@@ -247,12 +247,18 @@ function enroll_(email, classId, source) {
 
 function classOut_(c) {
   return {
-    id: c.classId, name: c.name, section: c.section || "", pathId: c.pathId === "9-week" ? "9-week" : "18-week",
+    id: c.classId, name: c.name, section: c.section || "", pathId: pathIdOf_(c.pathId),
     tinkercadUrl: c.tinkercadUrl || null, unlockAll: String(c.unlockAll).toUpperCase() === "TRUE", googleCourseId: c.googleCourseId || null,
   };
 }
 
 /** The class a request is about: the requested one if the user may see it, otherwise their first. */
+/** A course path the current lessons know (new paths can arrive with the lesson feed); anything else is the 18-week course. */
+function pathIdOf_(id) {
+  const paths = content_().paths || {};
+  return typeof id === "string" && Object.prototype.hasOwnProperty.call(paths, id) && Array.isArray(paths[id]) ? id : "18-week";
+}
+
 function classFor_(user, classId) {
   if (user.role === "teacher") {
     const all = activeClasses_();
@@ -643,6 +649,7 @@ const STORE_ITEMS = [
   { id: "title-bridge-boss", kind: "title", price: 0, earn: "bridging" }, { id: "title-infill-icon", kind: "title", price: 0, earn: "strength" },
   { id: "title-cad-surgeon", kind: "title", price: 0, earn: "cad-er" }, { id: "title-sprint-champion", kind: "title", price: 0, earn: "mini-design-sprint" },
   { id: "title-master-maker", kind: "title", price: 0, earn: "final-capstone" },
+  { id: "title-shape-builder", kind: "title", price: 0, earn: "jr-shapes" }, { id: "title-bookmark-boss", kind: "title", price: 0, earn: "jr-boss-bookmark" },
   // what happens when you finish a mission
   { id: "fx-none", kind: "celebration", price: 0 }, { id: "fx-confetti", kind: "celebration", price: 0 }, { id: "fx-fireworks", kind: "celebration", price: 120 }, { id: "fx-pixels", kind: "celebration", price: 180 },
   { id: "fx-trophy", kind: "celebration", price: 250 }, { id: "fx-rocket", kind: "celebration", price: 350 },
@@ -1292,7 +1299,7 @@ const ACTIONS = {
     run: function (user, a) {
       const name = String(a.name || "").trim().slice(0, 120);
       if (!name) throw userError_("Give the class a name.");
-      const c = { classId: "c" + Utilities.getUuid().slice(0, 8), name: name, section: String(a.section || "").slice(0, 60), pathId: a.pathId === "9-week" ? "9-week" : "18-week", tinkercadUrl: "", unlockAll: "FALSE", googleCourseId: a.googleCourseId || "", status: "active", createdAt: now_() };
+      const c = { classId: "c" + Utilities.getUuid().slice(0, 8), name: name, section: String(a.section || "").slice(0, 60), pathId: pathIdOf_(a.pathId), tinkercadUrl: "", unlockAll: "FALSE", googleCourseId: a.googleCourseId || "", status: "active", createdAt: now_() };
       withLock_(function () { table_("Classes").append(c); });
       return classOut_(c);
     },
@@ -1306,7 +1313,7 @@ const ACTIONS = {
       const patch = {};
       if (a.name !== undefined) patch.name = String(a.name).trim().slice(0, 120) || c.name;
       if (a.section !== undefined) patch.section = String(a.section).slice(0, 60);
-      if (a.pathId !== undefined) patch.pathId = a.pathId === "9-week" ? "9-week" : "18-week";
+      if (a.pathId !== undefined) patch.pathId = pathIdOf_(a.pathId);
       if (a.tinkercadUrl !== undefined) patch.tinkercadUrl = String(a.tinkercadUrl || "");
       if (a.unlockAll !== undefined) patch.unlockAll = a.unlockAll ? "TRUE" : "FALSE";
       if (a.archived !== undefined) patch.status = a.archived ? "archived" : "active";

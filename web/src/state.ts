@@ -2,6 +2,12 @@ import { useSyncExternalStore } from "react";
 import { lessonStates } from "@/lib/progression";
 import type { Me } from "./content";
 import { pathLessons } from "./content";
+import { pathInputs } from "@/content/paths";
+
+/** Grades 4–5 classes (a "younger" path): simpler, read-aloud-first student screens. Teachers keep the full view. */
+export const isYounger = (me: Me) => me.user.role === "student" && pathInputs.find((p) => p.id === me.cls?.pathId)?.audience === "younger";
+/** Course choices for a class, from the course content (new paths appear without code changes). */
+export const pathOptions = pathInputs.map((p) => ({ id: p.id, title: p.title }));
 
 /** Teachers and admins see every lesson open, whatever has been completed. */
 export const isStaff = (me: Me) => me.user.role !== "student";

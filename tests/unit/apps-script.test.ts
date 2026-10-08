@@ -468,6 +468,15 @@ describe("XP store and class rewards", () => {
     expect(e.call("maya@school.org", "buyLook", { lookId: "neon" }).error).toMatch(/50 more XP/);
   });
 
+  it("a class can use any course path the lessons define (grades 4–5 starter); unknown paths fall back", () => {
+    const e = makeEnv("teacher@school.org");
+    const jr = e.call("teacher@school.org", "createClass", { name: "Room 12", pathId: "jr-starter" }).data;
+    expect(jr.pathId).toBe("jr-starter");
+    const odd = e.call("teacher@school.org", "createClass", { name: "Odd", pathId: "made-up" }).data;
+    expect(odd.pathId).toBe("18-week");
+    expect(e.call("teacher@school.org", "updateClass", { classId: odd.id, pathId: "9-week" }).ok).toBe(true);
+  });
+
   it("Student view: the teacher works as a real test student, and can reset it; students can't use the switch", () => {
     const { e, classId } = setupClass();
     const me = e.call("teacher@school.org", "me", { classId, asStudent: true }).data;

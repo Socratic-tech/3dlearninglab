@@ -5,6 +5,18 @@ type P = z.input<typeof pathSchema>;
 
 export const pathInputs: P[] = [
   {
+    id: "jr-starter",
+    audience: "younger",
+    title: "Grades 4–5 Starter: Maker Junior",
+    description: "Eight short lessons (25–30 min) from how printers build in layers to a printed name bookmark. Whole millimeters only; read-aloud first.",
+    weeks: [
+      { week: 1, title: "Layers and Tinkercad", focus: "How printers build, and finding your way around", lessonIds: ["jr-layers", "jr-meet-tinkercad"] },
+      { week: 2, title: "Size and shapes", focus: "Typing sizes, building from shapes", lessonIds: ["jr-move-stretch", "jr-shapes"] },
+      { week: 3, title: "Holes and rules", focus: "Cutting space, checking a design", lessonIds: ["jr-holes", "jr-design-rules"] },
+      { week: 4, title: "Boss Battle: Name Bookmark", focus: "Words that print, then the boss", lessonIds: ["jr-words", "jr-boss-bookmark"] },
+    ],
+  },
+  {
     id: "9-week",
     title: "9-Week Course: Design Things That Work",
     description:

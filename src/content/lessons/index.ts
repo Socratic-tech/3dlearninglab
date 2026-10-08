@@ -12,6 +12,14 @@ import { lesson as l_grouping } from "./grouping";
 import { lesson as l_holes } from "./holes";
 import { lesson as l_interviewing_a_user } from "./interviewing-a-user";
 import { lesson as l_iteration } from "./iteration";
+import { lesson as l_jr_boss_bookmark } from "./jr-boss-bookmark";
+import { lesson as l_jr_design_rules } from "./jr-design-rules";
+import { lesson as l_jr_holes } from "./jr-holes";
+import { lesson as l_jr_layers } from "./jr-layers";
+import { lesson as l_jr_meet_tinkercad } from "./jr-meet-tinkercad";
+import { lesson as l_jr_move_stretch } from "./jr-move-stretch";
+import { lesson as l_jr_shapes } from "./jr-shapes";
+import { lesson as l_jr_words } from "./jr-words";
 import { lesson as l_layers } from "./layers";
 import { lesson as l_make_it_fit } from "./make-it-fit";
 import { lesson as l_maker_showcase } from "./maker-showcase";
@@ -56,6 +64,14 @@ export const lessonInputs: LessonInput[] = [
   l_holes,
   l_interviewing_a_user,
   l_iteration,
+  l_jr_boss_bookmark,
+  l_jr_design_rules,
+  l_jr_holes,
+  l_jr_layers,
+  l_jr_meet_tinkercad,
+  l_jr_move_stretch,
+  l_jr_shapes,
+  l_jr_words,
   l_layers,
   l_make_it_fit,
   l_maker_showcase,

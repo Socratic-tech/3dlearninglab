@@ -142,7 +142,8 @@ function classForm(title) {
     '<label>Class name<input type="text" id="cname" placeholder="3D Design – Period 2"></label>' +
     '<label>How long is the course?</label><div class="choices" id="len">' +
     '<label class="on"><input type="radio" name="len" value="18-week" checked>18 weeks<small>semester</small></label>' +
-    '<label><input type="radio" name="len" value="9-week">9 weeks<small>quarter</small></label></div>' +
+    '<label><input type="radio" name="len" value="9-week">9 weeks<small>quarter</small></label>' +
+    '<label><input type="radio" name="len" value="jr-starter">Grades 4–5<small>starter unit</small></label></div>' +
     '<button onclick="createClass(this)">Create class</button>' +
     (S.classes.length ? '<p><button class="link" onclick="showAdd=false; render()">Cancel</button></p>' : "") + "</div>";
 }

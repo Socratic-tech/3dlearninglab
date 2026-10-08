@@ -17,7 +17,8 @@ export type NextUpItem = PathItem & {
  * 2. The current unit's missions as tiles.
  * 3. Everything else folded: finished units in one list, each upcoming unit in its own list.
  */
-export function NextUpPath({ items }: { items: NextUpItem[] }) {
+/** `simple` (grades 4–5): just "keep going" and this unit's missions, no full mission list. */
+export function NextUpPath({ items, simple }: { items: NextUpItem[]; simple?: boolean }) {
   const current = items.find((x) => x.state === "in_progress") ?? items.find((x) => x.state === "available");
   const weeks = new Map<number, NextUpItem[]>();
   items.forEach((x) => weeks.set(x.week, [...(weeks.get(x.week) ?? []), x]));
@@ -45,7 +46,7 @@ export function NextUpPath({ items }: { items: NextUpItem[] }) {
         </section>
       )}
 
-      <section aria-labelledby="all-h" className="space-y-2">
+      {!simple && <section aria-labelledby="all-h" className="space-y-2">
         <h2 id="all-h" className="font-display text-lg font-bold">{tr("All missions")}</h2>
         {finished.length > 0 && (
           <Fold
@@ -75,7 +76,7 @@ export function NextUpPath({ items }: { items: NextUpItem[] }) {
             {upcoming.slice(3).map((u) => <UnitList key={u.week} unit={u} />)}
           </Fold>
         )}
-      </section>
+      </section>}
     </div>
   );
 }

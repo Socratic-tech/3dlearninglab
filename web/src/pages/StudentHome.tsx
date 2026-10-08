@@ -11,7 +11,7 @@ import { allBlocks, isRequiredBlock } from "@/content/schema";
 import { ProgressRing, ProgressBar } from "@/components/ui/progress";
 import { rank } from "@/lib/mastery";
 import { competencies, domainsFor, lessonFor, pathTitle, type Me } from "../content";
-import { isStaff, setStudentView, studentStates, usePreviewUnlock, useStudentView } from "../state";
+import { isStaff, isYounger, setStudentView, studentStates, usePreviewUnlock, useStudentView } from "../state";
 
 const initialsOf = (name: string) => name.split(/\s+/).filter(Boolean).map((w) => w[0]).join("").slice(0, 2);
 
@@ -47,6 +47,7 @@ export function StudentHome({ me, apiUrl, onChange }: { me: Me; apiUrl: string; 
         <a href="#/lesson/quick-demo" className="mt-4 inline-block rounded-xl bg-primary px-4 py-2 font-semibold text-white hover:opacity-90">{tr(me.progress["quick-demo"]?.status === "completed" ? "Revisit the short demo" : "Start the short demo")}</a>
       </section>
       <NextUpPath
+        simple={isYounger(me)}
         items={items.map((x) => {
           const st = states.get(x.lesson.id) ?? "locked";
           const req = allBlocks(x.lesson).filter(isRequiredBlock).map((b) => b.id);

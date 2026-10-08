@@ -8,3 +8,8 @@
 @font-face { font-family: "Space Grotesk"; src: url("../../src/app/fonts/space-grotesk-latin-wght-normal.woff2") format("woff2"); font-weight: 300 700; font-display: swap; }
 @font-face { font-family: "JetBrains Mono"; src: url("../../src/app/fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2"); font-weight: 100 800; font-display: swap; }
 :root { --font-body: "Atkinson Hyperlegible"; --font-heading: "Space Grotesk"; --font-code: "JetBrains Mono"; }
+
+/* Grades 4–5 classes: larger, calmer screens (UDL: reduce reading load, bigger targets). */
+html[data-audience="younger"] { font-size: 112.5%; }
+html[data-audience="younger"] main button, html[data-audience="younger"] main a[href] { min-height: 2.75rem; }
+html[data-audience="younger"] main p, html[data-audience="younger"] main li { line-height: 1.7; }

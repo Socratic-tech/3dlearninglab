@@ -29,6 +29,7 @@ const ITEMS: { id: string; slot: Slot; name: string }[] = [
   { id: "title-support-slayer", slot: "title", name: "Support Slayer" }, { id: "title-tolerance-tamer", slot: "title", name: "Tolerance Tamer" },
   { id: "title-bridge-boss", slot: "title", name: "Bridge Boss" }, { id: "title-infill-icon", slot: "title", name: "Infill Icon" },
   { id: "title-cad-surgeon", slot: "title", name: "CAD Surgeon" }, { id: "title-sprint-champion", slot: "title", name: "Sprint Champion" }, { id: "title-master-maker", slot: "title", name: "Master Maker" },
+  { id: "title-shape-builder", slot: "title", name: "Shape Builder" }, { id: "title-bookmark-boss", slot: "title", name: "Bookmark Boss" },
   { id: "fx-none", slot: "celebration", name: "Quiet (no animation)" }, { id: "fx-confetti", slot: "celebration", name: "Confetti" }, { id: "fx-fireworks", slot: "celebration", name: "Fireworks" }, { id: "fx-pixels", slot: "celebration", name: "Pixel burst" },
   { id: "fx-trophy", slot: "celebration", name: "Print a trophy" }, { id: "fx-rocket", slot: "celebration", name: "Rocket launch" },
   ...SKINS.map((s) => ({ id: s.id as string, slot: "look" as Slot, name: s.name as string })),

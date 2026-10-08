@@ -17,6 +17,31 @@ export type Flavor = {
 };
 
 export const FLAVOR: Record<string, Flavor> = {
+  "jr-layers": {
+    hook: { headline: "Printers build like you stack blocks.", body: "Doctors print models of bones. Engineers print toy-sized test parts. Every one is made the same way: thin layers of plastic, stacked from the bottom up." },
+  },
+  "jr-meet-tinkercad": {
+    hook: { headline: "Real designers start with a blank workplane.", body: "Toy designers, engineers and game makers all start the same way: an empty space on a computer and a few shapes. Today that space is yours." },
+  },
+  "jr-move-stretch": {
+    hook: { headline: "A LEGO brick is made to a tiny fraction of a millimeter.", body: "That is why every brick snaps onto every other brick. Designers type exact sizes so things fit. You'll type sizes too." },
+  },
+  "jr-shapes": {
+    hook: { headline: "Robots, rockets and houses start as boxes and tubes.", body: "Look closely at almost anything and you'll find simple shapes. Designers put simple shapes together to make big ideas." },
+  },
+  "jr-holes": {
+    hook: { headline: "Sometimes designing means taking away.", body: "A button has holes for thread. A keychain has a hole for the ring. A cup is a cylinder with a hole inside. Holes make things work." },
+  },
+  "jr-design-rules": {
+    hook: { headline: "Engineers check before they build.", body: "Bridge builders, car makers and toy companies all check their designs against rules before making anything. A quick check saves time and plastic." },
+  },
+  "jr-words": {
+    hook: { headline: "Your name, standing up in plastic.", body: "Signs, trophies and name tags all use raised letters. They have to be big enough and touch the base, or they won't print." },
+  },
+  "jr-boss-bookmark": {
+    hook: { headline: "Your bookmark, in your book, by next week.", body: "Libraries and bookstores give away bookmarks with names and pictures. Today you're the designer. Follow the five rules and make it yours." },
+    themes: { boss: [{ label: "Name and stars", idea: "Your name with stars or hearts on the end" }, { label: "Favorite animal", idea: "Your name with an animal made from shapes" }, { label: "Sports fan", idea: "Your name and your team's number" }] },
+  },
   "quick-demo": {
     hook: {
       headline: "A little cube. One big idea.",

@@ -386,7 +386,9 @@ export type LessonInput = z.input<typeof lessonSchema>;
 export type TeacherGuide = z.infer<typeof teacherGuideSchema>;
 
 export const pathSchema = z.object({
-  id: z.enum(["9-week", "18-week"]),
+  id: z.string().regex(/^[a-z0-9-]+$/),
+  /** "younger": grades 4–5 classes get the simpler, read-aloud-first student screens */
+  audience: z.enum(["middle", "younger"]).default("middle"),
   title: z.string(),
   description: z.string(),
   weeks: z

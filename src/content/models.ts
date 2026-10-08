@@ -81,6 +81,8 @@ export const modelAssetInputs: ModelAssetInput[] = [
   original("misaligned-stack", "Misaligned Stack", "Four cylinders that should share a centre line.", ["Align tool"], ["align"]),
   original("half-bracket", "Half Bracket", "Half of a symmetric bracket — mirror it to complete the part.", ["Mirror", "Group"], ["mirror"]),
   original("wedge-block", "Wedge Block", "A wedge with a sloped face for workplane practice.", ["Workplane"], ["workplanes"]),
+  original("bookmark-good", "Good Bookmark", "A 2 mm bookmark with plenty of plastic around its tassel hole.", ["Thickness", "Space around holes"], ["jr-design-rules", "jr-boss-bookmark"]),
+  original("bookmark-thin", "Too-Thin Bookmark", "Only 0.6 mm thick, with a hole right at the edge: it bends and tears.", ["Too thin", "Hole at the edge"], ["jr-design-rules"]),
 
   // ───── External, openly licensed diagnostic models (link-out until verified) ─────
   external({

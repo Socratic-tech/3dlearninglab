@@ -14,7 +14,7 @@ import { resumeSync, startSync, subscribeSync, syncState } from "./sync";
 import { SyncPill } from "./sync-pill";
 import { fetchClass } from "./class-cache";
 import { PrintKitPage, TeacherGuidePage } from "./pages/TeacherGuidePage";
-import { identityOf, isStaff, studentViewOn, setPreviewUnlock, setStudentView, usePreviewUnlock, useStudentView } from "./state";
+import { identityOf, isYounger, isStaff, studentViewOn, setPreviewUnlock, setStudentView, usePreviewUnlock, useStudentView } from "./state";
 import { call } from "./api";
 import type { Me } from "./content";
 import { StudentHome } from "./pages/StudentHome";
@@ -56,6 +56,13 @@ export function App() {
   const locale = useLocale();
   const [, setContentTick] = useState(0);
   useEffect(() => { void ensureLocaleContent(locale).then(() => setContentTick((n) => n + 1)); }, [locale]);
+
+  // grades 4–5: bigger text and buttons, read-aloud first (CSS + the read-aloud button read this flag)
+  const younger = !!me && isYounger(me);
+  useEffect(() => {
+    if (younger) document.documentElement.dataset.audience = "younger";
+    else delete document.documentElement.dataset.audience;
+  }, [younger]);
 
   const hasMe = useRef(!!me);
   useEffect(() => { hasMe.current = !!me; }, [me]);

@@ -1,0 +1,130 @@
+import type { LessonInput } from "../schema";
+
+export const lesson: LessonInput = {
+  id: "jr-words",
+  number: 107,
+  title: "Words You Can Print",
+  subtitle: "Big, raised and touching",
+  domain: "B",
+  kind: "lesson",
+  summary: "Add raised letters to a design and learn how big letters must be to print.",
+  estimatedMinutes: 30,
+  printLevel: "digital",
+  competencyIds: ["B10"],
+  prerequisites: ["jr-design-rules"],
+  vocabulary: [
+    { term: "Raised", definition: "Sticking up from a surface, like the letters on a sign." },
+    { term: "Text shape", definition: "The Tinkercad shape that makes letters." },
+  ],
+  sections: [
+    {
+      phase: "discover",
+      title: "Letters that stick up",
+      blocks: [
+        {
+          id: "hook",
+          type: "hero",
+          title: "Put your name on it",
+          hook: "Raised letters stick up from a flat shape. They have to be big enough to print, and they have to touch.",
+          visual: { diagram: "text-raised-recessed", alt: "Letters standing up from a flat plate." },
+        },
+        {
+          id: "how",
+          type: "showMe",
+          title: "Add your name",
+          steps: [
+            { text: "Drag the Text shape onto the workplane." },
+            { text: "Type your name in the Text box of the shape panel." },
+            { text: "Set the height to 1 mm, so the letters stick up 1 mm." },
+            { text: "Lift the letters to sit right on top of your flat shape. They must touch!", diagram: "move-z" },
+          ],
+        },
+        {
+          id: "size",
+          type: "callout",
+          tone: "tip",
+          title: "How big?",
+          body: "Make letters at least 8 mm tall. Tiny letters turn into blobs.",
+        },
+      ],
+    },
+    {
+      phase: "practice",
+      title: "Try it",
+      blocks: [
+        {
+          id: "lift-letters",
+          type: "measurement",
+          prompt: "Your bookmark is 2 mm thick. How high should you lift the letters so they sit right on top?",
+          answer: 2,
+          tolerance: 0,
+          unit: "mm",
+          hint: "The bottom of the letters goes where the top of the bookmark is.",
+          explanation: "Lift them 2 mm. Then they sit on top and touch.",
+          competencyId: "B10",
+          check: "skill",
+        },
+        {
+          id: "big-enough",
+          type: "multipleChoice",
+          prompt: "Which name will print clearly?",
+          hint: "Remember the tip: at least 8 mm tall.",
+          options: [
+            { id: "a", text: "Letters 10 mm tall" },
+            { id: "b", text: "Letters 2 mm tall", misconceptionId: "tiny-text" },
+          ],
+          correctOptionIds: ["a"],
+          explanation: "10 mm letters are big enough. 2 mm letters turn into blobs.",
+          competencyId: "B10",
+          check: "skill",
+        },
+      ],
+    },
+    {
+      phase: "prove",
+      title: "Show what you can do",
+      blocks: [
+        {
+          id: "prove",
+          type: "challenge",
+          kind: "prove",
+          title: "Name plate",
+          prompt: "Make a flat box 60 × 20 × 2 mm. Put your name on it: raised 1 mm, at least 8 mm tall, touching the top.",
+          requirements: ["Box 60 × 20 × 2 mm", "Name raised 1 mm", "Letters 8 mm or taller", "Letters touch the box"],
+          skills: ["B10"],
+        },
+        {
+          id: "submit",
+          type: "uploadEvidence",
+          prompt: "Take a screenshot from the side, so we can see the letters touching.",
+          accepts: ["screenshot", "design_url"],
+          competencyIds: ["B10"],
+          checklist: ["The letters touch the box", "The letters are at least 8 mm tall"],
+        },
+      ],
+    },
+    {
+      phase: "reflect",
+      title: "Think about it",
+      blocks: [
+        {
+          id: "reflect",
+          type: "reflection",
+          prompt: "What would you put words on, if you could print anything?",
+          sentenceStarters: ["I would put words on…"],
+          competencyIds: ["B10"],
+        },
+      ],
+    },
+  ],
+  teacher: {
+    purpose: "Students add printable raised text, sized and placed so it actually prints.",
+    preparation: ["Optional: print a text-size test plate to show which letter sizes print clearly (see the Printables pick)."],
+    equipment: ["Chromebooks"],
+    misconceptions: [{ id: "tiny-text", text: "Any size text will print.", response: "Show a printed plate with tiny letters next to big ones." }],
+    discussionQuestions: ["Why do the letters have to touch the box?"],
+    printableObjects: ["Optional: a text-size test plate"],
+    troubleshooting: ["If letters sink into the box, set their lift to the box's thickness (2 mm)."],
+    answerGuidance: ["Lift letters 2 mm on a 2 mm bookmark.", "Name plate: 60 × 20 × 2 mm, letters 1 mm high and at least 8 mm tall, touching."],
+  },
+};

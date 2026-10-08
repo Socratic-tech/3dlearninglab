@@ -10,7 +10,7 @@ import { groupLevel, LEVEL_LABEL, LEVELS } from "@/lib/mastery";
 import { cn } from "@/lib/cn";
 import { call } from "../api";
 import { classLink, isLocalApi, setCurrentClassId, staffLink } from "../config";
-import { setStudentView } from "../state";
+import { pathOptions, setStudentView } from "../state";
 import { currentToken } from "../auth";
 import { fetchClass, savedClass, type Snapshot } from "../class-cache";
 import type { ClassInfo, Me } from "../content";
@@ -397,7 +397,7 @@ function NewClassForm({ apiUrl, onCreated }: { apiUrl: string; onCreated: () => 
     }}>
       <Field label="Class name" htmlFor="nc-n"><Input id="nc-n" value={name} onChange={(e) => setName(e.target.value)} required placeholder="3D Design" /></Field>
       <Field label="Section / period" htmlFor="nc-s"><Input id="nc-s" value={section} onChange={(e) => setSection(e.target.value)} placeholder="Period 2" /></Field>
-      <Field label="Course length" htmlFor="nc-p"><Select id="nc-p" value={pathId} onChange={(e) => setPathId(e.target.value)}><option value="18-week">18 weeks</option><option value="9-week">9 weeks</option></Select></Field>
+      <Field label="Course" htmlFor="nc-p"><Select id="nc-p" value={pathId} onChange={(e) => setPathId(e.target.value)}>{pathOptions.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}</Select></Field>
       <Button disabled={busy || !name.trim()}>{busy ? "Creating…" : "Create class"}</Button>
       {err && <p role="alert" className="text-sm text-danger">{err}</p>}
     </form>
@@ -427,7 +427,7 @@ function Classes({ data, apiUrl, onChange }: { data: ClassData; apiUrl: string; 
         <form className="mt-3 space-y-3" onSubmit={(e) => { e.preventDefault(); void save(form); }}>
           <Field label="Name" htmlFor="cl-n"><Input id="cl-n" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
           <Field label="Section / period" htmlFor="cl-s"><Input id="cl-s" value={form.section} onChange={(e) => setForm({ ...form, section: e.target.value })} /></Field>
-          <Field label="Course length" htmlFor="cl-p" hint="Switching keeps all student work."><Select id="cl-p" value={form.pathId} onChange={(e) => setForm({ ...form, pathId: e.target.value })}><option value="18-week">18 weeks</option><option value="9-week">9 weeks</option></Select></Field>
+          <Field label="Course" htmlFor="cl-p" hint="Switching keeps all student work."><Select id="cl-p" value={form.pathId} onChange={(e) => setForm({ ...form, pathId: e.target.value })}>{pathOptions.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}</Select></Field>
           <Field label="Tinkercad Classroom link" htmlFor="cl-t"><Input id="cl-t" type="url" value={form.tinkercadUrl} onChange={(e) => setForm({ ...form, tinkercadUrl: e.target.value })} placeholder="https://www.tinkercad.com/joinclass/…" /></Field>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.unlockAll} onChange={(e) => setForm({ ...form, unlockAll: e.target.checked })} /> Unlock every mission (e.g. Tinkercad is down)</label>
           <div className="flex flex-wrap gap-2">
