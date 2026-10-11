@@ -20,7 +20,7 @@ const BUILD = { version: "dev", site: "", clientId: "" }; // @build
 
 const TABLES = {
   Config: ["key", "value", "notes"],
-  Classes: ["classId", "name", "section", "pathId", "tinkercadUrl", "unlockAll", "googleCourseId", "status", "createdAt"],
+  Classes: ["classId", "name", "section", "pathId", "tinkercadUrl", "unlockAll", "googleCourseId", "status", "createdAt", "custom"],
   Users: ["email", "name", "role", "sub", "status", "createdAt", "lastSeen"],
   Enrollments: ["email", "classId", "status", "source", "createdAt"],
   Progress: ["email", "lessonId", "status", "blockState", "startedAt", "completedAt", "updatedAt"],
@@ -246,10 +246,50 @@ function enroll_(email, classId, source) {
 }
 
 function classOut_(c) {
+  const custom = customOf_(c);
   return {
-    id: c.classId, name: c.name, section: c.section || "", pathId: pathIdOf_(c.pathId),
+    id: c.classId, name: c.name, section: c.section || "", pathId: c.pathId === "custom" && custom ? "custom" : pathIdOf_(c.pathId),
     tinkercadUrl: c.tinkercadUrl || null, unlockAll: String(c.unlockAll).toUpperCase() === "TRUE", googleCourseId: c.googleCourseId || null,
+    custom: custom,
   };
+}
+
+// ── Custom project paths: a teacher picks and orders existing lessons and ends with their own project mission.
+// Stored as JSON in the class row. Only known lessons are kept; teacher text is plain and length-limited.
+const CUSTOM_PROJECT_ID = "custom-project";
+function cleanCustom_(x) {
+  if (!x || typeof x !== "object") return null;
+  const lessons = content_().lessons;
+  const seen = {};
+  const ids = (Array.isArray(x.lessonIds) ? x.lessonIds : []).map(String).filter(function (id) {
+    if (id === CUSTOM_PROJECT_ID || !lessons[id] || seen[id]) return false;
+    seen[id] = true;
+    return true;
+  }).slice(0, 40);
+  if (!ids.length) return null;
+  const text = function (v, n) { return String(v || "").replace(/[\u0000-\u0008\u000b-\u001f]/g, "").trim().slice(0, n); };
+  const reqs = (Array.isArray(x.requirements) ? x.requirements : []).map(function (r) { return text(r, 200); }).filter(Boolean).slice(0, 8);
+  const comps = {};
+  ids.forEach(function (id) { (lessons[id].competencyIds || []).forEach(function (c) { if (content_().competencyIds[c]) comps[c] = true; }); });
+  return { title: text(x.title, 80) || "Class project", brief: text(x.brief, 600), lessonIds: ids, requirements: reqs, competencyIds: Object.keys(comps) };
+}
+function customOf_(c) {
+  if (!c || !c.custom) return null;
+  try { return cleanCustom_(JSON.parse(String(c.custom))); } catch (e) { return null; }
+}
+/** Lesson order for a class: its custom path (plus the project mission) or a standard course. */
+function classPath_(cls) {
+  const custom = customOf_(cls);
+  if (cls.pathId === "custom" && custom) return custom.lessonIds.concat([CUSTOM_PROJECT_ID]);
+  const paths = content_().paths;
+  return paths[pathIdOf_(cls.pathId)] || paths["18-week"];
+}
+/** Skills a submission counts toward: the project mission credits every skill in the class's custom path. */
+function evidenceSkills_(user, a, block) {
+  if (a.lessonId !== CUSTOM_PROJECT_ID) return block.competencyIds || [];
+  let custom = null;
+  try { custom = customOf_(classFor_(user, a.classId)); } catch (e) { custom = null; }
+  return custom && custom.competencyIds.length ? custom.competencyIds : block.competencyIds || [];
 }
 
 /** The class a request is about: the requested one if the user may see it, otherwise their first. */
@@ -303,9 +343,9 @@ function sheet_(name) {
     sh = book.insertSheet(name);
     sh.getRange(1, 1, 1, TABLES[name].length).setValues([TABLES[name]]).setFontWeight("bold");
     sh.setFrozenRows(1);
-  } else if (name === "Summary") {
-    // Older class Sheets have the original six Summary columns. Add store columns in place;
-    // student work and earned XP stay untouched.
+  } else if (name === "Summary" || name === "Classes") {
+    // Older class Sheets have fewer columns (Summary: store columns; Classes: custom project paths). Add the new
+    // headers in place; existing rows and student work stay untouched.
     const headers = TABLES[name];
     const current = sh.getRange(1, 1, 1, headers.length).getValues()[0];
     if (headers.some(function (h, i) { return current[i] !== h; })) sh.getRange(1, 1, 1, headers.length).setValues([headers]);
@@ -967,7 +1007,7 @@ const ACTIONS = {
       const words = text.split(/\s+/).filter(String).length;
       if (words < block.minWords) throw userError_("Write at least " + block.minWords + " words — you have " + words + ".");
       return withStudentLock_(user.email, function () {
-        const ev = newEvidence_(user, a.lessonId, a.blockId, block.competencyIds || [], "written", { text: text });
+        const ev = newEvidence_(user, a.lessonId, a.blockId, evidenceSkills_(user, a, block), "written", { text: text });
         saveBlockEntry_(user.email, a.lessonId, a.blockId, { response: { text: text, evidenceId: ev.id }, done: true });
         addXp_(user.email, [{ kind: "work", at: now_(), lessonId: a.lessonId, blockId: a.blockId }]);
         return { evidenceId: ev.id };
@@ -990,7 +1030,7 @@ const ACTIONS = {
       else if (a.kind === "screenshot" || a.kind === "stl" || a.kind === "obj") throw userError_("Choose a file to upload.");
       if (a.kind === "physical_test" && !extra.text && !a.file) throw userError_("Describe your test result or add a photo.");
       if (a.kind === "written" && !extra.text) throw userError_("Write or dictate your explanation.");
-      const ev = newEvidence_(user, a.lessonId, a.blockId, block.competencyIds, a.kind, extra);
+      const ev = newEvidence_(user, a.lessonId, a.blockId, evidenceSkills_(user, a, block), a.kind, extra);
       saveBlockEntry_(user.email, a.lessonId, a.blockId, { done: true });
       addXp_(user.email, [{ kind: "work", at: now_(), lessonId: a.lessonId, blockId: a.blockId }]);
       if (a.requestPrint && a.kind === "stl" && ev.fileId) newPrint_(user, a.classId, ev, String(a.note || ""));
@@ -1028,7 +1068,7 @@ const ACTIONS = {
         table_("Progress").upsert(function (r) { return r.email === user.email && r.lessonId === a.lessonId; }, { status: "completed", completedAt: (row && row.completedAt) || now_(), updatedAt: now_() });
       });
       addXp_(user.email, [{ kind: "lesson", at: now_(), lessonId: a.lessonId }]);
-      const path = content_().paths[classOut_(classFor_(user, a.classId)).pathId];
+      const path = classPath_(classFor_(user, a.classId));
       const i = path.indexOf(a.lessonId);
       const next = i >= 0 && i < path.length - 1 ? path[i + 1] : null;
       const unlocked = path.filter(function (id) { return (content_().lessons[id].prerequisites || []).indexOf(a.lessonId) >= 0; });
@@ -1313,7 +1353,15 @@ const ACTIONS = {
       const patch = {};
       if (a.name !== undefined) patch.name = String(a.name).trim().slice(0, 120) || c.name;
       if (a.section !== undefined) patch.section = String(a.section).slice(0, 60);
-      if (a.pathId !== undefined) patch.pathId = pathIdOf_(a.pathId);
+      if (a.custom !== undefined) {
+        const custom = a.custom === null ? null : cleanCustom_(a.custom);
+        if (a.custom !== null && !custom) throw userError_("Pick at least one lesson for the project path.");
+        patch.custom = custom ? JSON.stringify({ title: custom.title, brief: custom.brief, lessonIds: custom.lessonIds, requirements: custom.requirements }) : "";
+      }
+      if (a.pathId !== undefined) {
+        const hasCustom = patch.custom !== undefined ? !!patch.custom : !!customOf_(c);
+        patch.pathId = a.pathId === "custom" && hasCustom ? "custom" : pathIdOf_(a.pathId);
+      }
       if (a.tinkercadUrl !== undefined) patch.tinkercadUrl = String(a.tinkercadUrl || "");
       if (a.unlockAll !== undefined) patch.unlockAll = a.unlockAll ? "TRUE" : "FALSE";
       if (a.archived !== undefined) patch.status = a.archived ? "archived" : "active";

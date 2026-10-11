@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Md } from "@/components/lesson/static-blocks";
 import LazyModelViewer from "@/components/viewer/LazyModelViewer";
 import { printablesPicks, type PrintablesPick } from "@/content/printables";
-import { lessonById, modelAssets, pathLessons, type Me } from "../content";
+import { lessonById, modelAssets, type Me } from "../content";
+import { classLessons } from "../custom-path";
 import { makeZip } from "../zip";
 
 
@@ -161,7 +162,7 @@ export function TeacherGuidePage({ lessonId }: { lessonId: string }) {
 /** Every print the course needs, in teaching order, with one-click download of all our files. */
 export function PrintKitPage({ me }: { me: Me }) {
   const prep = usePrep() ?? {};
-  const items = pathLessons(me.cls?.pathId ?? "18-week");
+  const items = classLessons(me.cls);
   const rows = items
     .map(({ lesson, week }) => ({ lesson: lessonById.get(lesson.id) ?? lesson, week, g: prep[lesson.id] }))
     .map((x) => ({ ...x, prints: printsFor(x.g), picks: picksFor(x.lesson.id) }))

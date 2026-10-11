@@ -1,13 +1,16 @@
 import { useSyncExternalStore } from "react";
 import { lessonStates } from "@/lib/progression";
 import type { Me } from "./content";
-import { pathLessons } from "./content";
+import { classLessons } from "./custom-path";
 import { pathInputs } from "@/content/paths";
 
 /** Grades 4–5 classes (a "younger" path): simpler, read-aloud-first student screens. Teachers keep the full view. */
 export const isYounger = (me: Me) => me.user.role === "student" && pathInputs.find((p) => p.id === me.cls?.pathId)?.audience === "younger";
 /** Course choices for a class, from the course content (new paths appear without code changes). */
 export const pathOptions = pathInputs.map((p) => ({ id: p.id, title: p.title }));
+/** Short name of a class's course for pills and lists. */
+export const courseLabel = (c: { pathId: string; custom?: { title: string } | null }) =>
+  c.pathId === "custom" && c.custom ? `Project: ${c.custom.title}` : pathInputs.find((p) => p.id === c.pathId)?.title.split(":")[0] ?? c.pathId;
 
 /** Teachers and admins see every lesson open, whatever has been completed. */
 export const isStaff = (me: Me) => me.user.role !== "student";
@@ -50,7 +53,7 @@ export const identityOf = (email: string | null) => (email && studentViewOn() ? 
 export const actsAsStaff = (me: Me) => isStaff(me) && !studentViewOn();
 
 export function studentStates(me: Me) {
-  const items = pathLessons(me.cls?.pathId ?? "18-week");
+  const items = classLessons(me.cls);
   const staff = actsAsStaff(me);
   const states = lessonStates({
     lessons: items.map((x) => ({ id: x.lesson.id, prerequisites: x.lesson.prerequisites })),

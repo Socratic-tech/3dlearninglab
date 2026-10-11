@@ -5,6 +5,7 @@ import { lesson as l_boss_nametag } from "./boss-nametag";
 import { lesson as l_bridging } from "./bridging";
 import { lesson as l_cad_er } from "./cad-er";
 import { lesson as l_calipers } from "./calipers";
+import { lesson as l_custom_project } from "./custom-project";
 import { lesson as l_duplicate } from "./duplicate";
 import { lesson as l_exact_dimensions } from "./exact-dimensions";
 import { lesson as l_final_capstone } from "./final-capstone";
@@ -57,6 +58,7 @@ export const lessonInputs: LessonInput[] = [
   l_bridging,
   l_cad_er,
   l_calipers,
+  l_custom_project,
   l_duplicate,
   l_exact_dimensions,
   l_final_capstone,

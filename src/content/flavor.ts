@@ -17,6 +17,9 @@ export type Flavor = {
 };
 
 export const FLAVOR: Record<string, Flavor> = {
+  "custom-project": {
+    hook: { headline: "Real designers work to a brief.", body: "Engineers, product designers and makers start with someone's problem and a list of requirements. Now it's your turn: use the skills you just practiced to build something that works." },
+  },
   "jr-layers": {
     hook: { headline: "Printers build like you stack blocks.", body: "Doctors print models of bones. Engineers print toy-sized test parts. Every one is made the same way: thin layers of plastic, stacked from the bottom up." },
   },

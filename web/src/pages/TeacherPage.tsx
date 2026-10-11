@@ -10,11 +10,13 @@ import { groupLevel, LEVEL_LABEL, LEVELS } from "@/lib/mastery";
 import { cn } from "@/lib/cn";
 import { call } from "../api";
 import { classLink, isLocalApi, setCurrentClassId, staffLink } from "../config";
-import { pathOptions, setStudentView } from "../state";
+import { courseLabel, pathOptions, setStudentView } from "../state";
 import { currentToken } from "../auth";
 import { fetchClass, savedClass, type Snapshot } from "../class-cache";
 import type { ClassInfo, Me } from "../content";
-import { competencies, competencyTitle, heatmapGroups, lessonById, lessons as allLessons, pathLessons } from "../content";
+import { competencies, competencyTitle, heatmapGroups, lessonById, lessons as allLessons } from "../content";
+import { classLessons } from "../custom-path";
+import { CustomPathBuilder } from "./CustomPathBuilder";
 import { offlineChallenges } from "./HandoutPage";
 import { UpdateBanner } from "./UpdateBanner";
 
@@ -128,7 +130,7 @@ function ClassView({ classId, apiUrl, clientId, onChange }: { classId: string; a
       {err && currentToken() && <div className="mb-4"><FriendlyError {...err} integration onRetry={() => void load()} /></div>}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <h1 className="font-display text-2xl font-bold">{data.cls.name}{data.cls.section && <span className="text-muted"> · {data.cls.section}</span>}</h1>
-        <Pill tone="primary">{data.cls.pathId}</Pill>
+        <Pill tone="primary">{courseLabel(data.cls)}</Pill>
         <Button size="sm" variant="secondary" className="ml-auto" title="See the missions exactly as a student does: locks, required answers and all." onClick={() => { setStudentView(true); location.hash = "#/student"; }}>Student view</Button>
         {!isLocalApi(apiUrl) && <StaffLinkButton apiUrl={apiUrl} clientId={clientId} />}
         <span className="text-xs text-muted" role="status">{refreshing ? "Refreshing…" : snap ? <Ago at={snap.at} /> : null}</span>
@@ -156,7 +158,7 @@ function ClassView({ classId, apiUrl, clientId, onChange }: { classId: string; a
 function Overview({ data, name, apiUrl, clientId }: { data: ClassData; name: (e: string) => string; apiUrl: string; clientId: string }) {
   const today = new Date().toISOString().slice(0, 10);
   const active = new Set(data.progress.filter((p) => String(p.updatedAt).slice(0, 10) === today).map((p) => p.email));
-  const path = pathLessons(data.cls.pathId);
+  const path = classLessons(data.cls);
   const revisions = data.evidence.filter((e) => e.status === "needs_revision");
   const link = classLink(apiUrl, clientId, data.cls.id);
   const [copied, setCopied] = useState(false);
@@ -427,7 +429,7 @@ function Classes({ data, apiUrl, onChange }: { data: ClassData; apiUrl: string; 
         <form className="mt-3 space-y-3" onSubmit={(e) => { e.preventDefault(); void save(form); }}>
           <Field label="Name" htmlFor="cl-n"><Input id="cl-n" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
           <Field label="Section / period" htmlFor="cl-s"><Input id="cl-s" value={form.section} onChange={(e) => setForm({ ...form, section: e.target.value })} /></Field>
-          <Field label="Course" htmlFor="cl-p" hint="Switching keeps all student work."><Select id="cl-p" value={form.pathId} onChange={(e) => setForm({ ...form, pathId: e.target.value })}>{pathOptions.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}</Select></Field>
+          <Field label="Course" htmlFor="cl-p" hint="Switching keeps all student work."><Select id="cl-p" value={form.pathId} onChange={(e) => setForm({ ...form, pathId: e.target.value })}>{pathOptions.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}<option value="custom" disabled={!c.custom}>{c.custom ? `Custom project: ${c.custom.title}` : "Custom project path (build it below first)"}</option></Select></Field>
           <Field label="Tinkercad Classroom link" htmlFor="cl-t"><Input id="cl-t" type="url" value={form.tinkercadUrl} onChange={(e) => setForm({ ...form, tinkercadUrl: e.target.value })} placeholder="https://www.tinkercad.com/joinclass/…" /></Field>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.unlockAll} onChange={(e) => setForm({ ...form, unlockAll: e.target.checked })} /> Unlock every mission (e.g. Tinkercad is down)</label>
           <div className="flex flex-wrap gap-2">
@@ -437,13 +439,14 @@ function Classes({ data, apiUrl, onChange }: { data: ClassData; apiUrl: string; 
           {msg && <p role="status" className="text-sm">{msg}</p>}
         </form>
       </Card>
+      <div className="lg:col-span-2"><CustomPathBuilder cls={c} apiUrl={apiUrl} onSaved={onChange} /></div>
       <div className="space-y-6">
         <Card>
           <CardTitle>All my classes</CardTitle>
           <ul className="mt-3 space-y-2">
             {data.classes.map((x) => (
               <li key={x.id} className="flex items-center gap-2">
-                <span className="flex-1"><span className="font-semibold">{x.name}</span>{x.section && <span className="text-muted"> · {x.section}</span>} <Pill>{x.pathId}</Pill></span>
+                <span className="flex-1"><span className="font-semibold">{x.name}</span>{x.section && <span className="text-muted"> · {x.section}</span>} <Pill>{courseLabel(x)}</Pill></span>
                 {x.id === c.id ? <Pill tone="primary">Viewing</Pill> : <Button size="sm" variant="secondary" onClick={() => { setCurrentClass(x.id); onChange(); }}>Open</Button>}
               </li>
             ))}
@@ -673,7 +676,7 @@ function PrintNote({ job, onSave }: { job: PrintJob; onSave: (t: string) => void
 /** Every lesson, always open to teachers and admins — browse, preview like a student, or print handouts. */
 function LessonLibrary({ data }: { data: ClassData }) {
   const [q, setQ] = useState("");
-  const inPath = pathLessons(data.cls.pathId);
+  const inPath = classLessons(data.cls);
   const pathIds = new Set(inPath.map((x) => x.lesson.id));
   const extra = allLessons.filter((l) => !pathIds.has(l.id)).sort((a, b) => a.number - b.number);
   const match = (title: string, subtitle: string) => !q.trim() || `${title} ${subtitle}`.toLowerCase().includes(q.trim().toLowerCase());

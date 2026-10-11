@@ -8,13 +8,16 @@ import { buttonClass } from "@/components/ui/button";
 import type { BlockEntry } from "@/components/lesson/types";
 import { allBlocks, isRequiredBlock } from "@/content/schema";
 import { assetsFor, buildsOnFor, competencyTitleFor, goalsFor, journalPromptsFor, lessonFor, type Me } from "../content";
+import { personalizeProject, PROJECT_ID } from "../custom-path";
 import { googleLessonApi } from "../api";
 import { actsAsStaff, studentStates, usePreviewUnlock, useStudentView } from "../state";
 
 export function LessonPage({ me, apiUrl, lessonId, focusBlockId, onChange }: { me: Me; apiUrl: string; lessonId: string; focusBlockId?: string; onChange: () => void }) {
   useStudentView(); // re-render when a teacher switches student view on or off
   usePreviewUnlock();
-  const lesson = lessonFor(lessonId);
+  const base = lessonFor(lessonId);
+  // the custom project mission shows this class's own brief and requirements
+  const lesson = base && lessonId === PROJECT_ID && me.cls?.custom ? personalizeProject(base, me.cls.custom) : base;
   const api = useMemo(() => googleLessonApi(apiUrl, onChange), [apiUrl, onChange]);
   if (!lesson) return <Alert tone="warning" title={tr("That mission doesn't exist.")} />;
   const { states } = studentStates(me);

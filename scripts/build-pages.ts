@@ -39,7 +39,7 @@ const serverEs: Record<string, Overlay> = {};
 for (const l of lessons) {
   const blocks: Record<string, unknown> = {};
   for (const b of allBlocks(l)) if (isScorable(b) || b.type === "reflection" || b.type === "uploadEvidence") blocks[b.id] = b;
-  serverLessons[l.id] = { title: l.title, prerequisites: l.prerequisites, required: allBlocks(l).filter(isRequiredBlock).map((b) => b.id), blocks };
+  serverLessons[l.id] = { title: l.title, competencyIds: l.competencyIds, prerequisites: l.prerequisites, required: allBlocks(l).filter(isRequiredBlock).map((b) => b.id), blocks };
   // only the Spanish text for blocks the server scores (feedback, explanations — kept off the public site)
   const ov = esLessons[l.id];
   if (ov) {

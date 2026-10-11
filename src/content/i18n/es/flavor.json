@@ -212,5 +212,7 @@
   "flavor:jr-boss-bookmark.themes:boss.options:Favorite animal.label": "Animal favorito",
   "flavor:jr-boss-bookmark.themes:boss.options:Favorite animal.idea": "Tu nombre con un animal hecho de figuras",
   "flavor:jr-boss-bookmark.themes:boss.options:Sports fan.label": "Fan de un deporte",
-  "flavor:jr-boss-bookmark.themes:boss.options:Sports fan.idea": "Tu nombre y el número de tu equipo"
+  "flavor:jr-boss-bookmark.themes:boss.options:Sports fan.idea": "Tu nombre y el número de tu equipo",
+  "flavor:custom-project.hook.headline": "Los diseñadores de verdad trabajan con una descripción del proyecto.",
+  "flavor:custom-project.hook.body": "Los ingenieros, los diseñadores de productos y los makers empiezan con el problema de alguien y una lista de requisitos. Ahora te toca a ti: usa las habilidades que practicaste para construir algo que funcione."
 }

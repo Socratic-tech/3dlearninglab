@@ -84,7 +84,7 @@ export const pathTitle = (pathId: string) => {
   return pathText(p.id)?.title ?? p.title;
 };
 
-export type ClassInfo = { id: string; name: string; section: string; pathId: string; tinkercadUrl: string | null; unlockAll: boolean; googleCourseId: string | null };
+export type ClassInfo = { id: string; name: string; section: string; pathId: string; tinkercadUrl: string | null; unlockAll: boolean; googleCourseId: string | null; custom?: { title: string; brief: string; lessonIds: string[]; requirements: string[]; competencyIds?: string[] } | null };
 
 export type Me = {
   user: { email: string; name: string; role: "student" | "teacher"; admin?: boolean; preview?: boolean };

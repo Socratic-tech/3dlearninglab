@@ -468,6 +468,30 @@ describe("XP store and class rewards", () => {
     expect(e.call("maya@school.org", "buyLook", { lookId: "neon" }).error).toMatch(/50 more XP/);
   });
 
+  it("custom project path: teacher picks lessons, the project credits their skills when reviewed", () => {
+    const e = makeEnv("teacher@school.org");
+    const cls = e.call("teacher@school.org", "createClass", { name: "Phone stands" }).data;
+    e.call("teacher@school.org", "addStudents", { classId: cls.id, students: [{ email: "maya@school.org" }] });
+    // unknown lessons and the project mission itself are dropped; a path needs at least one lesson
+    expect(e.call("teacher@school.org", "updateClass", { classId: cls.id, pathId: "custom", custom: { lessonIds: ["nope"] } }).ok).toBe(false);
+    const out = e.call("teacher@school.org", "updateClass", {
+      classId: cls.id, pathId: "custom",
+      custom: { title: "Phone stand for family", brief: "Design a stand for someone at home.", lessonIds: ["grouping", "holes", "nope", "holes", "custom-project"], requirements: ["Holds a phone at 60°", "", "Prints without supports"] },
+    }).data;
+    expect(out.pathId).toBe("custom");
+    expect(out.custom).toMatchObject({ title: "Phone stand for family", lessonIds: ["grouping", "holes"], requirements: ["Holds a phone at 60°", "Prints without supports"] });
+    expect(out.custom.competencyIds).toEqual(expect.arrayContaining(["B2", "B3"]));
+    const me = e.call("maya@school.org", "me", { classId: cls.id }).data;
+    expect(me.cls).toMatchObject({ pathId: "custom", custom: { title: "Phone stand for family" } });
+    // the project mission's evidence carries the path's skills; a teacher rating sets those levels
+    const ev = e.call("maya@school.org", "submitEvidence", { classId: cls.id, lessonId: "custom-project", blockId: "submit", kind: "design_url", url: "https://www.tinkercad.com/things/x" }).data;
+    expect(e.call("teacher@school.org", "review", { classId: cls.id, evidenceId: ev.id, rating: 3, comment: "Solid" }).ok).toBe(true);
+    const levels = e.call("maya@school.org", "me", { classId: cls.id }).data.levels;
+    expect(Object.keys(levels)).toEqual(expect.arrayContaining(["B2", "B3"]));
+    // switching back to a standard course keeps the saved path for later
+    expect(e.call("teacher@school.org", "updateClass", { classId: cls.id, pathId: "9-week" }).data).toMatchObject({ pathId: "9-week", custom: { title: "Phone stand for family" } });
+  });
+
   it("a class can use any course path the lessons define (grades 4–5 starter); unknown paths fall back", () => {
     const e = makeEnv("teacher@school.org");
     const jr = e.call("teacher@school.org", "createClass", { name: "Room 12", pathId: "jr-starter" }).data;
