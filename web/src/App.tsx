@@ -15,6 +15,7 @@ import { SyncPill } from "./sync-pill";
 import { fetchClass } from "./class-cache";
 import { PrintKitPage, TeacherGuidePage } from "./pages/TeacherGuidePage";
 import { PosterPage, SetupCheckPanel } from "./pages/SetupHelp";
+import { DebugPage } from "./pages/DebugPage";
 import { GetStartedPage } from "./pages/GetStartedPage";
 import { identityOf, isYounger, isStaff, studentViewOn, setPreviewUnlock, setStudentView, usePreviewUnlock, useStudentView } from "./state";
 import { call } from "./api";
@@ -155,6 +156,7 @@ export function App() {
   } else if (route.startsWith("/print/")) page = <HandoutPage me={me} lessonId={route.slice(7)} />;
   else if (me.user.role === "teacher" && route.startsWith("/guide/")) page = <TeacherGuidePage lessonId={route.slice(7)} />;
   else if (me.user.role === "teacher" && route === "/kit") page = <PrintKitPage me={me} />;
+  else if (me.user.role === "teacher" && route === "/debug") page = <DebugPage me={me} apiUrl={cfg.apiUrl} />;
   else if (me.user.role === "teacher" && route === "/poster") page = <PosterPage me={me} apiUrl={cfg.apiUrl} clientId={cfg.clientId ?? ""} />;
   else if (me.user.role === "teacher" && (route.startsWith("/teacher") || (route === "/" && !studentView))) page = <TeacherPage me={me} apiUrl={cfg.apiUrl} clientId={clientId} onChange={load} />;
   else page = <StudentHome me={me} apiUrl={cfg.apiUrl} onChange={load} />;
