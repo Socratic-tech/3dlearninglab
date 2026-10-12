@@ -439,7 +439,6 @@ function Classes({ data, apiUrl, onChange }: { data: ClassData; apiUrl: string; 
           {msg && <p role="status" className="text-sm">{msg}</p>}
         </form>
       </Card>
-      <div className="lg:col-span-2"><CustomPathBuilder cls={c} apiUrl={apiUrl} onSaved={onChange} /></div>
       <div className="space-y-6">
         <Card>
           <CardTitle>All my classes</CardTitle>
@@ -457,6 +456,7 @@ function Classes({ data, apiUrl, onChange }: { data: ClassData; apiUrl: string; 
           <div className="mt-3"><NewClassForm apiUrl={apiUrl} onCreated={onChange} /></div>
         </Card>
       </div>
+      <div className="lg:col-span-2"><CustomPathBuilder cls={c} apiUrl={apiUrl} onSaved={onChange} /></div>
     </div>
   );
 }
