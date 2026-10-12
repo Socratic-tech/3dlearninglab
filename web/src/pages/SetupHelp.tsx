@@ -169,7 +169,7 @@ function summarize(r: StressResult, info: LoadInfo | null) {
   const tabs = new Map<string, { ms: number; n: number; rows: number; cached: number }>();
   ok.forEach((x) => x.reads.forEach((rd) => {
     const t = tabs.get(rd.tab) ?? { ms: 0, n: 0, rows: 0, cached: 0 };
-    t.ms += rd.ms; t.n++; t.rows = Math.max(t.rows, rd.rows); if (rd.from === "cache" || rd.from === "copy") t.cached++;
+    t.ms += rd.ms; t.n++; t.rows = Math.max(t.rows, rd.rows); if (rd.from === "cache" || rd.from === "copy" || rd.from === "waited") t.cached++;
     tabs.set(rd.tab, t);
   }));
   const parts = [...tabs.entries()].map(([tab, t]) => ({ tab, avg: t.ms / t.n, rows: t.rows, cached: Math.round((100 * t.cached) / t.n) })).sort((a, b) => b.avg - a.avg);
@@ -236,14 +236,14 @@ export function StressTestPanel({ apiUrl }: { apiUrl: string }) {
       const id = crypto.randomUUID();
       const start = performance.now();
       let tries = 0;
-      let r: { ok: boolean; error?: string; retryable?: boolean; timing?: { ms: number; reads: Read[] } };
+      let r: { ok: boolean; error?: string; details?: string; retryable?: boolean; timing?: { ms: number; reads: Read[] } };
       for (;;) {
         tries++;
         r = (await callOnce(apiUrl, action, { ...extra, asLoad: i + 1, bench: true }, id)) as typeof r;
         if (r.ok || !r.retryable || tries >= 3) break;
         await new Promise((res) => setTimeout(res, 1500 * tries + Math.random() * 1500)); // same waits the app uses
       }
-      return { ok: r.ok, ms: performance.now() - start, tries, error: r.ok ? null : r.error ?? "unknown", server: r.timing?.ms ?? null, reads: r.timing?.reads ?? [] };
+      return { ok: r.ok, ms: performance.now() - start, tries, error: r.ok ? null : `${r.error ?? "unknown"}${r.details ? ` (${String(r.details).slice(0, 160)})` : ""}`, server: r.timing?.ms ?? null, reads: r.timing?.reads ?? [] };
     };
     // Wave 1 starts from nothing saved (first period, before the teacher opens the dashboard); wave 2 is the same
     // class a moment later, when the students' saved copies are ready.

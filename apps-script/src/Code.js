@@ -29,7 +29,7 @@ const TABLES = {
   History: ["at", "email", "competencyId", "from", "to", "reason", "actor"],
   Evidence: ["id", "email", "lessonId", "blockId", "competencyIds", "type", "url", "fileId", "fileName", "text", "status", "rating", "comment", "reviewedBy", "reviewedAt", "createdAt"],
   Journals: ["email", "projectKey", "entries", "updatedAt"],
-  Summary: ["email", "xp", "days", "seen", "byLesson", "updatedAt", "spentXp", "ownedLooks", "activeLook", "owned", "equipped"],
+  Summary: ["email", "xp", "days", "seen", "byLesson", "updatedAt", "spentXp", "ownedLooks", "activeLook", "owned", "equipped", "lastSeen"],
   Gallery: ["id", "classId", "evidenceId", "email", "lessonId", "caption", "createdAt"],
   Rewards: ["id", "classId", "name", "description", "price", "active", "createdAt", "updatedAt"],
   Redemptions: ["id", "email", "classId", "rewardId", "rewardName", "price", "status", "teacherNote", "createdAt", "updatedAt"],
@@ -124,6 +124,7 @@ function handle_(req) {
   SLICE_MEMO_ = {};
   SLICE_GEN_ = null;
   SLICE_PREFETCH_ = null;
+  SLICE_READY_ = {};
   CONFIG_MEMO_ = null;
   REQ_LANG_ = req && req.args && req.args.lang === "es" ? "es" : "en";
   const t0 = Date.now();
@@ -157,7 +158,8 @@ function handle_(req) {
   } catch (err) {
     if (err && err.userMessage) return { ok: false, error: err.userMessage };
     console.error(err && err.stack ? err.stack : err);
-    return { ok: false, error: localizeMessage_("Something went wrong. Your work is safe — please try again."), details: String((err && err.message) || err).slice(0, 300) };
+    // retry: Google's own services sometimes fail when very busy; the website tries again with the same requestId.
+    return { ok: false, retry: true, error: localizeMessage_("Something went wrong. Your work is safe — please try again."), details: String((err && err.message) || err).slice(0, 300) };
   }
 }
 
@@ -407,12 +409,12 @@ function sheet_(name) {
     const headers = TABLES[name];
     const current = sh.getRange(1, 1, 1, headers.length).getValues()[0];
     if (headers.some(function (h, i) { return current[i] !== h; })) sh.getRange(1, 1, 1, headers.length).setValues([headers]);
-    try { CacheService.getScriptCache().put("hdr2_" + name, "1", 21600); } catch (e) { /* ignore */ }
+    try { CacheService.getScriptCache().put("hdr3_" + name, "1", 21600); } catch (e) { /* ignore */ }
   }
   return sh;
 }
 function headersChecked_(name) {
-  try { return !!CacheService.getScriptCache().get("hdr2_" + name); } catch (e) { return false; }
+  try { return !!CacheService.getScriptCache().get("hdr3_" + name); } catch (e) { return false; }
 }
 
 // Small, rarely changed tabs are shared between requests for up to 2 minutes (every write through table_ clears the
@@ -420,7 +422,7 @@ function headersChecked_(name) {
 const SHARED_TABLES_ = { Classes: 1, Enrollments: 1, Users: 1, Gallery: 1, Rewards: 1 };
 function dropTableCache_(name) {
   if (!SHARED_TABLES_[name]) return;
-  try { CacheService.getScriptCache().remove("tc2_" + name); } catch (e) { /* ignore */ }
+  try { CacheService.getScriptCache().remove("tc3_" + name); } catch (e) { /* ignore */ }
 }
 function dropAllTableCaches_() {
   Object.keys(SHARED_TABLES_).forEach(dropTableCache_);
@@ -462,7 +464,17 @@ function rawTable_(name, forceFresh) {
   let values = null;
   let from = "sheet";
   if (shared && !inLock && !forceFresh) {
-    try { const hit = CacheService.getScriptCache().get("tc2_" + name); if (hit) { values = JSON.parse(hit); from = "cache"; } } catch (e) { values = null; }
+    // A copy younger than 2 minutes is used as is. An older one is still used while ONE request re-reads the tab,
+    // so a class arriving together never sends 30 reads of the same tab at once.
+    try {
+      const c = CacheService.getScriptCache();
+      const hit = c.get("tc3_" + name);
+      if (hit) {
+        const v = JSON.parse(hit);
+        if (Date.now() - v.t < 120000 || c.get("tr3_" + name)) { values = v.v; from = "cache"; }
+        else c.put("tr3_" + name, "1", 20); // this request refreshes it
+      }
+    } catch (e) { values = null; }
   }
   let sheetObj = null;
   const sh = { // the sheet is opened only when needed (a cached read never touches it)
@@ -475,7 +487,12 @@ function rawTable_(name, forceFresh) {
     const last = sh.getLastRow();
     values = last > 1 ? sh.getRange(2, 1, last - 1, headers.length).getValues() : [];
     if (shared) {
-      try { const j = JSON.stringify(values); if (j.length < 95000) CacheService.getScriptCache().put("tc2_" + name, j, 120); } catch (e) { /* too big or cache busy */ }
+      try {
+        const c = CacheService.getScriptCache();
+        const j = JSON.stringify({ t: readAt, v: values });
+        if (j.length < 95000) c.put("tc3_" + name, j, 21600);
+        c.remove("tr3_" + name);
+      } catch (e) { /* too big or cache busy */ }
     }
   }
   if (TIMING_) TIMING_.push({ tab: name, rows: values.length, ms: Date.now() - started, from: from });
@@ -685,6 +702,61 @@ function locateNewRows_(name, email, rows) {
   return true;
 }
 
+var SLICE_READY_ = {}; // copies this request just built (when it warmed the class)
+
+/**
+ * No usable copy. At the bell many students arrive at once with no copies; instead of all 30 reading every big tab,
+ * ONE request reads each tab once and saves copies for the whole class while the others wait a few seconds for theirs.
+ */
+function waitOrWarm_(name, email) {
+  const c = CacheService.getScriptCache();
+  let classes = "none";
+  try { classes = activeEnrollments_(email).map(function (x) { return x.classId; }).sort().join(",") || "none"; } catch (e) { classes = "none"; }
+  const flag = "wm6_" + sliceGen_() + "_" + classes;
+  const key = sliceKey_(name, email);
+  // Only when the student has no copies at all (a cold class). A single outdated copy (after a teacher's change)
+  // is simply re-read below.
+  const got0 = SLICE_PREFETCH_ && SLICE_PREFETCH_.email === email ? SLICE_PREFETCH_.got : prefetchSlices_(email);
+  const cold = !Object.keys(SLICED_).some(function (n) { return got0[sliceKey_(n, email)]; });
+  if (cold && !c.get(flag)) {
+    c.put(flag, "1", 30); // "warming in progress"
+    let mates = [];
+    try { mates = classmates_(email).filter(function (e) { return e !== email; }); } catch (e) { mates = []; }
+    let mine = null;
+    Object.keys(SLICED_).forEach(function (n) {
+      const full = rawTable_(n, true);
+      const by = warmSlices_(n, full, mates, false);
+      const own = { w: full.readAt, rows: (by[email] || []).map(function (r) { return Object.assign({}, r); }) };
+      const o = {};
+      o[sliceKey_(n, email)] = own;
+      putSlices_(o);
+      SLICE_READY_[n + "|" + email] = own;
+      if (n === name) mine = own;
+    });
+    SLICE_PREFETCH_ = null;
+    try { c.remove(flag); } catch (e) { /* expires anyway */ }
+    if (mine) { delete SLICE_READY_[name + "|" + email]; mine.from = "sheet"; return mine; }
+  } else if (cold) {
+    // Someone is warming this class: wait for this student's copy (checking twice a second, up to 12 seconds).
+    const until = Date.now() + 12000;
+    while (Date.now() < until) {
+      Utilities.sleep(350 + Math.floor(Math.random() * 300));
+      let got = {};
+      try { got = c.getAll([key, sliceWriteKey_(name, email)]); } catch (e) { got = {}; }
+      const v = decodeSlice_(got[key], got, key, got[sliceWriteKey_(name, email)]);
+      if (v) { SLICE_PREFETCH_ = null; v.from = "waited"; return v; }
+      if (!c.get(flag)) break; // warming finished (or failed) without a copy for this student
+    }
+  }
+  // Fallback: read just what this student needs.
+  const full = rawTable_(name, true);
+  const own = { w: full.readAt, rows: full.filter(function (r) { return String(r.email).toLowerCase() === email; }).map(function (r) { return Object.assign({}, r); }), from: "sheet" };
+  const o = {};
+  o[key] = { w: own.w, rows: own.rows };
+  putSlices_(o);
+  return own;
+}
+
 /** The student's own rows of a tab, with the same API as rawTable_. Call writes inside withStudentLock_. */
 function sliceTable_(name, email) {
   email = String(email).toLowerCase();
@@ -695,26 +767,9 @@ function sliceTable_(name, email) {
   const key = sliceKey_(name, email);
   let v = decodeSlice_(got[key], got, key, got[sliceWriteKey_(name, email)]);
   let from = "copy";
-  if (!v) {
-    // No usable copy: one full read, which also fills the copies of the student's classmates.
-    const full = rawTable_(name, true);
-    // Warm the classmates too, but only one request per tab per minute does it (at the bell, 30 cold requests
-    // would otherwise all do the same work).
-    let others = [];
-    try {
-      const c = CacheService.getScriptCache();
-      const flag = "wm5_" + sliceGen_() + "_" + name + "_" + (activeEnrollments_(email).map(function (x) { return x.classId; }).sort().join(",") || "none");
-      if (!c.get(flag)) {
-        c.put(flag, "1", 60);
-        others = classmates_(email).filter(function (e) { return e !== email; });
-      }
-    } catch (e) { others = []; }
-    const by = warmSlices_(name, full, others, false);
-    v = { w: full.readAt, rows: (by[email] || []).map(function (r) { return Object.assign({}, r); }) };
-    putSlices_((function () { const o = {}; o[key] = v; return o; })());
-    from = "sheet";
-  }
-  if (TIMING_ && from === "copy") TIMING_.push({ tab: name, rows: v.rows.length, ms: Date.now() - started, from: "copy" });
+  if (!v && SLICE_READY_[memoKey]) { v = SLICE_READY_[memoKey]; from = "copy"; }
+  if (!v) { v = waitOrWarm_(name, email); from = v.from; delete v.from; }
+  if (TIMING_ && from !== "sheet") TIMING_.push({ tab: name, rows: v.rows.length, ms: Date.now() - started, from: from });
   const rows = v.rows;
   const headers = TABLES[name];
   const commit = function () {
@@ -816,15 +871,24 @@ var CONFIG_MEMO_ = null;
 function config_() {
   if (CONFIG_MEMO_) return CONFIG_MEMO_;
   try {
-    const hit = CacheService.getScriptCache().get("cfg2");
-    if (hit) { CONFIG_MEMO_ = JSON.parse(hit); if (TIMING_) TIMING_.push({ tab: "Config", rows: Object.keys(CONFIG_MEMO_).length, ms: 0, from: "cache" }); return CONFIG_MEMO_; }
+    const c = CacheService.getScriptCache();
+    const hit = c.get("cfg2");
+    if (hit) {
+      const v = JSON.parse(hit);
+      if (Date.now() - v.t < 15000 || c.get("cfgr")) {
+        CONFIG_MEMO_ = v.v;
+        if (TIMING_) TIMING_.push({ tab: "Config", rows: Object.keys(CONFIG_MEMO_).length, ms: 0, from: "cache" });
+        return CONFIG_MEMO_;
+      }
+      c.put("cfgr", "1", 10); // this request re-reads it; others keep using the copy meanwhile
+    }
   } catch (e) { /* read the sheet */ }
   const started = Date.now();
   const sh = sheet_("Config");
   const out = {};
   if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 2).getValues().forEach(function (r) { out[String(r[0]).trim()] = String(r[1]).trim(); });
   if (TIMING_) TIMING_.push({ tab: "Config", rows: Object.keys(out).length, ms: Date.now() - started, from: "sheet" });
-  try { CacheService.getScriptCache().put("cfg2", JSON.stringify(out), 15); } catch (e) { /* ignore */ }
+  try { const c = CacheService.getScriptCache(); c.put("cfg2", JSON.stringify({ t: Date.now(), v: out }), 21600); c.remove("cfgr"); } catch (e) { /* ignore */ }
   CONFIG_MEMO_ = out;
   return out;
 }
@@ -1292,11 +1356,15 @@ const ACTIONS = {
       const cls = hasClass ? classFor_(user, a.classId) : null;
       const classes = user.role === "teacher" ? activeClasses_() : activeEnrollments_(user.email).map(function (e) { return classById_(e.classId); }).filter(Boolean);
       if (user.role === "student") {
-        // "Last seen" is written at most every 10 minutes per student: a write every page load slowed every student down.
+        // "Last seen" lives in the student's own Summary row (written at most every 10 minutes), so the shared Users
+        // tab isn't rewritten — and re-read by everyone — each time a student opens the app.
         const seenKey = "seen_" + user.email;
         const c = CacheService.getScriptCache();
         if (!c.get(seenKey)) {
-          withStudentLock_(user.email, function () { table_("Users").upsert(function (r) { return r.email === user.email; }, { lastSeen: now_() }); });
+          withStudentLock_(user.email, function () {
+            const t = table_("Summary");
+            if (t.find(function (r) { return r.email === user.email; })) t.upsert(function (r) { return r.email === user.email; }, { lastSeen: now_() });
+          });
           c.put(seenKey, "1", 600);
         }
       }
@@ -1494,9 +1562,10 @@ const ACTIONS = {
       const cls = classFor_(user, a.classId);
       const inClass = {};
       table_("Enrollments").filter(function (e) { return e.classId === cls.classId && e.status !== "archived"; }).forEach(function (e) { inClass[e.email] = true; });
+      const seen = {};
+      rawTable_("Summary").rows.forEach(function (r) { if (r.lastSeen) seen[r.email] = r.lastSeen; });
       const students = table_("Users").filter(function (r) { return r.role === "student" && inClass[r.email]; }).map(function (r) {
-        try { warmClass_(cls.classId); } catch (e) { console.warn("warm class: " + e); } // students' first loads skip the Sheet
-      return { email: r.email, name: r.name, status: r.status || "active", lastSeen: r.lastSeen || null };
+        return { email: r.email, name: r.name, status: r.status || "active", lastSeen: seen[r.email] || r.lastSeen || null };
       });
       const mine = function (r) { return inClass[r.email]; };
       const progressRows = table_("Progress").rows.filter(mine);
@@ -1505,6 +1574,7 @@ const ACTIONS = {
       table_("Levels").rows.filter(mine).forEach(function (r) { (levels[r.email] = levels[r.email] || {})[r.competencyId] = effective_(r); });
       const evidence = table_("Evidence").rows.filter(mine).map(evidenceOut_);
       const live = liveView_(progressRows);
+      try { warmClass_(cls.classId); } catch (e) { console.warn("warm class: " + e); } // students' first loads skip the Sheet
       return {
         live: live,
         prints: table_("Prints").rows.filter(function (r) { return r.classId === cls.classId; }).map(printOut_),

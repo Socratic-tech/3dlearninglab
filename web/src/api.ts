@@ -50,7 +50,10 @@ export async function callOnce<T>(apiUrl: string, action: string, args: Record<s
     const text = await res.text();
     if (!res.ok) return { ok: false, retryable: true, error: `Google storage didn't answer (HTTP ${res.status}). Your work wasn't lost — try again.`, details: text.slice(0, 500) };
     try {
-      return JSON.parse(text) as ActionResult<T>;
+      const j = JSON.parse(text) as Attempt<T> & { retry?: boolean };
+      if (!j.ok && j.retry) j.retryable = true; // a busy-moment failure inside the script: worth one more try
+      delete j.retry;
+      return j;
     } catch {
       // Apps Script answered with an HTML page (usually a permission or deployment problem)
       const title = /<title>([^<]*)<\/title>/i.exec(text)?.[1] ?? text.replace(/<[^>]+>/g, " ").trim().slice(0, 160);
