@@ -530,6 +530,34 @@ describe("XP store and class rewards", () => {
     expect(e.call("maya@school.org", "resetPreview", { classId }).ok).toBe(false);
   });
 
+  it("classroom stress test: seed test students, act as them with timings, then remove only their rows", () => {
+    const { e, classId } = setupClass();
+    expect(e.call("teacher@school.org", "loadSeed", { from: 1, count: 3 }).data.added).toBe(3);
+    expect(e.call("teacher@school.org", "loadSeed", { from: 1, count: 3 }).data.added).toBe(0); // already there
+    const info = e.call("teacher@school.org", "loadInfo", {}).data;
+    expect(info.testStudents).toBe(3);
+    expect(info.tabs.Progress).toBeGreaterThan(30);
+    const r = e.call("teacher@school.org", "me", { asLoad: 2, bench: true }) as { ok: boolean; data: { user: { email: string }; progress: object }; timing: { ms: number; reads: { tab: string }[] } };
+    expect(r.data.user.email).toBe("loadtest-002+student@school.org");
+    expect(Object.keys(r.data.progress).length).toBeGreaterThan(10);
+    expect(r.timing.reads.map((x) => x.tab)).toEqual(expect.arrayContaining(["Progress", "Google sign-in check"]));
+    expect(e.call("teacher@school.org", "me", { asLoad: 9 }).error).toMatch(/Add test students/);
+    expect(e.call("maya@school.org", "me", { asLoad: 2 }).data.user.email).toBe("maya@school.org"); // students can't
+    expect(e.call("maya@school.org", "loadSeed", { from: 1, count: 1 }).ok).toBe(false);
+    const mayaBefore = e.call("maya@school.org", "me", { classId }).data;
+    expect(e.call("teacher@school.org", "loadClear", {}).data.removed).toBeGreaterThan(30);
+    expect(e.call("teacher@school.org", "loadInfo", {}).data.testStudents).toBe(0);
+    expect(e.call("teacher@school.org", "me", {}).data.classes.map((c: { name: string }) => c.name)).not.toContain("Stress test (remove after testing)");
+    expect(e.call("maya@school.org", "me", { classId }).data.progress).toEqual(mayaBefore.progress); // real work untouched
+  });
+
+  it("roster changes show up right away even though small tabs are shared between requests", () => {
+    const { e, classId } = setupClass();
+    expect(e.call("newkid@school.org", "me", { classId }).ok).toBe(false);
+    e.call("teacher@school.org", "addStudents", { classId, students: [{ email: "newkid@school.org" }] });
+    expect(e.call("newkid@school.org", "me", { classId }).ok).toBe(true);
+  });
+
   it("class rewards: teacher creates, student requests (XP held), decline gives it back, students can't approve", () => {
     const { e, classId } = setupClass();
     give(e, 500);

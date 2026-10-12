@@ -10,15 +10,20 @@ import { studentViewOn } from "./state";
 /** POST to the class's Apps Script. text/plain avoids a CORS preflight, which Apps Script can't answer. */
 /**
  * Calls the class's Apps Script. Each call has a requestId; if the reply is lost (Apps Script occasionally drops
- * the response after finishing the work), we retry once with the same id and the script returns its saved answer
+ * the response after finishing the work, or turns requests away when busy), we retry up to twice with the same id and the script returns its saved answer
  * instead of doing the work twice.
  */
 export async function call<T>(apiUrl: string, action: string, args: Record<string, unknown> = {}): Promise<ActionResult<T>> {
   const requestId = crypto.randomUUID();
-  const first = await callOnce<T>(apiUrl, action, args, requestId);
-  if (first.ok || !first.retryable) return strip(first);
-  await new Promise((r) => setTimeout(r, 1500));
-  return strip(await callOnce<T>(apiUrl, action, args, requestId));
+  let r = await callOnce<T>(apiUrl, action, args, requestId);
+  // Busy moments (a whole class at the bell) can make Google turn requests away; wait a little longer each time,
+  // with a random spread so the retries don't all arrive together again.
+  for (const wait of [1500, 3500]) {
+    if (r.ok || !r.retryable) break;
+    await new Promise((res) => setTimeout(res, wait + Math.random() * 1500));
+    r = await callOnce<T>(apiUrl, action, args, requestId);
+  }
+  return strip(r);
 }
 
 type Attempt<T> = ActionResult<T> & { retryable?: boolean };

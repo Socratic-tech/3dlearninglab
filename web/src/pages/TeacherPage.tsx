@@ -17,7 +17,7 @@ import type { ClassInfo, Me } from "../content";
 import { competencies, competencyTitle, heatmapGroups, lessonById, lessons as allLessons } from "../content";
 import { classLessons } from "../custom-path";
 import { CustomPathBuilder } from "./CustomPathBuilder";
-import { markSetupStep, SetupCheckPanel, SetupChecklist } from "./SetupHelp";
+import { markSetupStep, SetupCheckPanel, SetupChecklist, StressTestPanel } from "./SetupHelp";
 import { offlineChallenges } from "./HandoutPage";
 import { UpdateBanner } from "./UpdateBanner";
 
@@ -457,6 +457,13 @@ function Classes({ data, apiUrl, onChange }: { data: ClassData; apiUrl: string; 
           <CardTitle>Setup check</CardTitle>
           <p className="mt-1 text-sm text-muted">Finds the setup problems that stop students from joining, with the fix for each.</p>
           <div className="mt-3"><SetupCheckPanel apiUrl={apiUrl} classId={c.id} /></div>
+        </Card>
+        <Card>
+          <details>
+            <summary className="cursor-pointer"><CardTitle className="inline">Classroom stress test</CardTitle></summary>
+            <p className="mt-1 text-sm text-muted">See how fast your Sheet answers when a whole class opens the app at once. Uses test students, never real ones.</p>
+            <div className="mt-3"><StressTestPanel apiUrl={apiUrl} /></div>
+          </details>
         </Card>
         <Card>
           <CardTitle>New class</CardTitle>

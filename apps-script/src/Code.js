@@ -121,13 +121,18 @@ function handle_(req) {
   CONTENT_MEMO_ = null;
   STUDENT_HELD_ = {};
   REQ_LANG_ = req && req.args && req.args.lang === "es" ? "es" : "en";
+  const t0 = Date.now();
+  TIMING_ = req && req.args && req.args.bench === true ? [] : null;
   try {
     const action = ACTIONS[req && req.action];
     if (!action) throw userError_("Unknown request.");
     ensureClasses_();
     let user = authenticate_(req.token, (req.args || {}).classId);
     // Student view: a teacher works as their own test student (a real student record, see previewStudent_).
-    if (user.role === "teacher" && req.args && req.args.asStudent === true) user = previewStudent_(user, req.args.classId);
+    const staff = user.role === "teacher";
+    // Classroom stress test: a teacher acts as one of the seeded test students ("loadtest-NNN+student@…").
+    if (staff && req.args && typeof req.args.asLoad === "number") user = loadStudent_(req.args.asLoad, TIMING_);
+    else if (staff && req.args && req.args.asStudent === true) user = previewStudent_(user, req.args.classId);
     if (action.role === "teacher" && user.role !== "teacher") throw userError_("You don't have access to that.");
     // Retries from the site reuse the same requestId: return the first answer instead of doing the work twice.
     const cache = CacheService.getScriptCache();
@@ -137,6 +142,7 @@ function handle_(req) {
       if (prior) return JSON.parse(prior);
     }
     const out = { ok: true, data: action.run(user, req.args || {}) };
+    if (TIMING_ && staff) out.timing = { ms: Date.now() - t0, reads: TIMING_ };
     if (rid) {
       const json = JSON.stringify(out);
       if (json.length < 90000) cache.put(rid, json, 600);
@@ -241,6 +247,50 @@ function previewStudent_(teacher, classId) {
   return { email: email, name: (row && row.name) || name, role: "student", preview: true };
 }
 
+// ── Classroom stress test: seeded test students "loadtest-NNN+student@<owner domain>" in a "Stress test" class.
+// "+" addresses can't sign in with Google, so only a teacher (through the stress test) can act as them.
+const LOAD_PREFIX_ = "loadtest-";
+const LOAD_CLASS_NAME_ = "Stress test (remove after testing)";
+function loadEmail_(n) {
+  const owner = String(Session.getEffectiveUser().getEmail() || "teacher@school.org").toLowerCase();
+  return LOAD_PREFIX_ + ("00" + n).slice(-3) + "+student@" + owner.split("@")[1];
+}
+function loadStudent_(n, timing) {
+  n = Math.floor(n);
+  if (!(n >= 1 && n <= 300)) throw userError_("Unknown test student.");
+  const email = loadEmail_(n);
+  if (!table_("Users").find(function (r) { return r.email === email; })) throw userError_("Add test students first (Classroom stress test).");
+  // A real student's first request each period also asks Google to check their sign-in; do the same so timings are honest.
+  if (timing) {
+    const t = Date.now();
+    try { UrlFetchApp.fetch("https://oauth2.googleapis.com/tokeninfo?id_token=x", { muteHttpExceptions: true }); } catch (e) { /* timing only */ }
+    timing.push({ tab: "Google sign-in check", rows: 0, ms: Date.now() - t, from: "google" });
+  }
+  return { email: email, name: "Test student " + n, role: "student", preview: true };
+}
+const LOREM_ = "My design changed after the first test because the walls were too thin and the hole did not fit, so I measured again with calipers and made the part stronger. ";
+function loremOf_(n) { let s = ""; while (s.length < n) s += LOREM_; return s.slice(0, n); }
+/** A completed-semester entry for one block, about the size real student answers and feedback take up. */
+function fakeEntry_(block, at) {
+  if (block.type === "reflection") return { response: { text: loremOf_(450) }, done: true, updatedAt: at };
+  if (Lib.isScorable(block)) return { response: { type: block.type, optionId: "a" }, correct: true, attempts: 2, done: true, updatedAt: at, result: { correct: true, attempts: 2, headline: "Nice work!", explanation: loremOf_(220) } };
+  return { done: true, updatedAt: at };
+}
+/** Appends many rows in one write per 2000 rows. Class lock only: run when students aren't working. */
+function bulkAppend_(name, objs) {
+  if (!objs.length) return;
+  const sh = sheet_(name);
+  const h = TABLES[name];
+  const vals = objs.map(function (o) { return h.map(function (k) { return o[k] === undefined || o[k] === null ? "" : o[k]; }); });
+  for (let i = 0; i < vals.length; i += 2000) {
+    const part = vals.slice(i, i + 2000);
+    sh.getRange(sh.getLastRow() + 1, 1, part.length, h.length).setValues(part);
+  }
+  delete MEMO_[name];
+  delete LOCK_MEMO_[name];
+  dropTableCache_(name);
+}
+
 function enroll_(email, classId, source) {
   table_("Enrollments").upsert(function (e) { return e.email === email && e.classId === classId; }, { email: email, classId: classId, status: "active", source: source || "manual", createdAt: now_() });
 }
@@ -318,6 +368,7 @@ function classFor_(user, classId) {
  * creates one class from those values and enrolls every existing student in it.
  */
 function ensureClasses_() {
+  if (table_("Classes").rows.length) return; // usually answered from the shared copy, no Sheet read
   const sh = sheet_("Classes");
   if (sh.getLastRow() > 1) return;
   const legacy = config_();
@@ -343,15 +394,33 @@ function sheet_(name) {
     sh = book.insertSheet(name);
     sh.getRange(1, 1, 1, TABLES[name].length).setValues([TABLES[name]]).setFontWeight("bold");
     sh.setFrozenRows(1);
-  } else if (name === "Summary" || name === "Classes") {
+  } else if ((name === "Summary" || name === "Classes") && !headersChecked_(name)) {
     // Older class Sheets have fewer columns (Summary: store columns; Classes: custom project paths). Add the new
     // headers in place; existing rows and student work stay untouched.
     const headers = TABLES[name];
     const current = sh.getRange(1, 1, 1, headers.length).getValues()[0];
     if (headers.some(function (h, i) { return current[i] !== h; })) sh.getRange(1, 1, 1, headers.length).setValues([headers]);
+    try { CacheService.getScriptCache().put("hdr2_" + name, "1", 21600); } catch (e) { /* ignore */ }
   }
   return sh;
 }
+function headersChecked_(name) {
+  try { return !!CacheService.getScriptCache().get("hdr2_" + name); } catch (e) { return false; }
+}
+
+// Small, rarely changed tabs are shared between requests for up to 2 minutes (every write through table_ clears the
+// copy). Saves 3–5 Sheet reads on every request. Hand edits in these tabs show up within 2 minutes.
+const SHARED_TABLES_ = { Classes: 1, Enrollments: 1, Users: 1, Gallery: 1, Rewards: 1 };
+function dropTableCache_(name) {
+  if (!SHARED_TABLES_[name]) return;
+  try { CacheService.getScriptCache().remove("tc2_" + name); } catch (e) { /* ignore */ }
+}
+function dropAllTableCaches_() {
+  Object.keys(SHARED_TABLES_).forEach(dropTableCache_);
+  MEMO_ = {};
+  LOCK_MEMO_ = {};
+}
+var TIMING_ = null; // per-tab read timings when a teacher's request asks for them (stress test)
 
 // Each request reads a tab at most once (MEMO_). Inside a lock the first read of a tab is fresh and then reused
 // (LOCK_MEMO_), so one save reads Progress/Summary/Levels once each instead of several times.
@@ -368,9 +437,29 @@ function table_(name, forceFresh) {
     if (inLock && LOCK_MEMO_[name]) return LOCK_MEMO_[name];
     if (!inLock && MEMO_[name]) return MEMO_[name];
   }
-  const sh = sheet_(name);
   const headers = TABLES[name];
-  const values = sh.getLastRow() > 1 ? sh.getRange(2, 1, sh.getLastRow() - 1, headers.length).getValues() : [];
+  const started = Date.now();
+  const shared = !!SHARED_TABLES_[name];
+  let values = null;
+  let from = "sheet";
+  if (shared && !inLock && !forceFresh) {
+    try { const hit = CacheService.getScriptCache().get("tc2_" + name); if (hit) { values = JSON.parse(hit); from = "cache"; } } catch (e) { values = null; }
+  }
+  let sheetObj = null;
+  const sh = { // the sheet is opened only when needed (a cached read never touches it)
+    get_: function () { return sheetObj || (sheetObj = sheet_(name)); },
+    getLastRow: function () { return this.get_().getLastRow(); },
+    getRange: function (r, c, nr, nc) { return this.get_().getRange(r, c, nr, nc); },
+    appendRow: function (v) { return this.get_().appendRow(v); },
+  };
+  if (!values) {
+    const last = sh.getLastRow();
+    values = last > 1 ? sh.getRange(2, 1, last - 1, headers.length).getValues() : [];
+    if (shared) {
+      try { const j = JSON.stringify(values); if (j.length < 95000) CacheService.getScriptCache().put("tc2_" + name, j, 120); } catch (e) { /* too big or cache busy */ }
+    }
+  }
+  if (TIMING_) TIMING_.push({ tab: name, rows: values.length, ms: Date.now() - started, from: from });
   const rows = values.map(function (v, i) {
     const o = { _row: i + 2 };
     headers.forEach(function (h, j) { o[h] = v[j] === "" ? "" : v[j]; });
@@ -384,6 +473,7 @@ function table_(name, forceFresh) {
     append: function (obj) {
       sh.appendRow(toValues(obj)); // atomic, safe while other students write too
       delete MEMO_[name];
+      dropTableCache_(name);
       rows.push(Object.assign({ _row: null }, obj)); // row number unknown (others may append at the same moment)
       return obj;
     },
@@ -396,6 +486,7 @@ function table_(name, forceFresh) {
       if (existing && !existing._row) existing = table_(name, true).find(pred) || existing; // just appended this request: find its real row
       if (memoRow && memoRow !== existing) Object.assign(memoRow, obj, { _row: existing._row });
       delete MEMO_[name];
+      dropTableCache_(name);
       if (existing && existing._row) {
         const merged = Object.assign({}, existing, obj);
         sh.getRange(existing._row, 1, 1, headers.length).setValues([toValues(merged)]);
@@ -457,9 +548,11 @@ function withStudentLock_(email, fn) {
 }
 
 function config_() {
+  const started = Date.now();
   const sh = sheet_("Config");
   const out = {};
   if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 2).getValues().forEach(function (r) { out[String(r[0]).trim()] = String(r[1]).trim(); });
+  if (TIMING_) TIMING_.push({ tab: "Config", rows: Object.keys(out).length, ms: Date.now() - started, from: "sheet" });
   return out;
 }
 
@@ -918,7 +1011,13 @@ const ACTIONS = {
       const cls = hasClass ? classFor_(user, a.classId) : null;
       const classes = user.role === "teacher" ? activeClasses_() : activeEnrollments_(user.email).map(function (e) { return classById_(e.classId); }).filter(Boolean);
       if (user.role === "student") {
-        withStudentLock_(user.email, function () { table_("Users").upsert(function (r) { return r.email === user.email; }, { lastSeen: now_() }); });
+        // "Last seen" is written at most every 10 minutes per student: a write every page load slowed every student down.
+        const seenKey = "seen_" + user.email;
+        const c = CacheService.getScriptCache();
+        if (!c.get(seenKey)) {
+          withStudentLock_(user.email, function () { table_("Users").upsert(function (r) { return r.email === user.email; }, { lastSeen: now_() }); });
+          c.put(seenKey, "1", 600);
+        }
       }
       const progress = {};
       table_("Progress").filter(function (r) { return r.email === user.email; }).forEach(function (r) {
@@ -1217,6 +1316,104 @@ const ACTIONS = {
   },
 
   /** Teacher: wipe your test student's work (answers, XP, store, requests) so you can start fresh. */
+  /** Teacher: how big this Sheet is (stress test). */
+  loadInfo: {
+    role: "teacher",
+    run: function () {
+      const tabs = {};
+      let cells = 0;
+      ss_().getSheets().forEach(function (sh) {
+        cells += sh.getMaxRows() * sh.getMaxColumns();
+        if (TABLES[sh.getName()]) tabs[sh.getName()] = Math.max(0, sh.getLastRow() - 1);
+      });
+      const testStudents = table_("Users").filter(function (r) { return String(r.email).indexOf(LOAD_PREFIX_) === 0; }).length;
+      return { tabs: tabs, cells: cells, cellLimit: 10000000, testStudents: testStudents };
+    },
+  },
+
+  /** Teacher: add test students with a full semester of work (every 18-week mission done). Up to 25 per call. */
+  loadSeed: {
+    role: "teacher",
+    run: function (user, a) {
+      const from = Math.max(1, Math.floor(Number(a.from) || 1));
+      const count = Math.min(25, Math.max(1, Math.floor(Number(a.count) || 25)));
+      if (from + count - 1 > 300) throw userError_("Up to 300 test students.");
+      const c = content_();
+      const path = (c.paths["18-week"] || []).filter(function (id) { return c.lessons[id]; });
+      const comps = Object.keys(c.competencyIds || {});
+      return withLock_(function () {
+        let cls = table_("Classes").find(function (r) { return r.name === LOAD_CLASS_NAME_ && r.status !== "archived"; });
+        if (!cls) {
+          cls = { classId: "c" + Utilities.getUuid().slice(0, 8), name: LOAD_CLASS_NAME_, section: "", pathId: "18-week", tinkercadUrl: "", unlockAll: "TRUE", status: "active", createdAt: now_() };
+          table_("Classes").append(cls);
+        }
+        const have = {};
+        table_("Users").rows.forEach(function (r) { have[r.email] = true; });
+        const out = { Users: [], Enrollments: [], Progress: [], Attempts: [], Levels: [], Evidence: [], Summary: [] };
+        const at = now_();
+        for (let n = from; n < from + count; n++) {
+          const email = loadEmail_(n);
+          if (have[email]) continue;
+          out.Users.push({ email: email, name: "Test student " + n, role: "student", sub: "", status: "active", createdAt: at, lastSeen: at });
+          out.Enrollments.push({ email: email, classId: cls.classId, status: "active", source: "stress-test", createdAt: at });
+          const seen = [];
+          const byLesson = {};
+          path.forEach(function (lid) {
+            const L = c.lessons[lid];
+            const st = {};
+            Object.keys(L.blocks || {}).forEach(function (bid) {
+              const b = L.blocks[bid];
+              st[bid] = fakeEntry_(b, at);
+              seen.push(lid + ":" + bid);
+              if (Lib.isScorable(b)) for (let k = 0; k < 2; k++) out.Attempts.push({ at: at, email: email, lessonId: lid, blockId: bid, competencyId: b.competencyId || "", correct: k === 1, misconceptionId: "", response: JSON.stringify({ type: b.type, optionId: k ? "a" : "b" }) });
+              if (b.type === "uploadEvidence") out.Evidence.push({ id: "e" + Utilities.getUuid().slice(0, 8), email: email, lessonId: lid, blockId: bid, competencyIds: JSON.stringify(b.competencyIds || []), type: "design_url", url: "https://www.tinkercad.com/things/stress-test", fileId: "", fileName: "", text: loremOf_(160), status: "reviewed", rating: "proficient", comment: "Good fit.", reviewedBy: user.email, reviewedAt: at, createdAt: at });
+            });
+            byLesson[lid] = 120;
+            out.Progress.push({ email: email, lessonId: lid, status: "completed", blockState: JSON.stringify(st), startedAt: at, completedAt: at, updatedAt: at });
+          });
+          comps.forEach(function (cid) { out.Levels.push({ email: email, competencyId: cid, computed: "proficient", override: "", overrideAt: "", overrideBy: "", overrideComment: "", updatedAt: at }); });
+          const days = {};
+          for (let d = 0; d < 60; d++) days["2026-" + ("0" + (1 + (d % 12))).slice(-2) + "-" + ("0" + (1 + (d % 28))).slice(-2)] = 1;
+          out.Summary.push({ email: email, xp: 4000, days: JSON.stringify(days), seen: JSON.stringify(seen), byLesson: JSON.stringify(byLesson), updatedAt: at, spentXp: 0, ownedLooks: "[]", activeLook: "", owned: "[]", equipped: "{}" });
+        }
+        Object.keys(out).forEach(function (name) { bulkAppend_(name, out[name]); });
+        return { added: out.Users.length, classId: cls.classId };
+      });
+    },
+  },
+
+  /** Teacher: remove every test student and the stress-test class. Deletes only their rows. */
+  loadClear: {
+    role: "teacher",
+    run: function () {
+      let removed = 0;
+      withLock_(function () {
+        const ids = {};
+        table_("Classes", true).rows.forEach(function (r) { if (r.name === LOAD_CLASS_NAME_) ids[r.classId] = true; });
+        Object.keys(TABLES).forEach(function (name) {
+          const col = name === "Classes" ? 0 : TABLES[name].indexOf("email");
+          if (col < 0) return;
+          const sh = ss_().getSheetByName(name);
+          if (!sh || sh.getLastRow() < 2) return;
+          const vals = sh.getRange(2, col + 1, sh.getLastRow() - 1, 1).getValues();
+          const isTest = function (v) { return name === "Classes" ? !!ids[String(v)] : String(v).toLowerCase().indexOf(LOAD_PREFIX_) === 0; };
+          // delete from the bottom in runs of neighbouring rows (seeded rows sit together, so this is a few calls)
+          let i = vals.length - 1;
+          while (i >= 0) {
+            if (!isTest(vals[i][0])) { i--; continue; }
+            let j = i;
+            while (j - 1 >= 0 && isTest(vals[j - 1][0])) j--;
+            sh.deleteRows(j + 2, i - j + 1);
+            removed += i - j + 1;
+            i = j - 1;
+          }
+        });
+        dropAllTableCaches_();
+      });
+      return { removed: removed };
+    },
+  },
+
   resetPreview: {
     role: "teacher",
     run: function (user) {
@@ -1232,8 +1429,7 @@ const ACTIONS = {
           for (let i = vals.length - 1; i >= 0; i--) if (String(vals[i][0]).toLowerCase() === email) { sh.deleteRow(i + 2); removed++; }
         });
       });
-      MEMO_ = {};
-      LOCK_MEMO_ = {};
+      dropAllTableCaches_();
       return { removed: removed };
     },
   },

@@ -14,7 +14,7 @@ function emailFromToken(t: string) {
 }
 
 export type Row = unknown[];
-function fakeSheet() {
+function fakeSheet(name = "") {
   const data: Row[] = [];
   const sh = {
     getLastRow: () => data.length,
@@ -29,6 +29,10 @@ function fakeSheet() {
     },
     appendRow: (row: Row) => data.push([...row]),
     deleteRow: (r: number) => { data.splice(r - 1, 1); },
+    deleteRows: (r: number, n: number) => { data.splice(r - 1, n); },
+    getName: () => name,
+    getMaxRows: () => Math.max(1000, data.length),
+    getMaxColumns: () => Math.max(26, ...data.map((d) => d.length)),
     setFrozenRows: () => {},
     hideSheet: () => {},
     clear: () => { data.length = 0; },
@@ -53,7 +57,8 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
   const sheets = new Map<string, ReturnType<typeof fakeSheet>>();
   const book = {
     getSheetByName: (n: string) => sheets.get(n) ?? null,
-    insertSheet: (n: string) => { const s = fakeSheet(); sheets.set(n, s); return s; },
+    insertSheet: (n: string) => { const s = fakeSheet(n); sheets.set(n, s); return s; },
+    getSheets: () => [...sheets.values()],
   };
   const cache = new Map<string, string>();
   const files: { name: string }[] = [];

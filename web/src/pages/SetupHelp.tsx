@@ -3,6 +3,7 @@ import { CircleAlert, CircleCheck, CircleX, Printer } from "lucide-react";
 import qrcode from "qrcode-generator";
 import { Alert, Card, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { call, callOnce } from "../api";
 import { classLink } from "../config";
 import type { ClassInfo, Me } from "../content";
 import { runSetupChecks, type Check } from "../setup-check";
@@ -145,6 +146,184 @@ export function PosterPage({ me, apiUrl, clientId }: { me: Me; apiUrl: string; c
       <section className="mt-8 grid gap-4 sm:grid-cols-2 print:mt-0 print:grid-cols-2">
         {card}{card}{card}{card}
       </section>
+    </div>
+  );
+}
+
+// ───────────────────────── Classroom stress test ─────────────────────────
+
+type LoadInfo = { tabs: Record<string, number>; cells: number; cellLimit: number; testStudents: number };
+type Read = { tab: string; rows: number; ms: number; from: string };
+type One = { ok: boolean; ms: number; tries: number; error: string | null; server: number | null; reads: Read[] };
+type StressResult = { kind: string; count: number; wall: number; runs: One[] };
+
+const pct = (xs: number[], p: number) => { if (!xs.length) return 0; const s = [...xs].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor((p / 100) * s.length))]; };
+const sec = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
+
+/** Plain-language summary of a stress-test run, also used for "Copy results". */
+function summarize(r: StressResult, info: LoadInfo | null) {
+  const ok = r.runs.filter((x) => x.ok);
+  const failed = r.runs.filter((x) => !x.ok);
+  const times = ok.map((x) => x.ms);
+  const server = ok.map((x) => x.server ?? 0).filter(Boolean);
+  const tabs = new Map<string, { ms: number; n: number; rows: number; cached: number }>();
+  ok.forEach((x) => x.reads.forEach((rd) => {
+    const t = tabs.get(rd.tab) ?? { ms: 0, n: 0, rows: 0, cached: 0 };
+    t.ms += rd.ms; t.n++; t.rows = Math.max(t.rows, rd.rows); if (rd.from === "cache") t.cached++;
+    tabs.set(rd.tab, t);
+  }));
+  const parts = [...tabs.entries()].map(([tab, t]) => ({ tab, avg: t.ms / t.n, rows: t.rows, cached: Math.round((100 * t.cached) / t.n) })).sort((a, b) => b.avg - a.avg);
+  const errors = [...new Set(failed.map((x) => x.error ?? "unknown"))];
+  const p90 = pct(times, 90);
+  const verdict = failed.length
+    ? { tone: "danger" as const, text: `${failed.length} of ${r.count} students would have seen an error, even after retrying.` }
+    : p90 <= 6000 ? { tone: "success" as const, text: `Good: 9 in 10 students were done within ${sec(p90)}.` }
+    : p90 <= 12000 ? { tone: "warning" as const, text: `Works, but slow: 9 in 10 students waited up to ${sec(p90)}.` }
+    : { tone: "danger" as const, text: `Too slow: 9 in 10 students waited up to ${sec(p90)}.` };
+  const lines = [
+    `3D Design Academy stress test · ${new Date().toLocaleString()}`,
+    `${r.count} students at once · ${r.kind === "save" ? "saving an answer" : "opening their home page"}`,
+    `Finished: ${ok.length}/${r.count} · needed a retry: ${r.runs.filter((x) => x.tries > 1).length} · failed: ${failed.length}`,
+    `Wait per student: median ${sec(pct(times, 50))}, 90% within ${sec(p90)}, slowest ${sec(Math.max(0, ...times))} · whole wave ${sec(r.wall)}`,
+    server.length ? `Time inside Google's script: median ${sec(pct(server, 50))}, slowest ${sec(Math.max(...server))}` : "",
+    `Slowest parts (average per student): ${parts.slice(0, 8).map((p) => `${p.tab} ${Math.round(p.avg)} ms${p.rows ? ` (${p.rows} rows${p.cached ? `, ${p.cached}% shared copy` : ""})` : ""}`).join("; ")}`,
+    info ? `Sheet size: ${Object.entries(info.tabs).map(([k, v]) => `${k} ${v}`).join(", ")} · cells ${(info.cells / 1e6).toFixed(2)}M of 10M` : "",
+    errors.length ? `Errors: ${errors.join(" | ")}` : "",
+  ].filter(Boolean);
+  return { ok, failed, times, server, parts, verdict, text: lines.join("\n") };
+}
+
+/**
+ * Teacher tool: adds test students with a full semester of work, then has many of them open the app (or save) at the
+ * same moment, like a class at the bell, and reports how long each waited and which Sheet tabs cost the most.
+ */
+export function StressTestPanel({ apiUrl }: { apiUrl: string }) {
+  const [info, setInfo] = useState<LoadInfo | null>(null);
+  const [target, setTarget] = useState(150);
+  const [count, setCount] = useState(30);
+  const [kind, setKind] = useState<"open" | "save">("open");
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<StressResult | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const refresh = async () => {
+    const r = await call<LoadInfo>(apiUrl, "loadInfo");
+    if (r.ok) setInfo(r.data); else setError(r.error);
+  };
+  useEffect(() => { void refresh(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const seed = async () => {
+    setError(null);
+    const have = info?.testStudents ?? 0;
+    for (let from = have + 1; from <= target; from += 25) {
+      setBusy(`Adding test students with a semester of work… ${from - 1} of ${target}`);
+      const r = await call<{ added: number }>(apiUrl, "loadSeed", { from, count: Math.min(25, target - from + 1) });
+      if (!r.ok) { setError(r.error); break; }
+    }
+    setBusy(null);
+    await refresh();
+  };
+
+  const run = async () => {
+    if (!info?.testStudents) return;
+    setError(null); setResult(null); setCopied(false);
+    const n = Math.min(count, info.testStudents);
+    setBusy(`${n} test students are ${kind === "save" ? "saving" : "opening the app"} at the same moment…`);
+    const action = kind === "save" ? "saveDraft" : "me";
+    const extra = kind === "save" ? { lessonId: "layers", blockId: "reflect", text: "Stress test draft: my design changed after testing." } : {};
+    const one = async (i: number): Promise<One> => {
+      const id = crypto.randomUUID();
+      const start = performance.now();
+      let tries = 0;
+      let r: { ok: boolean; error?: string; retryable?: boolean; timing?: { ms: number; reads: Read[] } };
+      for (;;) {
+        tries++;
+        r = (await callOnce(apiUrl, action, { ...extra, asLoad: i + 1, bench: true }, id)) as typeof r;
+        if (r.ok || !r.retryable || tries >= 3) break;
+        await new Promise((res) => setTimeout(res, 1500 * tries + Math.random() * 1500)); // same waits the app uses
+      }
+      return { ok: r.ok, ms: performance.now() - start, tries, error: r.ok ? null : r.error ?? "unknown", server: r.timing?.ms ?? null, reads: r.timing?.reads ?? [] };
+    };
+    const t0 = performance.now();
+    const runs = await Promise.all(Array.from({ length: n }, (_, i) => one(i)));
+    setResult({ kind, count: n, wall: performance.now() - t0, runs });
+    setBusy(null);
+  };
+
+  const clear = async () => {
+    setConfirmClear(false); setError(null);
+    setBusy("Removing test students…");
+    const r = await call<{ removed: number }>(apiUrl, "loadClear");
+    setBusy(null);
+    if (!r.ok) setError(r.error);
+    setResult(null);
+    await refresh();
+  };
+
+  const s = result ? summarize(result, info) : null;
+  const sel = "h-10 rounded-xl border border-border bg-surface px-3";
+  return (
+    <div className="space-y-3 text-sm">
+      <Alert tone="warning" title="Run this after school.">It adds and removes rows in your Sheet while it works. Your students’ real work is never changed.</Alert>
+      {info && (
+        <p className="text-muted">
+          Your Sheet: {info.tabs.Users ?? 0} people · {info.tabs.Progress ?? 0} mission rows · {info.tabs.Attempts ?? 0} answers · {(info.cells / 1e6).toFixed(2)}M of Google’s 10M-cell limit.
+          {" "}{info.testStudents ? <strong>{info.testStudents} test students added.</strong> : "No test students yet."}
+        </p>
+      )}
+      <div className="flex flex-wrap items-end gap-2">
+        <label className="grid gap-1"><span className="font-semibold">1. Test students (each with a full semester done)</span>
+          <select className={sel} value={target} onChange={(e) => setTarget(Number(e.target.value))}>
+            {[30, 90, 150, 250].map((v) => <option key={v} value={v}>{v} students{v === 150 ? " (5 class periods)" : ""}</option>)}
+          </select>
+        </label>
+        <Button variant="secondary" disabled={!!busy || (info?.testStudents ?? 0) >= target} onClick={() => void seed()}>Add test students</Button>
+      </div>
+      <div className="flex flex-wrap items-end gap-2">
+        <label className="grid gap-1"><span className="font-semibold">2. At the same moment</span>
+          <select className={sel} value={count} onChange={(e) => setCount(Number(e.target.value))}>
+            {[10, 30, 45, 60].map((v) => <option key={v} value={v}>{v} students</option>)}
+          </select>
+        </label>
+        <label className="grid gap-1"><span className="font-semibold">doing</span>
+          <select className={sel} value={kind} onChange={(e) => setKind(e.target.value as "open" | "save")}>
+            <option value="open">open their home page</option>
+            <option value="save">save an answer</option>
+          </select>
+        </label>
+        <Button disabled={!!busy || !info?.testStudents} onClick={() => void run()}>Run the test</Button>
+      </div>
+      {busy && <p role="status" className="font-semibold">{busy}</p>}
+      {error && <Alert tone="danger">{error}</Alert>}
+      {s && result && (
+        <div className="space-y-2 rounded-xl border border-border bg-surface p-3">
+          <Alert tone={s.verdict.tone}>{s.verdict.text}</Alert>
+          <ul className="grid gap-1 sm:grid-cols-2">
+            <li>Finished: <strong>{s.ok.length} of {result.count}</strong>{s.failed.length ? ` · ${s.failed.length} failed` : ""}</li>
+            <li>Needed a retry: <strong>{result.runs.filter((x) => x.tries > 1).length}</strong></li>
+            <li>Typical wait: <strong>{sec(pct(s.times, 50))}</strong> · slowest {sec(Math.max(0, ...s.times))}</li>
+            <li>Inside Google’s script: {s.server.length ? `${sec(pct(s.server, 50))} typical` : "n/a"}</li>
+          </ul>
+          {s.parts.length > 0 && (
+            <details>
+              <summary className="cursor-pointer font-semibold">What took the time</summary>
+              <ul className="mt-1 space-y-0.5 font-mono text-xs">
+                {s.parts.slice(0, 10).map((p) => <li key={p.tab}>{p.tab}: {Math.round(p.avg)} ms{p.rows ? ` · ${p.rows} rows` : ""}{p.cached ? ` · ${p.cached}% from shared copy` : ""}</li>)}
+              </ul>
+            </details>
+          )}
+          <Button size="sm" variant="secondary" onClick={() => { void navigator.clipboard?.writeText(s.text).then(() => setCopied(true)); }}>{copied ? "Copied" : "Copy results"}</Button>
+        </div>
+      )}
+      {(info?.testStudents ?? 0) > 0 && (
+        <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
+          {confirmClear
+            ? <><span className="font-semibold">Remove all {info?.testStudents} test students and the stress-test class?</span><Button size="sm" variant="danger" disabled={!!busy} onClick={() => void clear()}>Yes, remove</Button><Button size="sm" variant="ghost" onClick={() => setConfirmClear(false)}>Cancel</Button></>
+            : <Button size="sm" variant="secondary" disabled={!!busy} onClick={() => setConfirmClear(true)}>3. Remove test students</Button>}
+        </div>
+      )}
     </div>
   );
 }
