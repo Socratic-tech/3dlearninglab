@@ -167,7 +167,9 @@ function summarize(r: StressResult, info: LoadInfo | null) {
   const times = ok.map((x) => x.ms);
   const server = ok.map((x) => x.server ?? 0).filter(Boolean);
   const tabs = new Map<string, { ms: number; n: number; rows: number; cached: number }>();
-  ok.forEach((x) => x.reads.forEach((rd) => {
+  const whys = new Map<string, number>();
+  r.runs.forEach((x) => x.reads.forEach((rd) => { if (rd.from === "why") whys.set(rd.tab, (whys.get(rd.tab) ?? 0) + 1); }));
+  ok.forEach((x) => x.reads.filter((rd) => rd.from !== "why").forEach((rd) => {
     const t = tabs.get(rd.tab) ?? { ms: 0, n: 0, rows: 0, cached: 0 };
     t.ms += rd.ms; t.n++; t.rows = Math.max(t.rows, rd.rows); if (rd.from === "cache" || rd.from === "copy" || rd.from === "waited") t.cached++;
     tabs.set(rd.tab, t);
@@ -188,6 +190,7 @@ function summarize(r: StressResult, info: LoadInfo | null) {
     server.length ? `Time inside Google's script: median ${sec(pct(server, 50))}, slowest ${sec(Math.max(...server))}` : "",
     `Slowest parts (average per student): ${parts.slice(0, 8).map((p) => `${p.tab} ${Math.round(p.avg)} ms${p.rows ? ` (${p.rows} rows${p.cached ? `, ${p.cached}% saved copy` : ""})` : ""}`).join("; ")}`,
     info ? `Sheet size: ${Object.entries(info.tabs).map(([k, v]) => `${k} ${v}`).join(", ")} · cells ${(info.cells / 1e6).toFixed(2)}M of 10M` : "",
+    whys.size ? `Why the Sheet was read: ${[...whys.entries()].map(([k, n]) => `${k} ×${n}`).join("; ")}` : "",
     errors.length ? `Errors: ${errors.join(" | ")}` : "",
   ].filter(Boolean);
   return { ok, failed, times, server, parts, verdict, text: lines.join("\n") };

@@ -613,10 +613,14 @@ function putSlices_(entries, extra) {
   Object.keys(extra || {}).forEach(function (k) { out[k] = extra[k]; });
   const keys = Object.keys(out).sort(function (a, b) { return (a.indexOf("#") < 0) - (b.indexOf("#") < 0); }); // chunks first
   const c = CacheService.getScriptCache();
-  for (let i = 0; i < keys.length; i += 20) {
+  for (let i = 0; i < keys.length;) {
     const part = {};
-    keys.slice(i, i + 20).forEach(function (k) { part[k] = out[k]; });
-    try { c.putAll(part, SLICE_TTL_); } catch (e) { /* cache full or busy: copies are optional */ }
+    let size = 0;
+    while (i < keys.length && (size === 0 || size + out[keys[i]].length < 400000) && Object.keys(part).length < 30) { part[keys[i]] = out[keys[i]]; size += out[keys[i]].length; i++; }
+    try { c.putAll(part, SLICE_TTL_); } catch (e) {
+      // a too-large batch fails as a whole: store one by one instead (copies are optional, so errors are ignored)
+      Object.keys(part).forEach(function (k) { try { c.put(k, part[k], SLICE_TTL_); } catch (e2) { /* skip */ } });
+    }
   }
 }
 /** Decodes a stored copy; null when missing, damaged, or older than the student's last write. */
@@ -690,6 +694,9 @@ function warmClass_(classId) {
   Object.keys(SLICED_).forEach(function (n) { warmSlices_(n, rawTable_(n), emails, false); });
   c.put(flag, "1", 3600);
 }
+
+// Columns a teacher changes on a student's row; a student's save never rewrites them unless it changed them itself.
+const TEACHER_COLS_ = { override: 1, overrideAt: 1, overrideBy: 1, overrideComment: 1, status: 1, rating: 1, comment: 1, reviewedBy: 1, reviewedAt: 1, teacherNote: 1, spentXp: 1 };
 
 function rowValues_(name, obj) {
   return TABLES[name].map(function (h) { return obj[h] === undefined || obj[h] === null ? "" : obj[h]; });
@@ -779,6 +786,11 @@ function sliceTable_(name, email) {
   let v = decodeSlice_(got[key], got, key, got[sliceWriteKey_(name, email)]);
   let from = "copy";
   if (!v && SLICE_READY_[memoKey]) { v = SLICE_READY_[memoKey]; from = "copy"; }
+  if (!v && TIMING_) {
+    // for the stress test: why this student's copy couldn't be used
+    const why = !got[key] ? "no copy" : Number(got[sliceWriteKey_(name, email)] || 0) > 0 && decodeSlice_(got[key], got, key, 0) ? "outdated copy" : "unreadable copy";
+    TIMING_.push({ tab: name + ": " + why, rows: 0, ms: 0, from: "why" });
+  }
   if (!v) { v = waitOrWarm_(name, email); from = v.from; delete v.from; }
   if (TIMING_ && from !== "sheet") TIMING_.push({ tab: name, rows: v.rows.length, ms: Date.now() - started, from: from });
   const rows = v.rows;
@@ -806,6 +818,7 @@ function sliceTable_(name, email) {
       const ex = t.find(pred);
       if (!ex) return t.append(obj);
       if (!ex._row && !locateNewRows_(name, email, rows)) {
+        if (TIMING_) TIMING_.push({ tab: name + ": row lookup", rows: 0, ms: 0, from: "why" });
         const real = rawTable_(name, true).find(pred); // last resort: a full read
         if (real) ex._row = real._row;
       }
@@ -818,7 +831,8 @@ function sliceTable_(name, email) {
       const sh = sheet_(name);
       for (let i = 0; i < idx.length;) {
         let j = i;
-        while (j + 1 < idx.length && idx[j + 1] === idx[j] + 1) j++;
+        // neighbouring changes up to 2 columns apart go in one write (the gap is rewritten with its current value)
+        while (j + 1 < idx.length && idx[j + 1] - idx[j] <= 3 && headers.slice(idx[j] + 1, idx[j + 1]).every(function (h) { return !TEACHER_COLS_[h]; })) j++;
         sh.getRange(ex._row, idx[i] + 1, 1, idx[j] - idx[i] + 1).setValues([vals.slice(idx[i], idx[j] + 1)]);
         i = j + 1;
       }
