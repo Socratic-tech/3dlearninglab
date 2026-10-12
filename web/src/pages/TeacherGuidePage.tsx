@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Md } from "@/components/lesson/static-blocks";
 import LazyModelViewer from "@/components/viewer/LazyModelViewer";
 import { printablesPicks, type PrintablesPick } from "@/content/printables";
+import { lessonStandards, STANDARDS_CREDITS, standardInputs } from "@/content/standards";
 import { lessonById, modelAssets, type Me } from "../content";
 import { classLessons } from "../custom-path";
 import { makeZip } from "../zip";
@@ -136,6 +137,7 @@ export function TeacherGuidePage({ lessonId }: { lessonId: string }) {
           )}
         </Card>
       )}
+      <StandardsCard lessonId={lesson.id} />
       {g?.preparation && g.preparation.length > 0 && <Card><CardTitle>Preparation</CardTitle><ol className="mt-2 list-decimal space-y-1.5 pl-5">{g.preparation.map((p) => <li key={p}><Md text={p} /></li>)}</ol></Card>}
       {g?.equipment && g.equipment.length > 0 && <Card><CardTitle>Equipment</CardTitle><ul className="mt-2 list-disc space-y-1 pl-5">{g.equipment.map((p) => <li key={p}>{p}</li>)}</ul></Card>}
       {g?.troubleshooting && g.troubleshooting.length > 0 && <Card><CardTitle>Troubleshooting</CardTitle><ul className="mt-2 list-disc space-y-1 pl-5">{g.troubleshooting.map((p) => <li key={p}><Md text={p} /></li>)}</ul></Card>}
@@ -156,6 +158,22 @@ export function TeacherGuidePage({ lessonId }: { lessonId: string }) {
         </Card>
       )}
     </div>
+  );
+}
+
+/** Standards this lesson is aligned to: code + the course's own plain-language summary, with each framework's credit line. */
+function StandardsCard({ lessonId }: { lessonId: string }) {
+  const ids = lessonStandards.find((m) => m.lessonId === lessonId)?.standardIds ?? [];
+  const list = ids.map((id) => standardInputs.find((s) => s.id === id)).filter((s): s is NonNullable<typeof s> => !!s);
+  if (!list.length) return null;
+  const frameworks = [...new Set(list.map((s) => s.framework))];
+  return (
+    <Card>
+      <CardTitle>Standards alignment</CardTitle>
+      <ul className="mt-2 space-y-1.5">{list.map((s) => <li key={s.id}><strong className="font-mono text-sm">{s.framework} {s.code}</strong> — {s.text}</li>)}</ul>
+      <p className="mt-3 text-xs text-muted">Summaries are this course&apos;s own wording; look up each code for the official text. Proposed alignments for your district to review.</p>
+      {frameworks.map((f) => STANDARDS_CREDITS[f] && <p key={f} className="mt-1 text-xs text-muted">{STANDARDS_CREDITS[f]}</p>)}
+    </Card>
   );
 }
 
