@@ -463,7 +463,7 @@ function rawTable_(name, forceFresh) {
   const shared = !!SHARED_TABLES_[name];
   let values = null;
   let from = "sheet";
-  if (shared && !inLock && !forceFresh) {
+  if (shared && SCRIPT_DEPTH_ === 0 && !forceFresh) { // fresh only under the class lock (class/roster changes)
     // A copy younger than 2 minutes is used as is. An older one is still used while ONE request re-reads the tab,
     // so a class arriving together never sends 30 reads of the same tab at once.
     try {

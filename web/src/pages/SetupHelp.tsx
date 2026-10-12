@@ -155,7 +155,7 @@ export function PosterPage({ me, apiUrl, clientId }: { me: Me; apiUrl: string; c
 type LoadInfo = { tabs: Record<string, number>; cells: number; cellLimit: number; testStudents: number };
 type Read = { tab: string; rows: number; ms: number; from: string };
 type One = { ok: boolean; ms: number; tries: number; error: string | null; server: number | null; reads: Read[] };
-type StressResult = { label: string; kind: string; count: number; wall: number; runs: One[] };
+type StressResult = { at: string; label: string; kind: string; count: number; wall: number; runs: One[] };
 
 const pct = (xs: number[], p: number) => { if (!xs.length) return 0; const s = [...xs].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor((p / 100) * s.length))]; };
 const sec = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
@@ -181,7 +181,7 @@ function summarize(r: StressResult, info: LoadInfo | null) {
     : p90 <= 12000 ? { tone: "warning" as const, text: `Works, but slow: 9 in 10 students waited up to ${sec(p90)}.` }
     : { tone: "danger" as const, text: `Too slow: 9 in 10 students waited up to ${sec(p90)}.` };
   const lines = [
-    `3D Design Academy stress test · ${r.label} · ${new Date().toLocaleString()}`,
+    `3D Design Academy stress test · ${r.label} · ${r.at}`,
     `${r.count} students at once · ${r.kind === "save" ? "saving an answer" : "opening their home page"}`,
     `Finished: ${ok.length}/${r.count} · needed a retry: ${r.runs.filter((x) => x.tries > 1).length} · failed: ${failed.length}`,
     `Wait per student: median ${sec(pct(times, 50))}, 90% within ${sec(p90)}, slowest ${sec(Math.max(0, ...times))} · whole wave ${sec(r.wall)}`,
@@ -253,7 +253,7 @@ export function StressTestPanel({ apiUrl }: { apiUrl: string }) {
       setBusy(`${label} — ${n} test students ${kind === "save" ? "saving" : "opening the app"} at the same moment…`);
       const t0 = performance.now();
       const runs = await Promise.all(Array.from({ length: n }, (_, i) => one(i)));
-      out.push({ label, kind, count: n, wall: performance.now() - t0, runs });
+      out.push({ at: new Date().toLocaleString(), label, kind, count: n, wall: performance.now() - t0, runs });
       setResults([...out]);
     }
     setBusy(null);
