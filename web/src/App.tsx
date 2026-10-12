@@ -14,6 +14,7 @@ import { resumeSync, startSync, subscribeSync, syncState } from "./sync";
 import { SyncPill } from "./sync-pill";
 import { fetchClass } from "./class-cache";
 import { PrintKitPage, TeacherGuidePage } from "./pages/TeacherGuidePage";
+import { PosterPage, SetupCheckPanel } from "./pages/SetupHelp";
 import { identityOf, isYounger, isStaff, studentViewOn, setPreviewUnlock, setStudentView, usePreviewUnlock, useStudentView } from "./state";
 import { call } from "./api";
 import type { Me } from "./content";
@@ -141,7 +142,7 @@ export function App() {
   if (!token && local) return <Frame><TryItStart onStarted={(t) => { setMe(null); hasMe.current = false; setToken(t); location.hash = "#/"; }} /></Frame>;
   if (!token || (!cfg.clientId && !local)) return <Frame><SignIn key={locale} clientId={cfg.clientId ?? ""} onToken={setToken} /></Frame>;
   const clientId = cfg.clientId ?? "";
-  if (error) return <Frame onSignOut={() => { clearCachedData(tokenEmail()); signOut(); setToken(null); setMe(null); }}><div className="mx-auto max-w-lg py-10"><Alert tone="danger" title={tr("We couldn't open your class")}>{error}</Alert><div className="mt-4 flex flex-wrap gap-2"><Button onClick={() => void load()}>{tr("Try again")}</Button>{studentView && <Button variant="secondary" onClick={() => { setError(null); setStudentView(false); location.hash = "#/teacher"; }}>{tr("Back to teacher view")}</Button>}<Button variant="secondary" onClick={() => { signOut(); resetDevice(); location.replace(location.pathname); }}>{tr("Start over on this device")}</Button></div><p className="mt-2 text-sm text-muted">{tr("Start over forgets the class link and Google account on this computer. Then open the right link again.")}</p></div></Frame>;
+  if (error) return <Frame onSignOut={() => { clearCachedData(tokenEmail()); signOut(); setToken(null); setMe(null); }}><div className="mx-auto max-w-lg py-10"><Alert tone="danger" title={tr("We couldn't open your class")}>{error}</Alert><div className="mt-4 flex flex-wrap gap-2"><Button onClick={() => void load()}>{tr("Try again")}</Button>{studentView && <Button variant="secondary" onClick={() => { setError(null); setStudentView(false); location.hash = "#/teacher"; }}>{tr("Back to teacher view")}</Button>}<Button variant="secondary" onClick={() => { signOut(); resetDevice(); location.replace(location.pathname); }}>{tr("Start over on this device")}</Button></div><p className="mt-2 text-sm text-muted">{tr("Start over forgets the class link and Google account on this computer. Then open the right link again.")}</p><details className="mt-6"><summary className="cursor-pointer text-sm font-semibold">{tr("Teacher? Check your setup")}</summary><div className="mt-3"><SetupCheckPanel apiUrl={cfg.apiUrl} autoRun /></div></details></div></Frame>;
   if (!me || !localeContentReady(locale)) return <Frame><p className="py-20 text-center text-muted" role="status">{tr("Loading your class…")}</p></Frame>;
 
   const route = hash.replace(/^#/, "");
@@ -152,6 +153,7 @@ export function App() {
   } else if (route.startsWith("/print/")) page = <HandoutPage me={me} lessonId={route.slice(7)} />;
   else if (me.user.role === "teacher" && route.startsWith("/guide/")) page = <TeacherGuidePage lessonId={route.slice(7)} />;
   else if (me.user.role === "teacher" && route === "/kit") page = <PrintKitPage me={me} />;
+  else if (me.user.role === "teacher" && route === "/poster") page = <PosterPage me={me} apiUrl={cfg.apiUrl} clientId={cfg.clientId ?? ""} />;
   else if (me.user.role === "teacher" && (route.startsWith("/teacher") || (route === "/" && !studentView))) page = <TeacherPage me={me} apiUrl={cfg.apiUrl} clientId={clientId} onChange={load} />;
   else page = <StudentHome me={me} apiUrl={cfg.apiUrl} onChange={load} />;
 

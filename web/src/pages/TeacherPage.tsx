@@ -17,6 +17,7 @@ import type { ClassInfo, Me } from "../content";
 import { competencies, competencyTitle, heatmapGroups, lessonById, lessons as allLessons } from "../content";
 import { classLessons } from "../custom-path";
 import { CustomPathBuilder } from "./CustomPathBuilder";
+import { markSetupStep, SetupCheckPanel, SetupChecklist } from "./SetupHelp";
 import { offlineChallenges } from "./HandoutPage";
 import { UpdateBanner } from "./UpdateBanner";
 
@@ -131,7 +132,7 @@ function ClassView({ classId, apiUrl, clientId, onChange }: { classId: string; a
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <h1 className="font-display text-2xl font-bold">{data.cls.name}{data.cls.section && <span className="text-muted"> · {data.cls.section}</span>}</h1>
         <Pill tone="primary">{courseLabel(data.cls)}</Pill>
-        <Button size="sm" variant="secondary" className="ml-auto" title="See the missions exactly as a student does: locks, required answers and all." onClick={() => { setStudentView(true); location.hash = "#/student"; }}>Student view</Button>
+        <Button size="sm" variant="secondary" className="ml-auto" title="See the missions exactly as a student does: locks, required answers and all." onClick={() => { markSetupStep(data.cls.id, "preview"); setStudentView(true); location.hash = "#/student"; }}>Student view</Button>
         {!isLocalApi(apiUrl) && <StaffLinkButton apiUrl={apiUrl} clientId={clientId} />}
         <span className="text-xs text-muted" role="status">{refreshing ? "Refreshing…" : snap ? <Ago at={snap.at} /> : null}</span>
         <Button size="sm" variant="secondary" disabled={refreshing} onClick={() => void load()}>Refresh</Button>
@@ -143,6 +144,7 @@ function ClassView({ classId, apiUrl, clientId, onChange }: { classId: string; a
           </button>
         ))}
       </nav>
+      {tab === "Overview" && <div className="mb-6"><SetupChecklist cls={data.cls} students={data.students} apiUrl={apiUrl} goTab={setTab} /></div>}
       {tab === "Overview" && <Overview data={data} name={name} apiUrl={apiUrl} clientId={clientId} />}
       {tab === "Lessons" && <LessonLibrary data={data} />}
       {tab === "Heatmap" && <Heatmap data={data} apiUrl={apiUrl} onSaved={load} />}
@@ -450,6 +452,11 @@ function Classes({ data, apiUrl, onChange }: { data: ClassData; apiUrl: string; 
               </li>
             ))}
           </ul>
+        </Card>
+        <Card>
+          <CardTitle>Setup check</CardTitle>
+          <p className="mt-1 text-sm text-muted">Finds the setup problems that stop students from joining, with the fix for each.</p>
+          <div className="mt-3"><SetupCheckPanel apiUrl={apiUrl} classId={c.id} /></div>
         </Card>
         <Card>
           <CardTitle>New class</CardTitle>

@@ -9,6 +9,7 @@ import { printablesPicks, type PrintablesPick } from "@/content/printables";
 import { lessonStandards, STANDARDS_CREDITS, standardInputs } from "@/content/standards";
 import { lessonById, modelAssets, type Me } from "../content";
 import { classLessons } from "../custom-path";
+import { markSetupStep } from "./SetupHelp";
 import { makeZip } from "../zip";
 
 
@@ -180,6 +181,7 @@ function StandardsCard({ lessonId }: { lessonId: string }) {
 /** Every print the course needs, in teaching order, with one-click download of all our files. */
 export function PrintKitPage({ me }: { me: Me }) {
   const prep = usePrep() ?? {};
+  useEffect(() => { markSetupStep(me.cls?.id, "kit"); }, [me.cls?.id]);
   const items = classLessons(me.cls);
   const rows = items
     .map(({ lesson, week }) => ({ lesson: lessonById.get(lesson.id) ?? lesson, week, g: prep[lesson.id] }))

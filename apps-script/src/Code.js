@@ -1078,6 +1078,33 @@ const ACTIONS = {
 
   heartbeat: { run: function () { return null; } },
 
+  /** Teacher: "Check my setup" — what this Sheet is running and whether it's configured the way the website needs. */
+  diagnose: {
+    role: "teacher",
+    run: function (user) {
+      const cfg = config_();
+      const latest = latestVersion_();
+      const loader = loaderInfo_();
+      // a deployment pinned to an older Code.gs can still answer, but can't run current updates properly
+      const loaderCurrent = viaLoader_() && loader.loader >= 2 && typeof academyLastError_ === "function" && typeof academyUndo_ === "function";
+      return {
+        version: BUILD.version,
+        latest: latest ? latest.version : null,
+        upToDate: !latest || latest.version === BUILD.version,
+        viaLoader: viaLoader_(),
+        loaderCurrent: loaderCurrent,
+        webAppUrl: webAppUrl_(),
+        clientIdSet: !!(cfg.CLIENT_ID || BUILD.clientId),
+        owner: String(Session.getEffectiveUser().getEmail() || "").toLowerCase(),
+        you: user.email,
+        allowedDomains: list_(cfg.ALLOWED_DOMAINS),
+        classes: activeClasses_().length,
+        content: contentVersion_(),
+        engineBehind: !!CacheService.getScriptCache().get("cf_engine_behind"),
+      };
+    },
+  },
+
   // ───── Teacher ─────
 
   classData: {

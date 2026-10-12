@@ -468,6 +468,17 @@ describe("XP store and class rewards", () => {
     expect(e.call("maya@school.org", "buyLook", { lookId: "neon" }).error).toMatch(/50 more XP/);
   });
 
+  it("Check my setup: teachers get a plain report of what the Sheet runs; students can't; the no-sign-in ping still answers", () => {
+    const e = makeEnv("teacher@school.org");
+    e.call("teacher@school.org", "createClass", { name: "Room 5" });
+    const d = e.call("teacher@school.org", "diagnose").data;
+    expect(d).toMatchObject({ classes: 1, you: "teacher@school.org", clientIdSet: expect.any(Boolean), upToDate: expect.any(Boolean) });
+    expect(Array.isArray(d.allowedDomains)).toBe(true);
+    e.call("teacher@school.org", "addStudents", { students: [{ email: "maya@school.org" }] });
+    expect(e.call("maya@school.org", "diagnose").ok).toBe(false);
+    expect(JSON.parse(e.raw(JSON.stringify({ action: "heartbeat" })))).toMatchObject({ ok: false });
+  });
+
   it("custom project path: teacher picks lessons, the project credits their skills when reviewed", () => {
     const e = makeEnv("teacher@school.org");
     const cls = e.call("teacher@school.org", "createClass", { name: "Phone stands" }).data;
