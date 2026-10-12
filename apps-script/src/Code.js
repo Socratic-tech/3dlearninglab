@@ -258,7 +258,9 @@ function previewStudent_(teacher, classId) {
 // ── Classroom stress test: seeded test students "loadtest-NNN+student@<owner domain>" in a "Stress test" class.
 // "+" addresses can't sign in with Google, so only a teacher (through the stress test) can act as them.
 const LOAD_PREFIX_ = "loadtest-";
-const LOAD_CLASS_NAME_ = "Stress test (remove after testing)";
+const LOAD_CLASS_PREFIX_ = "Stress test"; // test classes of 30, like real class periods
+function loadClassName_(k) { return LOAD_CLASS_PREFIX_ + " " + k + " (remove after testing)"; }
+function isLoadClass_(name) { return String(name || "").indexOf(LOAD_CLASS_PREFIX_ + " ") === 0 || String(name || "") === LOAD_CLASS_PREFIX_ + " (remove after testing)"; }
 function loadEmail_(n) {
   const owner = String(Session.getEffectiveUser().getEmail() || "teacher@school.org").toLowerCase();
   return LOAD_PREFIX_ + ("00" + n).slice(-3) + "+student@" + owner.split("@")[1];
@@ -473,7 +475,14 @@ function rawTable_(name, forceFresh) {
         const v = JSON.parse(hit);
         if (Date.now() - v.t < 120000 || c.get("tr3_" + name)) { values = v.v; from = "cache"; }
         else c.put("tr3_" + name, "1", 20); // this request refreshes it
-      }
+      } else if (c.get("tr3_" + name)) {
+        // no copy yet, but another request is reading the tab right now: wait up to 3 seconds for its copy
+        for (let i = 0; i < 8 && !values; i++) {
+          Utilities.sleep(300 + Math.floor(Math.random() * 150));
+          const later = c.get("tc3_" + name);
+          if (later) { values = JSON.parse(later).v; from = "cache"; }
+        }
+      } else c.put("tr3_" + name, "1", 20);
     } catch (e) { values = null; }
   }
   let sheetObj = null;
@@ -651,7 +660,7 @@ function classmates_(email) {
   activeEnrollments_(email).forEach(function (e) { mine[e.classId] = true; });
   const out = {};
   table_("Enrollments").filter(function (e) { return mine[e.classId] && e.status !== "archived"; }).forEach(function (e) { out[String(e.email).toLowerCase()] = true; });
-  return Object.keys(out).slice(0, 80);
+  return Object.keys(out).slice(0, 45);
 }
 
 /** Saves copies of a tab for these students from one full read (skipping students who already have a copy). */
@@ -718,8 +727,9 @@ function waitOrWarm_(name, email) {
   // is simply re-read below.
   const got0 = SLICE_PREFETCH_ && SLICE_PREFETCH_.email === email ? SLICE_PREFETCH_.got : prefetchSlices_(email);
   const cold = !Object.keys(SLICED_).some(function (n) { return got0[sliceKey_(n, email)]; });
-  if (cold && !c.get(flag)) {
-    c.put(flag, "1", 30); // "warming in progress"
+  const warming = !!c.get(flag);
+  if (cold && !warming) {
+    c.put(flag, "1", 45); // "warming in progress"
     let mates = [];
     try { mates = classmates_(email).filter(function (e) { return e !== email; }); } catch (e) { mates = []; }
     let mine = null;
@@ -732,11 +742,12 @@ function waitOrWarm_(name, email) {
       putSlices_(o);
       SLICE_READY_[n + "|" + email] = own;
       if (n === name) mine = own;
+      try { c.put(flag, "1", 45); } catch (e) { /* keep "in progress" alive between tabs */ }
     });
     SLICE_PREFETCH_ = null;
     try { c.remove(flag); } catch (e) { /* expires anyway */ }
     if (mine) { delete SLICE_READY_[name + "|" + email]; mine.from = "sheet"; return mine; }
-  } else if (cold) {
+  } else if (warming) {
     // Someone is warming this class: wait for this student's copy (checking twice a second, up to 12 seconds).
     const until = Date.now() + 12000;
     while (Date.now() < until) {
@@ -1704,11 +1715,18 @@ const ACTIONS = {
       const path = (c.paths["18-week"] || []).filter(function (id) { return c.lessons[id]; });
       const comps = Object.keys(c.competencyIds || {});
       return withLock_(function () {
-        let cls = table_("Classes").find(function (r) { return r.name === LOAD_CLASS_NAME_ && r.status !== "archived"; });
-        if (!cls) {
-          cls = { classId: "c" + Utilities.getUuid().slice(0, 8), name: LOAD_CLASS_NAME_, section: "", pathId: "18-week", tinkercadUrl: "", unlockAll: "TRUE", status: "active", createdAt: now_() };
-          table_("Classes").append(cls);
-        }
+        const classes = {};
+        const classFor = function (n) {
+          const k = Math.ceil(n / 30);
+          if (classes[k]) return classes[k];
+          let cls = table_("Classes").find(function (r) { return r.name === loadClassName_(k) && r.status !== "archived"; });
+          if (!cls) {
+            cls = { classId: "c" + Utilities.getUuid().slice(0, 8), name: loadClassName_(k), section: "", pathId: "18-week", tinkercadUrl: "", unlockAll: "TRUE", status: "active", createdAt: now_() };
+            table_("Classes").append(cls);
+          }
+          return (classes[k] = cls);
+        };
+        let cls = null;
         const have = {};
         table_("Users").rows.forEach(function (r) { have[r.email] = true; });
         const out = { Users: [], Enrollments: [], Progress: [], Attempts: [], Levels: [], Evidence: [], Summary: [] };
@@ -1717,6 +1735,7 @@ const ACTIONS = {
           const email = loadEmail_(n);
           if (have[email]) continue;
           out.Users.push({ email: email, name: "Test student " + n, role: "student", sub: "", status: "active", createdAt: at, lastSeen: at });
+          cls = classFor(n);
           out.Enrollments.push({ email: email, classId: cls.classId, status: "active", source: "stress-test", createdAt: at });
           const seen = [];
           const byLesson = {};
@@ -1739,7 +1758,7 @@ const ACTIONS = {
           out.Summary.push({ email: email, xp: 4000, days: JSON.stringify(days), seen: JSON.stringify(seen), byLesson: JSON.stringify(byLesson), updatedAt: at, spentXp: 0, ownedLooks: "[]", activeLook: "", owned: "[]", equipped: "{}" });
         }
         Object.keys(out).forEach(function (name) { bulkAppend_(name, out[name]); });
-        return { added: out.Users.length, classId: cls.classId };
+        return { added: out.Users.length, classId: cls ? cls.classId : null };
       });
     },
   },
@@ -1751,7 +1770,7 @@ const ACTIONS = {
       let removed = 0;
       withLock_(function () {
         const ids = {};
-        table_("Classes", true).rows.forEach(function (r) { if (r.name === LOAD_CLASS_NAME_) ids[r.classId] = true; });
+        table_("Classes", true).rows.forEach(function (r) { if (isLoadClass_(r.name)) ids[r.classId] = true; });
         Object.keys(TABLES).forEach(function (name) {
           const col = name === "Classes" ? 0 : TABLES[name].indexOf("email");
           if (col < 0) return;

@@ -557,8 +557,18 @@ describe("XP store and class rewards", () => {
     const mayaBefore = e.call("maya@school.org", "me", { classId }).data;
     expect(e.call("teacher@school.org", "loadClear", {}).data.removed).toBeGreaterThan(30);
     expect(e.call("teacher@school.org", "loadInfo", {}).data.testStudents).toBe(0);
-    expect(e.call("teacher@school.org", "me", {}).data.classes.map((c: { name: string }) => c.name)).not.toContain("Stress test (remove after testing)");
+    expect(e.call("teacher@school.org", "me", {}).data.classes.filter((c: { name: string }) => c.name.startsWith("Stress test"))).toEqual([]);
     expect(e.call("maya@school.org", "me", { classId }).data.progress).toEqual(mayaBefore.progress); // real work untouched
+  });
+
+  it("stress-test students are split into classes of 30, like real class periods", () => {
+    const { e } = setupClass();
+    e.call("teacher@school.org", "loadSeed", { from: 1, count: 25 });
+    e.call("teacher@school.org", "loadSeed", { from: 26, count: 10 });
+    const names = e.call("teacher@school.org", "me", {}).data.classes.map((c: { name: string }) => c.name).filter((n: string) => n.startsWith("Stress test"));
+    expect(names).toEqual(["Stress test 1 (remove after testing)", "Stress test 2 (remove after testing)"]);
+    e.call("teacher@school.org", "loadClear", {});
+    expect(e.call("teacher@school.org", "loadInfo", {}).data.testStudents).toBe(0);
   });
 
   it("saved student copies never hide a teacher's change or the student's own earlier save", () => {
