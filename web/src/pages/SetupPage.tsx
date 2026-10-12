@@ -15,12 +15,14 @@ type Who = "teacher" | "student" | "staff";
  * One question first ("who are you?"), then exactly one path, with a picture of each screen Google shows.
  */
 export function SetupPage({ cfg, onSaved }: { cfg: { apiUrl: string | null; clientId: string | null }; onSaved: () => void }) {
-  const [who, setWho] = useState<Who | null>(null);
+  // "#/setup/teacher" (from the Get started page) opens straight to the teacher steps
+  const [who, setWho] = useState<Who | null>(() => (location.hash.startsWith("#/setup/teacher") ? "teacher" : null));
   return (
     <div className="mx-auto max-w-2xl space-y-8 py-8">
       <header className="text-center">
         <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Welcome to 3D Design Academy</h1>
         <p className="mt-2 text-lg text-muted">Who are you?</p>
+        <p className="mt-1 text-sm"><a href="#/start" className="text-primary underline">New here? See what it is and what your school needs</a></p>
       </header>
 
       <Card className="flex flex-col items-center gap-3 border-2 border-accent text-center sm:flex-row sm:text-left">

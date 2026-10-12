@@ -7,7 +7,7 @@ import { DisplayMenu } from "./display";
 import { LogoMark } from "@/components/nav/logo";
 import { Alert } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { currentClassId, isLocalApi, readConfig, resetDevice, setCurrentClassId } from "./config";
+import { currentClassId, enterTryIt, isLocalApi, readConfig, resetDevice, setCurrentClassId } from "./config";
 import { currentToken, renderSignIn, renewSignIn, signOut, tokenEmail, tokenExpiresAt } from "./auth";
 import { cachedMe, clearCachedData, saveMe, withPending } from "./cache";
 import { resumeSync, startSync, subscribeSync, syncState } from "./sync";
@@ -15,6 +15,7 @@ import { SyncPill } from "./sync-pill";
 import { fetchClass } from "./class-cache";
 import { PrintKitPage, TeacherGuidePage } from "./pages/TeacherGuidePage";
 import { PosterPage, SetupCheckPanel } from "./pages/SetupHelp";
+import { GetStartedPage } from "./pages/GetStartedPage";
 import { identityOf, isYounger, isStaff, studentViewOn, setPreviewUnlock, setStudentView, usePreviewUnlock, useStudentView } from "./state";
 import { call } from "./api";
 import type { Me } from "./content";
@@ -138,6 +139,7 @@ export function App() {
   }, [token, atHome, load]);
 
   const local = isLocalApi(cfg.apiUrl);
+  if (hash.startsWith("#/start")) return <Frame><GetStartedPage onTry={() => { enterTryIt(); setCfg(readConfig()); location.hash = "#/"; }} /></Frame>;
   if (!cfg.apiUrl || (!cfg.clientId && !local) || hash.startsWith("#/setup")) return <Frame><SetupPage cfg={cfg} onSaved={() => { setCfg(readConfig()); location.hash = "#/"; }} /></Frame>;
   if (!token && local) return <Frame><TryItStart onStarted={(t) => { setMe(null); hasMe.current = false; setToken(t); location.hash = "#/"; }} /></Frame>;
   if (!token || (!cfg.clientId && !local)) return <Frame><SignIn key={locale} clientId={cfg.clientId ?? ""} onToken={setToken} /></Frame>;
