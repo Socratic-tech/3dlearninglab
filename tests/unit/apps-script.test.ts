@@ -199,6 +199,7 @@ describe("lost replies", () => {
     env.call("maya@school.org", "me");
     const summary = env.sheets.get("Summary")!.data;
     summary[1][1] = 500;
+    env.call("teacher@school.org", "flushCache"); // a hand edit in the Sheet: Tools → Refresh saved copies
     const bought = env.call("maya@school.org", "buyLook", { lookId: "arcade" });
     expect(bought.data).toMatchObject({ balance: 200, spent: 300, ownedLooks: ["blueprint", "arcade"] });
     expect(env.call("maya@school.org", "selectLook", { lookId: "arcade" }).data.activeLook).toBe("arcade");
@@ -542,6 +543,15 @@ describe("XP store and class rewards", () => {
     expect(Object.keys(r.data.progress).length).toBeGreaterThan(10);
     expect(r.timing.reads.map((x) => x.tab)).toEqual(expect.arrayContaining(["Progress", "Google sign-in check"]));
     expect(e.call("teacher@school.org", "me", { asLoad: 9 }).error).toMatch(/Add test students/);
+    // second open: everything comes from the student's saved copy (large copies are compressed), no Sheet reads
+    const again = e.call("teacher@school.org", "me", { asLoad: 2, bench: true }) as typeof r;
+    expect(Object.keys(again.data.progress).length).toBe(Object.keys(r.data.progress).length);
+    const fromSheet = again.timing.reads.filter((x: { tab: string; from?: string }) => ["Progress", "Levels", "Evidence", "Summary"].includes(x.tab) && x.from !== "copy");
+    expect(fromSheet).toEqual([]);
+    expect([...e.cache.values()].some((v) => typeof v === "string" && (v.startsWith("Z") || v.startsWith("CZ")))).toBe(true);
+    // classmates were warmed by that first read
+    const mate = e.call("teacher@school.org", "me", { asLoad: 3, bench: true }) as typeof r;
+    expect(mate.timing.reads.filter((x: { tab: string; from?: string }) => x.tab === "Progress" && x.from !== "copy")).toEqual([]);
     expect(e.call("maya@school.org", "me", { asLoad: 2 }).data.user.email).toBe("maya@school.org"); // students can't
     expect(e.call("maya@school.org", "loadSeed", { from: 1, count: 1 }).ok).toBe(false);
     const mayaBefore = e.call("maya@school.org", "me", { classId }).data;
@@ -549,6 +559,25 @@ describe("XP store and class rewards", () => {
     expect(e.call("teacher@school.org", "loadInfo", {}).data.testStudents).toBe(0);
     expect(e.call("teacher@school.org", "me", {}).data.classes.map((c: { name: string }) => c.name)).not.toContain("Stress test (remove after testing)");
     expect(e.call("maya@school.org", "me", { classId }).data.progress).toEqual(mayaBefore.progress); // real work untouched
+  });
+
+  it("saved student copies never hide a teacher's change or the student's own earlier save", () => {
+    const { e, classId } = setupClass();
+    const lesson = getLesson("holes")!;
+    const mc = allBlocks(lesson).find((b) => b.type === "multipleChoice" && b.check === "skill")!;
+    if (mc.type !== "multipleChoice") throw new Error();
+    const comp = mc.competencyId!;
+    expect(e.call("maya@school.org", "me", { classId }).ok).toBe(true); // copies saved
+    expect(e.call("teacher@school.org", "override", { classId, email: "maya@school.org", competencyId: comp, level: "independent" }).ok).toBe(true);
+    expect(e.call("maya@school.org", "me", { classId }).data.levels[comp]).toBe("independent");
+    // two saves in different requests land in one row and both answers are kept
+    e.call("maya@school.org", "answerBlock", { classId, lessonId: "holes", blockId: mc.id, response: { type: "multipleChoice", optionIds: ["nope"] } });
+    e.call("maya@school.org", "saveDraft", { classId, lessonId: "holes", blockId: allBlocks(lesson).find((b) => b.type === "reflection")!.id, text: "my draft" });
+    const rows = e.sheets.get("Progress")!.data.filter((x) => x[0] === "maya@school.org" && x[1] === "holes");
+    expect(rows.length).toBe(1);
+    const state = JSON.parse(String(rows[0][3]));
+    expect(Object.keys(state).length).toBe(2);
+    expect(e.call("maya@school.org", "me", { classId }).data.levels[comp]).toBe("independent"); // override kept
   });
 
   it("roster changes show up right away even though small tabs are shared between requests", () => {

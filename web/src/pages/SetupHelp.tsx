@@ -155,7 +155,7 @@ export function PosterPage({ me, apiUrl, clientId }: { me: Me; apiUrl: string; c
 type LoadInfo = { tabs: Record<string, number>; cells: number; cellLimit: number; testStudents: number };
 type Read = { tab: string; rows: number; ms: number; from: string };
 type One = { ok: boolean; ms: number; tries: number; error: string | null; server: number | null; reads: Read[] };
-type StressResult = { kind: string; count: number; wall: number; runs: One[] };
+type StressResult = { label: string; kind: string; count: number; wall: number; runs: One[] };
 
 const pct = (xs: number[], p: number) => { if (!xs.length) return 0; const s = [...xs].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor((p / 100) * s.length))]; };
 const sec = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
@@ -169,7 +169,7 @@ function summarize(r: StressResult, info: LoadInfo | null) {
   const tabs = new Map<string, { ms: number; n: number; rows: number; cached: number }>();
   ok.forEach((x) => x.reads.forEach((rd) => {
     const t = tabs.get(rd.tab) ?? { ms: 0, n: 0, rows: 0, cached: 0 };
-    t.ms += rd.ms; t.n++; t.rows = Math.max(t.rows, rd.rows); if (rd.from === "cache") t.cached++;
+    t.ms += rd.ms; t.n++; t.rows = Math.max(t.rows, rd.rows); if (rd.from === "cache" || rd.from === "copy") t.cached++;
     tabs.set(rd.tab, t);
   }));
   const parts = [...tabs.entries()].map(([tab, t]) => ({ tab, avg: t.ms / t.n, rows: t.rows, cached: Math.round((100 * t.cached) / t.n) })).sort((a, b) => b.avg - a.avg);
@@ -181,12 +181,12 @@ function summarize(r: StressResult, info: LoadInfo | null) {
     : p90 <= 12000 ? { tone: "warning" as const, text: `Works, but slow: 9 in 10 students waited up to ${sec(p90)}.` }
     : { tone: "danger" as const, text: `Too slow: 9 in 10 students waited up to ${sec(p90)}.` };
   const lines = [
-    `3D Design Academy stress test · ${new Date().toLocaleString()}`,
+    `3D Design Academy stress test · ${r.label} · ${new Date().toLocaleString()}`,
     `${r.count} students at once · ${r.kind === "save" ? "saving an answer" : "opening their home page"}`,
     `Finished: ${ok.length}/${r.count} · needed a retry: ${r.runs.filter((x) => x.tries > 1).length} · failed: ${failed.length}`,
     `Wait per student: median ${sec(pct(times, 50))}, 90% within ${sec(p90)}, slowest ${sec(Math.max(0, ...times))} · whole wave ${sec(r.wall)}`,
     server.length ? `Time inside Google's script: median ${sec(pct(server, 50))}, slowest ${sec(Math.max(...server))}` : "",
-    `Slowest parts (average per student): ${parts.slice(0, 8).map((p) => `${p.tab} ${Math.round(p.avg)} ms${p.rows ? ` (${p.rows} rows${p.cached ? `, ${p.cached}% shared copy` : ""})` : ""}`).join("; ")}`,
+    `Slowest parts (average per student): ${parts.slice(0, 8).map((p) => `${p.tab} ${Math.round(p.avg)} ms${p.rows ? ` (${p.rows} rows${p.cached ? `, ${p.cached}% saved copy` : ""})` : ""}`).join("; ")}`,
     info ? `Sheet size: ${Object.entries(info.tabs).map(([k, v]) => `${k} ${v}`).join(", ")} · cells ${(info.cells / 1e6).toFixed(2)}M of 10M` : "",
     errors.length ? `Errors: ${errors.join(" | ")}` : "",
   ].filter(Boolean);
@@ -204,7 +204,7 @@ export function StressTestPanel({ apiUrl }: { apiUrl: string }) {
   const [kind, setKind] = useState<"open" | "save">("open");
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<StressResult | null>(null);
+  const [results, setResults] = useState<StressResult[]>([]);
   const [confirmClear, setConfirmClear] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -228,9 +228,8 @@ export function StressTestPanel({ apiUrl }: { apiUrl: string }) {
 
   const run = async () => {
     if (!info?.testStudents) return;
-    setError(null); setResult(null); setCopied(false);
+    setError(null); setResults([]); setCopied(false);
     const n = Math.min(count, info.testStudents);
-    setBusy(`${n} test students are ${kind === "save" ? "saving" : "opening the app"} at the same moment…`);
     const action = kind === "save" ? "saveDraft" : "me";
     const extra = kind === "save" ? { lessonId: "layers", blockId: "reflect", text: "Stress test draft: my design changed after testing." } : {};
     const one = async (i: number): Promise<One> => {
@@ -246,9 +245,17 @@ export function StressTestPanel({ apiUrl }: { apiUrl: string }) {
       }
       return { ok: r.ok, ms: performance.now() - start, tries, error: r.ok ? null : r.error ?? "unknown", server: r.timing?.ms ?? null, reads: r.timing?.reads ?? [] };
     };
-    const t0 = performance.now();
-    const runs = await Promise.all(Array.from({ length: n }, (_, i) => one(i)));
-    setResult({ kind, count: n, wall: performance.now() - t0, runs });
+    // Wave 1 starts from nothing saved (first period, before the teacher opens the dashboard); wave 2 is the same
+    // class a moment later, when the students' saved copies are ready.
+    const out: StressResult[] = [];
+    await call(apiUrl, "flushCache");
+    for (const label of ["Wave 1: start of the day", "Wave 2: class warmed up"]) {
+      setBusy(`${label} — ${n} test students ${kind === "save" ? "saving" : "opening the app"} at the same moment…`);
+      const t0 = performance.now();
+      const runs = await Promise.all(Array.from({ length: n }, (_, i) => one(i)));
+      out.push({ label, kind, count: n, wall: performance.now() - t0, runs });
+      setResults([...out]);
+    }
     setBusy(null);
   };
 
@@ -258,11 +265,11 @@ export function StressTestPanel({ apiUrl }: { apiUrl: string }) {
     const r = await call<{ removed: number }>(apiUrl, "loadClear");
     setBusy(null);
     if (!r.ok) setError(r.error);
-    setResult(null);
+    setResults([]);
     await refresh();
   };
 
-  const s = result ? summarize(result, info) : null;
+  const sums = results.map((r) => ({ r, s: summarize(r, info) }));
   const sel = "h-10 rounded-xl border border-border bg-surface px-3";
   return (
     <div className="space-y-3 text-sm">
@@ -297,8 +304,9 @@ export function StressTestPanel({ apiUrl }: { apiUrl: string }) {
       </div>
       {busy && <p role="status" className="font-semibold">{busy}</p>}
       {error && <Alert tone="danger">{error}</Alert>}
-      {s && result && (
-        <div className="space-y-2 rounded-xl border border-border bg-surface p-3">
+      {sums.map(({ r: result, s }) => (
+        <div key={result.label} className="space-y-2 rounded-xl border border-border bg-surface p-3">
+          <p className="font-semibold">{result.label}</p>
           <Alert tone={s.verdict.tone}>{s.verdict.text}</Alert>
           <ul className="grid gap-1 sm:grid-cols-2">
             <li>Finished: <strong>{s.ok.length} of {result.count}</strong>{s.failed.length ? ` · ${s.failed.length} failed` : ""}</li>
@@ -310,13 +318,13 @@ export function StressTestPanel({ apiUrl }: { apiUrl: string }) {
             <details>
               <summary className="cursor-pointer font-semibold">What took the time</summary>
               <ul className="mt-1 space-y-0.5 font-mono text-xs">
-                {s.parts.slice(0, 10).map((p) => <li key={p.tab}>{p.tab}: {Math.round(p.avg)} ms{p.rows ? ` · ${p.rows} rows` : ""}{p.cached ? ` · ${p.cached}% from shared copy` : ""}</li>)}
+                {s.parts.slice(0, 10).map((p) => <li key={p.tab}>{p.tab}: {Math.round(p.avg)} ms{p.rows ? ` · ${p.rows} rows` : ""}{p.cached ? ` · ${p.cached}% from saved copy` : ""}</li>)}
               </ul>
             </details>
           )}
-          <Button size="sm" variant="secondary" onClick={() => { void navigator.clipboard?.writeText(s.text).then(() => setCopied(true)); }}>{copied ? "Copied" : "Copy results"}</Button>
         </div>
-      )}
+      ))}
+      {sums.length > 0 && !busy && <Button size="sm" variant="secondary" onClick={() => { void navigator.clipboard?.writeText(sums.map((x) => x.s.text).join("\n\n")).then(() => setCopied(true)); }}>{copied ? "Copied" : "Copy results"}</Button>}
       {(info?.testStudents ?? 0) > 0 && (
         <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
           {confirmClear

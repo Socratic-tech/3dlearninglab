@@ -1,3 +1,4 @@
+import zlib from "node:zlib";
 /** In-memory fakes of the Apps Script runtime that execute apps-script/dist for tests and local smoke runs. */
 import fs from "node:fs";
 import path from "node:path";
@@ -24,6 +25,14 @@ function fakeSheet(name = "") {
       setValues: (v: Row[]) => { v.forEach((row, i) => { data[r - 1 + i] = [...(data[r - 1 + i] ?? [])]; row.forEach((x, j) => (data[r - 1 + i][c - 1 + j] = x)); }); return range; },
       setFontWeight: () => range,
       setNumberFormat: () => range,
+      createTextFinder: (text: string) => {
+        const f = {
+          matchEntireCell: () => f,
+          matchCase: () => f,
+          findAll: () => data.slice(r - 1, r - 1 + nr).map((row, i) => (String(row[c - 1] ?? "") === text ? { getRow: () => r + i } : null)).filter(Boolean),
+        };
+        return f;
+      },
       };
       return range;
     },
@@ -108,7 +117,12 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
       base64Decode: (s: string) => [...Buffer.from(s, "base64")].map((b) => (b > 127 ? b - 256 : b)),
       base64Encode: (s: string | number[]) => (typeof s === "string" ? Buffer.from(s, "utf8") : Buffer.from(s.map((x) => x & 255))).toString("base64"),
       Charset: { UTF_8: "UTF-8" },
-      newBlob: (b: unknown, type: string, name: string) => ({ name, type, getName: () => name, getDataAsString: () => (Array.isArray(b) ? Buffer.from(b.map((x: number) => x & 255)).toString("utf8") : String(b)) }),
+      newBlob: (b: unknown, type: string, name: string) => {
+        const buf = Array.isArray(b) ? Buffer.from(b.map((x: number) => x & 255)) : Buffer.from(String(b), "utf8");
+        return { name, type, getName: () => name, getBytes: () => [...buf].map((x) => (x > 127 ? x - 256 : x)), getDataAsString: () => buf.toString("utf8") };
+      },
+      gzip: (blob: { getBytes: () => number[] }) => { const z = zlib.gzipSync(Buffer.from(blob.getBytes().map((x) => x & 255))); return { getBytes: () => [...z].map((x) => (x > 127 ? x - 256 : x)) }; },
+      ungzip: (blob: { getBytes: () => number[] }) => { const u = zlib.gunzipSync(Buffer.from(blob.getBytes().map((x) => x & 255))); return { getDataAsString: () => u.toString("utf8") }; },
       formatDate: (d: Date, tz: string) => new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(d),
     },
     UrlFetchApp: {
@@ -152,7 +166,8 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
   const cfg = sheets.get("Config")!;
   cfg.data.forEach((r) => { if (r[0] === "CLIENT_ID") r[1] = "client-123"; if (r[0] === "ALLOWED_DOMAINS") r[1] = "school.org"; });
   const raw = (body: string) => vm.runInContext(`doPost(${JSON.stringify({ postData: { contents: body } })})`, ctx) as string;
-  const call = (email: string, action: string, args: Record<string, unknown> = {}) => JSON.parse(raw(JSON.stringify({ action, token: "tok:" + email, args })));
+  // Tests edit the Config tab by hand between calls; the real script picks such edits up within 15 seconds.
+  const call = (email: string, action: string, args: Record<string, unknown> = {}) => { cache.delete("cfg2"); return JSON.parse(raw(JSON.stringify({ action, token: "tok:" + email, args }))); };
   const run = (code: string) => JSON.parse(vm.runInContext(`JSON.stringify(${code})`, ctx) as string);
   return { call, raw, run, sheets, files, folders, props, scriptApiCalls, cache, load };
 }

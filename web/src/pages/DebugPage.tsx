@@ -1,4 +1,7 @@
+import { useState } from "react";
 import { Card, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { call } from "../api";
 import type { Me } from "../content";
 import { SetupCheckPanel, StressTestPanel } from "./SetupHelp";
 
@@ -8,6 +11,7 @@ import { SetupCheckPanel, StressTestPanel } from "./SetupHelp";
  */
 export function DebugPage({ me, apiUrl }: { me: Me; apiUrl: string }) {
   const app = me.app;
+  const [flushed, setFlushed] = useState<string | null>(null);
   const rows: [string, string][] = [
     ["Signed in as", me.user.email],
     ["Sheet app version", app?.version ?? "unknown"],
@@ -28,6 +32,14 @@ export function DebugPage({ me, apiUrl }: { me: Me; apiUrl: string }) {
         <dl className="mt-3 grid gap-x-4 gap-y-1 text-sm sm:grid-cols-[auto_1fr]">
           {rows.map(([k, v]) => <div key={k} className="contents"><dt className="font-semibold">{k}</dt><dd className="break-all text-muted">{v}</dd></div>)}
         </dl>
+      </Card>
+      <Card>
+        <CardTitle>Saved copies</CardTitle>
+        <p className="mt-1 text-sm text-muted">To stay fast, the app keeps each student’s own rows in Google’s short-term memory. If you edit student rows by hand in the Sheet (Progress, Levels, Evidence, Summary…), refresh so students see your edit right away. Otherwise it shows up within 6 hours.</p>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <Button variant="secondary" onClick={() => { setFlushed("Refreshing…"); void call(apiUrl, "flushCache").then((r) => setFlushed(r.ok ? "Done. The next load reads fresh from the Sheet." : r.error)); }}>Refresh saved copies</Button>
+          {flushed && <span role="status" className="text-sm">{flushed}</span>}
+        </div>
       </Card>
       <Card>
         <CardTitle>Classroom stress test</CardTitle>

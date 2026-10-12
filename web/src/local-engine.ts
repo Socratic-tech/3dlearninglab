@@ -158,6 +158,14 @@ function sheetOf(name: string) {
         },
         setFontWeight: () => range,
         setNumberFormat: () => range,
+        createTextFinder: (text: string) => {
+          const f = {
+            matchEntireCell: () => f,
+            matchCase: () => f,
+            findAll: () => data.slice(r - 1, r - 1 + nr).map((row, i) => (String(row[c - 1] ?? "") === text ? { getRow: () => r + i } : null)).filter(Boolean),
+          };
+          return f;
+        },
       };
       return range;
     },
@@ -275,6 +283,7 @@ function setConfig(key: string, value: string) {
   const row = rows.find((r, i) => i > 0 && r[0] === key);
   if (row) row[1] = value;
   else rows.push([key, value, ""]);
+  cache.delete("cfg2"); // the engine keeps a short-lived copy of Config
 }
 
 export function engine(): Promise<Api> {
