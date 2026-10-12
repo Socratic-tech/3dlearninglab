@@ -1085,8 +1085,9 @@ const ACTIONS = {
       const cfg = config_();
       const latest = latestVersion_();
       const loader = loaderInfo_();
-      // a deployment pinned to an older Code.gs can still answer, but can't run current updates properly
-      const loaderCurrent = viaLoader_() && loader.loader >= 2 && typeof academyLastError_ === "function" && typeof academyUndo_ === "function";
+      // Only a loader too old to install updates safely (loader 1: no check, no Undo) needs a new deployment.
+      // Every loader-2 copy of Code.gs works, including the first one (the app reads both reply styles).
+      const loaderCurrent = viaLoader_() && loader.loader >= 2 && typeof academyUndo_ === "function";
       return {
         version: BUILD.version,
         latest: latest ? latest.version : null,

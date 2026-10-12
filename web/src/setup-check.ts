@@ -62,7 +62,7 @@ export async function runSetupChecks(rawApiUrl: string | null): Promise<Check[]>
     ? { id: "version", label: "Sheet is up to date", status: "ok", detail: `Running version ${d.version}.` }
     : { id: "version", label: "Sheet is up to date", status: "warn", detail: `Your Sheet runs ${d.version}; ${d.latest} is available.`, fix: UPDATE_NOW });
   if (d.viaLoader && !d.loaderCurrent) {
-    out.push({ id: "deployment", label: "Web app runs current code", status: "warn", detail: "The website talks to an older saved version (deployment) of your Sheet's script, so some updates won't reach students.", fix: "In your Sheet: Extensions → Apps Script → Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy. Your links stay the same." });
+    out.push({ id: "deployment", label: "Web app runs current code", status: "warn", detail: "The website talks to a very old saved version (deployment) of your Sheet's script that can't install updates safely.", fix: "In your Sheet: Extensions → Apps Script → Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy. Your links stay the same. If this still shows, paste the newest Code.gs from the update page once." });
   } else out.push({ id: "deployment", label: "Web app runs current code", status: "ok", detail: "The website and the side panel run the same app." });
   out.push(d.clientIdSet
     ? { id: "client", label: "Sign-in is connected to this website", status: "ok", detail: "Google sign-in is set up for this site." }
