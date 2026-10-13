@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { call } from "../api";
 import type { Me } from "../content";
 import { SetupCheckPanel, StressTestPanel } from "./SetupHelp";
+import { UsageCard } from "./UsageCard";
 
 /**
  * Hidden tools page for teachers (#/debug): versions, Check my setup and the classroom stress test.
@@ -27,6 +28,7 @@ export function DebugPage({ me, apiUrl }: { me: Me; apiUrl: string }) {
         <h1 className="mt-2 font-display text-3xl font-bold">Tools</h1>
         <p className="text-muted">Behind-the-scenes checks. Nothing here changes your students’ work.</p>
       </div>
+      <UsageCard />
       <Card>
         <CardTitle>This copy</CardTitle>
         <dl className="mt-3 grid gap-x-4 gap-y-1 text-sm sm:grid-cols-[auto_1fr]">

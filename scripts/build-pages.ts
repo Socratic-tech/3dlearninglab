@@ -140,7 +140,8 @@ fs.cpSync(path.join(root, "public/models"), path.join(root, "web/public/models")
 
 // 4) Bake the site address + sign-in client ID into Code.js, and publish an update bundle the
 //    teacher's sidebar can install with one click.
-const conf = JSON.parse(fs.readFileSync(path.join(root, "apps-script/build.config.json"), "utf8")) as { site?: string; clientId?: string };
+const conf = JSON.parse(fs.readFileSync(path.join(root, "apps-script/build.config.json"), "utf8")) as { site?: string; clientId?: string; usageUrl?: string };
+const usageUrl = /^https:\/\/script\.google\.com\//.test(String(conf.usageUrl || "")) ? String(conf.usageUrl).trim() : "";
 let site = process.env.PAGES_URL || conf.site || "";
 if (!site && process.env.GITHUB_REPOSITORY) {
   const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
@@ -165,11 +166,11 @@ const read = (f: string) => fs.readFileSync(path.join(dist, f), "utf8");
 const [libJs, contentJs, sidebarHtml, manifestJson] = ["Lib.js", "Content.js", "Sidebar.html", "appsscript.json"].map(read);
 const loaderSrc = fs.readFileSync(path.join(root, "apps-script/src/Loader.js"), "utf8");
 const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")) as { version: string };
-const hash = crypto.createHash("sha256").update([codeSrc, loaderSrc, libJs, contentJs, sidebarHtml, manifestJson, site, clientId].join("\0")).digest("hex").slice(0, 7);
+const hash = crypto.createHash("sha256").update([codeSrc, loaderSrc, libJs, contentJs, sidebarHtml, manifestJson, site, clientId, usageUrl].join("\0")).digest("hex").slice(0, 7);
 const version = `${pkg.version}-${hash}`;
 const buildLine = /const BUILD = \{[^\n]*\}; \/\/ @build/;
 if (!buildLine.test(codeSrc)) throw new Error("Code.js is missing the BUILD line");
-const engine = codeSrc.replace(buildLine, `const BUILD = ${JSON.stringify({ version, site, clientId })}; // @build`);
+const engine = codeSrc.replace(buildLine, `const BUILD = ${JSON.stringify({ version, site, clientId, usageUrl })}; // @build`);
 
 const pub = path.join(root, "web/public/apps-script");
 fs.rmSync(pub, { recursive: true, force: true });

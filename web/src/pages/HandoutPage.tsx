@@ -9,7 +9,7 @@ import { lessonFor, type Me } from "../content";
 
 /** Challenges that happen away from the screen (or partly), as printable worksheets. */
 export function offlineChallenges(lesson: Lesson) {
-  return lesson.sections.flatMap((s) => s.blocks).filter((b): b is BlockOf<"challenge"> => b.type === "challenge" && (b.where ?? "tinkercad") !== "tinkercad");
+  return lesson.sections.flatMap((s) => s.blocks).filter((b): b is BlockOf<"challenge"> => b.type === "challenge" && (b.where === "offline" || b.where === "both"));
 }
 
 const KIND = { micro: "Micro challenge", prove: "Prove it", boss: "Boss battle" } as const;
@@ -29,7 +29,7 @@ export function HandoutPage({ me, lessonId }: { me: Me; lessonId: string }) {
         <a href={`#/lesson/${lesson.id}`} className="text-sm text-muted hover:text-fg">{tr("← Back to the mission")}</a>
         <Button className="ml-auto" size="lg" onClick={() => window.print()}><Printer className="size-5" aria-hidden /> {tr("Print")}</Button>
       </div>
-      {!list.length && <Alert tone="info" title={tr("Nothing to print for this mission")}>{tr("All of its challenges happen in Tinkercad.")}</Alert>}
+      {!list.length && <Alert tone="info" title={tr("Nothing to print for this mission")}>{tr("All of its challenges happen in a CAD tool.")}</Alert>}
       {list.map((b, i) => (
         <section key={b.id} className={i ? "mt-10 break-before-page" : ""}>
           <header className="border-b-2 border-fg pb-2">

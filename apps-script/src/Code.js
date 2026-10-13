@@ -16,7 +16,7 @@
 
 const API_VERSION = "1";
 // Filled in by scripts/build-pages.ts: the public site, its Google sign-in client ID, and this script's version.
-const BUILD = { version: "dev", site: "", clientId: "" }; // @build
+const BUILD = { version: "dev", site: "", clientId: "", usageUrl: "" }; // @build
 
 const TABLES = {
   Config: ["key", "value", "notes"],
@@ -43,6 +43,7 @@ const DEFAULT_CONFIG = [
   ["ADMIN_EMAILS", "", "Administrators (principal, district or RESA staff): open every lesson and every class dashboard. Comma-separated."],
   ["AUTO_ENROLL", "FALSE", "TRUE = an allowed-domain student who opens a class link joins that class on first sign-in. FALSE = only students on a class roster."],
   ["MAX_UPLOAD_MB", "10", "Largest screenshot/STL a student may upload."],
+  ["USAGE_REPORTS", "TRUE", "TRUE = once a day, send Berrien RESA counts only (classes, students, active this week, missions done). Never names, emails or work. FALSE = send nothing."],
 ];
 
 // ───────────────────────── HTTP ─────────────────────────
@@ -253,6 +254,47 @@ function previewStudent_(teacher, classId) {
     });
   }
   return { email: email, name: (row && row.name) || name, role: "student", preview: true };
+}
+
+// ── Usage counts for the program (Berrien RESA): once a day, when a teacher opens the dashboard, this copy sends
+// numbers only — no names, emails, answers or work. Config USAGE_REPORTS = FALSE turns it off. The copy is identified
+// by a random ID made here (not the teacher's address). Test students and stress-test classes are left out.
+function usageCounts_() {
+  const isTest = function (e) { return /\+student@|^loadtest-/.test(String(e)); };
+  const classes = activeClasses_().filter(function (c) { return !isLoadClass_(c.name); });
+  const live = {};
+  classes.forEach(function (c) { live[c.classId] = true; });
+  const students = {};
+  rawTable_("Enrollments").rows.forEach(function (e) { if (live[e.classId] && e.status !== "archived" && !isTest(e.email)) students[e.email] = true; });
+  const weekAgo = Date.now() - 7 * 86400000;
+  const ms = function (v) { const d = v instanceof Date ? v.getTime() : Date.parse(String(v || "")); return isNaN(d) ? 0 : d; };
+  let missionsWeek = 0;
+  let missionsTotal = 0;
+  const active = {};
+  rawTable_("Progress").rows.forEach(function (r) {
+    if (!students[r.email]) return;
+    if (r.completedAt) { missionsTotal++; if (ms(r.completedAt) > weekAgo) missionsWeek++; }
+    if (ms(r.updatedAt) > weekAgo) active[r.email] = true;
+  });
+  const courses = {};
+  classes.forEach(function (c) { const k = c.pathId === "custom" ? "custom" : pathIdOf_(c.pathId); courses[k] = (courses[k] || 0) + 1; });
+  return { classes: classes.length, students: Object.keys(students).length, activeWeek: Object.keys(active).length, missionsWeek: missionsWeek, missionsTotal: missionsTotal, courses: courses };
+}
+function reportUsage_() {
+  const props = PropertiesService.getScriptProperties();
+  const url = String(props.getProperty("USAGE_URL") || BUILD.usageUrl || ""); // script property: for testing a receiver
+  if (!/^https:\/\//.test(url)) return false;
+  if (String(config_().USAGE_REPORTS || "TRUE").trim().toUpperCase() === "FALSE") return false;
+  const today = Utilities.formatDate(new Date(), tz_(), "yyyy-MM-dd");
+  if (props.getProperty("USAGE_DAY") === today) return false;
+  props.setProperty("USAGE_DAY", today); // first: at most one try a day, even if the receiver is down
+  let id = props.getProperty("COPY_ID");
+  if (!id) { id = Utilities.getUuid(); props.setProperty("COPY_ID", id); }
+  const data = usageCounts_();
+  data.copyId = id;
+  data.version = BUILD.version;
+  UrlFetchApp.fetch(url, { method: "post", contentType: "text/plain", payload: JSON.stringify({ action: "report", data: data }), muteHttpExceptions: true, followRedirects: true });
+  return true;
 }
 
 // ── Classroom stress test: seeded test students "loadtest-NNN+student@<owner domain>" in a "Stress test" class.
@@ -1600,6 +1642,7 @@ const ACTIONS = {
       const evidence = table_("Evidence").rows.filter(mine).map(evidenceOut_);
       const live = liveView_(progressRows);
       try { warmClass_(cls.classId); } catch (e) { console.warn("warm class: " + e); } // students' first loads skip the Sheet
+      try { reportUsage_(); } catch (e) { console.warn("usage report: " + e); }
       return {
         live: live,
         prints: table_("Prints").rows.filter(function (r) { return r.classId === cls.classId; }).map(printOut_),

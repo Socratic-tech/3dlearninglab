@@ -561,6 +561,25 @@ describe("XP store and class rewards", () => {
     expect(e.call("maya@school.org", "me", { classId }).data.progress).toEqual(mayaBefore.progress); // real work untouched
   });
 
+  it("usage counts: numbers only, once a day, test students left out, and USAGE_REPORTS=FALSE turns it off", () => {
+    const { e, classId } = setupClass();
+    e.call("teacher@school.org", "loadSeed", { from: 1, count: 2 });
+    e.call("teacher@school.org", "me", { classId, asStudent: true }); // the teacher's test student
+    e.call("maya@school.org", "me", { classId });
+    e.props.set("USAGE_URL", "https://script.google.com/macros/s/usage-receiver/exec");
+    e.call("teacher@school.org", "classData", { classId });
+    e.call("teacher@school.org", "classData", { classId }); // same day: no second report
+    expect(e.usageReports.length).toBe(1);
+    const d = e.usageReports[0].data;
+    expect(d).toMatchObject({ classes: 1, students: 1, version: expect.any(String) });
+    expect(String(d.copyId)).toMatch(/^[\w-]{8,}$/); // Utilities.getUuid(): a random ID
+    expect(JSON.stringify(d)).not.toMatch(/@|maya/); // no addresses or names
+    e.props.delete("USAGE_DAY");
+    e.sheets.get("Config")!.data.push(["USAGE_REPORTS", "FALSE", ""]);
+    e.call("teacher@school.org", "classData", { classId });
+    expect(e.usageReports.length).toBe(1);
+  });
+
   it("stress-test students are split into classes of 30, like real class periods", () => {
     const { e } = setupClass();
     e.call("teacher@school.org", "loadSeed", { from: 1, count: 25 });

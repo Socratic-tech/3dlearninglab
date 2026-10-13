@@ -3,5 +3,9 @@
   "site": "https://socratic-tech.github.io/3dlearninglab/",
   "clientId": "101963930275-47ppq2h1b2ad1lipviqjrjrfhd67sjvp.apps.googleusercontent.com",
   "templateUrl": "https://docs.google.com/spreadsheets/d/1OnEre-rfKOkN5Dd26ponpNk6bK3ddIxVd9yGuMP_WLY/copy",
+  "usageUrl": "",
+  "//usageUrl": "Your usage receiver's web app address (apps-script/usage/Receiver.gs, deployed from a Sheet in your Drive). Empty = copies send nothing.",
+  "usageOwner": "john.phillips@berrienresa.org",
+  "//usageOwner": "The only account that sees the usage counts on the Tools page.",
   "//templateUrl": "After you make the master template Sheet, paste its link here ending in /copy (e.g. https://docs.google.com/spreadsheets/d/ID/copy)."
 }

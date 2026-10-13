@@ -70,6 +70,7 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
     getSheets: () => [...sheets.values()],
   };
   const cache = new Map<string, string>();
+  const usageReports: { action: string; data: Record<string, unknown> }[] = [];
   const files: { name: string }[] = [];
   const folders: string[] = [];
   const folder = { getFoldersByName: () => ({ hasNext: () => false }), createFolder: () => folder, createFile: (b: { name: string }) => { files.push(b); return { getId: () => "file" + files.length }; }, getId: () => "root" };
@@ -140,6 +141,10 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
           const body = opts.feed?.body ?? null;
           return { getResponseCode: () => (body === null ? 404 : 200), getContentText: () => body ?? "" };
         }
+        if (url.includes("usage-receiver")) {
+          usageReports.push(JSON.parse(String(o.payload)));
+          return { getResponseCode: () => 200, getContentText: () => '{"ok":true}' };
+        }
         if (url.includes("apps-script/bundle.js")) {
           const site = opts.site ?? { up: true, fetches: 0 };
           site.fetches++;
@@ -169,5 +174,5 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
   // Tests edit the Config tab by hand between calls; the real script picks such edits up within 15 seconds.
   const call = (email: string, action: string, args: Record<string, unknown> = {}) => { cache.delete("cfg2"); return JSON.parse(raw(JSON.stringify({ action, token: "tok:" + email, args }))); };
   const run = (code: string) => JSON.parse(vm.runInContext(`JSON.stringify(${code})`, ctx) as string);
-  return { call, raw, run, sheets, files, folders, props, scriptApiCalls, cache, load };
+  return { call, raw, run, sheets, files, folders, props, scriptApiCalls, cache, load, usageReports };
 }

@@ -6,7 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 const r = (p: string) => path.resolve(__dirname, p);
 // One sign-in client ID for the whole site: env var first, then apps-script/build.config.json.
-const conf = JSON.parse(fs.readFileSync(r("../apps-script/build.config.json"), "utf8")) as { clientId?: string; templateUrl?: string };
+const conf = JSON.parse(fs.readFileSync(r("../apps-script/build.config.json"), "utf8")) as { clientId?: string; templateUrl?: string; usageUrl?: string; usageOwner?: string };
 const clientId = (process.env.VITE_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || conf.clientId || "").trim().replace(/^https?:\/\//i, "").replace(/\/+$/, "");
 
 // GitHub Pages edition: static SPA. Student data lives in Google (Apps Script + Sheets), never here.
@@ -17,6 +17,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   define: {
     "import.meta.env.VITE_GOOGLE_CLIENT_ID": JSON.stringify(clientId),
+    "import.meta.env.VITE_USAGE_URL": JSON.stringify(conf.usageUrl || ""),
+    "import.meta.env.VITE_USAGE_OWNER": JSON.stringify((conf.usageOwner || "").toLowerCase()),
     "import.meta.env.VITE_TEMPLATE_URL": JSON.stringify(process.env.TEMPLATE_URL || conf.templateUrl || ""),
   },
   resolve: {
