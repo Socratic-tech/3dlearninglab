@@ -9,6 +9,8 @@ export const badgeInputs: B[] = [
   { id: "shape-wrangler", name: "Shape Wrangler", icon: "move-3d", description: "Moves, scales and rotates objects with exact values.", requires: ["A6", "A7", "A8", "A9", "A10"] },
   { id: "workspace-navigator", name: "Workspace Navigator", icon: "compass", description: "Finds any view, selects with intent and uses custom workplanes.", requires: ["A1", "A2", "A3", "A4", "A5", "A11"] },
   { id: "boolean-builder", name: "Boolean Builder", icon: "combine", description: "Builds with grouping and holes.", requires: ["B1", "B2", "B3"] },
+  { id: "pro-cad-pilot", name: "Pro CAD Pilot", icon: "pen-tool", description: "Sketches, constrains and extrudes parts in professional CAD.", requires: ["H2", "H3", "H4"] },
+  { id: "design-intent", name: "Design Intent", icon: "sliders-horizontal", description: "Builds designs that update correctly when one number changes.", requires: ["H5", "H6"] },
   { id: "pattern-maker", name: "Pattern Maker", icon: "copy", description: "Aligns, duplicates, repeats and mirrors with precision.", requires: ["B4", "B5", "B6", "B7"] },
   { id: "precision-designer", name: "Precision Designer", icon: "ruler", description: "Places features with the ruler and exact dimensions.", requires: ["A9", "C1", "C2"] },
   { id: "fit-engineer", name: "Fit Engineer", icon: "puzzle", description: "Designs parts that fit real objects using clearance and tolerance.", requires: ["C5", "C6", "C7", "C8"] },

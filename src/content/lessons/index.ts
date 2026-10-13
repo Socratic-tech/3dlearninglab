@@ -34,6 +34,13 @@ import { lesson as l_orientation } from "./orientation";
 import { lesson as l_overhangs } from "./overhangs";
 import { lesson as l_print_detective } from "./print-detective";
 import { lesson as l_print_failures } from "./print-failures";
+import { lesson as l_pro_boss_cup } from "./pro-boss-cup";
+import { lesson as l_pro_constraints } from "./pro-constraints";
+import { lesson as l_pro_features } from "./pro-features";
+import { lesson as l_pro_fusion_bonus } from "./pro-fusion-bonus";
+import { lesson as l_pro_history_variables } from "./pro-history-variables";
+import { lesson as l_pro_meet_onshape } from "./pro-meet-onshape";
+import { lesson as l_pro_sketch_extrude } from "./pro-sketch-extrude";
 import { lesson as l_product_design } from "./product-design";
 import { lesson as l_prototype } from "./prototype";
 import { lesson as l_quick_demo } from "./quick-demo";
@@ -87,6 +94,13 @@ export const lessonInputs: LessonInput[] = [
   l_overhangs,
   l_print_detective,
   l_print_failures,
+  l_pro_boss_cup,
+  l_pro_constraints,
+  l_pro_features,
+  l_pro_fusion_bonus,
+  l_pro_history_variables,
+  l_pro_meet_onshape,
+  l_pro_sketch_extrude,
   l_product_design,
   l_prototype,
   l_quick_demo,

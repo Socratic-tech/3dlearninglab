@@ -57,6 +57,22 @@ export const pathInputs: P[] = [
       { week: 16, title: "Client research and ideation", focus: "Interview a user and write constraints", lessonIds: ["interviewing-a-user", "writing-constraints"] },
       { week: 17, title: "Prototype, test, revise", focus: "Build to learn", lessonIds: ["prototype", "testing", "iteration"] },
       { week: 18, title: "Maker Showcase", focus: "Deliver and present", lessonIds: ["final-capstone", "maker-showcase"] },
+      { week: 19, bonus: true, title: "Bonus: Level Up to Pro CAD", focus: "Optional: sketch-based CAD in Onshape, with a Fusion try-out for ages 13+", lessonIds: ["pro-meet-onshape", "pro-sketch-extrude", "pro-constraints", "pro-history-variables", "pro-features", "pro-boss-cup", "pro-fusion-bonus"] },
+    ],
+  },
+  {
+    id: "level-up",
+    title: "Level Up: Pro CAD with Onshape",
+    description:
+      "Six missions that move Tinkercad graduates into sketch-based CAD: sketches, constraints, extrude, the feature list, variables and pro features, ending in a boss battle. A bonus mission tries Fusion (ages 13+).",
+    weeks: [
+      { week: 1, title: "Meet pro CAD", focus: "Shapes vs sketches; finding your way around Onshape", lessonIds: ["pro-meet-onshape"] },
+      { week: 2, title: "Sketch and extrude", focus: "Draw it flat, pull it into 3D, cut with Remove", lessonIds: ["pro-sketch-extrude"] },
+      { week: 3, title: "Constraints", focus: "Fully defined sketches", lessonIds: ["pro-constraints"] },
+      { week: 4, title: "Change one number", focus: "The feature list, rollback bar and variables", lessonIds: ["pro-history-variables"] },
+      { week: 5, title: "Pro moves", focus: "Fillet, shell, mirror and patterns", lessonIds: ["pro-features"] },
+      { week: 6, title: "Boss Battle: One-Number Pencil Cup", focus: "Build to spec, resize with a variable, export STL", lessonIds: ["pro-boss-cup"] },
+      { week: 7, bonus: true, title: "Bonus: Try it in Fusion (13+)", focus: "Same skills in a second pro tool", lessonIds: ["pro-fusion-bonus"] },
     ],
   },
 ];

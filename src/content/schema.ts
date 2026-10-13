@@ -6,7 +6,7 @@ import { z } from "zod";
  * and in tests (tests/unit/content.test.ts).
  */
 
-export const DOMAIN_IDS = ["A", "B", "C", "D", "E", "F", "G"] as const;
+export const DOMAIN_IDS = ["A", "B", "C", "D", "E", "F", "G", "H"] as const;
 export const domainId = z.enum(DOMAIN_IDS);
 export type DomainId = z.infer<typeof domainId>;
 
@@ -22,7 +22,7 @@ export const stage = z.enum(["follow", "modify", "combine", "solve", "design"]);
 export type Stage = z.infer<typeof stage>;
 
 export const competencySchema = z.object({
-  id: z.string().regex(/^[A-G]\d{1,2}$/),
+  id: z.string().regex(/^[A-H]\d{1,2}$/),
   domain: domainId,
   title: z.string(),
   canStatement: z.string().startsWith("I can"),
@@ -220,11 +220,18 @@ export const sliderBlock = z.object({
   competencyId: z.string().optional(),
   check: z.enum(["practice", "skill"]).default("practice"),
 });
+/** CAD tools a lesson can send students to. */
+export const CAD_TOOLS = ["tinkercad", "onshape", "fusion"] as const;
+export const cadTool = z.enum(CAD_TOOLS);
+export type CadTool = z.infer<typeof cadTool>;
+
 export const tinkercadLaunchBlock = z.object({
   ...base,
   type: z.literal("tinkercadLaunch"),
   title: z.string(),
   steps: z.array(z.string()).min(1),
+  /** Which CAD tool the steps are for. Pro CAD missions use Onshape (any age, school-authorized accounts) or Fusion (13+). */
+  tool: cadTool.default("tinkercad"),
 });
 export const modelDownloadBlock = z.object({
   ...base,
@@ -268,8 +275,8 @@ export const challengeBlock = z.object({
   skills: z.array(z.string()).default([]),
   visual,
   showTimer: z.boolean().default(false),
-  /** Where the work happens: in Tinkercad, offline (paper, tools, real objects, people) or both. */
-  where: z.enum(["tinkercad", "offline", "both"]).default("tinkercad"),
+  /** Where the work happens: in Tinkercad, offline (paper, tools, real objects, people), both, or in a pro CAD tool. */
+  where: z.enum(["tinkercad", "offline", "both", "onshape", "fusion"]).default("tinkercad"),
 });
 /** Fail gallery: swipe through famous print fails, guess, then reveal what went wrong. Not scored. */
 export const failGalleryBlock = z.object({
@@ -398,6 +405,8 @@ export const pathSchema = z.object({
         title: z.string(),
         focus: z.string(),
         lessonIds: z.array(z.string()).min(1),
+        /** Optional extra missions after the course (not counted in the course's mission total). */
+        bonus: z.boolean().default(false),
       }),
     )
     .min(1),

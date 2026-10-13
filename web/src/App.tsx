@@ -214,7 +214,7 @@ function Frame({ children, me, onSignOut, onSwitch, onReset, expired, tryIt }: {
       {expired}
       <main id="main" className="mx-auto max-w-5xl px-4 pb-24 pt-6">{children}</main>
       <footer className="mx-auto max-w-5xl px-4 pb-28 text-center text-xs text-muted print:hidden">
-        {tr("Tinkercad is a trademark of Autodesk, Inc. 3D Design Academy is not affiliated with or endorsed by Autodesk.")}
+        {tr("Tinkercad and Fusion are trademarks of Autodesk, Inc. Onshape is a trademark of PTC Inc. 3D Design Academy is not affiliated with or endorsed by Autodesk or PTC.")}
       </footer>
     </div>
   );

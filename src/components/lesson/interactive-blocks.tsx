@@ -537,7 +537,7 @@ export function ReflectionBlock({ b }: { b: BlockOf<"reflection"> }) {
 
 export type EvidenceSummary = { id: string; type: string; fileName: string | null; url: string | null; createdAt: string; status: string; teacherComment: string | null; teacherRating: number | null; blockId: string | null };
 
-const KIND_LABEL = { screenshot: "Screenshot or photo (PNG/JPG)", stl: "STL file", obj: "OBJ file", design_url: "Tinkercad design link", physical_test: "Physical test result", written: "Write or say it" } as const;
+const KIND_LABEL = { screenshot: "Screenshot or photo (PNG/JPG)", stl: "STL file", obj: "OBJ file", design_url: "Design link", physical_test: "Physical test result", written: "Write or say it" } as const;
 
 export function UploadEvidenceBlock({ b, existing }: { b: BlockOf<"uploadEvidence">; existing: EvidenceSummary[] }) {
   const ctx = useLesson();
@@ -641,8 +641,8 @@ export function UploadEvidenceBlock({ b, existing }: { b: BlockOf<"uploadEvidenc
             </fieldset>
           )}
           {kind === "design_url" && (
-            <Field label={tr("Design link")} htmlFor={`${b.id}-url`} hint={tr("Share the design with your class in Tinkercad and paste the link. Don't make it public.")}>
-              <Input id={`${b.id}-url`} name="url" type="url" required placeholder="https://www.tinkercad.com/things/…" />
+            <Field label={tr("Design link")} htmlFor={`${b.id}-url`} hint={tr("Share the design with your class in Tinkercad, Onshape or Fusion and paste the link. Don't make it public.")}>
+              <Input id={`${b.id}-url`} name="url" type="url" required placeholder="https://…" />
             </Field>
           )}
           {(needsFile || kind === "physical_test" || kind === "written") && (

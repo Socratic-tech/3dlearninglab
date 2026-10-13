@@ -266,8 +266,33 @@ export function TinkercadButtons({ classUrl }: { classUrl: string | null }) {
   );
 }
 
+/** Pro CAD tools used by the Level Up missions (Tinkercad keeps its own buttons above, with the class link). */
+const PRO_CAD = {
+  onshape: { name: "Onshape", url: "https://cad.onshape.com/", note: "Sign in with the account your teacher set up for you." },
+  fusion: { name: "Fusion", url: "https://fusion.online.autodesk.com/", note: "Fusion accounts are for students 13 and older. Sign in with your school education account." },
+} as const;
+
+export function ProCadButtons({ tool }: { tool: keyof typeof PRO_CAD }) {
+  const t = PRO_CAD[tool];
+  return (
+    <div>
+      <a href={t.url} target="_blank" rel="noopener noreferrer" className={buttonClass("primary", "lg")}>
+        {tr("Open {tool}", { tool: t.name })} <ExternalLink className="size-4" aria-hidden /><span className="sr-only"> {tr("(opens in a new tab)")}</span>
+      </a>
+      <p className="mt-2 text-xs text-muted">{tr(t.note)} {tr("Opens in a new tab. Come back to this tab when you're done.")}</p>
+    </div>
+  );
+}
+
+/** The right launch buttons for wherever the work happens. */
+function CadButtons({ tool, classUrl }: { tool: "tinkercad" | "onshape" | "fusion"; classUrl: string | null }) {
+  return tool === "tinkercad" ? <TinkercadButtons classUrl={classUrl} /> : <ProCadButtons tool={tool} />;
+}
+
 const WHERE = {
   tinkercad: { icon: Monitor, text: "Do this in Tinkercad", cls: "bg-primary-soft text-primary border-primary/40" },
+  onshape: { icon: Monitor, text: "Do this in Onshape", cls: "bg-primary-soft text-primary border-primary/40" },
+  fusion: { icon: Monitor, text: "Do this in Fusion (ages 13+)", cls: "bg-primary-soft text-primary border-primary/40" },
   offline: { icon: PencilRuler, text: "Do this offline — paper, tools or real objects", cls: "bg-warning-soft text-warning border-warning/50" },
   both: { icon: PencilRuler, text: "Part offline, part in Tinkercad", cls: "bg-accent-soft text-accent border-accent/50" },
   teacher: { icon: Users, text: "In person, with your teacher", cls: "bg-success-soft text-success border-success/50" },
@@ -286,9 +311,11 @@ export function WhereTag({ where }: { where: keyof typeof WHERE }) {
 }
 
 export function TinkercadBlock({ b, classUrl }: { b: BlockOf<"tinkercadLaunch">; classUrl: string | null }) {
+  const tool = b.tool ?? "tinkercad";
+  const name = tool === "tinkercad" ? "Tinkercad" : PRO_CAD[tool].name;
   return (
-    <BlockFrame label={tr("Try it in Tinkercad")}>
-      <WhereTag where="tinkercad" />
+    <BlockFrame label={tr("Try it in {tool}", { tool: name })}>
+      <WhereTag where={tool} />
       <h3 className="font-display text-lg font-semibold">{b.title}</h3>
       <ol className="mt-2 list-decimal space-y-1 pl-5">
         {b.steps.map((s, i) => (
@@ -296,7 +323,7 @@ export function TinkercadBlock({ b, classUrl }: { b: BlockOf<"tinkercadLaunch">;
         ))}
       </ol>
       <div className="mt-4">
-        <TinkercadButtons classUrl={classUrl} />
+        <CadButtons tool={tool} classUrl={classUrl} />
       </div>
     </BlockFrame>
   );
@@ -542,7 +569,7 @@ export function ChallengeBlock({ b, assets, skillTitle, classUrl = null, client,
         </p>
         {(b.where ?? "tinkercad") !== "offline" && (
           <div className="mt-5 rounded-2xl bg-surface p-4 text-fg">
-            <TinkercadButtons classUrl={classUrl} />
+            <CadButtons tool={b.where === "onshape" || b.where === "fusion" ? b.where : "tinkercad"} classUrl={classUrl} />
           </div>
         )}
         {b.showTimer && <p className="mt-3 text-xs opacity-75">{tr("The timer is just for you — speed doesn't change your grade.")}</p>}

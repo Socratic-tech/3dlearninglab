@@ -55,6 +55,12 @@ export const diagramCatalog = {
   "follow-to-design": "Five steps: Follow, Modify, Combine, Solve, Design.",
   "constraint-vs-wish": "Constraints (must, measurable) compared with wishes (nice to have).",
   "sketch-concepts": "Three quick, different sketches for the same problem before choosing one.",
+  "shapes-vs-sketches": "Left: Tinkercad builds by stacking a box and a hole shape. Right: pro CAD draws a 2D sketch, then extrudes it into 3D.",
+  "sketch-extrude": "A 50 × 40 mm rectangle sketched on the Top plane, extruded 30 mm into a box.",
+  "constraint-colors": "Left: a blue, under-defined rectangle that can still be dragged. Right: the same rectangle with 40 and 25 mm dimensions and pinned to the origin, shown black: fully defined.",
+  "feature-history": "A feature list (Sketch 1, Extrude 1, Sketch 2, Extrude 2 Remove, Fillet 1) with the rollback bar below step 3; editing an early step rebuilds the later ones.",
+  "variable-ripple": "One variable, #diameter, set to 50, 70 and 90 mm makes three cups of different sizes with the same 2 mm wall.",
+  "pro-moves": "Four pro features: fillet rounds an edge, shell hollows a part, mirror copies across a plane, pattern repeats a feature.",
 } as const;
 
 export type DiagramName = keyof typeof diagramCatalog;

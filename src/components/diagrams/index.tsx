@@ -8,6 +8,7 @@ import type { DiagramProps } from "./primitives";
 import { FdmPrinter, LayersStack, SubtractiveVsAdditive, XyzAxes } from "./printing";
 import { ExactDimension, MoveZ, NudgeKeys, RotateHandles, RulerTool, ScaleHandles, Selection, ViewControls, Workplane } from "./cad";
 import { AlignHandles, DieNet, DuplicatePattern, GroupHole, MirrorAxis, SolidVsHole, TextRaisedRecessed } from "./modeling";
+import { ConstraintColors, FeatureHistory, ProMoves, ShapesVsSketches, SketchExtrude, VariableRipple } from "./procad";
 import { CaliperParts, ClearanceFit, FitTypes, MeasureCritical, PrototypeCritical, ToleranceRange } from "./precision";
 import {
   BridgeSpan,
@@ -88,6 +89,12 @@ export const diagramComponents: Record<DiagramName, FC<DiagramProps>> = {
   "design-cycle": DesignCycle,
   "follow-to-design": FollowToDesign,
   "constraint-vs-wish": ConstraintVsWish,
+  "shapes-vs-sketches": ShapesVsSketches,
+  "sketch-extrude": SketchExtrude,
+  "constraint-colors": ConstraintColors,
+  "feature-history": FeatureHistory,
+  "variable-ripple": VariableRipple,
+  "pro-moves": ProMoves,
   "sketch-concepts": SketchConcepts,
 };
 

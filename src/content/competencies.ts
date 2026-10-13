@@ -12,6 +12,7 @@ export const domains: Domain[] = [
   { id: "E", title: "Troubleshooting", shortTitle: "Troubleshooting", description: "Diagnose what went wrong, change one thing, test again and document it." },
   { id: "F", title: "Product Design", shortTitle: "Product Design", description: "Solve a real person's problem through iterative, user-centered design." },
   { id: "G", title: "Capstone: Design for Someone Else", shortTitle: "Capstone", description: "Find a real problem, design for a real person, and show your process." },
+  { id: "H", title: "Pro CAD: Sketch-Based Modeling", shortTitle: "Pro CAD", description: "Move from shapes to sketches: constrain, extrude and edit designs with history and variables in professional CAD." },
 ];
 
 export const competencyInputs: C[] = [
@@ -88,6 +89,16 @@ export const competencyInputs: C[] = [
   { id: "G4", domain: "G", title: "Prototype, test and revise", canStatement: "I can build, test and revise a solution at least once.", stage: "design" },
   { id: "G5", domain: "G", title: "Deliver a final product", canStatement: "I can deliver a final object that solves my client's problem.", stage: "design" },
   { id: "G6", domain: "G", title: "Reflect and present", canStatement: "I can present my process and reflect on what I'd do next.", stage: "design" },
+
+  { id: "H1", domain: "H", title: "Navigate pro CAD", canStatement: "I can find my way around a professional CAD tool: open a Part Studio, orbit, pan, zoom and use the view cube.", stage: "follow" },
+  { id: "H2", domain: "H", title: "Sketch on a plane", canStatement: "I can start a 2D sketch on a plane or a flat face and draw the outline I need.", stage: "follow" },
+  { id: "H3", domain: "H", title: "Constrain a sketch", canStatement: "I can use dimensions and constraints until my sketch is fully defined.", stage: "modify" },
+  { id: "H4", domain: "H", title: "Extrude to add and remove", canStatement: "I can extrude a sketch to make a new part, add to it or cut material away.", stage: "modify" },
+  { id: "H5", domain: "H", title: "Edit with the feature history", canStatement: "I can change an earlier feature and predict what the later features will do.", stage: "combine" },
+  { id: "H6", domain: "H", title: "Control a design with variables", canStatement: "I can name a size as a variable so one change updates the whole design.", stage: "combine" },
+  { id: "H7", domain: "H", title: "Use pro features", canStatement: "I can round edges with fillets, hollow parts with shell, and repeat features with mirror and patterns.", stage: "combine" },
+  { id: "H8", domain: "H", title: "Export for printing", canStatement: "I can export my part as an STL file a slicer can print.", stage: "follow" },
+  { id: "H9", domain: "H", title: "Compare CAD tools", canStatement: "I can explain how shape-based and sketch-based CAD differ and pick the right tool for a job.", stage: "combine", autoAssessable: true },
 ];
 
 /** Grouped columns for the teacher heatmap (spec §25). */
@@ -110,4 +121,6 @@ export const heatmapGroups: { id: string; label: string; competencyIds: string[]
   { id: "iterate", label: "Iterate", competencyIds: ["E7", "F8", "F9"] },
   { id: "product", label: "Product Design", competencyIds: ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F10"] },
   { id: "capstone", label: "Capstone", competencyIds: ["G1", "G2", "G3", "G4", "G5", "G6"] },
+  { id: "procad-sketch", label: "Pro CAD: Sketch", competencyIds: ["H1", "H2", "H3", "H4"] },
+  { id: "procad-intent", label: "Pro CAD: Intent", competencyIds: ["H5", "H6", "H7", "H8", "H9"] },
 ];

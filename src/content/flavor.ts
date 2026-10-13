@@ -214,6 +214,30 @@ export const FLAVOR: Record<string, Flavor> = {
     hook: { headline: "Game jams build a whole game in 48 hours.", body: "Short deadlines force fast decisions: pick a problem, test the riskiest part, fix it, ship it. One week, one object that works." },
     themes: { prove: [{ label: "Your desk", idea: "Something that fixes a desk or locker annoyance" }, { label: "Your hobby", idea: "Gear for a sport, instrument or game you play" }, { label: "Someone else", idea: "A fix for a friend, family member or teacher" }] },
   },
+  "pro-meet-onshape": {
+    hook: { headline: "Robot teams build in the browser.", body: "Many FIRST robotics teams design their competition robots in Onshape, working on the same model at the same time from different computers. Same tool, same first steps as you today." },
+  },
+  "pro-sketch-extrude": {
+    hook: { headline: "Spaghetti is extruded.", body: "Pasta, aluminum window frames and plastic pipes are made by pushing material through a shaped opening. Factories call it extrusion. In CAD, Extrude does the same thing to your sketch." },
+    themes: { prove: [{ label: "Backpack", idea: "A tag with your initials or team number" }, { label: "Keys", idea: "A tag for a house, locker or bike key" }, { label: "Gift", idea: "A tag for a friend's bag" }] },
+  },
+  "pro-constraints": {
+    hook: { headline: "Parts from two factories still fit.", body: "Engineering drawings list every size, so a bolt made in one factory fits a nut made in another. A fully defined sketch does the same: no guessing, no drifting." },
+  },
+  "pro-history-variables": {
+    hook: { headline: "Small to XL from one pattern.", body: "Clothing makers grade one pattern into every size instead of drawing each size from scratch. Change the measurements, and the whole design follows." },
+  },
+  "pro-features": {
+    hook: { headline: "Feel the edges of your phone.", body: "Phones, game controllers and water bottles have rounded edges. Rounded corners are comfier to hold, and sharp inside corners are where cracks like to start." },
+    themes: { prove: [{ label: "Art", idea: "Slots for markers, brushes and erasers" }, { label: "Tech", idea: "Spots for a phone, earbuds and a charger" }, { label: "Games", idea: "Trays for cards, dice and tokens" }] },
+  },
+  "pro-boss-cup": {
+    hook: { headline: "One design, a whole product line.", body: "Stores sell the same cup, bottle or box in several sizes. Designers don't redraw each one: they build one model and change its numbers." },
+    clients: { boss: { name: "Ms. Okafor", who: "runs the school store", message: "We want pencil cups in three sizes: 60, 70 and 80 mm across, all 90 mm tall. Can you send one design that does all three, plus a file I can print today?" } },
+  },
+  "pro-fusion-bonus": {
+    hook: { headline: "Pros switch tools all the time.", body: "Makerspaces, small product teams and machine shops use different CAD tools, and engineers often learn several. Once you know sketch, constrain and extrude, a new tool is mostly new button names." },
+  },
 };
 
 export const flavorFor = (lessonId: string): Flavor | undefined => FLAVOR[lessonId];

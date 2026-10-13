@@ -1,0 +1,201 @@
+import type { LessonInput } from "../schema";
+
+export const lesson: LessonInput = {
+  id: "pro-meet-onshape",
+  number: 300,
+  title: "Level Up: Meet Pro CAD",
+  subtitle: "From stacking shapes to drawing sketches",
+  domain: "H",
+  kind: "lesson",
+  summary: "See how sketch-based CAD differs from Tinkercad, set up Onshape, and find your way around a Part Studio.",
+  estimatedMinutes: 45,
+  printLevel: "digital",
+  competencyIds: ["H1", "H9"],
+  prerequisites: ["maker-showcase"],
+  vocabulary: [
+    { term: "Sketch-based CAD", definition: "CAD where you draw a flat 2D sketch, then turn it into 3D with a feature like Extrude." },
+    { term: "Part Studio", definition: "The Onshape workspace where you sketch and build parts." },
+    { term: "Feature list", definition: "The list on the left that saves every step you make, in order. You can go back and change any step." },
+    { term: "Plane", definition: "A flat surface to draw on. Every Part Studio starts with three: Top, Front and Right." },
+    { term: "View cube", definition: "The small cube in the top-right corner. Click a face or corner to jump to that view." },
+  ],
+  sections: [
+    {
+      phase: "discover",
+      title: "Why level up?",
+      blocks: [
+        {
+          id: "hook",
+          type: "hero",
+          title: "You already think like a designer. Now use a designer's tool.",
+          hook: "In Tinkercad you stack shapes. In professional CAD you draw a flat sketch, pull it into 3D, and every step is saved so you can change it later.",
+          visual: { diagram: "shapes-vs-sketches" },
+        },
+        {
+          id: "explain",
+          type: "text",
+          body: "Tinkercad is great for quick ideas. Pro CAD tools like **Onshape** and **Fusion** work a different way:\n\n- You **sketch** a 2D outline on a flat plane.\n- You **extrude** it (pull it) into a 3D part.\n- Every step goes into a **feature list**. Change step 2, and steps 3, 4 and 5 rebuild on their own.\n\nEverything you learned still counts: exact sizes, holes, walls, fit and printability.",
+        },
+        {
+          id: "predict",
+          type: "prediction",
+          prompt: "A company sells the same pencil cup in 4 sizes. What's the fastest way to design all 4?",
+          hint: "Think about what happens to the walls when you stretch something.",
+          options: [
+            { id: "a", text: "Design each size from scratch" },
+            { id: "b", text: "Design one cup where the sizes are numbers you can change" },
+            { id: "c", text: "Make one cup, then stretch it bigger with the handles", misconceptionId: "stretch-scales-all" },
+          ],
+          expectedOptionId: "b",
+          reveal: "Pro designers build one model controlled by numbers. Stretching makes the walls and holes stretch too, so a 2 mm wall turns into a 3 mm wall. Changing a number keeps the wall at 2 mm.",
+        },
+      ],
+    },
+    {
+      phase: "practice",
+      title: "Find your way around",
+      blocks: [
+        {
+          id: "show-me",
+          type: "showMe",
+          title: "Your first Onshape document",
+          steps: [
+            { text: "Sign in to Onshape with the account your teacher set up. On the Documents page, click Create, then Document. Name it \"Level Up – your first name\"." },
+            { text: "You land in a Part Studio (see the tab at the bottom). The Feature list on the left shows the Origin and three planes: Top, Front and Right." },
+            { text: "Look around: right-click and drag to orbit. Scroll to zoom. Hold Ctrl, then right-click and drag to pan."},
+            { text: "Lost? Click a face of the view cube (top right) to jump to Top or Front. Click a corner for a 3D view." },
+          ],
+        },
+        {
+          id: "match",
+          type: "matching",
+          prompt: "Match each Tinkercad idea to how Onshape does it.",
+          hint: "Think about what each one is FOR, not what it looks like.",
+          pairs: [
+            { id: "p1", left: "The workplane", right: "A plane: Top, Front or Right" },
+            { id: "p2", left: "A hole shape", right: "Extrude set to Remove" },
+            { id: "p3", left: "Typing an exact size", right: "The Dimension tool in a sketch" },
+            { id: "p4", left: "Ctrl+Z to go back", right: "Editing any step in the Feature list" },
+          ],
+          explanation: "Same ideas, new tools. The big difference is the last one: in Onshape you can change an early step without undoing everything after it.",
+          competencyId: "H9",
+          check: "practice",
+        },
+        {
+          id: "onshape",
+          type: "tinkercadLaunch",
+          tool: "onshape",
+          title: "Take the tour",
+          steps: [
+            "Open Onshape and create your Level Up document (Create → Document).",
+            "Orbit, zoom and pan until the three planes fill the screen.",
+            "Click the Top face of the view cube, then the Front face, then a corner.",
+            "Right-click the Part Studio tab at the bottom, choose Rename, and call it \"Practice\".",
+          ],
+        },
+        {
+          id: "lost-view",
+          type: "multipleChoice",
+          prompt: "You orbited so far that the planes are upside down and tiny. What's the quickest way back to a useful view?",
+          hint: "There's a tool in the top-right corner made for this.",
+          options: [
+            { id: "a", text: "Click a corner of the view cube" },
+            { id: "b", text: "Refresh the browser tab", misconceptionId: "restart-to-fix" },
+            { id: "c", text: "Delete the document and start again", misconceptionId: "restart-to-fix" },
+            { id: "d", text: "Keep scrolling until it looks right" },
+          ],
+          correctOptionIds: ["a"],
+          explanation: "The view cube jumps straight to a clean view. Refreshing or starting over loses time, and the problem was only the camera, not your part.",
+          competencyId: "H1",
+          check: "skill",
+        },
+      ],
+    },
+    {
+      phase: "apply",
+      title: "Micro challenge",
+      blocks: [
+        {
+          id: "micro",
+          type: "challenge",
+          kind: "micro",
+          where: "onshape",
+          title: "Set up your workspace",
+          prompt: "Get your Onshape document ready for the rest of Level Up.",
+          requirements: [
+            "Document named \"Level Up – your first name\"",
+            "Part Studio renamed to \"Practice\"",
+            "View set to a 3D corner view with all three planes showing",
+          ],
+          skills: ["H1"],
+        },
+      ],
+    },
+    {
+      phase: "prove",
+      title: "Prove it",
+      blocks: [
+        {
+          id: "which-tool",
+          type: "multipleChoice",
+          prompt: "Which job is sketch-based CAD better for than Tinkercad?",
+          hint: "Which job will need changes later?",
+          options: [
+            { id: "a", text: "A quick snowman to show a friend" },
+            { id: "b", text: "A bracket that has to come in 5 different sizes" },
+            { id: "c", text: "Moving a shape 10 mm to the left", misconceptionId: "pro-is-always-better" },
+          ],
+          correctOptionIds: ["b"],
+          explanation: "Sketch-based CAD shines when a design will change: you edit a number and everything rebuilds. For a quick fun model, Tinkercad is often faster. Pick the tool that fits the job.",
+          competencyId: "H9",
+          check: "skill",
+        },
+        {
+          id: "submit",
+          type: "uploadEvidence",
+          prompt: "Upload a screenshot of your Onshape window: the document name, the Feature list and the 3D view should all show.",
+          accepts: ["screenshot", "design_url"],
+          competencyIds: ["H1"],
+          checklist: ["Document name is visible", "Part Studio tab says Practice", "All three planes show in a 3D view"],
+        },
+      ],
+    },
+    {
+      phase: "reflect",
+      title: "Reflect",
+      blocks: [
+        {
+          id: "reflect",
+          type: "reflection",
+          prompt: "What's one thing that feels easier in Onshape than in Tinkercad, and one thing that feels harder so far?",
+          sentenceStarters: ["Easier: …", "Harder: …", "I think the Feature list will help when…"],
+          competencyIds: ["H9"],
+        },
+      ],
+    },
+  ],
+  teacher: {
+    purpose: "Students who finished a Tinkercad course meet sketch-based CAD, set up Onshape and learn to navigate a Part Studio before they sketch.",
+    preparation: [
+      "Accounts: Onshape's free Educator plan lets you create classes and assignments. Onshape asks that a school, district, teacher or parent create or authorize accounts for students under 13; its class-invite help says invitees under 13 need verifiable parental consent. Check your district's policy before inviting students.",
+      "Create an Onshape class (Create → Class), add students by email or CSV, then publish the class.",
+      "Try the navigation on a student device. On a Chromebook trackpad, rotating and panning can feel different from a mouse: check it before class, or have mice available.",
+    ],
+    equipment: ["Student devices with a current Chrome, Edge, Firefox or Safari browser", "A mouse (recommended)"],
+    misconceptions: [
+      { id: "stretch-scales-all", text: "Stretching a design to a new size keeps walls and holes correct.", response: "Stretch a 2 mm-wall cup in Tinkercad and measure the new wall. Then show the same change in Onshape by editing one number." },
+      { id: "restart-to-fix", text: "If the view is confusing, the part is broken and you need to start over.", response: "Separate the camera from the part: the view cube changes how you look, not what you built." },
+      { id: "pro-is-always-better", text: "Pro CAD is better for every job.", response: "Ask: will this design change later? If not, the faster tool wins." },
+    ],
+    discussionQuestions: ["Where in the real world would a design need to come in many sizes?", "Why might professionals want every step saved?"],
+    troubleshooting: [
+      "Right-click opens the browser menu instead of rotating: make sure the pointer is over the 3D view, not the Feature list.",
+      "No zoom on a trackpad: Onshape notes zoom gestures vary by browser and device; scrolling with two fingers usually works.",
+    ],
+    answerGuidance: ["The screenshot should show the document name, a Part Studio tab named Practice, and Top/Front/Right planes in a 3D view."],
+    alternatives: {
+      touchDevice: "Onshape has iOS and Android apps; tap the view cube for a list of views.",
+      noPrinter: "This lesson is digital only.",
+    },
+  },
+};

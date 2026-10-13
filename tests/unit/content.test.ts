@@ -34,9 +34,9 @@ describe("curriculum content", () => {
     const nine = paths.find((p) => p.id === "9-week")!;
     const eighteen = paths.find((p) => p.id === "18-week")!;
     expect(nine.weeks).toHaveLength(9);
-    expect(eighteen.weeks).toHaveLength(18);
+    expect(eighteen.weeks.filter((w) => !w.bonus)).toHaveLength(18);
     expect(lessonsInPath("9-week").at(-1)!.lesson.id).toBe("mini-design-sprint");
-    expect(lessonsInPath("18-week").at(-1)!.lesson.id).toBe("maker-showcase");
+    expect(eighteen.weeks.filter((w) => !w.bonus).at(-1)!.lessonIds.at(-1)).toBe("maker-showcase");
   });
 
   it("every bundled model file exists on disk", () => {

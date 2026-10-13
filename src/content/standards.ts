@@ -33,6 +33,7 @@ export const standardInputs: S[] = [
   { id: "mics-2-ap-13", framework: "MI-CS", code: "2-AP-13", grade: "6–8", text: "Break a problem into smaller parts to make it easier to design, build and review a solution." },
   { id: "mics-2-ap-15", framework: "MI-CS", code: "2-AP-15", grade: "6–8", text: "Get feedback from teammates and users and use it to improve a solution." },
   // Michigan K-12 Standards for Mathematics (CCSS)
+  { id: "math-6.ee.a.2", framework: "MI-MATH", code: "6.EE.A.2", grade: "6", text: "Write, read and evaluate expressions where letters stand for numbers." },
   { id: "math-6.g.a.2", framework: "MI-MATH", code: "6.G.A.2", grade: "6", text: "Find the volume of rectangular prisms, including ones with fractional side lengths, in real problems." },
   { id: "math-6.ns.b.3", framework: "MI-MATH", code: "6.NS.B.3", grade: "6", text: "Add, subtract, multiply and divide decimals accurately." },
   { id: "math-7.g.a.1", framework: "MI-MATH", code: "7.G.A.1", grade: "7", text: "Work with scale drawings: find real lengths and areas and redraw at a different scale." },
@@ -45,6 +46,13 @@ export const standardInputs: S[] = [
 
 /** Many-to-many lesson ↔ standard mapping. */
 export const lessonStandards: { lessonId: string; standardIds: string[] }[] = [
+  { lessonId: "pro-meet-onshape", standardIds: ["iste-1.4b"] },
+  { lessonId: "pro-sketch-extrude", standardIds: ["iste-1.5c"] },
+  { lessonId: "pro-constraints", standardIds: ["iste-1.5c"] },
+  { lessonId: "pro-history-variables", standardIds: ["math-6.ee.a.2", "iste-1.5c"] },
+  { lessonId: "pro-features", standardIds: ["iste-1.4c"] },
+  { lessonId: "pro-boss-cup", standardIds: ["iste-1.4a", "iste-1.4c", "ngss-ms-ets1-4"] },
+  { lessonId: "pro-fusion-bonus", standardIds: ["iste-1.4b"] },
   { lessonId: "jr-layers", standardIds: ["iste-1.4a"] },
   { lessonId: "jr-meet-tinkercad", standardIds: ["iste-1.4b"] },
   { lessonId: "jr-move-stretch", standardIds: ["iste-1.4b"] },
