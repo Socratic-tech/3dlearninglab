@@ -12,6 +12,7 @@ import { currentToken, renderSignIn, renewSignIn, signOut, tokenEmail, tokenExpi
 import { cachedMe, clearCachedData, saveMe, withPending } from "./cache";
 import { resumeSync, startSync, subscribeSync, syncState } from "./sync";
 import { SyncPill } from "./sync-pill";
+import { TRADEMARK_NOTICE } from "./legal";
 import { fetchClass } from "./class-cache";
 import { PrintKitPage, TeacherGuidePage } from "./pages/TeacherGuidePage";
 import { PosterPage, SetupCheckPanel } from "./pages/SetupHelp";
@@ -214,7 +215,7 @@ function Frame({ children, me, onSignOut, onSwitch, onReset, expired, tryIt }: {
       {expired}
       <main id="main" className="mx-auto max-w-5xl px-4 pb-24 pt-6">{children}</main>
       <footer className="mx-auto max-w-5xl px-4 pb-28 text-center text-xs text-muted print:hidden">
-        {tr("Tinkercad and Fusion are trademarks of Autodesk, Inc. Onshape is a trademark of PTC Inc. 3D Design Academy is not affiliated with or endorsed by Autodesk or PTC.")}
+        {tr(TRADEMARK_NOTICE)}
       </footer>
     </div>
   );

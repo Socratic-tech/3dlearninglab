@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Md } from "@/components/lesson/static-blocks";
 import type { BlockOf, Lesson } from "@/content/schema";
 import { lessonFor, type Me } from "../content";
+import { TRADEMARK_NOTICE } from "../legal";
 
 /** Challenges that happen away from the screen (or partly), as printable worksheets. */
 export function offlineChallenges(lesson: Lesson) {
@@ -57,6 +58,7 @@ export function HandoutPage({ me, lessonId }: { me: Me; lessonId: string }) {
           <h2 className="mt-5 font-semibold">{tr("Sketch & work space")}</h2>
           <div className="bg-blueprint mt-2 h-72 rounded-lg border border-fg" />
           <p className="mt-3 text-xs">{tr("When you're done, take a photo of this page and upload it in the mission.")}</p>
+          <p className="mt-2 text-[9px] leading-tight text-muted">{tr(TRADEMARK_NOTICE)}</p>
         </section>
       ))}
     </div>
