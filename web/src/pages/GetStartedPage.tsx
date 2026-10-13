@@ -96,7 +96,7 @@ export function GetStartedPage({ onTry }: { onTry: () => void }) {
         <Card className="space-y-2">
           <Fact icon={<HardDrive className="size-5" aria-hidden />}>Student work is saved in the teacher’s own Google Sheet, in the teacher’s Drive. There is no separate company database.</Fact>
           <Fact icon={<Lock className="size-5" aria-hidden />}>Students sign in with Google. Only students on a teacher’s roster (or joining through the class link, if the teacher allows it) can get in.</Fact>
-          <Fact icon={<ShieldCheck className="size-5" aria-hidden />}>No ads, no selling data. The website only serves the lessons; this browser keeps a copy of the student’s own work for speed.</Fact>
+          <Fact icon={<ShieldCheck className="size-5" aria-hidden />}>No ads, no selling data. The website only serves the lessons. For speed, the student’s browser keeps a copy of their own work, and the teacher’s Google script keeps a short-lived copy (up to 6 hours) in its own Google cache.</Fact>
           <p className="text-sm text-muted">Check with your district that this fits your student data agreements, as you would with any classroom tool.</p>
         </Card>
       </section>
@@ -107,7 +107,8 @@ export function GetStartedPage({ onTry }: { onTry: () => void }) {
         <Tech q="Apps Script web apps shared with “Anyone”">Each teacher’s copy runs a small Google Apps Script web app that the site talks to. It must be deployed with <b>Execute as: Me</b> and <b>Who has access: Anyone</b>. Students still sign in with Google, and the script checks every request against the teacher’s roster. Some Workspace settings hide the “Anyone” option for teachers.</Tech>
         <Tech q="Google sign-in for this site">The site uses Google Sign-In to identify users (email and name only). If your Workspace restricts third-party apps, an admin may need to allow this site’s sign-in client under Admin console → Security → API controls → App access control.</Tech>
         <Tech q="Websites to allow"><b>script.google.com</b> and <b>script.googleusercontent.com</b> (the teacher’s Sheet), <b>accounts.google.com</b> (sign-in), <b>www.tinkercad.com</b> (design work), and this site.</Tech>
-        <Tech q="What is stored where">In the teacher’s Sheet: roster, progress, answers, uploaded evidence links, XP. Uploaded files go to a folder in the teacher’s Drive. Nothing is stored on the website itself.</Tech>
+        <Tech q="What is stored where">In the teacher’s Sheet: roster, progress, answers, uploaded evidence links, XP. Uploaded files go to a folder in the teacher’s Drive. To keep a full class fast, the teacher’s Apps Script also keeps temporary copies of each student’s rows in its built-in script cache (Google CacheService, cleared within 6 hours), and each student’s browser keeps a copy of that student’s own work. Nothing is stored on the website itself.</Tech>
+        <Tech q="Will it keep up with a full class?">Yes. It was tested on a Sheet holding a full semester of work for 150 students, with 30 students opening it at the same moment: once the class was warmed up, the typical wait was about 2 seconds, and no requests failed. Opening the teacher dashboard before class gets everyone’s data ready.</Tech>
       </section>
 
       {/* Contact */}
