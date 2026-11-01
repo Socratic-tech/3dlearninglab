@@ -750,6 +750,17 @@ describe("XP store and class rewards", () => {
     expect(e.call("newkid@school.org", "me", { classId }).ok).toBe(true);
   });
 
+  it("a teacher's change made in the same millisecond as a student's saved copy still shows (fast machines)", () => {
+    const { e, classId } = setupClass();
+    give(e, 500);
+    const reward = e.call("teacher@school.org", "saveReward", { classId, name: "Pick the filament colour", price: 200 }).data.rewards[0];
+    e.call("maya@school.org", "requestReward", { classId, rewardId: reward.id });
+    e.run(`(Date.now = function () { return ${Date.now()}; }, 0)`); // every read and write below lands in the same millisecond
+    const id = e.call("teacher@school.org", "rewards", { classId }).data.requests[0].id;
+    e.call("teacher@school.org", "decideReward", { classId, id, status: "declined", note: "Next week!" });
+    expect(e.call("maya@school.org", "me", { classId }).data.store.requests[0]).toMatchObject({ status: "declined", teacherNote: "Next week!" });
+  });
+
   it("class rewards: teacher creates, student requests (XP held), decline gives it back, students can't approve", () => {
     const { e, classId } = setupClass();
     give(e, 500);

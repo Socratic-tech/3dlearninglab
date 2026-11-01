@@ -630,9 +630,13 @@ function bumpSliceGen_() {
 function sliceKey_(name, email) { return "s5_" + sliceGen_() + "_" + name + "_" + String(email).toLowerCase(); }
 function sliceWriteKey_(name, email) { return "w5_" + name + "_" + String(email).toLowerCase(); }
 
-/** Records that a student's rows in this tab just changed, so every older copy is ignored. */
+/**
+ * Records that a student's rows in this tab just changed, so every older copy is ignored. Copies are stamped when
+ * their read starts; the write is stamped 1 ms later than now, so a copy read in the same millisecond as this write
+ * (fast machines) counts as older and is rebuilt instead of hiding the change.
+ */
 function markSliceWrite_(name, email) {
-  try { CacheService.getScriptCache().put(sliceWriteKey_(name, email), String(Date.now()), SLICE_TTL_); } catch (e) { /* ignore */ }
+  try { CacheService.getScriptCache().put(sliceWriteKey_(name, email), String(Date.now() + 1), SLICE_TTL_); } catch (e) { /* ignore */ }
   if (SCOPE_EMAIL_ !== String(email).toLowerCase()) delete SLICE_MEMO_[name + "|" + String(email).toLowerCase()];
 }
 
