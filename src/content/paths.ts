@@ -79,12 +79,12 @@ export const pathInputs: P[] = [
     id: "puzzle-cube",
     title: "Project Path: Puzzle Cube",
     description:
-      "A 6-week project: plan six solid pieces that fit together into one 3 × 3 × 3 cube, build them in Tinkercad, print them without supports, design a box that fits, then playtest with classmates and ship it with a solution card. Review missions come first; turn them off if your class already knows them.",
+      "A 6-week project: plan five or six solid pieces that fit together into one 3 × 3 × 3 cube, build them in Tinkercad, print them without supports, design a box that fits, then playtest with classmates and ship it with a solution card. Review missions come first; turn them off if your class already knows them.",
     weeks: [
       { week: 1, title: "Tinkercad tune-up", focus: "Navigate, type exact sizes, group and cut holes", lessonIds: ["navigating-tinkercad", "exact-dimensions", "grouping", "holes"] },
-      { week: 2, title: "Think in cubes", focus: "Align and duplicate, then plan six pieces that make 27 cubes", lessonIds: ["align", "duplicate", "puzzle-think-in-cubes"] },
+      { week: 2, title: "Think in cubes", focus: "Align and duplicate, then plan 5 or 6 pieces that make 27 cubes", lessonIds: ["align", "duplicate", "puzzle-think-in-cubes"] },
       { week: 3, title: "Build the pieces", focus: "Build the cube assembled on a snap grid, then pull it apart", lessonIds: ["puzzle-build-pieces"] },
-      { week: 4, title: "Print plan", focus: "Layers, orientation and supports; print all six pieces support-free", lessonIds: ["layers", "orientation", "supports", "puzzle-print-plan"] },
+      { week: 4, title: "Print plan", focus: "Layers, orientation, supports and 45° chamfers; print every piece support-free", lessonIds: ["layers", "orientation", "supports", "puzzle-print-plan"] },
       { week: 5, title: "Fit and the box", focus: "Tolerance stack-up, clearance and a ring test before the box", lessonIds: ["tolerances", "puzzle-fit-box"] },
       { week: 6, title: "Playtest and ship", focus: "Test with real solvers, revise once, make a solution card", lessonIds: ["puzzle-playtest"] },
     ],

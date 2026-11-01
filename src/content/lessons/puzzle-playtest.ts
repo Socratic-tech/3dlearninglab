@@ -34,7 +34,7 @@ export const lesson: LessonInput = {
           id: "protocol",
           type: "text",
           title: "The playtest plan",
-          body: "1. Take the cube apart and hand the six pieces to your tester (no peeking at the solution).\n2. Start a timer. **Don't explain or help.** Watch where they get stuck.\n3. Hint ladder, only if they ask: first 'Start with the biggest piece', then 'This piece goes in a corner', then show one piece's spot.\n4. Stop at 10 minutes. Write down: **time, number of hints, where they got stuck, what they said.**",
+          body: "1. Take the cube apart and hand all the pieces to your tester (no peeking at the solution).\n2. Start a timer. **Don't explain or help.** Watch where they get stuck.\n3. Hint ladder, only if they ask: first 'Start with the biggest piece', then 'This piece goes in a corner', then show one piece's spot.\n4. Stop at 10 minutes. Write down: **time, number of hints, where they got stuck, what they said.**",
         },
         {
           id: "dignity",
@@ -79,7 +79,7 @@ export const lesson: LessonInput = {
           options: [
             { id: "trade", text: "Trade cubes between two pieces so one flat piece becomes a 3D piece, reprint those two, re-test" },
             { id: "bigger", text: "Make the whole cube bigger", misconceptionId: "bigger-is-harder" },
-            { id: "all", text: "Redesign all six pieces at once", misconceptionId: "change-everything" },
+            { id: "all", text: "Redesign every piece at once", misconceptionId: "change-everything" },
           ],
           correctOptionIds: ["trade"],
           explanation: "Bending a piece into 3D makes it harder to place. Changing just two pieces is fast to reprint and tells you whether that change worked.",
@@ -142,9 +142,9 @@ export const lesson: LessonInput = {
           kind: "prove",
           where: "both",
           title: "Ship It: The Puzzle Cube",
-          prompt: "Deliver a finished puzzle cube: six printed pieces, a box and a solution card, plus your playtest data. Present it in about 60 seconds, out loud, on video or as a slide.",
+          prompt: "Deliver a finished puzzle cube: all the printed pieces, a box and a solution card, plus your playtest data. Present it in about 60 seconds, out loud, on video or as a slide.",
           requirements: [
-            "Six printed pieces that assemble into the cube",
+            "All printed pieces assemble into the cube",
             "A box the cube slides into and out of",
             "Two playtests with time, hints and stuck spot recorded",
             "One change made because of the first playtest, then re-tested",
@@ -199,7 +199,7 @@ export const lesson: LessonInput = {
     misconceptions: [
       { id: "opinion-is-data", text: "Testers' opinions are the test result.", response: "Ask: could you compare this note between version 1 and version 2? Time, hints and stuck spots can be compared." },
       { id: "bigger-is-harder", text: "Making the puzzle bigger makes it harder.", response: "A bigger cube is the same puzzle. Difficulty comes from piece shapes, not size." },
-      { id: "change-everything", text: "Fix a problem by changing everything.", response: "If you change all six pieces, you won't know which change helped. Change the pieces the test points to." },
+      { id: "change-everything", text: "Fix a problem by changing everything.", response: "If you change every piece, you won't know which change helped. Change the pieces the test points to." },
     ],
     discussionQuestions: [
       "Why is staying silent the hardest part of running a playtest?",

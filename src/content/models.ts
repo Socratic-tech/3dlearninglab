@@ -83,7 +83,7 @@ export const modelAssetInputs: ModelAssetInput[] = [
   original("wedge-block", "Wedge Block", "A wedge with a sloped face for workplane practice.", ["Workplane"], ["workplanes"]),
   original("bookmark-good", "Good Bookmark", "A 2 mm bookmark with plenty of plastic around its tassel hole.", ["Thickness", "Space around holes"], ["jr-design-rules", "jr-boss-bookmark"]),
   original("bookmark-thin", "Too-Thin Bookmark", "Only 0.6 mm thick, with a hole right at the edge: it bends and tears.", ["Too thin", "Hole at the edge"], ["jr-design-rules"]),
-  original("puzzle-cube-exploded", "Sample Puzzle Cube (pulled apart)", "Six solid pieces that fill a 45 mm cube, pulled apart so students can see how they fit.", ["Unit cubes", "Volume: 27 cubes", "Pieces that fit together"], ["puzzle-think-in-cubes", "puzzle-build-pieces"]),
+  original("puzzle-cube-exploded", "Sample Puzzle Cube (pulled apart)", "A six-piece sample: solid pieces that fill a 45 mm cube, pulled apart so students can see how they fit.", ["Unit cubes", "Volume: 27 cubes", "Pieces that fit together"], ["puzzle-think-in-cubes", "puzzle-build-pieces"]),
   original("puzzle-piece-checkup", "Puzzle Piece Checkup", "Three pieces to inspect: one good, one with a cube that only touches on an edge, one standing so cubes print in mid-air.", ["Face vs. edge", "Print orientation", "Supports"], ["puzzle-think-in-cubes", "puzzle-print-plan"]),
 
   // ───── External, openly licensed diagnostic models (link-out until verified) ─────

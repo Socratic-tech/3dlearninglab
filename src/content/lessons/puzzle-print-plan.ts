@@ -1,14 +1,14 @@
 import type { LessonInput } from "../schema";
 
-/** Puzzle Cube path, mission 3: orient every piece so it prints without supports, then print the set. */
+/** Puzzle Cube path, mission 3: orient (and if needed chamfer) every piece so it prints without supports, then print the set. */
 export const lesson: LessonInput = {
   id: "puzzle-print-plan",
   number: 402,
   title: "Puzzle Cube: Print Plan",
-  subtitle: "Every cube sits on the plate or on another cube.",
+  subtitle: "Every cube sits on the plate, on another cube, or on a 45° slope.",
   domain: "D",
   kind: "lab",
-  summary: "Students choose a print orientation for each of their six pieces so no cube hangs over air, lay all six on one plate, check the slicer preview, and print the set.",
+  summary: "Students choose a print orientation for each piece so no cube hangs over air, use a 45° chamfer when turning isn't enough, lay every piece on one plate, check the slicer preview, and print the set.",
   estimatedMinutes: 60,
   printLevel: "required",
   competencyIds: ["D2", "D4", "D5", "D6"],
@@ -17,6 +17,8 @@ export const lesson: LessonInput = {
     { term: "Orientation", definition: "Which side of a part faces down on the build plate." },
     { term: "Support", definition: "Extra plastic printed under a part that hangs over air, broken off after printing." },
     { term: "Build plate", definition: "The flat surface the printer builds on." },
+    { term: "Chamfer", definition: "A flat, sloped cut along an edge. A 45° chamfer under a hanging cube lets it print without supports." },
+    { term: "Bridge", definition: "A short span of plastic printed in the air between two supported points. A 15 mm bridge usually prints fine." },
     { term: "Elephant's foot", definition: "A small bulge on the bottom layer, where the first layer is squished a little wider." },
   ],
   sections: [
@@ -35,7 +37,7 @@ export const lesson: LessonInput = {
           id: "rule",
           type: "text",
           title: "The rule",
-          body: "Turn each piece so **every cube sits on the build plate or on top of another cube**. No cube should hang over air.\n\nA cube hanging over air needs supports. A cube sitting on something prints on its own.",
+          body: "Turn each piece so **every cube sits on the build plate or on top of another cube**. No cube should hang over air.\n\nA cube hanging over air needs supports. A cube sitting on something prints on its own.\n\nTwo exceptions that print fine:\n- An **arch**: a cube held up on **both** sides is a short bridge (15 mm), and printers can bridge that.\n- A **45° chamfer**: if one cube hangs off the side, cut its underside into a 45° slope. See how below.",
         },
         {
           id: "checkup",
@@ -96,6 +98,51 @@ export const lesson: LessonInput = {
           check: "skill",
         },
         {
+          id: "chamfer-diagram",
+          type: "diagram",
+          name: "puzzle-chamfer",
+          caption: "When turning isn't enough: cut the hanging cube's underside to 45°.",
+          alt: "Side view. Left: a cube sticks out from the top of a column with air under it, so it needs supports. Right: the same cube with a 45 degree wedge cut from its underside prints on its own.",
+        },
+        {
+          id: "chamfer-how",
+          type: "showMe",
+          title: "Make a 45° chamfer in Tinkercad",
+          steps: [
+            { text: "Find the cube that hangs over air when the piece lies on its best side. It should be held on by one face.", diagram: "puzzle-chamfer" },
+            { text: "Drag in a Wedge, make it a Hole, and type 15 × 15 × 15 (or 10 for a keychain).", diagram: "solid-vs-hole" },
+            { text: "Rotate the wedge so its right-angle corner sits at the bottom outer edge of the hanging cube, with the slope rising toward the piece.", diagram: "rotate-handles" },
+            { text: "Line it up exactly with the cube's edges (Align or the snap grid), then group. The underside is now a 45° slope.", diagram: "align-handles", keys: "Ctrl + G" },
+          ],
+        },
+        {
+          id: "predict-fit",
+          type: "prediction",
+          prompt: "A chamfer cuts away half of one cube. Will the puzzle still go together?",
+          hint: "Can taking plastic away ever stop a piece from fitting into a space?",
+          options: [
+            { id: "yes", text: "Yes. Removing plastic never blocks a fit; it leaves a small hidden gap." },
+            { id: "no", text: "No. Now the piece is the wrong shape and won't fit.", misconceptionId: "chamfer-breaks-fit" },
+          ],
+          expectedOptionId: "yes",
+          reveal: "The pieces still go together: there's just a small triangular gap where the plastic was. Put chamfers inside the cube where they're hidden, or the notch on the outside becomes a clue for solvers.",
+        },
+        {
+          id: "chamfer-mc",
+          type: "multipleChoice",
+          prompt: "Your piece has one cube sticking out sideways at the top, held on by one face, in every position you try. What's the best support-free fix?",
+          hint: "The Supports mission had a trick for overhangs steeper than 45°.",
+          options: [
+            { id: "chamfer", text: "Cut a 45° chamfer under that cube" },
+            { id: "supports", text: "Turn on supports and sand off the scars", misconceptionId: "supports-are-fine" },
+            { id: "smaller", text: "Make that one cube smaller", misconceptionId: "chamfer-breaks-fit" },
+          ],
+          correctOptionIds: ["chamfer"],
+          explanation: "A 45° slope supports itself, so the cube prints with no supports and no scars. A smaller cube would leave a gap AND still hang over air.",
+          competencyId: "D5",
+          check: "skill",
+        },
+        {
           id: "fix-match",
           type: "matching",
           prompt: "Match each print problem to its fix.",
@@ -104,7 +151,7 @@ export const lesson: LessonInput = {
             { id: "air", left: "A cube hangs over air", right: "Turn the piece so that cube sits on the plate or another cube" },
             { id: "foot", left: "Bottom edges bulge and rub other pieces", right: "Sand the bottom edge lightly, or ask your teacher to adjust the first layer" },
             { id: "wobble", left: "The piece balances on a single cube", right: "Lay it on its biggest flat side" },
-            { id: "slow", left: "Six separate prints take all week", right: "Put all six pieces on one plate" },
+            { id: "slow", left: "A separate print for every piece takes all week", right: "Put all the pieces on one plate" },
           ],
           explanation: "Most puzzle print problems are fixed before printing, just by choosing how each piece sits.",
           competencyId: "D5",
@@ -123,9 +170,10 @@ export const lesson: LessonInput = {
           steps: [
             "Open your puzzle design. Save a copy called 'puzzle cube print'.",
             "For each piece, rotate it in 90° steps until every cube sits on the workplane or on another cube.",
+            "If a cube still hangs over air on every side you try, add a 45° chamfer under it (Wedge hole, 15 × 15 × 15).",
             "Press D with each piece selected to drop it onto the workplane.",
             "Spread the pieces out with at least 5 mm between them.",
-            "Export all six as one STL file. Your teacher will slice and print it (or you will, if your class does).",
+            "Export all the pieces as one STL file. Your teacher will slice and print it (or you will, if your class does).",
           ],
         },
         {
@@ -158,10 +206,10 @@ export const lesson: LessonInput = {
           kind: "prove",
           where: "both",
           title: "Support-Free Print Plate",
-          prompt: "Prepare all six pieces to print with supports off, then print them and put the cube together.",
+          prompt: "Prepare every piece to print with supports off, then print them and put the cube together.",
           requirements: [
-            "Every piece turned so each cube sits on the plate or on another cube",
-            "All six pieces on one plate, at least 5 mm apart, all dropped to the workplane",
+            "Every piece turned so each cube sits on the plate, on another cube, or on a 45° chamfer",
+            "All pieces on one plate, at least 5 mm apart, all dropped to the workplane",
             "Slicer preview with supports off shows no floating cubes",
             "Print time written down",
             "Printed pieces fit together into the cube (or your teacher noted why not yet)",
@@ -174,7 +222,7 @@ export const lesson: LessonInput = {
           prompt: "Submit your print-ready STL, a screenshot of the plate or slicer preview, and a photo of the printed pieces fitted together.",
           accepts: ["stl", "screenshot", "physical_test"],
           competencyIds: ["D5", "D6"],
-          checklist: ["Supports off", "No floating cubes in the preview", "Six pieces on one plate", "Print time recorded"],
+          checklist: ["Supports off", "No floating cubes in the preview", "All pieces on one plate", "Print time recorded"],
           allowPrintRequest: true,
         },
       ],
@@ -194,7 +242,7 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students apply orientation and support decisions to six real parts. Because pieces made of cubes are all right angles, the rule is simple to check: every cube must sit on the plate or another cube. Support-free pieces also have smooth faces, which matters for a puzzle that slides together.",
+    purpose: "Students apply orientation and support decisions to their own puzzle pieces. Because pieces made of cubes are all right angles, the rule is simple to check: every cube must sit on the plate or another cube. When turning isn't enough (common with bigger five-piece sets), a 45° chamfer applies the self-supporting-angle idea from the Supports mission. Support-free pieces also have smooth faces, which matters for a puzzle that slides together.",
     preparation: [
       "Decide who slices: students, or the teacher from submitted STL files.",
       "Plan printer time: a 15 mm-cube set (about 91 cm³ of shape) at 15% infill often takes several hours, so plan overnight runs or one plate at a time. A keychain set (10 mm cubes, about 27 cm³) takes roughly a third as long. Check times in your own slicer.",
@@ -203,21 +251,24 @@ export const lesson: LessonInput = {
     equipment: ["Student devices with Tinkercad", "Slicer software", "3D printer and filament (PLA)", "Optional: fine sandpaper or a nail file for elephant's foot"],
     misconceptions: [
       { id: "upright-looks-right", text: "A piece should print standing the way it looks in the cube.", response: "The printer doesn't care how the piece sits in the puzzle. Turn it so every cube has plate or plastic underneath." },
+      { id: "chamfer-breaks-fit", text: "Cutting a chamfer will stop the pieces fitting together.", response: "Removing plastic can only leave a gap, never block a fit. Try it with a real cube and a wedge-shaped gap." },
+      { id: "supports-are-fine", text: "Supports are fine for puzzle pieces.", response: "Support scars make faces rough, and rough faces stick when pieces slide past each other. Show a support-scar sample." },
     ],
     discussionQuestions: [
       "Why do supports matter more for a puzzle than for a decoration?",
       "Is there any piece shape that can't be printed without supports? How would you change it?",
     ],
-    printableObjects: ["Each student's six puzzle pieces (one plate)", "Puzzle Piece Checkup model (optional demo)"],
+    printableObjects: ["Each student's puzzle pieces (one plate)", "Puzzle Piece Checkup model (optional demo)"],
     slicerSettings: "Starting point: PLA, 0.2 mm layers, 15–20% infill, 2–3 walls, supports OFF. Keep the same settings for all students. Adjust for your printer.",
     troubleshooting: [
-      "A piece truly can't be laid with every cube supported: the student changes that piece (trade a cube with a neighbouring piece) and re-checks the plan rules.",
+      "One cube hangs over air in every position: a 45° chamfer under it fixes it. Two or more cubes in a row over air: change the piece (trade a cube with a neighbouring piece) and re-check the plan rules.",
+      "A chamfer leaves a visible triangular notch on the outside of the cube: that's fine, but it can act as a hint for solvers. Students can move the chamfer to a cube inside the puzzle if they want it hidden.",
       "Pieces bind when assembled: look for elephant's foot on bottom edges; lightly sand, or lower the first-layer squish for the next print.",
       "Small keychain pieces pop off the plate: add a brim in the slicer.",
     ],
     answerGuidance: [
-      "Proficient: all six pieces oriented support-free with a correct reason for each, and a slicer preview with supports off.",
-      "Orientation table example: 'Piece A (flat P shape): lies flat, all 5 cubes on the plate.' 'Piece F (corner): two arms flat, third arm points up.'",
+      "Proficient: every piece oriented (and chamfered where needed) support-free with a correct reason for each, and a slicer preview with supports off.",
+      "Orientation table example: 'Piece A (flat P shape): lies flat, all 5 cubes on the plate.' 'Piece F (corner): two arms flat, third arm points up.' 'A piece with one cube sticking out sideways: lies on its best side, and that cube gets a 45° chamfer.'",
     ],
     alternatives: {
       noPrinter: "Students complete the orientation table and slicer preview; build the pieces from real cubes and tape to test the puzzle until prints are available.",

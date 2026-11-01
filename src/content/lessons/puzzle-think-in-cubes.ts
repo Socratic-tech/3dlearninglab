@@ -1,21 +1,21 @@
 import type { LessonInput } from "../schema";
 
-/** Puzzle Cube path, mission 1: plan six pieces that fill a 3 × 3 × 3 cube (before any CAD). */
+/** Puzzle Cube path, mission 1: plan five or six pieces that fill a 3 × 3 × 3 cube (before any CAD). */
 export const lesson: LessonInput = {
   id: "puzzle-think-in-cubes",
   number: 400,
   title: "Puzzle Cube: Think in Cubes",
-  subtitle: "Plan six pieces that fit together into one cube.",
+  subtitle: "Plan five or six pieces that fit together into one cube.",
   domain: "F",
   kind: "lesson",
-  summary: "Students learn the rules of a six-piece puzzle cube (27 small cubes, joined face to face), check pieces for strength and printability, and plan their own piece set as a layer map or with real cubes.",
+  summary: "Students learn the rules of a five- or six-piece puzzle cube (27 small cubes, joined face to face), check pieces for strength and printability, and plan their own piece set as a layer map or with real cubes.",
   estimatedMinutes: 50,
   printLevel: "digital",
   competencyIds: ["F2", "F3", "B1"],
   prerequisites: ["duplicate"],
   vocabulary: [
     { term: "Unit cube", definition: "One small cube. Every piece is built from these. In this project it is 15 mm on each side." },
-    { term: "Piece", definition: "A group of unit cubes joined into one solid part. Your puzzle has exactly six pieces." },
+    { term: "Piece", definition: "A group of unit cubes joined into one solid part. Your puzzle has 5 or 6 pieces." },
     { term: "Face", definition: "A flat, square side of a cube. Cubes in a piece must share a whole face." },
     { term: "Layer map", definition: "A drawing of the cube one layer at a time (bottom, middle, top), with a letter for each piece." },
     { term: "Volume", definition: "How much space something fills. A 3 × 3 × 3 cube has a volume of 27 unit cubes." },
@@ -28,15 +28,15 @@ export const lesson: LessonInput = {
         {
           id: "hook",
           type: "hero",
-          title: "Six pieces. One cube. Can someone else solve it?",
-          hook: "You'll design a puzzle cube like the ones on keychains: six odd-shaped pieces that only fit together one way (or a few). Then you'll print it and hand it to a friend.",
-          visual: { modelId: "puzzle-cube-exploded", alt: "Six puzzle pieces pulled apart from a cube." },
+          title: "Five or six pieces. One cube. Can someone else solve it?",
+          hook: "You'll design a puzzle cube like the ones on keychains: five or six odd-shaped pieces that only fit together one way (or a few). Then you'll print it and hand it to a friend.",
+          visual: { modelId: "puzzle-cube-exploded", alt: "A six-piece sample puzzle pulled apart from a cube." },
         },
         {
           id: "goal",
           type: "text",
           title: "What you'll make by the end of the project",
-          body: "- **Six solid pieces** that fit together into one cube\n- A **box** the finished cube slides into\n- A **solution card** so players can check their answer\n\nToday you only plan. No Tinkercad yet. Plan with paper, real cubes, or both.",
+          body: "- **Five or six solid pieces** that fit together into one cube\n- A **box** the finished cube slides into\n- A **solution card** so players can check their answer\n\nToday you only plan. No Tinkercad yet. Plan with paper, real cubes, or both.",
         },
         {
           id: "sample-viewer",
@@ -59,7 +59,7 @@ export const lesson: LessonInput = {
           answer: 27,
           tolerance: 0,
           unit: "cubes",
-          explanation: "3 × 3 = 9 cubes in one layer, and there are 3 layers: 9 × 3 = 27. Your six pieces must use exactly 27 cubes, no more, no fewer.",
+          explanation: "3 × 3 = 9 cubes in one layer, and there are 3 layers: 9 × 3 = 27. All your pieces together must use exactly 27 cubes, no more, no fewer.",
           competencyId: "B1",
           check: "practice",
         },
@@ -73,7 +73,7 @@ export const lesson: LessonInput = {
           id: "rules",
           type: "text",
           title: "The six rules",
-          body: "1. **Exactly 6 pieces** that use **27 cubes** in all.\n2. Each piece has **3 to 6 cubes**.\n3. Every cube shares a **whole face** with another cube in its piece.\n4. **No two pieces are the same shape.** (A turned-around copy counts as the same.)\n5. At least **2 pieces bend in 3D**: they can't lie completely flat.\n6. Each piece has **one side it can lie on** with no cube hanging over air. (That's how it prints without supports.)",
+          body: "1. **5 or 6 pieces** that use **27 cubes** in all.\n2. Each piece has **3 to 7 cubes**.\n3. Every cube shares a **whole face** with another cube in its piece.\n4. **No two pieces are the same shape.** (A turned-around copy counts as the same.)\n5. At least **2 pieces bend in 3D**: they can't lie completely flat.\n6. Each piece prints **without supports**: it has one side it can lie on with no cube hanging over air, or the cube that hangs gets a **45° chamfer** (a sloped underside you'll learn in Print Plan).",
         },
         {
           id: "face-edge",
@@ -113,23 +113,23 @@ export const lesson: LessonInput = {
         {
           id: "sizes-mc",
           type: "multipleChoice",
-          prompt: "Which list of piece sizes could make a six-piece puzzle cube?",
+          prompt: "Which list of piece sizes could make a puzzle cube?",
           hint: "Add each list. You need 27.",
           options: [
             { id: "a", text: "5, 5, 5, 4, 4, 4" },
-            { id: "b", text: "6, 6, 5, 5, 4, 4", misconceptionId: "count-skipped" },
+            { id: "b", text: "6, 6, 5, 5, 4", misconceptionId: "count-skipped" },
             { id: "c", text: "5, 5, 4, 4, 3, 3", misconceptionId: "count-skipped" },
-            { id: "d", text: "4, 4, 4, 4, 4, 4", misconceptionId: "count-skipped" },
+            { id: "d", text: "6, 6, 6, 5, 5", misconceptionId: "count-skipped" },
           ],
           correctOptionIds: ["a"],
-          explanation: "5 + 5 + 5 + 4 + 4 + 4 = 27. The others make 30, 24 and 24. Other lists work too, like 6, 5, 5, 4, 4, 3. Just check that it adds to 27.",
+          explanation: "5 + 5 + 5 + 4 + 4 + 4 = 27. The others make 26, 24 and 28. Other lists work too: five pieces like 6, 6, 5, 5, 5, or six like 6, 5, 5, 4, 4, 3. Just check that it adds to 27.",
           competencyId: "F2",
           check: "skill",
         },
         {
           id: "last-piece",
           type: "measurement",
-          prompt: "You've planned five pieces with 5, 5, 4, 4 and 4 cubes. How many cubes must the sixth piece have?",
+          prompt: "You're making a six-piece puzzle. You've planned five pieces with 5, 5, 4, 4 and 4 cubes. How many cubes must the last piece have?",
           hint: "Add what you have, then subtract from 27.",
           answer: 5,
           tolerance: 0,
@@ -166,7 +166,7 @@ export const lesson: LessonInput = {
           requirements: [
             "Count the cubes in every piece and add them up: 27",
             "Run a finger over every joint: whole faces only",
-            "Set each piece down (for real or in your head): one side has no cube hanging over air",
+            "Set each piece down (for real or in your head): one side has no cube over air, or you've marked the cube that will need a chamfer",
             "Compare pieces: no two are the same shape, even turned around",
           ],
           skills: ["F2", "B1"],
@@ -183,15 +183,15 @@ export const lesson: LessonInput = {
           type: "challenge",
           kind: "prove",
           where: "offline",
-          title: "Six-Piece Plan",
-          prompt: "Plan a six-piece puzzle cube that follows all six rules. Show it as a layer map. Add photos of real cubes if you built it.",
+          title: "Puzzle Piece Plan",
+          prompt: "Plan a puzzle cube with 5 or 6 pieces that follows all six rules. Show it as a layer map. Add photos of real cubes if you built it.",
           requirements: [
             "Layer map with bottom, middle and top layers, a piece letter in all 27 squares",
-            "Exactly 6 pieces, each with 3 to 6 cubes",
+            "5 or 6 pieces, each with 3 to 7 cubes",
             "A count that shows the pieces add to 27",
             "Every cube in a piece shares a whole face with another cube in that piece",
             "At least 2 pieces bend in 3D, and no two pieces are the same shape",
-            "Each piece has a side it can lie on with no cube over air",
+            "Each piece has a side it can lie on with no cube over air (or the hanging cube is marked for a chamfer)",
           ],
           skills: ["F2", "F3", "B1"],
         },
@@ -201,7 +201,7 @@ export const lesson: LessonInput = {
           prompt: "Submit your layer map: a photo, a screenshot, or typed as three rows of letters per layer. Add a photo of your real-cube model if you made one.",
           accepts: ["screenshot", "physical_test", "written"],
           competencyIds: ["F2", "F3", "B1"],
-          checklist: ["All 27 squares have a letter", "Piece sizes add to 27", "Six different pieces", "Two or more 3D pieces"],
+          checklist: ["All 27 squares have a letter", "Piece sizes add to 27", "No two pieces the same shape", "Two or more 3D pieces"],
         },
       ],
     },
@@ -220,7 +220,7 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Launches the Puzzle Cube project. Students turn a fun goal into measurable rules (27 cubes, six pieces, face-to-face joins, printable without supports) and plan before they model. Planning on paper or with real cubes keeps Tinkercad time focused on building, not guessing.",
+    purpose: "Launches the Puzzle Cube project. Students turn a fun goal into measurable rules (27 cubes, five or six pieces, face-to-face joins, printable without supports) and plan before they model. Planning on paper or with real cubes keeps Tinkercad time focused on building, not guessing.",
     preparation: [
       "Collect hands-on cubes: linking cubes, sugar cubes, dice or paper cubes (27 per student or pair). Sticky tack or tape holds pieces together.",
       "Print blank layer-map sheets: three 3 × 3 grids labelled Bottom, Middle, Top.",
@@ -229,7 +229,7 @@ export const lesson: LessonInput = {
     equipment: ["27 small cubes per student or pair (any kind)", "Layer-map sheets or grid paper", "Colored pencils", "Student devices (for the lesson screens)"],
     misconceptions: [
       { id: "edge-is-enough", text: "Cubes that touch on an edge or corner are joined.", response: "Hold two real cubes edge to edge and let go of one. A line has no thickness, so nothing holds them together in the print either." },
-      { id: "count-skipped", text: "Any six piece sizes will work.", response: "Ask them to add the sizes out loud. The total must be exactly 27, the volume of the cube." },
+      { id: "count-skipped", text: "Any piece sizes will work.", response: "Ask them to add the sizes out loud. The total must be exactly 27, the volume of the cube." },
     ],
     discussionQuestions: [
       "Why is 27 the magic number for this cube?",
@@ -239,12 +239,12 @@ export const lesson: LessonInput = {
     printableObjects: ["Sample puzzle cube (optional, for handling)"],
     troubleshooting: [
       "If a plan won't close up (the last pieces don't fit the leftover space), build it with real cubes: the problem is usually visible right away.",
-      "If a student makes six flat pieces, show the sample's pieces A and C and ask them to bend one piece up a layer.",
-      "Rule 6 check: a piece passes if it can sit on a table with every cube touching the table or resting on another cube.",
+      "If a student makes all flat pieces, show the sample's pieces A and C and ask them to bend one piece up a layer.",
+      "Rule 6 check: a piece passes if it can sit on a table with every cube touching the table or resting on another cube. A piece with one cube held on only one side can pass with a planned 45° chamfer (taught in Print Plan); more than one hanging cube usually means the piece should be redesigned.",
     ],
     answerGuidance: [
-      "The sample (5, 5, 5, 4, 4, 4) meets every rule and can be used as a fallback plan for students who need more time.",
-      "Proficient: a complete layer map that meets all six rules, with the count shown.",
+      "The six-piece sample (5, 5, 5, 4, 4, 4) meets every rule and can be used as a fallback plan for students who need more time.",
+      "Proficient: a complete layer map with 5 or 6 pieces that meets all six rules, with the count shown. Five-piece sets (e.g. 6, 6, 5, 5, 5) have bigger pieces that are harder to print support-free, so expect more chamfers.",
       "Accept layer maps drawn, typed (e.g. 'Bottom: BBE / BBE / AAE'), photographed or built with real cubes and described aloud.",
     ],
     alternatives: {

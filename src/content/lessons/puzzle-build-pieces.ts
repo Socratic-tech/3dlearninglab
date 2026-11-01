@@ -1,6 +1,6 @@
 import type { LessonInput } from "../schema";
 
-/** Puzzle Cube path, mission 2: model the six pieces in Tinkercad, built in place on one grid. */
+/** Puzzle Cube path, mission 2: model the five or six pieces in Tinkercad, built in place on one grid. */
 export const lesson: LessonInput = {
   id: "puzzle-build-pieces",
   number: 401,
@@ -8,7 +8,7 @@ export const lesson: LessonInput = {
   subtitle: "Build the whole cube first, then pull it apart.",
   domain: "B",
   kind: "lesson",
-  summary: "Students model their six pieces from exact unit cubes on a snap grid, build them in place as the assembled cube so they're sure to fit, group each piece, check the 45 mm cube, then pull the pieces apart.",
+  summary: "Students model their five or six pieces from exact unit cubes on a snap grid, build them in place as the assembled cube so they're sure to fit, group each piece, check the 45 mm cube, then pull the pieces apart.",
   estimatedMinutes: 60,
   printLevel: "digital",
   competencyIds: ["A9", "B1", "B2", "B4", "B5"],
@@ -27,8 +27,8 @@ export const lesson: LessonInput = {
           id: "hook",
           type: "hero",
           title: "Build it solved. Then take it apart.",
-          hook: "If you build six pieces separately, tiny mistakes mean they won't fit. Build the finished cube first, one colour per piece, and the pieces fit by design.",
-          visual: { modelId: "puzzle-cube-exploded", alt: "Six puzzle pieces pulled apart from a cube." },
+          hook: "If you build every piece separately, tiny mistakes mean they won't fit. Build the finished cube first, one colour per piece, and the pieces fit by design.",
+          visual: { modelId: "puzzle-cube-exploded", alt: "A six-piece sample puzzle pulled apart from a cube." },
         },
         {
           id: "plan-steps",
@@ -40,7 +40,7 @@ export const lesson: LessonInput = {
             { text: "Press Ctrl + D to duplicate it, then drag the copy 15 mm (three snaps) so the two cubes touch face to face.", diagram: "duplicate-pattern", keys: "Ctrl + D" },
             { text: "Fill the bottom layer from your layer map: 9 cubes. Colour each cube with its piece's colour.", diagram: "puzzle-layer-map" },
             { text: "For the next layer, select cubes, duplicate them, and lift the copies with the cone handle until they show 15 mm. The top layer goes at 30 mm.", diagram: "move-z", keys: "Ctrl + D" },
-            { text: "Select all the cubes of one colour and press Ctrl + G to group them. Do this for all six pieces.", diagram: "group-hole", keys: "Ctrl + G" },
+            { text: "Select all the cubes of one colour and press Ctrl + G to group them. Do this for every piece.", diagram: "group-hole", keys: "Ctrl + G" },
           ],
         },
         {
@@ -85,7 +85,7 @@ export const lesson: LessonInput = {
             { id: "unit", text: "Make one 15 × 15 × 15 mm cube" },
             { id: "fill", text: "Duplicate cubes to fill all three layers from your layer map" },
             { id: "colour", text: "Colour each cube by its piece letter" },
-            { id: "group", text: "Group each piece (six groups)" },
+            { id: "group", text: "Group each piece (one group per piece)" },
             { id: "check", text: "Check: the whole cube is 45 × 45 × 45 mm with no gaps" },
             { id: "explode", text: "Pull the pieces apart" },
           ],
@@ -121,7 +121,7 @@ export const lesson: LessonInput = {
         {
           id: "tinkercad",
           type: "tinkercadLaunch",
-          title: "Build your six pieces",
+          title: "Build your pieces",
           steps: [
             "Create a new design called 'puzzle cube v1'.",
             "Set the Snap Grid to 5 mm. Make one 15 × 15 × 15 mm Box.",
@@ -144,7 +144,7 @@ export const lesson: LessonInput = {
           type: "challenge",
           kind: "micro",
           title: "First piece",
-          prompt: "Before you build all six, build and group just one piece. Check it against your layer map.",
+          prompt: "Before you build them all, build and group just one piece. Check it against your layer map.",
           requirements: ["Every cube is 15 × 15 × 15 mm (or 10 mm for a keychain)", "Cubes touch face to face, no gaps", "One group, one colour", "Cube count matches your plan"],
           skills: ["A9", "B2", "B5"],
         },
@@ -152,16 +152,16 @@ export const lesson: LessonInput = {
     },
     {
       phase: "prove",
-      title: "Prove it: six pieces",
+      title: "Prove it: your pieces",
       blocks: [
         {
           id: "prove",
           type: "challenge",
           kind: "prove",
-          title: "Six Pieces, One Cube",
+          title: "Pieces That Make One Cube",
           prompt: "Model your puzzle in Tinkercad, built in place, then pull it apart. Take one screenshot of the assembled cube and one of the pieces apart.",
           requirements: [
-            "Exactly six grouped pieces, each a different colour",
+            "5 or 6 grouped pieces (matching your plan), each a different colour",
             "Every cube is the same exact size, placed on the grid",
             "Assembled cube measures 45 × 45 × 45 mm (or 30 mm for the keychain version)",
             "No gaps and no doubled cubes (checked with Hide)",
@@ -176,7 +176,7 @@ export const lesson: LessonInput = {
           prompt: "Submit your design link (or STL) and two screenshots: the assembled cube with its size showing, and the pieces pulled apart.",
           accepts: ["design_url", "stl", "screenshot"],
           competencyIds: ["A9", "B1", "B2", "B5"],
-          checklist: ["Assembled size visible: 45 × 45 × 45", "Six different colours", "Six groups", "Pieces apart, on the workplane"],
+          checklist: ["Assembled size visible: 45 × 45 × 45", "A different colour per piece", "One group per piece", "Pieces apart, on the workplane"],
         },
       ],
     },
@@ -217,7 +217,7 @@ export const lesson: LessonInput = {
       "Touch devices: duplicate with the Duplicate button in the toolbar and drag with a finger; the snap grid still applies.",
     ],
     answerGuidance: [
-      "Proficient: six grouped pieces that reassemble to exactly 45 × 45 × 45 mm with no gaps or overlaps.",
+      "Proficient: five or six grouped pieces that reassemble to exactly 45 × 45 × 45 mm with no gaps or overlaps.",
       "Accept a 10 mm keychain version (30 mm cube) with the same checks.",
       "If the design changed from the layer map, the student should note what changed and why.",
     ],

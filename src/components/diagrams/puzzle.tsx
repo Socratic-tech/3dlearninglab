@@ -90,3 +90,30 @@ export const ToleranceStack = defineDiagram("tolerance-stack", (r) => {
     </g>
   );
 });
+
+export const PuzzleChamfer = defineDiagram("puzzle-chamfer", (r) => {
+  const s = 44;
+  const plate = 176;
+  return (
+    <g>
+      <Caption x={90} y={22}>Hangs over air</Caption>
+      <rect x={24} y={plate - s} width={s} height={s} fill={C.primarySoft} stroke={C.fg} strokeWidth={1.3} />
+      <rect x={24} y={plate - 2 * s} width={s} height={s} fill={C.primarySoft} stroke={C.fg} strokeWidth={1.3} />
+      <rect x={24 + s} y={plate - 2 * s} width={s} height={s} fill={C.primarySoft} stroke={C.fg} strokeWidth={1.3} />
+      <line x1={24 + s} y1={plate - s} x2={24 + 2 * s} y2={plate - s} stroke={C.danger} strokeWidth={3} />
+      <T x={24 + 1.5 * s} y={plate - s + 18} anchor="middle" size={11} tone={C.danger}>air</T>
+      <line x1={10} y1={plate} x2={170} y2={plate} stroke={C.fg} strokeWidth={2} />
+      <Verdict x={90} y={204} ok={false}>Needs supports</Verdict>
+      <Divider x={180} />
+      <Caption x={270} y={22}>45° chamfer</Caption>
+      <rect x={204} y={plate - s} width={s} height={s} fill={C.primarySoft} stroke={C.fg} strokeWidth={1.3} />
+      <rect x={204} y={plate - 2 * s} width={s} height={s} fill={C.primarySoft} stroke={C.fg} strokeWidth={1.3} />
+      <polygon points={`${204 + s},${plate - s} ${204 + 2 * s},${plate - 2 * s} ${204 + s},${plate - 2 * s}`} fill={C.primarySoft} stroke={C.fg} strokeWidth={1.3} />
+      <polygon points={`${204 + s},${plate - s} ${204 + 2 * s},${plate - s} ${204 + 2 * s},${plate - 2 * s}`} fill={r.hatch} stroke={C.muted} strokeWidth={1} strokeDasharray="3 2" />
+      <T x={204 + 2 * s + 6} y={plate - s - 6} size={11} tone={C.muted}>cut away</T>
+      <T x={204 + s + 10} y={plate - s - 26} size={11} weight={700} tone={C.success}>45°</T>
+      <line x1={190} y1={plate} x2={350} y2={plate} stroke={C.fg} strokeWidth={2} />
+      <Verdict x={270} y={204} ok>Prints on its own</Verdict>
+    </g>
+  );
+});
