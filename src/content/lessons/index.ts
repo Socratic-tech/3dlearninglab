@@ -43,6 +43,11 @@ import { lesson as l_pro_meet_onshape } from "./pro-meet-onshape";
 import { lesson as l_pro_sketch_extrude } from "./pro-sketch-extrude";
 import { lesson as l_product_design } from "./product-design";
 import { lesson as l_prototype } from "./prototype";
+import { lesson as l_puzzle_build_pieces } from "./puzzle-build-pieces";
+import { lesson as l_puzzle_fit_box } from "./puzzle-fit-box";
+import { lesson as l_puzzle_playtest } from "./puzzle-playtest";
+import { lesson as l_puzzle_print_plan } from "./puzzle-print-plan";
+import { lesson as l_puzzle_think_in_cubes } from "./puzzle-think-in-cubes";
 import { lesson as l_quick_demo } from "./quick-demo";
 import { lesson as l_repeat_duplicate } from "./repeat-duplicate";
 import { lesson as l_rotating_objects } from "./rotating-objects";
@@ -103,6 +108,11 @@ export const lessonInputs: LessonInput[] = [
   l_pro_sketch_extrude,
   l_product_design,
   l_prototype,
+  l_puzzle_build_pieces,
+  l_puzzle_fit_box,
+  l_puzzle_playtest,
+  l_puzzle_print_plan,
+  l_puzzle_think_in_cubes,
   l_quick_demo,
   l_repeat_duplicate,
   l_rotating_objects,

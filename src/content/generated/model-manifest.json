@@ -812,45 +812,45 @@
       0
     ],
     "max": [
-      61,
-      58,
-      71
+      60,
+      60,
+      85
     ],
     "size": [
-      73,
-      74,
-      71
+      72,
+      76,
+      85
     ],
     "anchors": {
       "pieceA": [
-        1,
-        -5.5,
-        21.5
-      ],
-      "pieceB": [
-        1,
-        32,
+        3.5,
+        -4.5,
         15
       ],
+      "pieceB": [
+        -0.5,
+        -8.5,
+        58
+      ],
       "pieceC": [
-        14,
-        50.5,
-        71
+        -4.5,
+        34.5,
+        46
       ],
       "pieceD": [
-        11.5,
-        -8.5,
-        70
+        7.5,
+        52.5,
+        85
       ],
       "pieceE": [
-        53.5,
-        7.5,
-        16
+        37.5,
+        -2.5,
+        80
       ],
       "pieceF": [
-        -4.5,
-        26.5,
-        51
+        37.5,
+        52.5,
+        20
       ]
     },
     "notes": "A 45 mm puzzle cube made of 27 cubes (15 mm each), pulled apart into its six pieces: three of 5 cubes and three of 4 cubes."

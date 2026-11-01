@@ -83,7 +83,7 @@ export async function listGoogleCourses(db: DB, actor: Actor) {
   return list.map((c) => ({ ...c, linkedLocalCourseId: byGoogle.get(c.id) ?? null }));
 }
 
-export async function importGoogleCourses(db: DB, actor: Actor, input: { googleCourseIds: string[]; pathId: "9-week" | "18-week" }) {
+export async function importGoogleCourses(db: DB, actor: Actor, input: { googleCourseIds: string[]; pathId: string }) {
   const user = await actorUser(db, actor);
   const client = classroomFor(db, user);
   const results: { googleCourseId: string; localCourseId: string; created: boolean }[] = [];

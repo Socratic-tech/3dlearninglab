@@ -46,6 +46,11 @@ export const standardInputs: S[] = [
 
 /** Many-to-many lesson ↔ standard mapping. */
 export const lessonStandards: { lessonId: string; standardIds: string[] }[] = [
+  { lessonId: "puzzle-think-in-cubes", standardIds: ["math-6.g.a.2", "math-7.g.b.6", "iste-1.5c", "ngss-ms-ets1-1"] },
+  { lessonId: "puzzle-build-pieces", standardIds: ["math-8.g.a.1", "iste-1.4b"] },
+  { lessonId: "puzzle-print-plan", standardIds: ["math-8.g.a.1", "iste-1.4c"] },
+  { lessonId: "puzzle-fit-box", standardIds: ["math-6.ns.b.3", "ngss-ms-ets1-4", "iste-1.4c"] },
+  { lessonId: "puzzle-playtest", standardIds: ["ngss-ms-ets1-3", "mics-2-ap-15", "iste-1.4a", "iste-1.4d", "iste-1.6d"] },
   { lessonId: "pro-meet-onshape", standardIds: ["iste-1.4b"] },
   { lessonId: "pro-sketch-extrude", standardIds: ["iste-1.5c"] },
   { lessonId: "pro-constraints", standardIds: ["iste-1.5c"] },

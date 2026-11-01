@@ -139,14 +139,14 @@ function shells(...parts: THREE.BufferGeometry[]) {
 
 /** Puzzle Cube path: 15 mm unit cubes; the sample 3 × 3 × 3 set (cells are [x, y, z] grid positions, 0–2). */
 const PUZZLE_UNIT = 15;
-const PUZZLE_EXPLODE = 16;
+const PUZZLE_EXPLODE = 20;
 const PUZZLE_PIECES: { letter: string; cells: Vec3[] }[] = [
-  { letter: "A", cells: [[0, 0, 0], [1, 0, 0], [0, 0, 1], [1, 0, 1], [1, 1, 1]] },
-  { letter: "B", cells: [[0, 1, 0], [0, 2, 0], [1, 1, 0], [1, 2, 0], [1, 2, 1]] },
-  { letter: "C", cells: [[0, 2, 2], [1, 2, 2], [2, 2, 2], [2, 1, 2], [2, 2, 1]] },
-  { letter: "D", cells: [[0, 0, 2], [1, 0, 2], [2, 0, 2], [2, 0, 1]] },
-  { letter: "E", cells: [[2, 0, 0], [2, 1, 0], [2, 2, 0], [2, 1, 1]] },
-  { letter: "F", cells: [[0, 1, 1], [0, 2, 1], [0, 1, 2], [1, 1, 2]] },
+  { letter: "A", cells: [[0, 0, 0], [1, 0, 0], [2, 0, 0], [0, 1, 0], [1, 1, 0]] },
+  { letter: "B", cells: [[0, 0, 1], [1, 0, 1], [2, 0, 1], [0, 0, 2], [0, 1, 2]] },
+  { letter: "C", cells: [[0, 1, 1], [1, 1, 1], [0, 2, 1], [1, 2, 1], [0, 2, 0]] },
+  { letter: "D", cells: [[0, 2, 2], [1, 2, 2], [2, 2, 2], [1, 1, 2]] },
+  { letter: "E", cells: [[1, 0, 2], [2, 0, 2], [2, 1, 2], [2, 1, 1]] },
+  { letter: "F", cells: [[1, 2, 0], [2, 2, 0], [2, 1, 0], [2, 2, 1]] },
 ];
 
 const models: Record<string, () => Built> = {
