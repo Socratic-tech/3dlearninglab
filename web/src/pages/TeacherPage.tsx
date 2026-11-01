@@ -20,7 +20,7 @@ import { CustomPathBuilder } from "./CustomPathBuilder";
 import { markSetupStep, SetupCheckPanel, SetupChecklist } from "./SetupHelp";
 import { offlineChallenges } from "./HandoutPage";
 import { UpdateBanner } from "./UpdateBanner";
-import { classCompletion, ClassHero, classStudents, ClassTrail, SectionHeading, TodaysWins, whereTheClassIs, winsToday } from "./TeacherWarmth";
+import { classCompletion, ClassHero, classStudents, ClassTrail, FocusCard, SectionHeading, TodaysWins, whereTheClassIs, winsToday } from "./TeacherWarmth";
 
 type Ev = { id: string; email: string; lessonId: string; type: string; url: string | null; fileName: string | null; text: string | null; status: string; rating: number | null; comment: string | null; createdAt: string; competencyIds: string[] };
 type ClassData = {
@@ -213,6 +213,8 @@ function SimpleHome({ data, firstName, name, apiUrl, onSaved, openTool }: { data
     <div className="space-y-8">
       <ClassHero firstName={firstName} className={data.cls.name} percent={classCompletion(students, data.progress, path)} active={activeToday} toReview={queue.length} prints={openPrints} />
 
+      <FocusCard stuck={(data.live?.stuck ?? []).map((x) => ({ name: name(x.email), lesson: lessonTitle(x.lessonId) }))} toReview={queue.length} prints={openPrints} />
+
       <SetupChecklist cls={data.cls} students={data.students} apiUrl={apiUrl} goTab={openTool} />
 
       {data.live ? (
@@ -226,10 +228,10 @@ function SimpleHome({ data, firstName, name, apiUrl, onSaved, openTool }: { data
 
       <TodaysWins wins={winsToday(students, data.progress)} title={lessonTitle} />
 
-      <section aria-labelledby="review-h" className="space-y-3">
+      <section aria-labelledby="review-h" className="space-y-3 rounded-3xl border border-accent/30 bg-accent-soft p-5">
         <SectionHeading id="review-h" icon={<ClipboardCheck className="size-5" />} tone="accent" count={queue.length}>Work to review</SectionHeading>
         {queue.length === 0 ? (
-          <div className="flex items-center gap-4 rounded-3xl border border-success/30 bg-success-soft p-5">
+          <div className="flex items-center gap-4 rounded-2xl bg-surface p-4">
             <PartyPopper className="size-8 shrink-0 text-success" aria-hidden />
             <div><p className="font-display text-lg font-bold">All caught up</p><p className="text-sm text-muted">New screenshots, designs and reflections show up here when students submit them.</p></div>
           </div>
@@ -241,7 +243,7 @@ function SimpleHome({ data, firstName, name, apiUrl, onSaved, openTool }: { data
         )}
       </section>
 
-      <section aria-labelledby="prints-h" className="space-y-3">
+      <section aria-labelledby="prints-h" className="space-y-3 rounded-3xl border border-primary/30 bg-primary-soft p-5">
         <SectionHeading id="prints-h" icon={<Printer className="size-5" />} count={openPrints}>Print queue</SectionHeading>
         <Prints jobs={data.prints ?? []} name={name} apiUrl={apiUrl} onSaved={onSaved} />
       </section>

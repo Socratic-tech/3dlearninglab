@@ -3,7 +3,7 @@
  * class is on the mission trail. Purely presentational: everything is worked out from the class data already loaded.
  */
 import type { ReactNode } from "react";
-import { Check, ClipboardCheck, Printer, Trophy, Users } from "lucide-react";
+import { ArrowRight, Check, ClipboardCheck, PartyPopper, Printer, Siren, Trophy, Users } from "lucide-react";
 import type { Lesson } from "@/content/schema";
 import { ProgressRing } from "@/components/ui/progress";
 import { cn } from "@/lib/cn";
@@ -105,7 +105,7 @@ export function SectionHeading({ id, icon, children, count, tone = "primary" }: 
   const tones = { primary: "bg-primary-soft text-primary", accent: "bg-accent-soft text-accent", success: "bg-success-soft text-success" };
   return (
     <div className="flex items-center gap-3">
-      <span className={cn("grid size-9 place-items-center rounded-xl", tones[tone])} aria-hidden>{icon}</span>
+      <span className={cn("grid size-9 place-items-center rounded-xl bg-surface", tones[tone])} aria-hidden>{icon}</span>
       <h2 id={id} className="scroll-mt-20 font-display text-xl font-bold">{children}</h2>
       {!!count && <span className="rounded-full bg-accent px-2.5 py-0.5 text-sm font-bold text-white">{count}</span>}
     </div>
@@ -114,14 +114,14 @@ export function SectionHeading({ id, icon, children, count, tone = "primary" }: 
 
 export function TodaysWins({ wins, title }: { wins: { student: Student; lessonId: string }[]; title: (lessonId: string) => string }) {
   return (
-    <section aria-labelledby="wins-h" className="rounded-3xl border border-border bg-surface p-5">
+    <section aria-labelledby="wins-h" className="rounded-3xl border border-success/30 bg-success-soft p-5">
       <SectionHeading id="wins-h" icon={<Trophy className="size-5" />} tone="success" count={wins.length}>Today&apos;s wins</SectionHeading>
       {wins.length === 0 ? (
         <p className="mt-3 text-muted">Missions students finish today show up here. A good thing to read out at the end of class.</p>
       ) : (
         <ul className="mt-3 flex flex-wrap gap-2">
           {wins.slice(0, 12).map((w, i) => (
-            <li key={i} className="flex items-center gap-2 rounded-full border border-success/30 bg-success-soft py-1 pl-1 pr-3 text-sm">
+            <li key={i} className="flex items-center gap-2 rounded-full border border-success/30 bg-surface py-1 pl-1 pr-3 text-sm">
               <StudentBadge s={w.student} size={28} />
               <span><strong>{w.student.name.split(" ")[0]}</strong> finished {title(w.lessonId)}</span>
             </li>
@@ -134,15 +134,15 @@ export function TodaysWins({ wins, title }: { wins: { student: Student; lessonId
 }
 
 /** One stop on the trail: a ring that fills with the class's progress, the unit number (or a check) in the middle. */
-function TrailStop({ pct, full, week, label }: { pct: number; full: boolean; week: number; label: string }) {
+function TrailStop({ pct, full, week, label, hot }: { pct: number; full: boolean; week: number; label: string; hot?: boolean }) {
   const size = 44, stroke = 5, rad = (size - stroke) / 2, c = 2 * Math.PI * rad;
   return (
     <span className="relative grid shrink-0 place-items-center" role="img" aria-label={label}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden>
-        <circle cx={size / 2} cy={size / 2} r={rad} fill="var(--surface)" stroke="var(--surface-2)" strokeWidth={stroke} />
-        {pct > 0 && <circle cx={size / 2} cy={size / 2} r={rad} fill="none" stroke={full ? "var(--success)" : "var(--primary)"} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={`${(Math.max(0, Math.min(100, pct)) / 100) * c} ${c}`} transform={`rotate(-90 ${size / 2} ${size / 2})`} />}
+        <circle cx={size / 2} cy={size / 2} r={rad} fill={hot ? "var(--primary)" : "var(--surface)"} stroke={hot ? "var(--primary-soft)" : "var(--surface-2)"} strokeWidth={stroke} />
+        {pct > 0 && <circle cx={size / 2} cy={size / 2} r={rad} fill="none" stroke={full ? "var(--success)" : hot ? "var(--accent)" : "var(--primary)"} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={`${(Math.max(0, Math.min(100, pct)) / 100) * c} ${c}`} transform={`rotate(-90 ${size / 2} ${size / 2})`} />}
       </svg>
-      <span className="absolute inset-0 grid place-items-center text-sm font-bold" aria-hidden>{full ? <Check className="size-5 text-success" /> : week}</span>
+      <span className={cn("absolute inset-0 grid place-items-center text-sm font-bold", hot && "text-white")} aria-hidden>{full ? <Check className={cn("size-5", hot ? "text-white" : "text-success")} /> : week}</span>
     </span>
   );
 }
@@ -150,6 +150,7 @@ function TrailStop({ pct, full, week, label }: { pct: number; full: boolean; wee
 /** The class on the mission trail: one stop per unit, filled by how much of it the class has finished, with who's there now. */
 export function ClassTrail({ trail }: { trail: ReturnType<typeof whereTheClassIs> }) {
   const { weeks, finishedAll } = trail;
+  const busiest = weeks.reduce<(typeof weeks)[number] | null>((b, w) => (w.here.length > (b?.here.length ?? 0) ? w : b), null);
   return (
     <section aria-labelledby="trail-h" className="rounded-3xl border border-border bg-surface p-5">
       <h2 id="trail-h" className="font-display text-xl font-bold">Where the class is</h2>
@@ -162,10 +163,11 @@ export function ClassTrail({ trail }: { trail: ReturnType<typeof whereTheClassIs
             <li key={w.week} className="flex min-w-[6.5rem] flex-1 flex-col items-center text-center">
               <div className="flex w-full items-center">
                 <span className={cn("h-1 flex-1 rounded", i === 0 ? "invisible" : pct > 0 ? "bg-primary" : "bg-surface-2")} aria-hidden />
-                <TrailStop pct={pct} full={full} week={w.week} label={`Unit ${w.week}, ${w.title}: class has finished ${Math.round(pct)}%`} />
+                <TrailStop pct={pct} full={full} week={w.week} hot={w === busiest} label={`Unit ${w.week}, ${w.title}: class has finished ${Math.round(pct)}%${w === busiest ? ". Most of the class is here." : ""}`} />
                 <span className={cn("h-1 flex-1 rounded", i === weeks.length - 1 ? "invisible" : full ? "bg-primary" : "bg-surface-2")} aria-hidden />
               </div>
-              <p className="mt-1 line-clamp-2 text-xs font-semibold">{w.title}</p>
+              <p className={cn("mt-1 line-clamp-2 text-xs font-semibold", w === busiest && "text-primary")}>{w.title}</p>
+              {w === busiest && <p className="text-[11px] font-bold uppercase tracking-wide text-accent">Most are here</p>}
               {w.here.length > 0 && (
                 <div className="mt-1 flex -space-x-1" aria-label={`${w.here.length} working here: ${w.here.map((s) => s.name).join(", ")}`} role="img">
                   {w.here.slice(0, 3).map((s) => <StudentBadge key={s.email} s={s} size={26} />)}
@@ -177,6 +179,30 @@ export function ClassTrail({ trail }: { trail: ReturnType<typeof whereTheClassIs
         })}
       </ol>
       {finishedAll.length > 0 && <p className="mt-2 text-sm"><Trophy className="mr-1 inline size-4 text-accent" aria-hidden /><strong>Finished the whole course:</strong> {finishedAll.map((s) => s.name.split(" ")[0]).join(", ")}</p>}
+    </section>
+  );
+}
+
+/**
+ * Fixed colours (not theme tokens) so white text keeps strong contrast in light and dark mode.
+ * The one thing that needs the teacher next, as a bold card like the student's "Up next":
+ * stuck students first, then work to review, then prints; otherwise a green "all caught up".
+ */
+export function FocusCard({ stuck, toReview, prints }: { stuck: { name: string; lesson: string }[]; toReview: number; prints: number }) {
+  const first = (n: string) => n.split(" ")[0];
+  const card = stuck.length
+    ? { tone: "from-[#b45309] to-[#9a3412]", kicker: "Needs you now", icon: <Siren className="size-7" aria-hidden />, title: stuck.length === 1 ? `${first(stuck[0].name)} is stuck` : `${stuck.length} students are stuck`, body: stuck.slice(0, 4).map((x) => `${first(x.name)} (${x.lesson})`).join(" · ") + (stuck.length > 4 ? ` · +${stuck.length - 4} more` : ""), href: "#now-h", cta: "See who" }
+    : toReview
+      ? { tone: "from-[#0b5cad] to-[#1e40af]", kicker: "Up next for you", icon: <ClipboardCheck className="size-7" aria-hidden />, title: toReview === 1 ? "1 piece of work to review" : `${toReview} pieces of work to review`, body: "Students are waiting on your feedback to move on.", href: "#review-h", cta: "Start reviewing" }
+      : prints
+        ? { tone: "from-[#0b5cad] to-[#1e40af]", kicker: "Up next for you", icon: <Printer className="size-7" aria-hidden />, title: prints === 1 ? "1 print waiting" : `${prints} prints waiting`, body: "Start the next print, or send one back with a note.", href: "#prints-h", cta: "Open the print queue" }
+        : { tone: "from-[#15803d] to-[#166534]", kicker: "All caught up", icon: <PartyPopper className="size-7" aria-hidden />, title: "Nothing needs you right now", body: "A good moment to walk the room, or see where the class is below.", href: "#trail-h", cta: "Where the class is" };
+  return (
+    <section aria-label="What needs you next" className={cn("rounded-3xl bg-gradient-to-br p-6 text-white shadow-lg", card.tone)}>
+      <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] opacity-90">{card.kicker}</p>
+      <h2 className="mt-1 flex items-center gap-2 font-display text-2xl font-bold sm:text-3xl">{card.icon}{card.title}</h2>
+      <p className="mt-1 opacity-90">{card.body}</p>
+      <a href={card.href} className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 font-semibold text-[#0f1b2d] hover:opacity-90">{card.cta} <ArrowRight className="size-4" aria-hidden /></a>
     </section>
   );
 }
