@@ -2,7 +2,7 @@ import { tr } from "@/lib/i18n";
 import { useLocale } from "@/lib/use-locale";
 import { ensureLocaleContent, localeContentReady } from "./content";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { LogOut } from "lucide-react";
+import { FolderKanban, LayoutDashboard, LogOut } from "lucide-react";
 import { DisplayMenu } from "./display";
 import { LogoMark } from "@/components/nav/logo";
 import { Alert } from "@/components/ui/card";
@@ -27,6 +27,7 @@ import { TeacherPage } from "./pages/TeacherPage";
 import { SetupPage } from "./pages/SetupPage";
 import { HandoutPage } from "./pages/HandoutPage";
 import { TryItBar, TryItStart } from "./pages/TryItPage";
+import { ProjectsPage } from "./pages/ProjectsPage";
 
 function useHash() {
   const [hash, setHash] = useState(() => location.hash || "#/");
@@ -158,6 +159,7 @@ export function App() {
   else if (me.user.role === "teacher" && route.startsWith("/guide/")) page = <TeacherGuidePage lessonId={route.slice(7)} />;
   else if (me.user.role === "teacher" && route === "/kit") page = <PrintKitPage me={me} />;
   else if (me.user.role === "teacher" && route === "/debug") page = <DebugPage me={me} apiUrl={cfg.apiUrl} />;
+  else if (me.user.role === "teacher" && route === "/projects") page = <ProjectsPage me={me} apiUrl={cfg.apiUrl} onChange={load} />;
   else if (me.user.role === "teacher" && route === "/poster") page = <PosterPage me={me} apiUrl={cfg.apiUrl} clientId={cfg.clientId ?? ""} />;
   else if (me.user.role === "teacher" && (route.startsWith("/teacher") || (route === "/" && !studentView))) page = <TeacherPage me={me} apiUrl={cfg.apiUrl} clientId={clientId} onChange={load} />;
   else page = <StudentHome me={me} apiUrl={cfg.apiUrl} onChange={load} />;
@@ -179,9 +181,9 @@ function Frame({ children, me, onSignOut, onSwitch, onReset, expired, tryIt }: {
         <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-4">
           <a href="#/" className="flex shrink-0 items-center gap-2 font-display font-bold" aria-label="3D Design Academy"><LogoMark /> <span className="hidden sm:inline">3D Design <span className="text-primary">Academy</span></span></a>
           {me && me.classes.length > 1 && onSwitch ? (
-            <label className="flex min-w-0 items-center gap-2 text-sm">
+            <label className="flex min-w-0 flex-1 items-center gap-2 text-sm">
               <span className="sr-only">{tr("Class")}</span>
-              <select className="h-9 w-full min-w-[6rem] max-w-[11rem] truncate rounded-lg border border-border bg-surface px-2" value={me.cls?.id ?? ""} onChange={(e) => onSwitch(e.target.value)}>
+              <select className="h-9 w-full min-w-0 max-w-[11rem] truncate rounded-lg border border-border bg-surface px-2" value={me.cls?.id ?? ""} onChange={(e) => onSwitch(e.target.value)}>
                 {me.classes.map((c) => <option key={c.id} value={c.id}>{c.name}{c.section ? ` · ${c.section}` : ""}</option>)}
               </select>
             </label>
@@ -189,8 +191,9 @@ function Frame({ children, me, onSignOut, onSwitch, onReset, expired, tryIt }: {
             <span className="hidden truncate text-sm text-muted sm:inline">· {me.cls.name}{me.cls.section ? ` · ${me.cls.section}` : ""}</span>
           ) : null}
           <div className="ml-auto flex shrink-0 items-center gap-1">
-            {me?.user.role === "teacher" && !studentView && <a href="#/teacher" className="rounded-lg px-3 py-2 text-sm font-semibold hover:bg-surface-2">{tr("Teacher")}</a>}
-            {me && <a href="#/student" className="rounded-lg px-3 py-2 text-sm font-semibold hover:bg-surface-2">{tr("Missions")}</a>}
+            {me?.user.role === "teacher" && !studentView && <a href="#/teacher" aria-label={tr("Teacher")} title={tr("Teacher")} className="flex items-center rounded-lg p-2 text-sm font-semibold hover:bg-surface-2 sm:px-3"><LayoutDashboard className="size-5 sm:hidden" aria-hidden /><span className="hidden sm:inline">{tr("Teacher")}</span></a>}
+            {me?.user.role === "teacher" && !studentView && <a href="#/projects" aria-label={tr("Projects")} title={tr("Projects")} className="flex items-center rounded-lg p-2 text-sm font-semibold hover:bg-surface-2 sm:px-3"><FolderKanban className="size-5 sm:hidden" aria-hidden /><span className="hidden sm:inline">{tr("Projects")}</span></a>}
+            {me && <a href="#/student" className="rounded-lg px-2 py-2 text-sm font-semibold hover:bg-surface-2 sm:px-3">{tr("Missions")}</a>}
             {me && <SyncPill />}
             <DisplayMenu allLooks={!!me && isStaff(me)} />
             {onSignOut && me && <button onClick={onSignOut} className="rounded-lg p-2 text-muted hover:bg-surface-2" aria-label={tr("Sign out")}><LogOut className="size-5" aria-hidden /></button>}

@@ -1,13 +1,45 @@
 /**
  * Custom project paths: a teacher picks and orders existing lessons for a class and ends with their own project
  * mission ("custom-project"). The server stores the path in the class row and credits the picked lessons' skills
- * when the project is reviewed.
+ * when the project is reviewed. A path assigned from the Projects page ends with a built-in project mission instead
+ * (`project`: the last lesson), and has no extra mission after it.
  */
 import type { Lesson } from "@/content/schema";
-import { lessonFor, pathLessons, type ClassInfo } from "./content";
+import { lessonFor, lessons, pathLessons, type ClassInfo } from "./content";
 
-export type CustomPath = { title: string; brief: string; lessonIds: string[]; requirements: string[]; competencyIds?: string[] };
+export type CustomPath = { title: string; brief: string; lessonIds: string[]; requirements: string[]; competencyIds?: string[]; project?: string | null };
 export const PROJECT_ID = "custom-project";
+
+/** Lesson kinds that are projects: students make and share something, rather than learn one skill. */
+const PROJECT_KINDS = new Set(["boss", "challenge", "capstone", "showcase", "lab"]);
+/** Every built-in project mission, in course order. */
+export const projectMissions = (): Lesson[] => lessons.filter((l) => PROJECT_KINDS.has(l.kind) && l.id !== PROJECT_ID).sort((a, b) => a.number - b.number);
+
+/** The lessons a project builds on (all of them, prerequisites first), ending with the project itself. */
+export function projectPath(projectId: string): string[] {
+  const seen = new Set<string>();
+  const order: string[] = [];
+  const visit = (id: string) => {
+    if (seen.has(id)) return;
+    seen.add(id);
+    const l = lessonFor(id);
+    if (!l) return;
+    [...l.prerequisites].sort((a, b) => (lessonFor(a)?.number ?? 0) - (lessonFor(b)?.number ?? 0)).forEach(visit);
+    order.push(id);
+  };
+  visit(projectId);
+  return order;
+}
+
+/** A class path for a built-in project: its lessons in order, ending with the project mission. */
+export function assignProject(projectId: string): CustomPath | null {
+  const p = lessonFor(projectId);
+  if (!p) return null;
+  return { title: p.title, brief: p.summary, lessonIds: projectPath(projectId), requirements: [], project: projectId };
+}
+
+/** True when the class's path ends with a built-in project mission (so there is no "Your project" mission after it). */
+const endsWithProject = (c: CustomPath) => !!c.project && c.lessonIds[c.lessonIds.length - 1] === c.project;
 
 /** Lesson order for a class, grouped into small units, the same shape as a standard course. */
 export function classLessons(cls: ClassInfo | null | undefined): { lesson: Lesson; week: number; weekTitle: string }[] {
@@ -16,6 +48,7 @@ export function classLessons(cls: ClassInfo | null | undefined): { lesson: Lesso
   const picked = custom.lessonIds.map((id) => lessonFor(id)).filter((l): l is Lesson => !!l);
   const units = Math.ceil(picked.length / 3);
   const out = picked.map((lesson, i) => ({ lesson, week: Math.floor(i / 3) + 1, weekTitle: units > 1 ? `${custom.title} · part ${Math.floor(i / 3) + 1}` : custom.title }));
+  if (endsWithProject(custom)) return out;
   const project = lessonFor(PROJECT_ID);
   if (project) out.push({ lesson: personalizeProject(project, custom), week: units + 1, weekTitle: custom.title });
   return out;
@@ -82,7 +115,7 @@ export const PROJECT_TEMPLATES: (CustomPath & { id: string; label: string })[] =
 
 /** Share code: the path as compact text another teacher can paste into their class. */
 export function encodeShareCode(c: CustomPath): string {
-  const json = JSON.stringify({ t: c.title, b: c.brief, l: c.lessonIds, r: c.requirements });
+  const json = JSON.stringify({ t: c.title, b: c.brief, l: c.lessonIds, r: c.requirements, p: c.project || undefined });
   const bytes = new TextEncoder().encode(json);
   let bin = "";
   bytes.forEach((x) => (bin += String.fromCharCode(x)));
@@ -93,10 +126,11 @@ export function decodeShareCode(code: string): CustomPath | null {
     const m = code.trim().match(/^3DA1\.([\w-]+)$/);
     if (!m) return null;
     const bin = atob(m[1].replace(/-/g, "+").replace(/_/g, "/"));
-    const x = JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, (ch) => ch.charCodeAt(0)))) as { t?: string; b?: string; l?: unknown; r?: unknown };
+    const x = JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, (ch) => ch.charCodeAt(0)))) as { t?: string; b?: string; l?: unknown; r?: unknown; p?: unknown };
     const lessonIds = Array.isArray(x.l) ? x.l.map(String).filter((id) => id !== PROJECT_ID && !!lessonFor(id)) : [];
     if (!lessonIds.length) return null;
-    return { title: String(x.t ?? ""), brief: String(x.b ?? ""), lessonIds, requirements: Array.isArray(x.r) ? x.r.map(String).slice(0, 8) : [] };
+    const project = typeof x.p === "string" && lessonIds.includes(x.p) ? x.p : null;
+    return { title: String(x.t ?? ""), brief: String(x.b ?? ""), lessonIds, requirements: Array.isArray(x.r) ? x.r.map(String).slice(0, 8) : [], project };
   } catch {
     return null;
   }

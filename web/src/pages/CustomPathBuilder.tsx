@@ -18,12 +18,15 @@ export function CustomPathBuilder({ cls, apiUrl, onSaved }: { cls: ClassInfo; ap
   const [brief, setBrief] = useState(start?.brief ?? "");
   const [ids, setIds] = useState<string[]>(start?.lessonIds ?? []);
   const [reqs, setReqs] = useState((start?.requirements ?? []).join("\n"));
+  const [project, setProject] = useState<string | null>(start?.project ?? null); // a built-in final mission (Projects page)
   const [q, setQ] = useState("");
   const [code, setCode] = useState("");
   const [msg, setMsg] = useState<{ tone: "success" | "danger" | "info"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const draft: CustomPath = { title: title.trim(), brief: brief.trim(), lessonIds: ids, requirements: reqs.split("\n").map((r) => r.trim()).filter(Boolean).slice(0, 8) };
+  // stays the final mission only while it is last; moved or removed, the path ends with "Your project" again
+  const finalProject = project && ids[ids.length - 1] === project ? project : null;
+  const draft: CustomPath = { title: title.trim(), brief: brief.trim(), lessonIds: ids, requirements: reqs.split("\n").map((r) => r.trim()).filter(Boolean).slice(0, 8), project: finalProject };
   const picked = ids.map((id) => lessonById.get(id)).filter((l): l is NonNullable<typeof l> => !!l);
   const minutes = picked.reduce((n, l) => n + l.estimatedMinutes, 0);
   const skills = [...new Set(picked.flatMap((l) => l.competencyIds))];
@@ -37,7 +40,7 @@ export function CustomPathBuilder({ cls, apiUrl, onSaved }: { cls: ClassInfo; ap
       .slice(0, s ? 20 : 12);
   }, [q, ids]);
 
-  const load = (c: CustomPath) => { setTitle(c.title); setBrief(c.brief); setIds(c.lessonIds); setReqs(c.requirements.join("\n")); setMsg(null); };
+  const load = (c: CustomPath) => { setTitle(c.title); setBrief(c.brief); setIds(c.lessonIds); setReqs(c.requirements.join("\n")); setProject(c.project ?? null); setMsg(null); };
   const move = (i: number, d: number) => setIds((xs) => { const n = [...xs]; const [x] = n.splice(i, 1); n.splice(Math.max(0, Math.min(n.length, i + d)), 0, x); return n; });
   const addBefore = (id: string, before: string) => setIds((xs) => { const n = xs.filter((x) => x !== id); const at = n.indexOf(before); n.splice(at < 0 ? n.length : at, 0, id); return n; });
   const save = async () => {
@@ -105,13 +108,13 @@ export function CustomPathBuilder({ cls, apiUrl, onSaved }: { cls: ClassInfo; ap
             {picked.map((l, i) => (
               <li key={l.id} className="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-1.5 text-sm">
                 <span className="w-6 font-mono text-xs text-muted">{i + 1}</span>
-                <span className="min-w-0 flex-1 font-semibold">{l.title}</span>
+                <span className="min-w-0 flex-1 font-semibold">{l.title}{l.id === finalProject && <span className="ml-2 text-xs font-normal text-muted">★ final mission</span>}</span>
                 <Button size="sm" variant="ghost" disabled={i === 0} onClick={() => move(i, -1)} aria-label={`Move ${l.title} up`}><ArrowUp className="size-4" aria-hidden /></Button>
                 <Button size="sm" variant="ghost" disabled={i === picked.length - 1} onClick={() => move(i, 1)} aria-label={`Move ${l.title} down`}><ArrowDown className="size-4" aria-hidden /></Button>
                 <Button size="sm" variant="ghost" onClick={() => setIds(ids.filter((x) => x !== l.id))} aria-label={`Remove ${l.title}`}><X className="size-4" aria-hidden /></Button>
               </li>
             ))}
-            {picked.length > 0 && (
+            {picked.length > 0 && !finalProject && (
               <li className="flex items-center gap-2 rounded-xl border border-accent bg-accent-soft px-3 py-1.5 text-sm">
                 <span className="w-6 font-mono text-xs text-muted">★</span>
                 <span className="min-w-0 flex-1 font-semibold">Your project: {draft.title || "(add a title)"}</span>

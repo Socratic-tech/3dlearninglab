@@ -359,8 +359,9 @@ function classOut_(c) {
   };
 }
 
-// ── Custom project paths: a teacher picks and orders existing lessons and ends with their own project mission.
-// Stored as JSON in the class row. Only known lessons are kept; teacher text is plain and length-limited.
+// ── Custom project paths: a teacher picks and orders existing lessons and ends with their own project mission, or
+// (assigned from the Projects page) with a built-in project mission (`project`). Stored as JSON in the class row.
+// Only known lessons are kept; teacher text is plain and length-limited.
 const CUSTOM_PROJECT_ID = "custom-project";
 function cleanCustom_(x) {
   if (!x || typeof x !== "object") return null;
@@ -370,13 +371,16 @@ function cleanCustom_(x) {
     if (id === CUSTOM_PROJECT_ID || !lessons[id] || seen[id]) return false;
     seen[id] = true;
     return true;
-  }).slice(0, 40);
+  }).slice(0, 80);
   if (!ids.length) return null;
+  // A path assigned from the Projects page ends with a built-in project mission instead of the teacher's own brief.
+  const project = x.project && ids.indexOf(String(x.project)) >= 0 ? String(x.project) : null;
+  if (project) { ids.splice(ids.indexOf(project), 1); ids.push(project); }
   const text = function (v, n) { return String(v || "").replace(/[\u0000-\u0008\u000b-\u001f]/g, "").trim().slice(0, n); };
   const reqs = (Array.isArray(x.requirements) ? x.requirements : []).map(function (r) { return text(r, 200); }).filter(Boolean).slice(0, 8);
   const comps = {};
   ids.forEach(function (id) { (lessons[id].competencyIds || []).forEach(function (c) { if (content_().competencyIds[c]) comps[c] = true; }); });
-  return { title: text(x.title, 80) || "Class project", brief: text(x.brief, 600), lessonIds: ids, requirements: reqs, competencyIds: Object.keys(comps) };
+  return { title: text(x.title, 80) || "Class project", brief: text(x.brief, 600), lessonIds: ids, requirements: reqs, competencyIds: Object.keys(comps), project: project };
 }
 function customOf_(c) {
   if (!c || !c.custom) return null;
@@ -385,7 +389,7 @@ function customOf_(c) {
 /** Lesson order for a class: its custom path (plus the project mission) or a standard course. */
 function classPath_(cls) {
   const custom = customOf_(cls);
-  if (cls.pathId === "custom" && custom) return custom.lessonIds.concat([CUSTOM_PROJECT_ID]);
+  if (cls.pathId === "custom" && custom) return custom.project ? custom.lessonIds.slice() : custom.lessonIds.concat([CUSTOM_PROJECT_ID]);
   const paths = content_().paths;
   return paths[pathIdOf_(cls.pathId)] || paths["18-week"];
 }
@@ -2024,7 +2028,7 @@ const ACTIONS = {
       if (a.custom !== undefined) {
         const custom = a.custom === null ? null : cleanCustom_(a.custom);
         if (a.custom !== null && !custom) throw userError_("Pick at least one lesson for the project path.");
-        patch.custom = custom ? JSON.stringify({ title: custom.title, brief: custom.brief, lessonIds: custom.lessonIds, requirements: custom.requirements }) : "";
+        patch.custom = custom ? JSON.stringify({ title: custom.title, brief: custom.brief, lessonIds: custom.lessonIds, requirements: custom.requirements, project: custom.project }) : "";
       }
       if (a.pathId !== undefined) {
         const hasCustom = patch.custom !== undefined ? !!patch.custom : !!customOf_(c);

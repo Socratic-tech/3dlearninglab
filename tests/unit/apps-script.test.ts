@@ -638,6 +638,23 @@ describe("XP store and class rewards", () => {
     expect(e.call("teacher@school.org", "updateClass", { classId: cls.id, pathId: "9-week" }).data).toMatchObject({ pathId: "9-week", custom: { title: "Phone stand for family" } });
   });
 
+  it("Projects page: a path can end with a built-in project mission, with no extra mission after it", () => {
+    const e = makeEnv("teacher@school.org");
+    const cls = e.call("teacher@school.org", "createClass", { name: "Name tags" }).data;
+    // the project is moved to the end, whatever order it arrives in; an unknown project is ignored
+    const out = e.call("teacher@school.org", "updateClass", {
+      classId: cls.id, pathId: "custom",
+      custom: { title: "Name Tag Boss", brief: "", lessonIds: ["grouping", "boss-nametag", "holes"], requirements: [], project: "boss-nametag" },
+    }).data;
+    expect(out.custom).toMatchObject({ lessonIds: ["grouping", "holes", "boss-nametag"], project: "boss-nametag" });
+    const path = (id: string) => e.run(`classPath_(table_("Classes").find(function (c) { return c.classId === ${JSON.stringify(id)}; }))`);
+    expect(path(cls.id)).toEqual(["grouping", "holes", "boss-nametag"]); // no "Your project" mission after it
+    expect(e.call("teacher@school.org", "updateClass", { classId: cls.id, custom: { title: "X", lessonIds: ["grouping"], project: "holes" } }).data.custom.project).toBeNull();
+    // a teacher's own brief still ends with the "Your project" mission
+    e.call("teacher@school.org", "updateClass", { classId: cls.id, custom: { title: "Phone stand", brief: "For home", lessonIds: ["grouping", "holes"], requirements: [] } });
+    expect(path(cls.id)).toEqual(["grouping", "holes", "custom-project"]);
+  });
+
   it("a class can use any course path the lessons define (grades 4–5 starter); unknown paths fall back", () => {
     const e = makeEnv("teacher@school.org");
     const jr = e.call("teacher@school.org", "createClass", { name: "Room 12", pathId: "jr-starter" }).data;
