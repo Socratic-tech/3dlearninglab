@@ -137,6 +137,18 @@ function shells(...parts: THREE.BufferGeometry[]) {
 
 // ───────── models ─────────
 
+/** Puzzle Cube path: 15 mm unit cubes; the sample 3 × 3 × 3 set (cells are [x, y, z] grid positions, 0–2). */
+const PUZZLE_UNIT = 15;
+const PUZZLE_EXPLODE = 16;
+const PUZZLE_PIECES: { letter: string; cells: Vec3[] }[] = [
+  { letter: "A", cells: [[0, 0, 0], [1, 0, 0], [0, 0, 1], [1, 0, 1], [1, 1, 1]] },
+  { letter: "B", cells: [[0, 1, 0], [0, 2, 0], [1, 1, 0], [1, 2, 0], [1, 2, 1]] },
+  { letter: "C", cells: [[0, 2, 2], [1, 2, 2], [2, 2, 2], [2, 1, 2], [2, 2, 1]] },
+  { letter: "D", cells: [[0, 0, 2], [1, 0, 2], [2, 0, 2], [2, 0, 1]] },
+  { letter: "E", cells: [[2, 0, 0], [2, 1, 0], [2, 2, 0], [2, 1, 1]] },
+  { letter: "F", cells: [[0, 1, 1], [0, 2, 1], [0, 1, 2], [1, 1, 2]] },
+];
+
 const models: Record<string, () => Built> = {
   "misplaced-shapes": () => ({
     geometry: shells(
@@ -421,6 +433,54 @@ const models: Record<string, () => Built> = {
     anchors: { slopedFace: [20, 15, 20] },
     notes: "A wedge with a sloped top face. Put a workplane on the slope and add a feature that sits flat on it.",
   }),
+
+  "puzzle-cube-exploded": () => {
+    // The sample 3 × 3 × 3 puzzle used in the Puzzle Cube path (same letters as the "puzzle-layer-map" diagram),
+    // pulled apart so every piece is visible. Each piece moves away from the centre along its own centroid.
+    const parts: THREE.BufferGeometry[] = [];
+    const anchors: Record<string, Vec3> = {};
+    const placed = PUZZLE_PIECES.map(({ cells }) => {
+      const c = [0, 1, 2].map((i) => cells.reduce((s, q) => s + q[i], 0) / cells.length - 1);
+      return { cells, off: c.map((v) => Math.round(v * PUZZLE_EXPLODE * 2) / 2) as Vec3 };
+    });
+    const lift = -Math.min(...placed.flatMap(({ cells, off }) => cells.map((q) => q[2] * PUZZLE_UNIT + off[2])));
+    for (const [i, { cells, off }] of placed.entries()) {
+      const o: Vec3 = [off[0], off[1], off[2] + lift];
+      parts.push(union(...cells.map(([x, y, z]) => box(x * PUZZLE_UNIT + o[0], y * PUZZLE_UNIT + o[1], z * PUZZLE_UNIT + o[2], PUZZLE_UNIT, PUZZLE_UNIT, PUZZLE_UNIT))));
+      const [x, y, z] = cells[0];
+      anchors[`piece${PUZZLE_PIECES[i].letter}`] = [(x + 0.5) * PUZZLE_UNIT + o[0], (y + 0.5) * PUZZLE_UNIT + o[1], (z + 1) * PUZZLE_UNIT + o[2]];
+    }
+    return {
+      geometry: shells(...parts),
+      anchors,
+      notes: "A 45 mm puzzle cube made of 27 cubes (15 mm each), pulled apart into its six pieces: three of 5 cubes and three of 4 cubes.",
+    };
+  },
+
+  "puzzle-piece-checkup": () => {
+    const u = PUZZLE_UNIT;
+    const cube = (x: number, y: number, z: number, ox: number, oy: number) => box(ox + x * u, oy + y * u, z * u, u, u, u);
+    // Good: a flat L piece. Every cube shares a full face with the next one, and every cube sits on the plate.
+    const good = union(...[[0, 0, 0], [1, 0, 0], [2, 0, 0], [2, 1, 0]].map(([x, y, z]) => cube(x, y, z, 0, 0)));
+    // Edge only: the fourth cube touches the piece along one edge, so it breaks off (and Tinkercad keeps it separate).
+    const edgeBody = union(...[[0, 0, 0], [1, 0, 0], [1, 1, 0]].map(([x, y, z]) => cube(x, y, z, 70, 0)));
+    const edgeLoose = cube(2, 2, 0, 70, 0);
+    // Standing up: in this position the two top cubes print in mid-air (they would need supports).
+    const standing = union(...[[0, 0, 0], [0, 0, 1], [1, 0, 1], [2, 0, 1]].map(([x, y, z]) => cube(x, y, z, 0, 60)));
+    return {
+      geometry: shells(good, edgeBody, edgeLoose, standing),
+      anchors: {
+        goodEnd: [2.5 * u, 1.5 * u, u],
+        goodStart: [0.5 * u, 0.5 * u, u],
+        edgeLoose: [70 + 2.5 * u, 2.5 * u, u],
+        edgeBody: [70 + 0.5 * u, 0.5 * u, u],
+        standingBase: [0.5 * u, 60 + 0.5 * u, 0.5 * u],
+        standingMid: [1.5 * u, 60 + 0.5 * u, 1.5 * u],
+        standingTip: [2.5 * u, 60 + 0.5 * u, 1.5 * u],
+      },
+      notes: "Three puzzle pieces built from 15 mm cubes: a good flat L piece, a piece whose fourth cube touches only along an edge, and a piece standing so two cubes hang in mid-air.",
+    };
+  },
 };
 
 // ───────── STL writer ─────────
