@@ -35,7 +35,11 @@ export async function runSetupChecks(rawApiUrl: string | null): Promise<Check[]>
     if (json) out.push({ id: "reach", label: "Website can reach your Sheet", status: "ok", detail: `Your Sheet answered in ${secs} s.` });
     else out.push({ id: "reach", label: "Website can reach your Sheet", status: "fail", detail: `Google answered with a web page instead of your Sheet (HTTP ${res.status}). Usually the web app isn't open to everyone, or it was deleted.`, fix: "In your Sheet: Extensions → Apps Script → Deploy → Manage deployments → ✏️ Edit. Set Execute as: Me and Who has access: Anyone, then Deploy." });
   } catch {
-    out.push({ id: "reach", label: "Website can reach your Sheet", status: "fail", detail: "The request didn't get through. The address may be wrong, or this network blocks script.google.com.", fix: "Open your dashboard again from the Sheet's side panel (Open my dashboard). If it still fails, try another network." });
+    out.push({
+      id: "reach", label: "Website can reach your Sheet", status: "fail",
+      detail: `Google didn't send back an answer from your Sheet. Most often this browser has an old app address (from the template you copied, or a deployment that was removed). Less often, this network blocks script.google.com. Address tried: ${apiUrl}`,
+      fix: "Open your Sheet → 3D Design Academy → Set up & class links. If the side panel asks, paste your Web app URL from Deploy → Manage deployments. Then click Open my dashboard. If it works on another network but not this one, ask your tech office to allow script.google.com and script.googleusercontent.com.",
+    });
     return out;
   }
 

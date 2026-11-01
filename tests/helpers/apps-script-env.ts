@@ -61,8 +61,16 @@ export const okScriptApi: ScriptApiFake = ({ method, path }) => {
   return { code: 200, body: {} };
 };
 
-export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string; scriptId?: string; scriptApi?: ScriptApiFake; feed?: { body: string | null; fetches: number }; site?: { up: boolean; fetches: number; body?: string } } = {}) {
+/**
+ * What a web-app address answers when the script checks it without signing in: this Sheet's own app, another
+ * copy's (the template's), Google's "not found" page, a sign-in page (access isn't "Anyone"), or no answer at all.
+ * By default the address Google reports (webAppUrl) is this Sheet's own, and any other address is not found.
+ */
+type WebAppFake = "self" | "other" | 404 | "signin" | "throws";
+
+export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string; scriptId?: string; scriptApi?: ScriptApiFake; feed?: { body: string | null; fetches: number }; site?: { up: boolean; fetches: number; body?: string }; webApps?: Record<string, WebAppFake> } = {}) {
   const scriptApiCalls: ScriptApiCall[] = [];
+  const webAppFetches: string[] = [];
   const sheets = new Map<string, ReturnType<typeof fakeSheet>>();
   const book = {
     getSheetByName: (n: string) => sheets.get(n) ?? null,
@@ -136,6 +144,16 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
           const r = (opts.scriptApi ?? okScriptApi)(call);
           return { getResponseCode: () => r.code, getContentText: () => JSON.stringify(r.body) };
         }
+        if (/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url) && !url.includes("usage-receiver")) {
+          webAppFetches.push(url);
+          const self = opts.webAppUrl?.replace(/\/a\/macros\/[^/]+\/s\//, "/macros/s/") ?? null;
+          const kind = opts.webApps?.[url] ?? (url === self ? "self" : 404);
+          if (kind === "throws") throw new Error("Address unavailable");
+          if (kind === 404) return { getResponseCode: () => 404, getContentText: () => "<html><title>Error</title>Sorry, unable to open the file at this time.</html>" };
+          if (kind === "signin") return { getResponseCode: () => 200, getContentText: () => "<html><title>Sign in - Google Accounts</title></html>" };
+          const body = kind === "self" ? String(vm.runInContext("doGet()", ctx)) : JSON.stringify({ ok: true, data: { name: "3D Design Academy API", version: "1", sid: "another-copy" } });
+          return { getResponseCode: () => 200, getContentText: () => body };
+        }
         if (url.includes("apps-script/content.json")) {
           if (opts.feed) opts.feed.fetches++;
           const body = opts.feed?.body ?? null;
@@ -174,5 +192,5 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
   // Tests edit the Config tab by hand between calls; the real script picks such edits up within 15 seconds.
   const call = (email: string, action: string, args: Record<string, unknown> = {}) => { cache.delete("cfg2"); return JSON.parse(raw(JSON.stringify({ action, token: "tok:" + email, args }))); };
   const run = (code: string) => JSON.parse(vm.runInContext(`JSON.stringify(${code})`, ctx) as string);
-  return { call, raw, run, sheets, files, folders, props, scriptApiCalls, cache, load, usageReports };
+  return { call, raw, run, sheets, files, folders, props, scriptApiCalls, cache, load, usageReports, webAppFetches };
 }

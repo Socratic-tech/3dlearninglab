@@ -49,7 +49,9 @@ const DEFAULT_CONFIG = [
 // ───────────────────────── HTTP ─────────────────────────
 
 function doGet() {
-  return json_({ ok: true, data: { name: "3D Design Academy API", version: API_VERSION } });
+  let sid = null;
+  try { sid = scriptFingerprint_(); } catch (e) { sid = null; }
+  return json_({ ok: true, data: { name: "3D Design Academy API", version: API_VERSION, sid: sid } });
 }
 
 function doPost(e) {
@@ -2211,11 +2213,70 @@ function setConfig_(key, value) {
 
 /** The web app's public address (normalized so it works for students on any domain), or null if not deployed yet. */
 function webAppUrl_() {
-  let url = null;
-  try { url = ScriptApp.getService().getUrl(); } catch (e) { url = null; }
-  if (!url || /\/dev$/.test(url)) return null;
-  // Workspace accounts get /a/macros/<domain>/s/… or /a/<domain>/macros/s/…; both mean the same public address
-  return url.replace(/\/a\/macros\/[^/]+\/s\//, "/macros/s/").replace(/\/a\/[^/]+\/macros\/s\//, "/macros/s/");
+  return webAppStatus_().url;
+}
+
+/**
+ * Which web-app address to hand out, checked before use. Google's own answer (ScriptApp.getService().getUrl()) can
+ * name an address that doesn't work for this copy: the template's deployment, or one that was archived. Every link
+ * and QR code is built on this address, so only one that answers as THIS Sheet's app is used: first an address the
+ * teacher pasted (saved below), then Google's. `broken` is an address that was found but didn't answer.
+ */
+function webAppStatus_() {
+  const saved = PropertiesService.getScriptProperties().getProperty("WEB_APP_URL");
+  let found = null;
+  try { found = ScriptApp.getService().getUrl(); } catch (e) { found = null; }
+  const candidates = [];
+  if (saved) candidates.push(saved);
+  if (found && !/\/dev$/.test(found)) {
+    const n = normalizeWebAppUrl_(found);
+    if (n && candidates.indexOf(n) < 0) candidates.push(n);
+  }
+  for (let i = 0; i < candidates.length; i++) if (webAppAnswers_(candidates[i])) return { url: candidates[i], broken: null };
+  return { url: null, broken: candidates[0] || null };
+}
+
+/** Workspace accounts get /a/macros/<domain>/s/… or /a/<domain>/macros/s/…; both mean the same public address. */
+function normalizeWebAppUrl_(raw) {
+  const m = String(raw || "").trim().match(/^https:\/\/script\.google\.com\/(?:a\/macros\/[\w.-]+|a\/[\w.-]+\/macros|macros)(?:\/u\/\d+)?\/s\/([\w-]+)\/exec\/?(?:[?#].*)?$/);
+  return m ? "https://script.google.com/macros/s/" + m[1] + "/exec" : null;
+}
+
+/** Short public fingerprint of this script, so a check can tell this Sheet's web app from another copy's. */
+function scriptFingerprint_() {
+  return Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, "3dla:" + ScriptApp.getScriptId())).slice(0, 12);
+}
+
+/**
+ * Does `url` answer, without signing in (as students' browsers will), as this Sheet's app? A missing deployment
+ * (404), a sign-in page (access isn't "Anyone") or another copy's app all fail. If the check itself can't run,
+ * the address is trusted, as before. Results are kept briefly so the side panel stays quick.
+ */
+function webAppAnswers_(url) {
+  const cache = CacheService.getScriptCache();
+  const key = "wa_" + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, url)).slice(0, 20);
+  const hit = cache.get(key);
+  if (hit) return hit === "ok";
+  let res;
+  try { res = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true }); } catch (e) { return true; }
+  let ok = false;
+  if (res.getResponseCode() === 200) {
+    try {
+      const d = JSON.parse(res.getContentText()).data;
+      ok = !!d && d.name === "3D Design Academy API" && (!d.sid || d.sid === scriptFingerprint_());
+    } catch (e) { ok = false; }
+  }
+  cache.put(key, ok ? "ok" : "no", ok ? 3600 : 15);
+  return ok;
+}
+
+/** The teacher pasted their Web app URL (from Deploy → Manage deployments): keep it only if it answers as this Sheet's app. */
+function saveWebAppUrl_(raw) {
+  const url = normalizeWebAppUrl_(raw);
+  if (!url) throw new Error("That isn't a web app address. Copy the Web app URL from Deploy → Manage deployments. It starts with https://script.google.com/ and ends in /exec.");
+  CacheService.getScriptCache().remove("wa_" + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, url)).slice(0, 20));
+  if (!webAppAnswers_(url)) throw new Error("That address didn't answer as this Sheet's app. Check that it's the Web app URL from this Sheet's script (Deploy → Manage deployments) and that Who has access is set to Anyone, then try again.");
+  PropertiesService.getScriptProperties().setProperty("WEB_APP_URL", url);
 }
 
 function viaLoader_() {
@@ -2251,7 +2312,8 @@ function sidebarState() {
   MEMO_ = {};
   const ready = !!ss_().getSheetByName("Config") && !!ss_().getSheetByName("Classes");
   const cfg = ready ? config_() : {};
-  const url = webAppUrl_();
+  const app = webAppStatus_();
+  const url = app.url;
   const clientId = cfg.CLIENT_ID || BUILD.clientId;
   const link = function (extra) {
     if (!url || !BUILD.site) return null;
@@ -2262,6 +2324,7 @@ function sidebarState() {
     ready: ready,
     owner: Session.getEffectiveUser().getEmail(),
     url: url,
+    brokenUrl: app.broken,
     site: BUILD.site,
     hasClientId: !!clientId,
     domains: cfg.ALLOWED_DOMAINS || "",
@@ -2291,6 +2354,11 @@ function sidebarPrepare() {
 }
 
 function sidebarSaveSettings(s) {
+  // The loader declares a fixed set of entry points, so the pasted web-app address arrives here too.
+  if (s && s.webAppUrl !== undefined) {
+    saveWebAppUrl_(s.webAppUrl);
+    return sidebarState();
+  }
   const clean = function (v) { return String(v || "").toLowerCase().split(/[\s,]+/).filter(String).join(","); };
   setConfig_("ALLOWED_DOMAINS", clean(s.domains));
   setConfig_("TEACHER_EMAILS", clean(s.teacherEmails));

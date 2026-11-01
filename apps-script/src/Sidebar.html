@@ -163,7 +163,10 @@ var PIC = {
 };
 
 function turnOnApp() {
-  return '<div class="card good"><h2><span class="tick">✓</span> Your Sheet is ready</h2></div>' +
+  var broken = S.brokenUrl
+    ? '<div class="warn"><b>Your app address doesn’t work yet.</b> Google gave this Sheet an address that doesn’t answer, often the address of the template you copied, or of a deployment that was removed. If you haven’t deployed, follow the steps below. If you already have, paste your Web app URL under “Already deployed?”.<p class="muted">Address that didn’t work: ' + esc(S.brokenUrl) + "</p></div>"
+    : "";
+  return broken + '<div class="card good"><h2><span class="tick">✓</span> Your Sheet is ready</h2></div>' +
     '<div class="card hero"><h2>Turn on your app (2 minutes)</h2><p>Google needs you to click this yourself, one time.</p>' +
     '<a class="btn" target="_blank" href="' + esc(S.editorUrl) + '">Open the script editor ↗</a>' +
     '<ol class="big">' +
@@ -173,6 +176,10 @@ function turnOnApp() {
     "<li>If Google asks, click <b>Authorize access</b> and <b>Allow</b>. Then click <b>Done</b> and come back to this tab.</li></ol>" +
     '<div class="waiting"><div class="spin"></div>Waiting for you to deploy… this panel moves on by itself.</div>' +
     '<button class="secondary" onclick="run(\'sidebarState\', undefined, this, \'Checking…\')">I did it — check now</button></div>' +
+    '<details' + (S.brokenUrl ? " open" : "") + '><summary>Already deployed? Paste your Web app URL</summary>' +
+    '<p>In the script editor: <b>Deploy</b> → <b>Manage deployments</b>. Copy the <b>Web app URL</b> (it ends in /exec).</p>' +
+    '<label>Web app URL<input type="url" id="wurl" placeholder="https://script.google.com/macros/s/…/exec"></label>' +
+    '<button class="secondary" onclick="saveUrl(this)">Check and use this address</button></details>' +
     '<details><summary>“Anyone” isn’t in the list</summary><p>Your school’s Google settings don’t allow it. Ask your tech office to let teachers share Apps Script web apps with “Anyone”. Students still sign in with Google, and only your roster gets in.</p></details>';
 }
 
@@ -187,6 +194,11 @@ function poll() {
   if (!waiting && POLL) { clearInterval(POLL); POLL = null; }
 }
 
+function saveUrl(btn) {
+  var v = $("wurl").value.trim();
+  if (!v) { $("wurl").focus(); $("wurl").placeholder = "Paste the Web app URL first"; return; }
+  run("sidebarSaveSettings", { webAppUrl: v }, btn, "Checking…");
+}
 function toggleQr(i) { openQr[i] = !openQr[i]; render(); }
 function copyText(t, btn) {
   (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () {
