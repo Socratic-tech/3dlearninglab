@@ -14,13 +14,13 @@ import { isLocalApi } from "../config";
 type Latest = { version: string; notes?: string };
 type Result = { ok: boolean; version?: string; same?: boolean; undone?: boolean; needsPaste?: boolean; pasteUrl?: string | null; error?: string };
 const PASTE_URL = `${import.meta.env.BASE_URL}apps-script/paste.html`;
+// "Later" is remembered for that version on this device: the banner comes back only when a newer version is published.
 const DISMISS = "academy.update.later";
+const laterFor = () => { try { return localStorage.getItem(DISMISS); } catch { return null; } };
 
 export function UpdateBanner({ me, apiUrl, onUpdated }: { me: Me; apiUrl: string; onUpdated: () => void }) {
   const [latest, setLatest] = useState<Latest | null>(null);
-  const [hidden, setHidden] = useState(() => {
-    try { return sessionStorage.getItem(DISMISS) === "1"; } catch { return false; }
-  });
+  const [later, setLater] = useState(laterFor);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
 
@@ -40,7 +40,7 @@ export function UpdateBanner({ me, apiUrl, onUpdated }: { me: Me; apiUrl: string
   const needsMigration = me.app?.autoUpdates !== true;
   const previous = me.app?.previous ?? null;
   if (me.user.role !== "teacher" || (!needsMigration && !outdated && !result)) return null;
-  if (hidden && !result) return null;
+  if (!needsMigration && latest && later === latest.version && !result) return null;
 
   if (result?.ok) {
     return wrap(
@@ -78,7 +78,7 @@ export function UpdateBanner({ me, apiUrl, onUpdated }: { me: Me; apiUrl: string
       {result && !result.ok && !result.needsPaste && <p className="mt-2 text-sm text-danger">{result.error}</p>}
       <div className="mt-3 flex flex-wrap gap-2">
         <Button size="sm" disabled={busy} onClick={() => void update()}>{busy ? "Updating…" : "Update now"}</Button>
-        <Button variant="secondary" size="sm" disabled={busy} onClick={later}>Later</Button>
+        <Button variant="secondary" size="sm" disabled={busy} onClick={remindLater}>Later</Button>
         {previous && <Button variant="ghost" size="sm" disabled={busy} onClick={() => void undo()}>Undo last update ({previous})</Button>}
       </div>
     </Alert>,
@@ -87,9 +87,10 @@ export function UpdateBanner({ me, apiUrl, onUpdated }: { me: Me; apiUrl: string
   function wrap(node: ReactNode) {
     return <div className="mb-4">{node}</div>;
   }
-  function later() {
-    try { sessionStorage.setItem(DISMISS, "1"); } catch { /* ignore */ }
-    setHidden(true);
+  function remindLater() {
+    const v = latest?.version ?? "";
+    try { localStorage.setItem(DISMISS, v); } catch { /* storage blocked: hidden for this visit only */ }
+    setLater(v);
   }
   async function undo() {
     setBusy(true);
