@@ -10,7 +10,7 @@ import { groupLevel, LEVEL_LABEL, LEVELS } from "@/lib/mastery";
 import { cn } from "@/lib/cn";
 import { call } from "../api";
 import { classLink, isLocalApi, setCurrentClassId, staffLink } from "../config";
-import { courseLabel, pathOptions, setStudentView } from "../state";
+import { courseLabel, pathOptions, setStudentView, setTeacherMode, useTeacherMode } from "../state";
 import { currentToken } from "../auth";
 import { fetchClass, savedClass, type Snapshot } from "../class-cache";
 import type { ClassInfo, Me } from "../content";
@@ -44,6 +44,17 @@ type Live = {
 export type PrintJob = { id: string; email: string; lessonId: string; fileName: string | null; fileUrl: string | null; status: string; note: string; teacherNote: string; createdAt: string; updatedAt: string };
 
 const TABS = ["Overview", "Lessons", "Heatmap", "Review", "Prints", "Rewards", "Roster", "Classes"] as const;
+type Tab = (typeof TABS)[number];
+
+/** Advanced tools listed at the bottom of the simple view: one click opens that tool in the advanced view. */
+const MORE_TOOLS: { tab: Tab; label: string; why: string }[] = [
+  { tab: "Overview", label: "Class link and progress", why: "The student join link and completion for every mission." },
+  { tab: "Lessons", label: "Lessons", why: "Open, preview or print any mission." },
+  { tab: "Heatmap", label: "Skills heatmap", why: "Every student's level on every skill. Change a level." },
+  { tab: "Roster", label: "Students", why: "Add, import or archive students." },
+  { tab: "Rewards", label: "Rewards", why: "Perks students can buy with XP." },
+  { tab: "Classes", label: "Class settings", why: "Course, Tinkercad link and your other classes." },
+];
 
 export function TeacherPage(p: { me: Me; apiUrl: string; clientId: string; onChange: () => void }) {
   return (
@@ -64,7 +75,7 @@ function TeacherMain({ me, apiUrl, clientId, onChange }: { me: Me; apiUrl: strin
       </div>
     );
   }
-  return <ClassView key={me.cls.id} classId={me.cls.id} apiUrl={apiUrl} clientId={clientId} onChange={onChange} />;
+  return <ClassView key={me.cls.id} classId={me.cls.id} teacher={me.user} apiUrl={apiUrl} clientId={clientId} onChange={onChange} />;
 }
 
 /** Co-teachers and administrators need this link (with the app address), not the bare website. */
@@ -94,13 +105,16 @@ function Ago({ at }: { at: number }) {
   return <>{min < 1 ? "Updated just now" : min < 60 ? `Updated ${min} min ago` : `Updated ${Math.floor(min / 60)} h ago`}</>;
 }
 
-function ClassView({ classId, apiUrl, clientId, onChange }: { classId: string; apiUrl: string; clientId: string; onChange: () => void }) {
+function ClassView({ classId, teacher, apiUrl, clientId, onChange }: { classId: string; teacher: { email: string; name: string }; apiUrl: string; clientId: string; onChange: () => void }) {
   // open instantly from the last copy (kept until sign-out), then keep refreshing from Google in the background
   const [snap, setSnap] = useState<Snapshot<ClassData> | null>(() => savedClass<ClassData>(classId));
   const data = snap?.data ?? null;
   const [refreshing, setRefreshing] = useState(false);
   const [err, setErr] = useState<{ error: string; details?: string } | null>(null);
-  const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
+  const [tab, setTab] = useState<Tab>("Overview");
+  const mode = useTeacherMode(teacher.email);
+  /** From the simple view: switch to the advanced view, open on that tool. */
+  const openTool = useCallback((t: Tab) => { setTab(t); setTeacherMode(teacher.email, "advanced"); }, [teacher.email]);
   const load = useCallback(async () => {
     setRefreshing(true);
     const r = await fetchClass<ClassData>(apiUrl, classId);
@@ -136,7 +150,11 @@ function ClassView({ classId, apiUrl, clientId, onChange }: { classId: string; a
         {!isLocalApi(apiUrl) && <StaffLinkButton apiUrl={apiUrl} clientId={clientId} />}
         <span className="text-xs text-muted" role="status">{refreshing ? "Refreshing…" : snap ? <Ago at={snap.at} /> : null}</span>
         <Button size="sm" variant="secondary" disabled={refreshing} onClick={() => void load()}>Refresh</Button>
+        <ModeSwitch mode={mode} onChange={(m) => { if (m === "advanced") setTab("Overview"); setTeacherMode(teacher.email, m); }} />
       </div>
+      {mode === "simple" ? (
+        <SimpleHome data={data} firstName={teacher.name.split(" ")[0] || teacher.name} name={name} apiUrl={apiUrl} onSaved={load} openTool={openTool} />
+      ) : (<>
       <nav className="mb-6 flex gap-1 overflow-x-auto border-b border-border" aria-label="Teacher sections">
         {TABS.map((t) => (
           <button key={t} onClick={() => setTab(t)} aria-current={tab === t ? "page" : undefined} className={cn("whitespace-nowrap border-b-2 px-3 py-2 text-sm font-semibold", tab === t ? "border-primary text-primary" : "border-transparent text-muted")}>
@@ -153,6 +171,99 @@ function ClassView({ classId, apiUrl, clientId, onChange }: { classId: string; a
       {tab === "Rewards" && <Rewards apiUrl={apiUrl} />}
       {tab === "Roster" && <Roster data={data} apiUrl={apiUrl} onSaved={load} onClassesChanged={onChange} />}
       {tab === "Classes" && <Classes data={data} apiUrl={apiUrl} onChange={() => { onChange(); void load(); }} />}
+      </>)}
+    </div>
+  );
+}
+
+/** Simple / Advanced switch. Two real buttons (aria-pressed), so it works with keyboard, touch and screen readers. */
+function ModeSwitch({ mode, onChange }: { mode: "simple" | "advanced"; onChange: (m: "simple" | "advanced") => void }) {
+  return (
+    <div role="group" aria-label="Dashboard view" className="flex rounded-xl border border-border bg-surface-2 p-0.5">
+      {(["simple", "advanced"] as const).map((m) => (
+        <button
+          key={m}
+          type="button"
+          aria-pressed={mode === m}
+          title={m === "simple" ? "Who needs help, work to review and prints: the things you need during class." : "Every tool: heatmap, lessons, roster, rewards and class settings."}
+          onClick={() => onChange(m)}
+          className={cn("rounded-lg px-3 py-1 text-sm font-semibold", mode === m ? "bg-primary text-primary-fg" : "text-muted hover:text-fg")}
+        >
+          {m === "simple" ? "Simple" : "Advanced"}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** The everyday teacher view, styled like the student home: who needs help now, work to review, and the print queue. */
+function SimpleHome({ data, firstName, name, apiUrl, onSaved, openTool }: { data: ClassData; firstName: string; name: (e: string) => string; apiUrl: string; onSaved: () => void; openTool: (t: Tab) => void }) {
+  const [allReview, setAllReview] = useState(false);
+  const queue = data.evidence.filter((e) => e.status === "submitted");
+  const revisions = data.evidence.filter((e) => e.status === "needs_revision");
+  const openPrints = (data.prints ?? []).filter((p) => ["queued", "redo", "printing"].includes(p.status)).length;
+  const today = new Date().toISOString().slice(0, 10);
+  const activeToday = data.live?.activeToday ?? new Set(data.progress.filter((p) => String(p.updatedAt).slice(0, 10) === today).map((p) => p.email)).size;
+  const shownReview = allReview ? queue : queue.slice(0, 3);
+  const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+  return (
+    <div className="space-y-8">
+      <section className="bg-blueprint rounded-3xl border border-border bg-surface p-5 sm:p-6">
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-primary">Welcome back</p>
+        <h2 className="font-display text-2xl font-bold sm:text-3xl">{firstName}</h2>
+        <p className="mt-1 text-sm text-muted sm:text-base" role="status">
+          {plural(activeToday, "student", "students")} active today · {plural(queue.length, "piece", "pieces")} of work to review · {plural(openPrints, "print", "prints")} waiting
+        </p>
+      </section>
+
+      <SetupChecklist cls={data.cls} students={data.students} apiUrl={apiUrl} goTab={openTool} />
+
+      {data.live ? (
+        <RightNow live={data.live} name={name} revisions={revisions} />
+      ) : (
+        <section aria-labelledby="now-h" className="rounded-3xl border-2 border-accent bg-surface p-5">
+          <h2 id="now-h" className="font-display text-xl font-bold">Right now</h2>
+          <p className="mt-2 text-muted">Who&apos;s stuck or quiet shows up here once students are working in a mission.</p>
+        </section>
+      )}
+
+      <section aria-labelledby="review-h" className="space-y-3">
+        <div className="flex flex-wrap items-baseline gap-2">
+          <h2 id="review-h" className="font-display text-xl font-bold">Work to review</h2>
+          {queue.length > 0 && <Pill tone="accent">{queue.length}</Pill>}
+        </div>
+        {queue.length === 0 ? (
+          <EmptyState title="All caught up">New screenshots, designs and reflections show up here when students submit them.</EmptyState>
+        ) : (
+          <>
+            <ul className="space-y-4">{shownReview.map((e) => <li key={e.id}><ReviewCard e={e} name={name(e.email)} apiUrl={apiUrl} onSaved={onSaved} inGallery={(data.galleryIds ?? []).includes(e.id)} /></li>)}</ul>
+            {queue.length > shownReview.length && <Button variant="secondary" onClick={() => setAllReview(true)}>Show all {queue.length}</Button>}
+          </>
+        )}
+      </section>
+
+      <section aria-labelledby="prints-h" className="space-y-3">
+        <div className="flex flex-wrap items-baseline gap-2">
+          <h2 id="prints-h" className="font-display text-xl font-bold">Print queue</h2>
+          {openPrints > 0 && <Pill tone="accent">{openPrints}</Pill>}
+        </div>
+        <Prints jobs={data.prints ?? []} name={name} apiUrl={apiUrl} onSaved={onSaved} />
+      </section>
+
+      <section aria-labelledby="more-h" className="rounded-3xl border border-border bg-surface p-5">
+        <h2 id="more-h" className="font-display text-xl font-bold">More tools</h2>
+        <p className="text-sm text-muted">These open the Advanced view. Switch back to Simple at the top any time.</p>
+        <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {MORE_TOOLS.map((t) => (
+            <li key={t.tab}>
+              <button type="button" onClick={() => openTool(t.tab)} className="flex h-full w-full flex-col rounded-2xl border border-border p-3 text-left hover:border-primary focus-visible:border-primary">
+                <span className="font-semibold">{t.label}</span>
+                <span className="mt-1 text-sm text-muted">{t.why}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   );
 }
