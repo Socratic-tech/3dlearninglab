@@ -155,7 +155,7 @@ export function ClassTrail({ trail }: { trail: ReturnType<typeof whereTheClassIs
     <section aria-labelledby="trail-h" className="rounded-3xl border border-border bg-surface p-5">
       <h2 id="trail-h" className="font-display text-xl font-bold">Where the class is</h2>
       <p className="text-sm text-muted">Each stop is a unit. The ring fills as the class finishes it; faces show who is working there now.</p>
-      <ol className="mt-4 flex gap-1 overflow-x-auto pb-2">
+      <ol className="mt-4 flex gap-1 overflow-x-auto pb-2" tabIndex={0} aria-label="Units (scrolls sideways)">
         {weeks.map((w, i) => {
           const pct = w.total ? (w.finished / w.total) * 100 : 0;
           const full = w.total > 0 && w.finished === w.total;

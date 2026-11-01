@@ -323,7 +323,7 @@ function Heatmap({ data, apiUrl, onSaved }: { data: ClassData; apiUrl: string; o
   return (
     <div className="space-y-4">
       <LevelLegend />
-      <div className="overflow-x-auto rounded-2xl border border-border bg-surface">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-surface" tabIndex={0} role="region" aria-label="Skills heatmap (scrolls sideways)">
         <table className="min-w-full border-separate border-spacing-1 p-2 text-sm">
           <caption className="sr-only">Class skill heatmap</caption>
           <thead><tr><th scope="col" className="sticky left-0 bg-surface px-2 text-left">Student</th>{heatmapGroups.map((g) => <th key={g.id} scope="col" className="h-24 min-w-11 align-bottom"><span className="inline-block -rotate-45 whitespace-nowrap text-xs">{g.label}</span></th>)}</tr></thead>

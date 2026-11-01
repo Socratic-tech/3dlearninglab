@@ -44,7 +44,7 @@ export function StudentHome({ me, apiUrl, onChange }: { me: Me; apiUrl: string; 
         <Pill>{tr("7 minutes · No experience needed")}</Pill>
         <h2 id="demo-h" className="mt-2 font-display text-xl font-bold">{tr("Try It: One Layer at a Time")}</h2>
         <p className="mt-2 text-sm text-muted">{tr("Make a prediction, explore a 3D model, try the feedback, and share one discovery. No printer or design software needed. Work alone or with a partner.")}</p>
-        <a href="#/lesson/quick-demo" className="mt-4 inline-block rounded-xl bg-primary px-4 py-2 font-semibold text-white hover:opacity-90">{tr(me.progress["quick-demo"]?.status === "completed" ? "Revisit the short demo" : "Start the short demo")}</a>
+        <a href="#/lesson/quick-demo" className="mt-4 inline-block rounded-xl bg-primary px-4 py-2 font-semibold text-primary-fg hover:opacity-90">{tr(me.progress["quick-demo"]?.status === "completed" ? "Revisit the short demo" : "Start the short demo")}</a>
       </section>
       <NextUpPath
         simple={isYounger(me)}

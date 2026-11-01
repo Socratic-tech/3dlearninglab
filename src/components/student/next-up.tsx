@@ -108,7 +108,7 @@ function KeepGoing({ item }: { item: NextUpItem }) {
           <p className="mt-1 text-sm opacity-90">{tr("{done} of {total} activities done", { done: steps.done, total: steps.total })}</p>
         </div>
       )}
-      <Link href={item.href} className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 font-display text-lg font-bold text-primary shadow-sm hover:brightness-95" aria-current="step">
+      <Link href={item.href} className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-primary-fg px-5 py-3 font-display text-lg font-bold text-primary shadow-sm hover:brightness-95" aria-current="step">
         {started ? tr("Continue") : tr("Start")} <ArrowRight className="size-5" aria-hidden />
       </Link>
     </section>
@@ -152,7 +152,7 @@ function Tile({ item, current }: { item: NextUpItem; current: boolean }) {
     </>
   );
   const cls = cn("flex h-full flex-col items-center rounded-2xl border bg-surface p-3 text-center", current ? "border-2 border-accent" : "border-border");
-  return item.state === "locked" ? <div className={cn(cls, "opacity-75")}>{body}</div> : <Link href={item.href} className={cn(cls, "hover:bg-surface-2")}>{body}</Link>;
+  return item.state === "locked" ? <div className={cls}>{body}</div> : <Link href={item.href} className={cn(cls, "hover:bg-surface-2")}>{body}</Link>;
 }
 
 function Fold({ summary, count, children }: { summary: React.ReactNode; count: string; children: React.ReactNode }) {

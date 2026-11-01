@@ -118,6 +118,7 @@
   --surface-2: #e2e8f0;
 }
 :root[data-contrast="high"][data-theme="dark"] {
+  --fg: #ffffff; /* the high-contrast rule above sets black text; dark needs white */
   --bg: #000000;
   --surface: #0a0f18;
   --surface-2: #1a2333;
