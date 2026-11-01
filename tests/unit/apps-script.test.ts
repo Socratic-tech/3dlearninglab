@@ -361,6 +361,64 @@ describe("Setup sidebar", () => {
     expect(e.run("sidebarUpdate()")).toMatchObject({ ok: true, version: "1.2.4" });
   });
 
+  it("a fresh copy of the template installs the newest version once; Sheets already in use are never updated without a click", () => {
+    const published = fs.readFileSync(path.join(process.cwd(), "web/public/apps-script/bundle.js"), "utf8");
+    const current = published.match(/^\/\/ 3D Design Academy bundle ([\w.-]+)/)![1];
+    const next = published.replace(/^\/\/ 3D Design Academy bundle [\w.-]+/, "// 3D Design Academy bundle 9.9.9-next").replace(/const BUILD = \{"version":"[^"]+"/, 'const BUILD = {"version":"9.9.9-next"');
+
+    // A Sheet already in use, set up before copies were recognised (no saved script ID): only the ID is saved.
+    const inUse: { up: boolean; fetches: number; body?: string } = { up: true, fetches: 0 };
+    const old = makeEnv("teacher@school.org", { site: inUse, scriptId: "class-sheet" });
+    old.props.delete("SCRIPT_ID");
+    inUse.body = next; // a newer version is published
+    const before = inUse.fetches;
+    expect(old.run("sidebarState().version")).toBe(current);
+    expect(inUse.fetches).toBe(before); // nothing downloaded
+    expect(old.props.get("SCRIPT_ID")).toBe("class-sheet");
+    old.load();
+    expect(old.run("sidebarState().version")).toBe(current); // still the version its teacher chose
+    // a co-teacher opening the same Sheet's panel changes nothing either (same script)
+    expect(old.run("sidebarState().version")).toBe(current);
+    expect(inUse.fetches).toBe(before);
+
+    // A copy: its saved script ID is the template's. The first panel load installs the newest version, once.
+    const site: { up: boolean; fetches: number; body?: string } = { up: true, fetches: 0 };
+    const copy = makeEnv("newteacher@school.org", { site, scriptId: "copy-sheet" });
+    copy.props.set("SCRIPT_ID", "template-sheet");
+    site.body = next;
+    copy.run("sidebarState()");
+    expect(copy.props.get("SCRIPT_ID")).toBe("copy-sheet");
+    copy.load();
+    expect(copy.run("sidebarState().version")).toBe("9.9.9-next");
+    const after = site.fetches;
+    copy.run("sidebarState()");
+    expect(site.fetches).toBe(after); // only once
+
+    // If the website is down, the copy keeps the template's version and the panel still opens.
+    const downSite = { up: true, fetches: 0 };
+    const down = makeEnv("newteacher@school.org", { site: downSite, scriptId: "copy-2" });
+    down.props.set("SCRIPT_ID", "template-sheet");
+    downSite.up = false;
+    expect(down.run("sidebarState().version")).toBe(current);
+  });
+
+  it("a copy whose setup runs for the new owner still recognises it was copied", () => {
+    const published = fs.readFileSync(path.join(process.cwd(), "web/public/apps-script/bundle.js"), "utf8");
+    const next = published.replace(/^\/\/ 3D Design Academy bundle [\w.-]+/, "// 3D Design Academy bundle 9.9.9-next").replace(/const BUILD = \{"version":"[^"]+"/, 'const BUILD = {"version":"9.9.9-next"');
+    const site: { up: boolean; fetches: number; body?: string } = { up: true, fetches: 0 };
+    const copy = makeEnv("newteacher@school.org", { site, scriptId: "copy-sheet" });
+    site.body = next;
+    copy.props.set("OWNER", "template-owner@school.org"); // the template's properties came with the copy
+    copy.props.set("SCRIPT_ID", "template-sheet");
+    copy.props.set("WEB_APP_URL", "https://script.google.com/macros/s/AKfyTemplate/exec");
+    copy.run("sidebarAutoSetup()");
+    expect(copy.props.get("OWNER")).toBe("newteacher@school.org");
+    expect(copy.props.get("WEB_APP_URL")).toBeUndefined(); // the template's address doesn't come along
+    expect(copy.props.get("SCRIPT_ID")).toBe("copy-sheet");
+    copy.load();
+    expect(copy.run("sidebarState().version")).toBe("9.9.9-next");
+  });
+
   it("safe updates: a new version installs only when a teacher clicks, a broken one is refused, and Undo goes back", () => {
     const published = fs.readFileSync(path.join(process.cwd(), "web/public/apps-script/bundle.js"), "utf8");
     const current = published.match(/^\/\/ 3D Design Academy bundle ([\w.-]+)/)![1];

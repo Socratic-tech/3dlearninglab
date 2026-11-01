@@ -2184,8 +2184,11 @@ function showSidebar() {
 function setup() {
   const props = PropertiesService.getScriptProperties();
   const owner = String(Session.getEffectiveUser().getEmail() || "").toLowerCase();
-  // A copied template carries the original owner's script properties — start clean for the new teacher.
+  // A copied template carries the original owner's script properties — start clean for the new teacher, but keep
+  // SCRIPT_ID: it tells installNewestInFreshCopy_() that this Sheet was just copied.
+  const stampedId = props.getProperty("SCRIPT_ID");
   if (owner && props.getProperty("OWNER") && props.getProperty("OWNER") !== owner) props.deleteAllProperties();
+  if (stampedId) props.setProperty("SCRIPT_ID", stampedId);
   if (owner) props.setProperty("OWNER", owner);
   Object.keys(TABLES).forEach(sheet_);
   const sh = sheet_("Config");
@@ -2196,7 +2199,32 @@ function setup() {
   if (!existing.ALLOWED_DOMAINS && owner && owner.indexOf("@gmail.com") < 0) setConfig_("ALLOWED_DOMAINS", owner.split("@")[1]);
   sh.autoResizeColumns(1, 3);
   ensureClasses_();
+  installNewestInFreshCopy_();
   return "Ready. Open the menu 3D Design Academy → Set up & class links.";
+}
+
+/**
+ * A Sheet copied from the template starts on the app version installed in the template (the hidden _app_backup tab
+ * is copied with the Sheet). The first time a copy runs, it installs the website's newest version instead, with the
+ * same safety check as Update now. A copy is recognised by the script ID saved in its properties: the template's,
+ * not its own. A Sheet that never saved one (every Sheet set up before this) only saves it, and nothing else changes,
+ * so classes already running are never updated without their teacher's click. Never fails the caller.
+ */
+function installNewestInFreshCopy_() {
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const id = ScriptApp.getScriptId();
+    const stamped = props.getProperty("SCRIPT_ID");
+    if (stamped === id) return false;
+    props.setProperty("SCRIPT_ID", id); // first, so this runs at most once per Sheet
+    if (!stamped || !viaLoader_() || !loaderInfo_().safe) return false;
+    const r = academyRefresh_();
+    CacheService.getScriptCache().remove("latest_version");
+    return !!r;
+  } catch (e) {
+    console.warn("installing the newest version in a new copy: " + e);
+    return false;
+  }
 }
 
 function setConfig_(key, value) {
@@ -2338,6 +2366,7 @@ function latestVersion_() {
 /** Everything the setup sidebar shows. `opts.recheck` (the "Check again" button) asks Google again instead of using remembered checks. */
 function sidebarState(opts) {
   MEMO_ = {};
+  installNewestInFreshCopy_();
   const ready = !!ss_().getSheetByName("Config") && !!ss_().getSheetByName("Classes");
   const cfg = ready ? config_() : {};
   const app = webAppStatus_(!!(opts && opts.recheck));
