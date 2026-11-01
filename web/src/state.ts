@@ -47,6 +47,28 @@ export function usePreviewUnlock(): boolean {
   return useSyncExternalStore((f) => { unlockListeners.add(f); return () => { unlockListeners.delete(f); }; }, previewUnlockOn, () => false);
 }
 
+// ── Teacher dashboard view: "simple" (the few things a teacher needs during class) or "advanced" (every tool).
+// Remembered on this device for each teacher; new teachers start simple. If storage is blocked, it lasts this visit.
+export type TeacherMode = "simple" | "advanced";
+const MODE_KEY = (email: string) => `academy.teacherMode:${email.toLowerCase()}`;
+const modeListeners = new Set<() => void>();
+const modeMemory = new Map<string, TeacherMode>();
+export function teacherMode(email: string): TeacherMode {
+  try {
+    const v = localStorage.getItem(MODE_KEY(email));
+    if (v === "simple" || v === "advanced") return v;
+  } catch { /* fall through to memory */ }
+  return modeMemory.get(email.toLowerCase()) ?? "simple";
+}
+export function setTeacherMode(email: string, mode: TeacherMode) {
+  modeMemory.set(email.toLowerCase(), mode);
+  try { localStorage.setItem(MODE_KEY(email), mode); } catch { /* memory only */ }
+  modeListeners.forEach((f) => f());
+}
+export function useTeacherMode(email: string): TeacherMode {
+  return useSyncExternalStore((f) => { modeListeners.add(f); return () => { modeListeners.delete(f); }; }, () => teacherMode(email), () => "simple");
+}
+
 /** Saved copies and the upload queue are kept apart for the teacher and their test student. */
 export const identityOf = (email: string | null) => (email && studentViewOn() ? email + "#student" : email);
 /** Staff powers apply, unless the teacher switched to student view. */
