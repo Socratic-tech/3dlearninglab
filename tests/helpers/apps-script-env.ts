@@ -63,10 +63,11 @@ export const okScriptApi: ScriptApiFake = ({ method, path }) => {
 
 /**
  * What a web-app address answers when the script checks it without signing in: this Sheet's own app, another
- * copy's (the template's), Google's "not found" page, a sign-in page (access isn't "Anyone"), or no answer at all.
+ * copy's (the template's), Google's "not found" page, a sign-in page (access isn't "Anyone"), some other page,
+ * Google too busy (503), or no answer at all.
  * By default the address Google reports (webAppUrl) is this Sheet's own, and any other address is not found.
  */
-type WebAppFake = "self" | "other" | 404 | "signin" | "throws";
+type WebAppFake = "self" | "other" | 404 | "signin" | "page" | 503 | "throws";
 
 export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string; scriptId?: string; scriptApi?: ScriptApiFake; feed?: { body: string | null; fetches: number }; site?: { up: boolean; fetches: number; body?: string }; webApps?: Record<string, WebAppFake> } = {}) {
   const scriptApiCalls: ScriptApiCall[] = [];
@@ -151,6 +152,8 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
           if (kind === "throws") throw new Error("Address unavailable");
           if (kind === 404) return { getResponseCode: () => 404, getContentText: () => "<html><title>Error</title>Sorry, unable to open the file at this time.</html>" };
           if (kind === "signin") return { getResponseCode: () => 200, getContentText: () => "<html><title>Sign in - Google Accounts</title></html>" };
+          if (kind === "page") return { getResponseCode: () => 200, getContentText: () => "<html><title>Something else</title></html>" };
+          if (kind === 503) return { getResponseCode: () => 503, getContentText: () => "<html>Service unavailable</html>" };
           const body = kind === "self" ? String(vm.runInContext("doGet()", ctx)) : JSON.stringify({ ok: true, data: { name: "3D Design Academy API", version: "1", sid: "another-copy" } });
           return { getResponseCode: () => 200, getContentText: () => body };
         }

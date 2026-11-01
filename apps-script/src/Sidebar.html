@@ -20,7 +20,7 @@
   button.link { background:none; color:var(--p); padding:4px 0; width:auto; display:inline; font-weight:600; text-decoration:underline; margin:0; }
   button:disabled { opacity:.55; cursor:default; }
   ol { padding-left:20px; margin:8px 0; } li { margin:4px 0; }
-  input[type=text], select { width:100%; box-sizing:border-box; border:1px solid var(--b); border-radius:8px; padding:9px; font-size:15px; margin-top:4px; }
+  input[type=text], input[type=url], select { width:100%; box-sizing:border-box; border:1px solid var(--b); border-radius:8px; padding:9px; font-size:15px; margin-top:4px; }
   label { display:block; margin-top:10px; font-weight:600; }
   .link { word-break:break-all; background:var(--bg); border-radius:8px; padding:6px 8px; font-size:12px; margin-top:6px; }
   .class { border-top:1px solid var(--b); padding:12px 0 2px; }
@@ -163,41 +163,69 @@ var PIC = {
 };
 
 function turnOnApp() {
+  // A saved address that stopped working (for example, its deployment was archived). Before a first deploy there is
+  // nothing to warn about: Google's own guess at the address is checked quietly and never shown as an error.
   var broken = S.brokenUrl
-    ? '<div class="warn"><b>Your app address doesn’t work yet.</b> Google gave this Sheet an address that doesn’t answer, often the address of the template you copied, or of a deployment that was removed. If you haven’t deployed, follow the steps below. If you already have, paste your Web app URL under “Already deployed?”.<p class="muted">Address that didn’t work: ' + esc(S.brokenUrl) + "</p></div>"
+    ? '<div class="warn" role="alert"><b>Your app address stopped working.</b> The deployment may have been archived or replaced. Paste your current Web app URL in step 5 below.<p class="muted">Address that stopped working: ' + esc(S.brokenUrl) + "</p></div>"
     : "";
   return broken + '<div class="card good"><h2><span class="tick">✓</span> Your Sheet is ready</h2></div>' +
-    '<div class="card hero"><h2>Turn on your app (2 minutes)</h2><p>Google needs you to click this yourself, one time.</p>' +
+    '<div class="card hero"><h2>Turn on your app (2 minutes)</h2><p>Google needs you to do this yourself, one time.</p>' +
     '<a class="btn" target="_blank" href="' + esc(S.editorUrl) + '">Open the script editor ↗</a>' +
     '<ol class="big">' +
     '<li>In the new tab, click the blue <b>Deploy</b> button (top right), then <b>New deployment</b>.' + PIC.deploy + "</li>" +
     '<li>Click the gear ⚙ next to “Select type”, then <b>Web app</b>.' + PIC.type + "</li>" +
     '<li>Check <b>Execute as: Me</b> and <b>Who has access: Anyone</b>. Click <b>Deploy</b>.' + PIC.form + "</li>" +
-    "<li>If Google asks, click <b>Authorize access</b> and <b>Allow</b>. Then click <b>Done</b> and come back to this tab.</li></ol>" +
-    '<div class="waiting"><div class="spin"></div>Waiting for you to deploy… this panel moves on by itself.</div>' +
-    '<button class="secondary" onclick="run(\'sidebarState\', undefined, this, \'Checking…\')">I did it — check now</button></div>' +
-    '<details' + (S.brokenUrl ? " open" : "") + '><summary>Already deployed? Paste your Web app URL</summary>' +
-    '<p>In the script editor: <b>Deploy</b> → <b>Manage deployments</b>. Copy the <b>Web app URL</b> (it ends in /exec).</p>' +
-    '<label>Web app URL<input type="url" id="wurl" placeholder="https://script.google.com/macros/s/…/exec"></label>' +
-    '<button class="secondary" onclick="saveUrl(this)">Check and use this address</button></details>' +
+    "<li>If Google asks, click <b>Authorize access</b> and <b>Allow</b>.</li>" +
+    "<li>Google shows a <b>Web app URL</b> ending in <b>/exec</b>. Click <b>Copy</b> under it, come back to this tab, and paste it here:" +
+    '<label for="wurl" style="margin-top:8px">Web app URL</label><input type="url" id="wurl" autocomplete="off" placeholder="https://script.google.com/macros/s/…/exec">' +
+    '<button onclick="saveUrl(this)">Check and use this address</button><div id="wmsg" aria-live="polite"></div>' +
+    '<p class="muted">Closed that screen already? In the script editor, open <b>Deploy</b> → <b>Manage deployments</b> and copy the Web app URL there.</p></li></ol>' +
+    '<p class="muted">This panel also checks by itself every few seconds. <button class="link" onclick="checkAgain(this)">Check again now</button></p><div id="cmsg" aria-live="polite"></div></div>' +
     '<details><summary>“Anyone” isn’t in the list</summary><p>Your school’s Google settings don’t allow it. Ask your tech office to let teachers share Apps Script web apps with “Anyone”. Students still sign in with Google, and only your roster gets in.</p></details>';
 }
 
-// While the teacher is deploying in the other tab, check every 5 seconds (only while this step is showing).
+// While the teacher is deploying in the other tab, check quietly every 10 seconds (only while this step is showing).
+// It finds the app only where Google reports the address correctly; the paste in step 5 works everywhere.
 var POLL = null;
 function poll() {
   var waiting = S && S.ready && !S.url && !working;
   if (waiting && !POLL) POLL = setInterval(function () {
     if (document.hidden) return;
     google.script.run.withSuccessHandler(function (s) { if (s.url) { S = s; clearInterval(POLL); POLL = null; render(); } }).sidebarState();
-  }, 5000);
+  }, 10000);
   if (!waiting && POLL) { clearInterval(POLL); POLL = null; }
 }
 
-function saveUrl(btn) {
+// "Check again now": asks Google afresh (no remembered results).
+function checkAgain(btn) {
+  busy(btn, "Checking…");
+  $("cmsg").textContent = "";
+  google.script.run
+    .withSuccessHandler(function (s) {
+      S = s;
+      if (s.url) { render(); return; }
+      btn.disabled = false; btn.textContent = btn.dataset.t;
+      $("cmsg").innerHTML = '<p class="muted">Not found yet. Paste your Web app URL in step 5. That always works.</p>';
+    })
+    .withFailureHandler(function (e) { btn.disabled = false; btn.textContent = btn.dataset.t; $("cmsg").innerHTML = '<div class="warn" role="alert">' + esc(e.message || String(e)) + "</div>"; })
+    .sidebarState({ recheck: true });
+}
+
+// Step 5: check the pasted address and use it. A clear problem gets a plain reason; an unclear answer offers "Use it anyway".
+function saveUrl(btn, force) {
   var v = $("wurl").value.trim();
   if (!v) { $("wurl").focus(); $("wurl").placeholder = "Paste the Web app URL first"; return; }
-  run("sidebarSaveSettings", { webAppUrl: v }, btn, "Checking…");
+  busy(btn, "Checking…");
+  $("wmsg").innerHTML = "";
+  google.script.run
+    .withSuccessHandler(function (s) { S = s; render(); })
+    .withFailureHandler(function (e) {
+      var m = e.message || String(e);
+      btn.disabled = false; btn.textContent = btn.dataset.t;
+      $("wmsg").innerHTML = '<div class="warn" role="alert">' + esc(m) + "</div>" +
+        (/Use it anyway/.test(m) ? '<button class="small secondary" onclick="saveUrl(this, true)">Use it anyway</button>' : "");
+    })
+    .sidebarSaveSettings({ webAppUrl: v, force: force === true });
 }
 function toggleQr(i) { openQr[i] = !openQr[i]; render(); }
 function copyText(t, btn) {

@@ -2213,27 +2213,35 @@ function setConfig_(key, value) {
 
 /** The web app's public address (normalized so it works for students on any domain), or null if not deployed yet. */
 function webAppUrl_() {
-  return webAppStatus_().url;
+  return webAppStatus_(false).url;
 }
 
 /**
- * Which web-app address to hand out, checked before use. Google's own answer (ScriptApp.getService().getUrl()) can
- * name an address that doesn't work for this copy: the template's deployment, or one that was archived. Every link
- * and QR code is built on this address, so only one that answers as THIS Sheet's app is used: first an address the
- * teacher pasted (saved below), then Google's. `broken` is an address that was found but didn't answer.
+ * Which web-app address to hand out. Every link and QR code is built on it, so it is checked first.
+ *
+ * The real source is the address the teacher pastes after deploying (saved as WEB_APP_URL). Google's own answer,
+ * ScriptApp.getService().getUrl(), is only a bonus: in copies of the template it names an address that doesn't
+ * exist, before and after the teacher deploys, so it is used only when it answers and its failure is never shown.
+ * Nothing here blocks for long: a failed check is remembered for 10 minutes at most, and `fresh` (the side panel's
+ * "Check again" and every paste) skips the remembered results. `broken` is a saved address that stopped working.
  */
-function webAppStatus_() {
-  const saved = PropertiesService.getScriptProperties().getProperty("WEB_APP_URL");
+function webAppStatus_(fresh) {
+  const props = PropertiesService.getScriptProperties();
+  const saved = props.getProperty("WEB_APP_URL");
+  const forced = props.getProperty("WEB_APP_URL_FORCED") === "TRUE";
+  if (saved) {
+    const c = webAppCheck_(saved, fresh);
+    // a teacher's "Use it anyway" holds unless Google says the address is gone or belongs to another Sheet
+    if (c === "ok" || c === "unknown" || (forced && c !== "missing" && c !== "other-sheet")) return { url: saved, broken: null };
+  }
   let found = null;
   try { found = ScriptApp.getService().getUrl(); } catch (e) { found = null; }
-  const candidates = [];
-  if (saved) candidates.push(saved);
-  if (found && !/\/dev$/.test(found)) {
-    const n = normalizeWebAppUrl_(found);
-    if (n && candidates.indexOf(n) < 0) candidates.push(n);
+  const n = found && !/\/dev$/.test(found) ? normalizeWebAppUrl_(found) : null;
+  if (n && n !== saved) {
+    const c = webAppCheck_(n, fresh);
+    if (c === "ok" || c === "unknown") return { url: n, broken: null };
   }
-  for (let i = 0; i < candidates.length; i++) if (webAppAnswers_(candidates[i])) return { url: candidates[i], broken: null };
-  return { url: null, broken: candidates[0] || null };
+  return { url: null, broken: saved || null };
 }
 
 /** Workspace accounts get /a/macros/<domain>/s/… or /a/<domain>/macros/s/…; both mean the same public address. */
@@ -2248,35 +2256,55 @@ function scriptFingerprint_() {
 }
 
 /**
- * Does `url` answer, without signing in (as students' browsers will), as this Sheet's app? A missing deployment
- * (404), a sign-in page (access isn't "Anyone") or another copy's app all fail. If the check itself can't run,
- * the address is trusted, as before. Results are kept briefly so the side panel stays quick.
+ * Asks `url` what it is, without signing in (as students' browsers will):
+ *   "ok"          this Sheet's app answered
+ *   "missing"     Google says there is no web app there (404)
+ *   "signin"      Google asks visitors to sign in: Who has access isn't "Anyone"
+ *   "other-sheet" another Sheet's app answered (the template's, or another class Sheet's)
+ *   "other"       something else answered
+ *   "unknown"     the check couldn't run (Google busy or the call failed): treated as working, as before
+ * Working answers are remembered for an hour, failures for 10 minutes; `fresh` asks again.
  */
-function webAppAnswers_(url) {
+function webAppCheck_(url, fresh) {
   const cache = CacheService.getScriptCache();
-  const key = "wa_" + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, url)).slice(0, 20);
-  const hit = cache.get(key);
-  if (hit) return hit === "ok";
-  let res;
-  try { res = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true }); } catch (e) { return true; }
-  let ok = false;
-  if (res.getResponseCode() === 200) {
-    try {
-      const d = JSON.parse(res.getContentText()).data;
-      ok = !!d && d.name === "3D Design Academy API" && (!d.sid || d.sid === scriptFingerprint_());
-    } catch (e) { ok = false; }
+  const key = "wa2_" + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, url)).slice(0, 20);
+  if (!fresh) {
+    const hit = cache.get(key);
+    if (hit) return hit;
   }
-  cache.put(key, ok ? "ok" : "no", ok ? 3600 : 15);
-  return ok;
+  let res;
+  try { res = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true }); } catch (e) { return "unknown"; }
+  const code = res.getResponseCode();
+  if (code === 429 || code >= 500) return "unknown";
+  const text = String(res.getContentText() || "");
+  let out = "other";
+  if (code === 404 || code === 410) out = "missing";
+  else if (code === 200) {
+    let d = null;
+    try { d = JSON.parse(text).data; } catch (e) { d = null; }
+    if (d && d.name === "3D Design Academy API") out = !d.sid || d.sid === scriptFingerprint_() ? "ok" : "other-sheet";
+    else if (/accounts\.google\.com|ServiceLogin|<title>[^<]*Sign in/i.test(text)) out = "signin";
+  } else if (code === 401 || code === 403) out = "signin";
+  try { cache.put(key, out, out === "ok" ? 3600 : 600); } catch (e) { /* only speed */ }
+  return out;
 }
 
-/** The teacher pasted their Web app URL (from Deploy → Manage deployments): keep it only if it answers as this Sheet's app. */
-function saveWebAppUrl_(raw) {
+/**
+ * The teacher pasted their Web app URL. Keep it if it answers as this Sheet's app, or if the check can't run.
+ * Clear failures get a plain reason; an unclear answer can be kept with "Use it anyway" (force), so a check that
+ * misreads Google can never lock a teacher out of setup.
+ */
+function saveWebAppUrl_(raw, force) {
   const url = normalizeWebAppUrl_(raw);
-  if (!url) throw new Error("That isn't a web app address. Copy the Web app URL from Deploy → Manage deployments. It starts with https://script.google.com/ and ends in /exec.");
-  CacheService.getScriptCache().remove("wa_" + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, url)).slice(0, 20));
-  if (!webAppAnswers_(url)) throw new Error("That address didn't answer as this Sheet's app. Check that it's the Web app URL from this Sheet's script (Deploy → Manage deployments) and that Who has access is set to Anyone, then try again.");
-  PropertiesService.getScriptProperties().setProperty("WEB_APP_URL", url);
+  if (!url) throw new Error("That isn't a web app address. It should start with https://script.google.com/ and end in /exec. Copy it from Deploy → Manage deployments → Web app URL.");
+  const c = webAppCheck_(url, true);
+  if (c === "missing") throw new Error("Google says there's no web app at that address. In the script editor, open Deploy → Manage deployments, copy the Web app URL of the active deployment, and paste it here.");
+  if (c === "signin") throw new Error("That web app asks visitors to sign in, so students can't use it. In Deploy → Manage deployments, click ✏️ (Edit), set Who has access to Anyone, click Deploy, then paste the address again.");
+  if (c === "other-sheet") throw new Error("That address belongs to a different Sheet's app (maybe the template or another class Sheet). Paste the Web app URL from this Sheet's own script: Extensions → Apps Script → Deploy → Manage deployments.");
+  if (c === "other" && !force) throw new Error("We couldn't confirm that this address is this Sheet's app. Check that you copied the Web app URL from this Sheet's script. If you're sure it's right, click Use it anyway.");
+  const props = PropertiesService.getScriptProperties();
+  props.setProperty("WEB_APP_URL", url);
+  props.setProperty("WEB_APP_URL_FORCED", c === "other" ? "TRUE" : "FALSE");
 }
 
 function viaLoader_() {
@@ -2307,12 +2335,12 @@ function latestVersion_() {
   }
 }
 
-/** Everything the setup sidebar shows. */
-function sidebarState() {
+/** Everything the setup sidebar shows. `opts.recheck` (the "Check again" button) asks Google again instead of using remembered checks. */
+function sidebarState(opts) {
   MEMO_ = {};
   const ready = !!ss_().getSheetByName("Config") && !!ss_().getSheetByName("Classes");
   const cfg = ready ? config_() : {};
-  const app = webAppStatus_();
+  const app = webAppStatus_(!!(opts && opts.recheck));
   const url = app.url;
   const clientId = cfg.CLIENT_ID || BUILD.clientId;
   const link = function (extra) {
@@ -2356,7 +2384,7 @@ function sidebarPrepare() {
 function sidebarSaveSettings(s) {
   // The loader declares a fixed set of entry points, so the pasted web-app address arrives here too.
   if (s && s.webAppUrl !== undefined) {
-    saveWebAppUrl_(s.webAppUrl);
+    saveWebAppUrl_(s.webAppUrl, s.force === true);
     return sidebarState();
   }
   const clean = function (v) { return String(v || "").toLowerCase().split(/[\s,]+/).filter(String).join(","); };

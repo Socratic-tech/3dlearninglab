@@ -223,33 +223,71 @@ describe("Setup sidebar", () => {
     expect(st.teacherLink).toMatch(/#\/teacher$/);
   });
 
-  it("a copied template whose address doesn't answer gets no links until the teacher pastes their own Web app URL", () => {
-    // Google reports the template's (archived) deployment for the copy: it answers 404
-    const dead = "https://script.google.com/macros/s/AKfyTemplateOld/exec";
+  it("a fresh template copy: Google's dead guess is never shown; the teacher deploys, pastes the Web app URL and is set up", () => {
+    // In copies, ScriptApp.getService().getUrl() names an address that doesn't exist, before and after deploying
+    const guess = "https://script.google.com/macros/s/AKfyGoogleGuess/exec";
     const own = "https://script.google.com/macros/s/AKfyTeachersOwn/exec";
-    const e = makeEnv("teacher@school.org", { webAppUrl: dead, webApps: { [dead]: 404, [own]: "self" } });
+    const e = makeEnv("teacher@school.org", { webAppUrl: guess, webApps: { [guess]: 404, [own]: "self" } });
     e.run("sidebarCreateClass({ name: 'Robotics', section: '', pathId: '9-week' })");
     const st = e.run("sidebarState()");
-    expect(st).toMatchObject({ url: null, brokenUrl: dead, teacherLink: null });
+    expect(st).toMatchObject({ url: null, brokenUrl: null, teacherLink: null }); // no warning before anything is deployed
     expect(st.classes[0].link).toBeNull();
-    // a wrong paste is refused with a plain reason; the Workspace form of the right one is accepted
+    // after deploying, "Check again now" still can't see the deployment (Google keeps naming the same dead address)
+    expect(e.run("sidebarState({ recheck: true })")).toMatchObject({ url: null, brokenUrl: null });
+    // step 5: the pasted address is checked and used; the Workspace form is accepted
     expect(() => e.run("sidebarSaveSettings({ webAppUrl: 'https://example.com/x' })")).toThrow(/isn't a web app address/);
-    expect(() => e.run(`sidebarSaveSettings({ webAppUrl: ${JSON.stringify(dead)} })`)).toThrow(/didn't answer as this Sheet's app/);
     const fixed = e.run("sidebarSaveSettings({ webAppUrl: 'https://script.google.com/a/macros/school.org/s/AKfyTeachersOwn/exec' })");
     expect(fixed).toMatchObject({ url: own, brokenUrl: null });
     expect(fixed.teacherLink).toContain(encodeURIComponent(own));
     expect(fixed.classes[0].link).toContain(encodeURIComponent(own));
     expect(e.props.get("WEB_APP_URL")).toBe(own);
+    expect(e.run("sidebarState().url")).toBe(own); // and it stays
   });
 
-  it("an address that answers as another copy's app, or asks for sign-in, is not handed out", () => {
-    const other = "https://script.google.com/macros/s/AKfyTemplateLive/exec";
-    expect(makeEnv("teacher@school.org", { webAppUrl: other, webApps: { [other]: "other" } }).run("sidebarState()")).toMatchObject({ url: null, brokenUrl: other });
-    const signin = "https://script.google.com/macros/s/AKfySignedInOnly/exec";
-    expect(makeEnv("teacher@school.org", { webAppUrl: signin, webApps: { [signin]: "signin" } }).run("sidebarState()")).toMatchObject({ url: null, brokenUrl: signin });
+  it("pasted addresses with a clear problem are refused with a plain reason", () => {
+    const urls = { gone: "https://script.google.com/macros/s/AKfyGone/exec", signin: "https://script.google.com/macros/s/AKfySignin/exec", other: "https://script.google.com/macros/s/AKfyOtherSheet/exec" };
+    const e = makeEnv("teacher@school.org", { webApps: { [urls.gone]: 404, [urls.signin]: "signin", [urls.other]: "other" } });
+    const paste = (u: string) => () => e.run(`sidebarSaveSettings({ webAppUrl: ${JSON.stringify(u)} })`);
+    expect(paste(urls.gone)).toThrow(/no web app at that address/);
+    expect(paste(urls.signin)).toThrow(/Who has access to Anyone/);
+    expect(paste(urls.other)).toThrow(/different Sheet's app/);
+    expect(e.props.get("WEB_APP_URL")).toBeUndefined();
   });
 
-  it("a working address is checked once and then remembered; if the check can't run, the address is still used", () => {
+  it("an unclear answer can be kept with Use it anyway; if Google is busy the address is kept as is", () => {
+    const odd = "https://script.google.com/macros/s/AKfyOddPage/exec";
+    const busy = "https://script.google.com/macros/s/AKfyBusy/exec";
+    const e = makeEnv("teacher@school.org", { webApps: { [odd]: "page", [busy]: 503 } });
+    expect(() => e.run(`sidebarSaveSettings({ webAppUrl: ${JSON.stringify(odd)} })`)).toThrow(/Use it anyway/);
+    expect(e.run(`sidebarSaveSettings({ webAppUrl: ${JSON.stringify(odd)}, force: true })`).url).toBe(odd);
+    expect(e.run("sidebarState({ recheck: true }).url")).toBe(odd); // the teacher's choice holds on later checks
+    expect(e.run(`sidebarSaveSettings({ webAppUrl: ${JSON.stringify(busy)} })`).url).toBe(busy);
+  });
+
+  it("Check again asks afresh: a failure is never remembered past a recheck", () => {
+    const url = "https://script.google.com/macros/s/AKfyLater/exec";
+    const webApps: Record<string, 404 | "self"> = { [url]: 404 };
+    const e = makeEnv("teacher@school.org", { webAppUrl: url, webApps });
+    expect(e.run("sidebarState().url")).toBeNull();
+    webApps[url] = "self"; // Google starts answering at this address
+    expect(e.run("sidebarState().url")).toBeNull(); // remembered for a while…
+    expect(e.run("sidebarState({ recheck: true }).url")).toBe(url); // …but Check again sees it straight away
+  });
+
+  it("a saved address that stops working is reported, and Google's address is used if it works", () => {
+    const old = "https://script.google.com/macros/s/AKfyArchived/exec";
+    const live = "https://script.google.com/macros/s/AKfyLive/exec";
+    const webApps: Record<string, 404 | "self"> = { [old]: "self" };
+    const e = makeEnv("teacher@school.org", { webApps });
+    e.run(`sidebarSaveSettings({ webAppUrl: ${JSON.stringify(old)} })`);
+    webApps[old] = 404; // the teacher archived that deployment
+    expect(e.run("sidebarState({ recheck: true })")).toMatchObject({ url: null, brokenUrl: old });
+    const withGoogle = makeEnv("teacher@school.org", { webAppUrl: live, webApps: { [old]: 404 } });
+    withGoogle.props.set("WEB_APP_URL", old);
+    expect(withGoogle.run("sidebarState()")).toMatchObject({ url: live, brokenUrl: null });
+  });
+
+  it("existing Sheets: an address Google reports correctly is checked once, then remembered; if the check can't run it's still used", () => {
     const ok = "https://script.google.com/macros/s/AKfyWorks/exec";
     const e = makeEnv("teacher@school.org", { webAppUrl: ok });
     expect(e.run("sidebarState().url")).toBe(ok);
@@ -257,6 +295,8 @@ describe("Setup sidebar", () => {
     expect(e.webAppFetches).toEqual([ok]);
     const down = "https://script.google.com/macros/s/AKfyCheckDown/exec";
     expect(makeEnv("teacher@school.org", { webAppUrl: down, webApps: { [down]: "throws" } }).run("sidebarState().url")).toBe(down);
+    const other = "https://script.google.com/macros/s/AKfyTemplateLive/exec";
+    expect(makeEnv("teacher@school.org", { webAppUrl: other, webApps: { [other]: "other" } }).run("sidebarState()")).toMatchObject({ url: null, brokenUrl: null });
   });
 
   it("setting up never touches the Apps Script API (Google blocks it in Sheet copies)", () => {

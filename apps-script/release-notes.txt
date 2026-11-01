@@ -1,1 +1,1 @@
-Lesson edits now reach your class automatically. After this update, you will rarely need to update again; new lessons and fixes arrive on their own.
+Fixes setup getting stuck after you deploy: paste your Web app URL in the side panel and you're set up. Your class links keep working.
