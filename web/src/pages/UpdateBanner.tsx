@@ -1,7 +1,8 @@
 /**
  * Teacher dashboard: "Update available" when the website has a newer app than the one installed in the Sheet.
- * Loader 2 installs only when a teacher clicks Update now (safety-checked first) and offers Undo.
- * Older Sheets get a one-time paste of the new loader.
+ * Loader 2 installs only when a teacher clicks Update now (safety-checked first) and offers Undo. Loader 1 updates by
+ * itself, so it is never asked for anything. Only a Sheet with no loader (the whole app pasted in, before October
+ * 2026) can't update and is asked for the one-time paste.
  */
 import { useEffect, useState, type ReactNode } from "react";
 import { Alert } from "@/components/ui/card";
@@ -36,7 +37,7 @@ export function UpdateBanner({ me, apiUrl, onUpdated }: { me: Me; apiUrl: string
   // Try-It mode runs the website's own engine: it is always the current version.
   if (isLocalApi(apiUrl)) return null;
   const outdated = !!latest && mine !== "dev" && mine !== latest.version;
-  const needsMigration = me.app?.safeUpdates !== true;
+  const needsMigration = me.app?.autoUpdates !== true;
   const previous = me.app?.previous ?? null;
   if (me.user.role !== "teacher" || (!needsMigration && !outdated && !result)) return null;
   if (hidden && !result) return null;
@@ -57,8 +58,8 @@ export function UpdateBanner({ me, apiUrl, onUpdated }: { me: Me; apiUrl: string
 
   if (needsMigration) {
     return wrap(
-      <Alert tone="warning" title="Paste the new loader once">
-        <p>{isOwner ? "This Sheet" : `The Sheet owned by ${owner}`} needs a one-time paste. After that, app updates install only when you click Update now, each one is safety-checked first, and you can undo it.</p>
+      <Alert tone="warning" title="This Sheet can&rsquo;t get updates yet">
+        <p>{isOwner ? "This Sheet" : `The Sheet owned by ${owner}`} runs an early copy of the app that can&rsquo;t update itself. A one-time paste (about 2 minutes) fixes that. After it, updates install when you click Update now, and you can undo them.</p>
         <a className="mt-2 inline-block font-semibold underline" href={PASTE_URL} target="_blank" rel="noreferrer">Show me how</a>
       </Alert>,
     );

@@ -104,7 +104,8 @@ function render() {
 function home() {
   var newer = S.latest && S.latest.version && S.latest.version !== S.version;
   var h = "";
-  if (!S.safeUpdates && S.pasteUrl) h += '<div class="card hero"><h2>One-time update</h2><p>Paste the new loader once. After that, updates install only when you click <b>Update now</b>, each one is safety-checked first, and you can undo.</p><a class="btn" target="_blank" href="' + esc(S.pasteUrl) + '">Show me how (2 minutes) ↗</a><p class="muted">Your links and student work stay the same.</p></div>';
+  // Only a Sheet with no loader can't update; older loaders already update by themselves.
+  if (!S.autoUpdates && S.pasteUrl) h += '<div class="card hero"><h2>This Sheet can’t get updates yet</h2><p>It runs an early copy of the app. A one-time paste fixes that. After it, updates install when you click <b>Update now</b>, and you can undo them.</p><a class="btn" target="_blank" href="' + esc(S.pasteUrl) + '">Show me how (2 minutes) ↗</a><p class="muted">Your links and student work stay the same.</p></div>';
   else if (newer) h += '<div class="card hero"><h2>Update available</h2>' + (S.latest.notes ? "<p>" + esc(S.latest.notes) + "</p>" : "") + '<button onclick="update(this)">Update now</button><p class="muted">It’s checked before it installs, and you can undo it. Links and student work stay the same.</p><div id="upd"></div></div>';
   if (!S.site) h += '<div class="warn">This copy doesn’t know the website address. Ask whoever shared it for an updated template.</div>';
   if (S.teacherLink) h += '<a class="btn" target="_blank" href="' + esc(S.teacherLink) + '">Open my dashboard ↗</a><p class="muted">See progress, review work and import rosters. Bookmark the page that opens.</p>';
