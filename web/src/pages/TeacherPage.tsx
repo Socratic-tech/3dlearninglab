@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Copy } from "lucide-react";
+import { ClipboardCheck, Copy, PartyPopper, Printer, Wrench } from "lucide-react";
 import type { Proficiency } from "@/content/schema";
 import { Alert, Card, CardTitle, EmptyState, Pill, Stat } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import { CustomPathBuilder } from "./CustomPathBuilder";
 import { markSetupStep, SetupCheckPanel, SetupChecklist } from "./SetupHelp";
 import { offlineChallenges } from "./HandoutPage";
 import { UpdateBanner } from "./UpdateBanner";
+import { classCompletion, ClassHero, classStudents, ClassTrail, FocusCard, SectionHeading, TodaysWins, whereTheClassIs, winsToday } from "./TeacherWarmth";
 
 type Ev = { id: string; email: string; lessonId: string; type: string; url: string | null; fileName: string | null; text: string | null; status: string; rating: number | null; comment: string | null; createdAt: string; competencyIds: string[] };
 type ClassData = {
@@ -205,16 +206,14 @@ function SimpleHome({ data, firstName, name, apiUrl, onSaved, openTool }: { data
   const today = new Date().toISOString().slice(0, 10);
   const activeToday = data.live?.activeToday ?? new Set(data.progress.filter((p) => String(p.updatedAt).slice(0, 10) === today).map((p) => p.email)).size;
   const shownReview = allReview ? queue : queue.slice(0, 3);
-  const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+  const students = classStudents(data.students);
+  const path = classLessons(data.cls);
+  const lessonTitle = (id: string) => path.find((p) => p.lesson.id === id)?.lesson.title ?? lessonById.get(id)?.title ?? id;
   return (
     <div className="space-y-8">
-      <section className="bg-blueprint rounded-3xl border border-border bg-surface p-5 sm:p-6">
-        <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-primary">Welcome back</p>
-        <h2 className="font-display text-2xl font-bold sm:text-3xl">{firstName}</h2>
-        <p className="mt-1 text-sm text-muted sm:text-base" role="status">
-          {plural(activeToday, "student", "students")} active today · {plural(queue.length, "piece", "pieces")} of work to review · {plural(openPrints, "print", "prints")} waiting
-        </p>
-      </section>
+      <ClassHero firstName={firstName} className={data.cls.name} percent={classCompletion(students, data.progress, path)} active={activeToday} toReview={queue.length} prints={openPrints} />
+
+      <FocusCard stuck={(data.live?.stuck ?? []).map((x) => ({ name: name(x.email), lesson: lessonTitle(x.lessonId) }))} toReview={queue.length} prints={openPrints} />
 
       <SetupChecklist cls={data.cls} students={data.students} apiUrl={apiUrl} goTab={openTool} />
 
@@ -227,13 +226,15 @@ function SimpleHome({ data, firstName, name, apiUrl, onSaved, openTool }: { data
         </section>
       )}
 
-      <section aria-labelledby="review-h" className="space-y-3">
-        <div className="flex flex-wrap items-baseline gap-2">
-          <h2 id="review-h" className="font-display text-xl font-bold">Work to review</h2>
-          {queue.length > 0 && <Pill tone="accent">{queue.length}</Pill>}
-        </div>
+      <TodaysWins wins={winsToday(students, data.progress)} title={lessonTitle} />
+
+      <section aria-labelledby="review-h" className="space-y-3 rounded-3xl border border-accent/30 bg-accent-soft p-5">
+        <SectionHeading id="review-h" icon={<ClipboardCheck className="size-5" />} tone="accent" count={queue.length}>Work to review</SectionHeading>
         {queue.length === 0 ? (
-          <EmptyState title="All caught up">New screenshots, designs and reflections show up here when students submit them.</EmptyState>
+          <div className="flex items-center gap-4 rounded-2xl bg-surface p-4">
+            <PartyPopper className="size-8 shrink-0 text-success" aria-hidden />
+            <div><p className="font-display text-lg font-bold">All caught up</p><p className="text-sm text-muted">New screenshots, designs and reflections show up here when students submit them.</p></div>
+          </div>
         ) : (
           <>
             <ul className="space-y-4">{shownReview.map((e) => <li key={e.id}><ReviewCard e={e} name={name(e.email)} apiUrl={apiUrl} onSaved={onSaved} inGallery={(data.galleryIds ?? []).includes(e.id)} /></li>)}</ul>
@@ -242,16 +243,15 @@ function SimpleHome({ data, firstName, name, apiUrl, onSaved, openTool }: { data
         )}
       </section>
 
-      <section aria-labelledby="prints-h" className="space-y-3">
-        <div className="flex flex-wrap items-baseline gap-2">
-          <h2 id="prints-h" className="font-display text-xl font-bold">Print queue</h2>
-          {openPrints > 0 && <Pill tone="accent">{openPrints}</Pill>}
-        </div>
+      <section aria-labelledby="prints-h" className="space-y-3 rounded-3xl border border-primary/30 bg-primary-soft p-5">
+        <SectionHeading id="prints-h" icon={<Printer className="size-5" />} count={openPrints}>Print queue</SectionHeading>
         <Prints jobs={data.prints ?? []} name={name} apiUrl={apiUrl} onSaved={onSaved} />
       </section>
 
+      <ClassTrail trail={whereTheClassIs(students, data.progress, path)} />
+
       <section aria-labelledby="more-h" className="rounded-3xl border border-border bg-surface p-5">
-        <h2 id="more-h" className="font-display text-xl font-bold">More tools</h2>
+        <SectionHeading id="more-h" icon={<Wrench className="size-5" />}>More tools</SectionHeading>
         <p className="text-sm text-muted">These open the Advanced view. Switch back to Simple at the top any time.</p>
         <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {MORE_TOOLS.map((t) => (
