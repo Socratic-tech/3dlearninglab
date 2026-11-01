@@ -9,7 +9,7 @@ const USAGE_OWNER = ((import.meta.env.VITE_USAGE_OWNER as string | undefined) ??
 type Copy = { copyId: string; firstSeen: string; lastSeen: string; version: string; classes: number; students: number; activeWeek: number; missionsWeek: number; missionsTotal: number; courses: Record<string, number> };
 type Usage = { copies: Copy[]; trend: { week: string; copies: number; active: number; missions: number }[]; at: string };
 
-const COURSE_NAMES: Record<string, string> = { "18-week": "18-week", "9-week": "9-week", "jr-starter": "Grades 4–5", custom: "Custom path" };
+const COURSE_NAMES: Record<string, string> = { "18-week": "18-week", "9-week": "9-week", "jr-starter": "Grades 4–5", "level-up": "Level Up", "puzzle-cube": "Puzzle Cube", custom: "Custom path" };
 const days = (iso: string) => (Date.now() - Date.parse(iso)) / 86400000;
 const day = (iso: string) => (iso ? new Date(iso).toLocaleDateString() : "—");
 

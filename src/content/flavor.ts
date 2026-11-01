@@ -238,6 +238,24 @@ export const FLAVOR: Record<string, Flavor> = {
   "pro-fusion-bonus": {
     hook: { headline: "Pros switch tools all the time.", body: "Makerspaces, small product teams and machine shops use different CAD tools, and engineers often learn several. Once you know sketch, constrain and extrude, a new tool is mostly new button names." },
   },
+  "puzzle-think-in-cubes": {
+    hook: { headline: "A puzzle from a 1933 lecture.", body: "Danish inventor Piet Hein imagined a puzzle while listening to a physics lecture: odd pieces made of small cubes that fit together into one 3 × 3 × 3 cube. People have been designing new cube puzzles ever since. Now it's your turn." },
+    themes: { prove: [{ label: "Keychain", idea: "Small and pocket-sized: 10 mm cubes, a 30 mm puzzle" }, { label: "Desk toy", idea: "Easy to hold: 15 mm cubes, a 45 mm puzzle" }, { label: "Brain buster", idea: "Four or more pieces that bend in 3D" }] },
+  },
+  "puzzle-build-pieces": {
+    hook: { headline: "Games and scanners build with tiny cubes.", body: "Block-building video games and medical CT scans both describe 3D shapes as tiny cubes called voxels: volume pixels. Your puzzle is 27 big voxels." },
+    themes: { prove: [{ label: "Keychain", idea: "10 mm cubes with a key-ring loop on one piece" }, { label: "Desk size", idea: "15 mm cubes, easy to hold and solve" }, { label: "Colour code", idea: "Colours that help a solver, or colours that trick them" }] },
+  },
+  "puzzle-print-plan": {
+    hook: { headline: "Supports are plastic you throw away.", body: "Every bit of support is printed, then snapped off and binned. Engineers who print lots of parts turn them so flat faces sit on the plate: less waste, less cleanup and smoother surfaces." },
+  },
+  "puzzle-fit-box": {
+    hook: { headline: "Car engineers add up tiny errors.", body: "An engine has many parts stacked together. Each one can be a tiny bit off, and those bits add up. Engineers run 'stack-up' calculations so everything still fits. Your three puzzle pieces stack up too." },
+  },
+  "puzzle-playtest": {
+    hook: { headline: "Game designers watch players in silence.", body: "Video game and board game studios run playtests: designers watch real players without explaining anything and note where they get stuck. Then they change the game and test again." },
+    clients: { prove: { name: "Mr. Alvarez", who: "runs the indoor-recess game bin", message: "Students finish the old puzzles in seconds. Can you make one that takes a first-timer a few minutes, with a box so pieces don't get lost and a card that shows the answer?" } },
+  },
 };
 
 export const flavorFor = (lessonId: string): Flavor | undefined => FLAVOR[lessonId];

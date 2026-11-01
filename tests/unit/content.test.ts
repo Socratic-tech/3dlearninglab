@@ -39,6 +39,15 @@ describe("curriculum content", () => {
     expect(eighteen.weeks.filter((w) => !w.bonus).at(-1)!.lessonIds.at(-1)).toBe("maker-showcase");
   });
 
+  it("the Puzzle Cube project path builds to a playtest finish", () => {
+    const ids = lessonsInPath("puzzle-cube").map((x) => x.lesson.id);
+    const puzzle = ids.filter((id) => id.startsWith("puzzle-"));
+    expect(puzzle).toEqual(["puzzle-think-in-cubes", "puzzle-build-pieces", "puzzle-print-plan", "puzzle-fit-box", "puzzle-playtest"]);
+    expect(ids.at(-1)).toBe("puzzle-playtest");
+    // every puzzle mission comes after the review missions it builds on
+    for (const id of puzzle) for (const pre of lessons.find((l) => l.id === id)!.prerequisites) if (ids.includes(pre)) expect(ids.indexOf(pre), `${id} ← ${pre}`).toBeLessThan(ids.indexOf(id));
+  });
+
   it("every bundled model file exists on disk", () => {
     for (const a of modelAssets.filter((m) => m.localFilePath)) {
       expect(fs.existsSync(path.join(process.cwd(), "public", a.localFilePath!)), a.id).toBe(true);

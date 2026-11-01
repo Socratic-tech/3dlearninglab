@@ -802,5 +802,114 @@
       ]
     },
     "notes": "A wedge with a sloped top face. Put a workplane on the slope and add a feature that sits flat on it."
+  },
+  "puzzle-cube-exploded": {
+    "file": "/models/original/puzzle-cube-exploded.stl",
+    "triangles": 232,
+    "min": [
+      -12,
+      -16,
+      0
+    ],
+    "max": [
+      60,
+      60,
+      85
+    ],
+    "size": [
+      72,
+      76,
+      85
+    ],
+    "anchors": {
+      "pieceA": [
+        3.5,
+        -4.5,
+        15
+      ],
+      "pieceB": [
+        -0.5,
+        -8.5,
+        58
+      ],
+      "pieceC": [
+        -4.5,
+        34.5,
+        46
+      ],
+      "pieceD": [
+        7.5,
+        52.5,
+        85
+      ],
+      "pieceE": [
+        37.5,
+        -2.5,
+        80
+      ],
+      "pieceF": [
+        37.5,
+        52.5,
+        20
+      ]
+    },
+    "notes": "A 45 mm puzzle cube made of 27 cubes (15 mm each), pulled apart into its six pieces: three of 5 cubes and three of 4 cubes."
+  },
+  "puzzle-piece-checkup": {
+    "file": "/models/original/puzzle-piece-checkup.stl",
+    "triangles": 112,
+    "min": [
+      0,
+      0,
+      0
+    ],
+    "max": [
+      115,
+      75,
+      30
+    ],
+    "size": [
+      115,
+      75,
+      30
+    ],
+    "anchors": {
+      "goodEnd": [
+        37.5,
+        22.5,
+        15
+      ],
+      "goodStart": [
+        7.5,
+        7.5,
+        15
+      ],
+      "edgeLoose": [
+        107.5,
+        37.5,
+        15
+      ],
+      "edgeBody": [
+        77.5,
+        7.5,
+        15
+      ],
+      "standingBase": [
+        7.5,
+        67.5,
+        7.5
+      ],
+      "standingMid": [
+        22.5,
+        67.5,
+        22.5
+      ],
+      "standingTip": [
+        37.5,
+        67.5,
+        22.5
+      ]
+    },
+    "notes": "Three puzzle pieces built from 15 mm cubes: a good flat L piece, a piece whose fourth cube touches only along an edge, and a piece standing so two cubes hang in mid-air."
   }
 }

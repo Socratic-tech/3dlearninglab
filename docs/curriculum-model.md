@@ -1,7 +1,9 @@
 # Curriculum model
 
-- **Paths** (`src/content/paths.ts`): `9-week` and `18-week`, each a list of weeks → lesson ids. The 9-week course has its
-  own finish (Mini Design Sprint); it is not the first half of the 18-week course.
+- **Paths** (`src/content/paths.ts`): `9-week`, `18-week`, `jr-starter` (grades 4–5), `level-up` (Pro CAD) and
+  `puzzle-cube` (a 6-week project), each a list of weeks → lesson ids. The 9-week course has its own finish (Mini Design
+  Sprint); it is not the first half of the 18-week course. Project paths open with review missions that teachers can
+  turn off for classes that already know them.
 - **Lessons** (`src/content/lessons/*.ts`): data-only records validated by `lessonSchema` (`src/content/schema.ts`):
   id, number, domain, kind (lesson/boss/lab/challenge/capstone/showcase), printLevel (digital/prototype/required),
   competencyIds, prerequisites, vocabulary, sections (DISCOVER/PRACTICE/APPLY/PROVE/REFLECT) of typed blocks, and a

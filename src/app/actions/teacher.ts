@@ -12,10 +12,11 @@ import { transitionPrintJob } from "@/server/services/print-queue";
 import { assertCanReviewInCourse } from "@/server/policy";
 import { importGoogleCourses, publishAssignment, refreshAssignment, sendGrade, setSyncEnabled, syncRoster } from "@/server/integrations/google/classroom";
 import { disconnectGoogle } from "@/server/integrations/google/oauth";
-import { getRubric, PROFICIENCY_LEVELS } from "@/content";
+import { getRubric, paths, PROFICIENCY_LEVELS } from "@/content";
 
 const T = ["teacher", "org_admin"] as const;
-const path = z.enum(["9-week", "18-week"]);
+/** Any course path in the curriculum (9-week, 18-week, Maker Junior, Level Up, Puzzle Cube, …). */
+const path = z.string().refine((id) => paths.some((p) => p.id === id), "Unknown course path");
 
 export async function createCourseAction(_p: unknown, fd: FormData) {
   const r = await run([...T], async ({ db, actor }) =>

@@ -33,7 +33,7 @@ export const DEFAULT_EQUIPMENT: EquipmentConfig = {
 export async function createCourse(
   db: DB,
   actor: Actor,
-  input: { name: string; section?: string | null; pathId: "9-week" | "18-week"; equipment?: Partial<EquipmentConfig> },
+  input: { name: string; section?: string | null; pathId: string; equipment?: Partial<EquipmentConfig> },
 ): Promise<Course> {
   if (actor.role === "student") throw new AppError("Only teachers can create classes.", 403);
   const name = input.name.trim();
@@ -177,7 +177,7 @@ export async function updateCourseSettings(
   db: DB,
   actor: Actor,
   courseId: string,
-  input: Partial<{ name: string; section: string | null; pathId: "9-week" | "18-week"; tinkercadClassUrl: string | null; equipment: EquipmentConfig; startDate: Date | null }>,
+  input: Partial<{ name: string; section: string | null; pathId: string; tinkercadClassUrl: string | null; equipment: EquipmentConfig; startDate: Date | null }>,
 ) {
   await assertTeacherOfCourse(db, actor, courseId);
   if (input.tinkercadClassUrl) {
