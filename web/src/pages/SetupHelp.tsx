@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { CircleAlert, CircleCheck, CircleX, Printer } from "lucide-react";
+import { CircleAlert, CircleCheck, CircleX, Eye, Link2, Printer, QrCode, ShieldCheck, Users, type LucideIcon } from "lucide-react";
 import qrcode from "qrcode-generator";
 import { Alert, Card, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonClass } from "@/components/ui/button";
 import { call, callOnce } from "../api";
 import { classLink } from "../config";
 import type { ClassInfo, Me } from "../content";
 import { runSetupChecks, type Check } from "../setup-check";
+import { setStudentView } from "../state";
 
 // Small per-browser flags for checklist steps the server can't see (each teacher's own computer).
 const flagKey = (classId: string, step: string) => `academy.setup.${classId}.${step}`;
@@ -54,39 +55,73 @@ export function SetupCheckPanel({ apiUrl, classId, autoRun, onAllOk }: { apiUrl:
 }
 
 type Student = { email: string };
-/** First-run checklist on the teacher dashboard. Steps tick themselves off; hidden once done or dismissed. */
+type Step = { id: string; icon: LucideIcon; label: string; why: string; done: boolean; cta: string; href?: string; action?: () => void };
+
+/**
+ * First-run checklist on the teacher dashboard, as check cards: the next three steps left (the next one highlighted;
+ * the rest one click away), finished steps as small "Done" chips. Steps tick themselves off; hidden once done or
+ * dismissed.
+ */
 export function SetupChecklist({ cls, students, apiUrl, goTab }: { cls: ClassInfo; students: Student[]; apiUrl: string; goTab: (tab: "Classes" | "Roster") => void }) {
   const [hidden, setHidden] = useState(() => hasFlag(cls.id, "hide"));
   const [showCheck, setShowCheck] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const [tick, setTick] = useState(0); // re-read the per-browser flags after a step finishes here
   const realStudents = students.filter((s) => !s.email.includes("+student@"));
-  const steps = useMemo(() => [
-    { id: "tinkercad", label: "Add your Tinkercad class link", why: "Students open Tinkercad from the lessons with one click.", done: !!cls.tinkercadUrl, action: () => goTab("Classes"), cta: "Add it" },
-    { id: "students", label: "Add your students", why: "Import from Google Classroom, paste a list, or share the class link.", done: realStudents.length > 0, action: () => goTab("Roster"), cta: "Add students" },
-    { id: "preview", label: "Try it as a student", why: "Student view makes you a test student with XP, avatar and locks.", done: hasFlag(cls.id, "preview") || students.some((s) => s.email.includes("+student@")), href: undefined as string | undefined, action: undefined as (() => void) | undefined, cta: "Use Student view (top right)" },
-    { id: "kit", label: "Start your print kit", why: "Print Detective needs samples printed 1–2 weeks ahead.", done: hasFlag(cls.id, "kit"), href: "#/kit", cta: "Open print kit" },
-    { id: "poster", label: "Print the class poster and handout", why: "A QR code and join steps for the first day.", done: hasFlag(cls.id, "poster"), href: "#/poster", cta: "Open poster" },
-    { id: "check", label: "Run Check my setup", why: "Catches the setup problems that stop students from joining.", done: hasFlag(cls.id, "check"), action: () => setShowCheck(true), cta: "Check now" },
+  const steps = useMemo<Step[]>(() => [
+    { id: "tinkercad", icon: Link2, label: "Add your Tinkercad class link", why: "Students open Tinkercad from the lessons in one click.", done: !!cls.tinkercadUrl, action: () => goTab("Classes"), cta: "Add link" },
+    { id: "students", icon: Users, label: "Add your students", why: "Import from Google Classroom, paste a list, or share the class link.", done: realStudents.length > 0, action: () => goTab("Roster"), cta: "Add students" },
+    { id: "preview", icon: Eye, label: "Try it as a student", why: "See the missions exactly as students do, with a test student.", done: hasFlag(cls.id, "preview") || students.some((s) => s.email.includes("+student@")), action: () => { markSetupStep(cls.id, "preview"); setStudentView(true); location.hash = "#/student"; }, cta: "Open student view" },
+    { id: "kit", icon: Printer, label: "Start your print kit", why: "Print Detective needs samples printed 1–2 weeks ahead.", done: hasFlag(cls.id, "kit"), href: "#/kit", cta: "Open print kit" },
+    { id: "poster", icon: QrCode, label: "Print the class poster", why: "A QR code and join steps for the first day.", done: hasFlag(cls.id, "poster"), href: "#/poster", cta: "Open poster" },
+    { id: "check", icon: ShieldCheck, label: "Check my setup", why: "Finds problems that would stop students from joining.", done: hasFlag(cls.id, "check"), action: () => setShowCheck(true), cta: "Check now" },
   ], [cls, students, realStudents.length, goTab, tick]); // eslint-disable-line react-hooks/exhaustive-deps
-  const done = steps.filter((s) => s.done).length;
-  if (hidden || done === steps.length) return null;
+  const left = steps.filter((s) => !s.done);
+  const finished = steps.filter((s) => s.done);
+  const shown = showAll ? left : left.slice(0, 3); // one row on wide screens; the rest one click away
+  if (hidden || left.length === 0) return null;
   return (
     <Card>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <CardTitle>Get your class ready</CardTitle>
-        <span className="text-sm text-muted">{done} of {steps.length} done</span>
-        <button className="ml-auto text-sm text-muted underline" onClick={() => { markSetupStep(cls.id, "hide"); setHidden(true); }}>Hide checklist</button>
+        <span className="text-sm text-muted" role="status">{finished.length} of {steps.length} done</span>
+        <button className="ml-auto text-sm text-muted underline hover:text-fg" onClick={() => { markSetupStep(cls.id, "hide"); setHidden(true); }}>Hide checklist</button>
       </div>
-      <div className="mt-2 h-2 rounded-full bg-surface-2"><div className="h-2 rounded-full bg-primary" style={{ width: `${(done / steps.length) * 100}%` }} /></div>
-      <ol className="mt-3 space-y-2">
-        {steps.map((s, i) => (
-          <li key={s.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2 text-sm">
-            {s.done ? <CircleCheck className="size-5 text-success" aria-label="Done" /> : <span className="grid size-5 place-items-center rounded-full border border-border font-mono text-xs">{i + 1}</span>}
-            <span className="min-w-0 flex-1"><span className={s.done ? "font-semibold text-muted line-through" : "font-semibold"}>{s.label}</span> <span className="text-muted">· {s.why}</span></span>
-            {!s.done && (s.href ? <a href={s.href} className="rounded-lg border border-border px-3 py-1 font-semibold hover:bg-surface-2">{s.cta}</a> : s.action ? <Button size="sm" variant="secondary" onClick={s.action}>{s.cta}</Button> : <span className="text-xs text-muted">{s.cta}</span>)}
-          </li>
-        ))}
-      </ol>
+      <div className="mt-2 h-1.5 rounded-full bg-surface-2" aria-hidden><div className="h-1.5 rounded-full bg-primary" style={{ width: `${(finished.length / steps.length) * 100}%` }} /></div>
+      <ul className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {shown.map((s, i) => {
+          const Icon = s.icon;
+          const next = i === 0;
+          return (
+            <li key={s.id} className={`flex flex-col rounded-xl border bg-surface p-3 ${next ? "border-primary" : "border-border"}`}>
+              <div className="flex items-start gap-2">
+                <Icon className={`mt-0.5 size-5 shrink-0 ${next ? "text-primary" : "text-muted"}`} aria-hidden />
+                <p className="min-w-0 flex-1 font-semibold leading-snug">{s.label}</p>
+                {next && <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-fg">Next</span>}
+              </div>
+              <p className="mt-1 flex-1 text-sm text-muted">{s.why}</p>
+              <div className="mt-3">
+                {s.href
+                  ? <a href={s.href} className={buttonClass(next ? "primary" : "secondary", "sm")}>{s.cta}</a>
+                  : <Button size="sm" variant={next ? "primary" : "secondary"} onClick={s.action}>{s.cta}</Button>}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      {left.length > 3 && (
+        <button className="mt-2 text-sm font-semibold text-primary underline" aria-expanded={showAll} onClick={() => setShowAll(!showAll)}>
+          {showAll ? "Show fewer steps" : `Show ${left.length - 3} more step${left.length - 3 === 1 ? "" : "s"}`}
+        </button>
+      )}
+      {finished.length > 0 && (
+        <p className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted">
+          <span>Done:</span>
+          {finished.map((s) => (
+            <span key={s.id} className="inline-flex items-center gap-1 rounded-full bg-surface-2 px-2 py-0.5"><CircleCheck className="size-3.5 text-success" aria-hidden />{s.label}</span>
+          ))}
+        </p>
+      )}
       {showCheck && <div className="mt-4"><SetupCheckPanel apiUrl={apiUrl} classId={cls.id} autoRun onAllOk={() => setTick((n) => n + 1)} /></div>}
     </Card>
   );
