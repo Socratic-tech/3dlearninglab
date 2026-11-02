@@ -30,6 +30,15 @@ export const lesson: LessonInput = {
           visual: { modelId: "puzzle-cube-exploded", alt: "A sample puzzle cube pulled apart into its pieces." },
         },
         {
+          id: "demo",
+          type: "teacherLed",
+          title: "Back up first",
+          minutes: 5,
+          students: "Watch your teacher back up a design, then group one colour into a piece and pull it out of the cube.",
+          teacher: "Model the backup before anything else: it's what lets students change pieces on day 17. Then group one colour and drag it out so the class sees a piece appear.",
+          devices: "open",
+        },
+        {
           id: "steps",
           type: "showMe",
           title: "Group one piece",
@@ -145,6 +154,15 @@ export const lesson: LessonInput = {
   ],
   teacher: {
     purpose: "Students turn the in-place build into real parts with grouping, and see their design as an exploded view. A backup keeps an editable cube for later changes (day 17).",
+    runPlan: [
+      { minutes: 5, title: "Demo", teacher: "Backup, group one colour, pull it out.", students: "Watch.", devices: "open" },
+      { minutes: 25, title: "Group", teacher: "Circulate; check groups match the plan.", students: "Back up, group every piece.", devices: "open" },
+      { minutes: 10, title: "Explode", teacher: "Prompt: compare each piece to its sketch.", students: "Pull pieces apart, compare.", devices: "open" },
+      { minutes: 10, title: "Checks and record", teacher: "Order and stray-cube checks; screenshot of the exploded view.", students: "Answer, upload.", devices: "open" },
+      { minutes: 5, title: "Share", teacher: "Two or three exploded views on the board.", students: "Look, comment.", devices: "open" },
+    ],
+    lookFors: ["A backup saved before grouping.", "Group count matches the plan.", "Students noticing where a piece differs from the sketch."],
+    differentiation: { support: ["Group one colour at a time with the others hidden.", "A checklist: backup, group, count, explode."], extend: ["Make a clean exploded view for the showcase.", "Plan one change for version 2 now."] },
     preparation: ["Show how to copy a design (Tinkercad dashboard: Duplicate) or select-all, copy and paste into a new design."],
     equipment: ["Student devices with Tinkercad"],
     misconceptions: [

@@ -30,6 +30,15 @@ export const lesson: LessonInput = {
           visual: { diagram: "duplicate-pattern", alt: "Copy a shape, move it once, then repeat." },
         },
         {
+          id: "demo",
+          type: "teacherLed",
+          title: "Duplicate, the fast way",
+          minutes: 6,
+          students: "Watch the duplicate trick: Ctrl + D, move the copy, Ctrl + D again. The second copy lands in line by itself.",
+          teacher: "Show repeat-duplicate twice: it's the move that saves the most time today. Then show lifting a copy to 15 mm with the cone handle. Ask students to predict where the next copy will land before you press Ctrl + D again.",
+          devices: "open",
+        },
+        {
           id: "steps",
           type: "showMe",
           title: "Build a layer",
@@ -145,6 +154,16 @@ export const lesson: LessonInput = {
   ],
   teacher: {
     purpose: "Students apply duplicate, repeat-duplicate, snapping and vertical moves to a real build, using the layer map from week 1 as their spec.",
+    runPlan: [
+      { minutes: 5, title: "Recap", teacher: "Yesterday's exact cube; today's goal: the bottom layer.", students: "Open their design.", devices: "open" },
+      { minutes: 6, title: "Demo", teacher: "Repeat-duplicate and lifting to 15 mm.", students: "Watch, predict.", devices: "open" },
+      { minutes: 25, title: "Build", teacher: "Circulate; check colours against layer maps.", students: "Build and colour the bottom layer.", devices: "open" },
+      { minutes: 9, title: "Checks", teacher: "Gap prediction and the 30 mm height question.", students: "Answer the checks.", devices: "open" },
+      { minutes: 7, title: "Record", teacher: "Screenshot with size 45 × 45 × 15; reflection.", students: "Upload, reflect.", devices: "open" },
+      { minutes: 3, title: "Save", teacher: "Remind: layer maps go home with the design name.", students: "Save.", devices: "open" },
+    ],
+    lookFors: ["Colours matching the layer map square by square.", "Layer size reads 45 × 45 × 15.", "Students using repeat-duplicate instead of dragging every cube."],
+    differentiation: { support: ["Starter design with one row already built.", "Colour key card next to the layer map.", "Build one row, check it, then the next."], extend: ["Start the middle layer.", "Be a Tinkercad coach for a neighbour."] },
     preparation: ["Students need their layer maps (paper or photo).", "Demo Ctrl + D twice in a row (repeat duplicate) on the projector."],
     equipment: ["Student devices with Tinkercad", "Layer maps"],
     misconceptions: [

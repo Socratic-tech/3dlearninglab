@@ -31,6 +31,14 @@ export const lesson: LessonInput = {
           visual: { diagram: "failure-elephant-foot", alt: "The bottom layers bulging outward wider than the rest." },
         },
         {
+          id: "unbox",
+          type: "teacherLed",
+          title: "Unboxing",
+          minutes: 10,
+          students: "Get your printed pieces. Before you snap them together, look closely at each one. Your teacher will show how to use the tools safely.",
+          teacher: "Make this a moment: students are holding their own design for the first time. Show the inspection routine (look, feel the bottom edges, then assemble) and the safe way to use files or sandpaper.",
+        },
+        {
           id: "fails",
           type: "failGallery",
           title: "Common puzzle-piece problems",
@@ -148,6 +156,15 @@ export const lesson: LessonInput = {
   ],
   teacher: {
     purpose: "Students meet real-world print variation, diagnose it with vocabulary and causes, and make a reasoned reprint decision. The first assembly also gives measurements for day 15's box.",
+    runPlan: [
+      { minutes: 10, title: "Unboxing", teacher: "Inspection routine; tool safety.", students: "Look before assembling.", devices: "away" },
+      { minutes: 10, title: "Diagnose", teacher: "Fail gallery and diagnosis checks.", students: "Name problems and causes.", devices: "open" },
+      { minutes: 20, title: "Inspect and assemble", teacher: "Circulate; supervise tools; help decide reprints.", students: "Clean up, assemble.", devices: "away" },
+      { minutes: 10, title: "Record", teacher: "Inspection report and photos.", students: "Upload, reflect.", devices: "open" },
+      { minutes: 5, title: "Reprints and tidy", teacher: "Collect reprint requests; tidy dust.", students: "Request reprints, clean up.", devices: "away" },
+    ],
+    lookFors: ["Problems named with likely causes.", "Careful, safe tool use.", "Reprint decisions with a reason."],
+    differentiation: { support: ["Inspection checklist per piece.", "Assemble with a partner holding the cube."], extend: ["Measure each piece: how far over 15 mm is it?", "Suggest one slicer change for the next print."] },
     preparation: [
       "Have all sets printed and labelled by student.",
       "Files, sanding sponges or nail files; a tray to catch dust.",

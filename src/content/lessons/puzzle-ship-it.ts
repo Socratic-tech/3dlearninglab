@@ -101,6 +101,14 @@ export const lesson: LessonInput = {
       title: "Prove it: ship your puzzle",
       blocks: [
         {
+          id: "showcase",
+          type: "teacherLed",
+          title: "Showcase",
+          minutes: 25,
+          students: "Present your puzzle: who it's for, what the playtests showed (with numbers), the change you made and why, and what you'd do next. Let visitors try your puzzle with your solution card.",
+          teacher: "Your format: gallery walk, presentations, or recorded pitches. Consider inviting the people the puzzles were made for, another class or families. Celebrate the journey from a 4 × 4 flat puzzle on day 1 to this.",
+        },
+        {
           id: "prove",
           type: "challenge",
           kind: "prove",
@@ -151,6 +159,15 @@ export const lesson: LessonInput = {
   ],
   teacher: {
     purpose: "The Puzzle Cube finale. Students communicate a complete design journey (brief → sketch → plan → CAD → print → test → revise) with evidence, and produce a solution card in the format that suits them. Assigning this project from the Projects page gives the class all 18 missions in order.",
+    runPlan: [
+      { minutes: 5, title: "Hook", teacher: "From pencil sketch to a puzzle in someone's hands.", students: "Listen.", devices: "away" },
+      { minutes: 15, title: "Solution card", teacher: "Circulate; card tests with a new person.", students: "Make and test the card.", devices: "away" },
+      { minutes: 25, title: "Showcase", teacher: "Run the format you chose; celebrate.", students: "Present; try others' puzzles.", devices: "away" },
+      { minutes: 7, title: "Record", teacher: "Photos, card, pitch.", students: "Upload, reflect.", devices: "open" },
+      { minutes: 3, title: "Close", teacher: "Thank everyone; what's next.", students: "Listen.", devices: "away" },
+    ],
+    lookFors: ["Pitches that use numbers from the playtests.", "Solution cards a newcomer can follow.", "Students explaining one change and why."],
+    differentiation: { support: ["Pitch frame: who, numbers, change, next.", "Record the pitch instead of presenting live."], extend: ["Invite the people the puzzles were made for.", "Sketch version 3 from the feedback."] },
     preparation: [
       "Plan pitch format: live gallery walk, recorded videos, or slides.",
       "Optional: invite the 'client' (the person the puzzles are for), another class, or families.",

@@ -78,6 +78,14 @@ export const lesson: LessonInput = {
       title: "Make version 2",
       blocks: [
         {
+          id: "conference",
+          type: "teacherLed",
+          title: "Revision conferences",
+          minutes: 10,
+          students: "Bring your playtest notes. Tell your teacher (or a partner) what the data says and the ONE change you'll make.",
+          teacher: "Short conferences: 'What did the test show? What will you change? How will you know it worked?' Push for one change linked to the data, made in the backup design so pieces still fit.",
+        },
+        {
           id: "tinkercad",
           type: "tinkercadLaunch",
           title: "Change, then print only what changed",
@@ -147,6 +155,16 @@ export const lesson: LessonInput = {
   ],
   teacher: {
     purpose: "Evidence-based iteration: one targeted change linked to playtest data, a minimal reprint, and a comparable re-test. Keep this day even in a 3-week run; it's where the design cycle closes.",
+    runPlan: [
+      { minutes: 5, title: "Hook", teacher: "Version 2 is where designs get good.", students: "Listen.", devices: "away" },
+      { minutes: 10, title: "Conferences", teacher: "One change linked to data.", students: "Explain the change.", devices: "away" },
+      { minutes: 20, title: "Change and export", teacher: "Circulate; check changes are made in the backup.", students: "Change, export, request prints.", devices: "open" },
+      { minutes: 10, title: "Re-test", teacher: "Re-test with a new tester if prints are ready.", students: "Re-test.", devices: "away" },
+      { minutes: 7, title: "Record", teacher: "Before/after and notes.", students: "Upload, reflect.", devices: "open" },
+      { minutes: 3, title: "Tidy", teacher: "Collect prints.", students: "Tidy.", devices: "away" },
+    ],
+    lookFors: ["One change, linked to the data.", "Edits made in the backup (pieces still fit).", "Same test, so the comparison is fair."],
+    differentiation: { support: ["Use the change menu on the screen.", "Change one piece only."], extend: ["Make two versions and test both.", "Predict the new solve time before re-testing."] },
     preparation: ["Reserve printer time for small reprints (usually one or two pieces per student).", "Line up new testers (another table or class)."],
     equipment: ["Student devices with Tinkercad", "Printers", "Timers"],
     misconceptions: [

@@ -30,6 +30,15 @@ export const lesson: LessonInput = {
           visual: { diagram: "puzzle-chamfer", alt: "A hanging cube needs supports; with a 45° wedge cut from its underside it prints on its own." },
         },
         {
+          id: "demo",
+          type: "teacherLed",
+          title: "Demo the wedge",
+          minutes: 8,
+          students: "Watch your teacher add a Wedge hole under a hanging cube and line it up exactly.",
+          teacher: "The rotation is the tricky part. Demo it slowly from a side view, and show the 'wrong way round' wedge too so students can recognise it. Students with no hanging cubes can be wedge coaches.",
+          devices: "open",
+        },
+        {
           id: "angles",
           type: "diagram",
           name: "overhang-angles",
@@ -161,6 +170,16 @@ export const lesson: LessonInput = {
   ],
   teacher: {
     purpose: "Applies the 45° self-supporting rule to puzzle pieces. Students reason that removing material can't block assembly, and weigh where a visible chamfer changes the puzzle. Optional when no piece needs one.",
+    runPlan: [
+      { minutes: 5, title: "Why 45°", teacher: "Overhang angles; why a slope supports itself.", students: "Listen, look at the diagram.", devices: "open" },
+      { minutes: 8, title: "Demo", teacher: "Wedge hole, rotate, align, group.", students: "Watch.", devices: "open" },
+      { minutes: 10, title: "Checks", teacher: "Prediction about fit; chamfer vs redesign.", students: "Answer the checks.", devices: "open" },
+      { minutes: 22, title: "Fix pieces", teacher: "Circulate; coaches help; side-view checks.", students: "Chamfer or redesign marked pieces.", devices: "open" },
+      { minutes: 7, title: "Record", teacher: "Side-view screenshot and note.", students: "Upload, reflect.", devices: "open" },
+      { minutes: 3, title: "Save", teacher: "Save 'puzzle cube print'.", students: "Save.", devices: "open" },
+    ],
+    lookFors: ["Wedges lined up exactly with the cube's edges.", "Students deciding whether a chamfer is hidden or visible.", "Two-cube overhangs redesigned, not chamfered."],
+    differentiation: { support: ["Teacher-made wedge to copy and paste.", "Pair with a wedge coach."], extend: ["Compare a chamfer and a redesign for the same piece.", "Find where a visible chamfer could be a deliberate clue."] },
     preparation: ["Demo placing a Wedge hole under a cube on the projector; the rotation is the tricky part."],
     equipment: ["Student devices with Tinkercad"],
     misconceptions: [
