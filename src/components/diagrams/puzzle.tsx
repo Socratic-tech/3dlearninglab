@@ -13,7 +13,7 @@ const PIECE_FILL: Record<string, string> = {
   B: C.accent,
   C: C.success,
   D: C.danger,
-  E: C.z,
+  E: "var(--violet)",
   F: C.muted,
 };
 

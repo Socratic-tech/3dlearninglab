@@ -10,6 +10,7 @@ import { ExactDimension, MoveZ, NudgeKeys, RotateHandles, RulerTool, ScaleHandle
 import { AlignHandles, DieNet, DuplicatePattern, GroupHole, MirrorAxis, SolidVsHole, TextRaisedRecessed } from "./modeling";
 import { ConstraintColors, FeatureHistory, ProMoves, ShapesVsSketches, SketchExtrude, VariableRipple } from "./procad";
 import { FaceVsEdge, FillSquare, FlatVsUp, IsoSketch, SameShapeTurned, TetrominoSet, PuzzleChamfer, PuzzleLayerMap, ToleranceStack } from "./puzzle";
+import * as Steps from "./puzzle-steps";
 import { CaliperParts, ClearanceFit, FitTypes, MeasureCritical, PrototypeCritical, ToleranceRange } from "./precision";
 import {
   BridgeSpan,
@@ -106,6 +107,35 @@ export const diagramComponents: Record<DiagramName, FC<DiagramProps>> = {
   "fill-square": FillSquare,
   "flat-vs-up": FlatVsUp,
   "sketch-concepts": SketchConcepts,
+  "iso-paper": Steps.IsoPaper,
+  "iso-cube-1": Steps.IsoCube1,
+  "iso-cube-2": Steps.IsoCube2,
+  "iso-cube-3": Steps.IsoCube3,
+  "iso-cube-4": Steps.IsoCube4,
+  "iso-beside-1": Steps.IsoBeside1,
+  "iso-beside-2": Steps.IsoBeside2,
+  "iso-beside-3": Steps.IsoBeside3,
+  "iso-beside-4": Steps.IsoBeside4,
+  "iso-up-1": Steps.IsoUp1,
+  "iso-up-2": Steps.IsoUp2,
+  "iso-up-3": Steps.IsoUp3,
+  "piece-view-iso": Steps.PieceIso,
+  "piece-view-top": Steps.PieceTop,
+  "piece-view-front": Steps.PieceFront,
+  "iso-hidden-cube": Steps.HiddenCube,
+  "piece-bank": Steps.PieceBank,
+  "puzzle-sample-whole": Steps.SampleWhole,
+  "puzzle-sample-sliced": Steps.SampleSliced,
+  "layer-step-bottom": Steps.LayerBottom,
+  "layer-step-middle": Steps.LayerMiddle,
+  "layer-step-top": Steps.LayerTop,
+  "puzzle-count": Steps.PuzzleCount,
+  "puzzle-build-1": Steps.PuzzleBuild[0],
+  "puzzle-build-2": Steps.PuzzleBuild[1],
+  "puzzle-build-3": Steps.PuzzleBuild[2],
+  "puzzle-build-4": Steps.PuzzleBuild[3],
+  "puzzle-build-5": Steps.PuzzleBuild[4],
+  "puzzle-build-6": Steps.PuzzleBuild[5],
 };
 
 export function isDiagramName(name: string): name is DiagramName {
