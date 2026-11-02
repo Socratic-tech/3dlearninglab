@@ -13,7 +13,7 @@ const PIECE_FILL: Record<string, string> = {
   B: C.accent,
   C: C.success,
   D: C.danger,
-  E: C.z,
+  E: "var(--violet)",
   F: C.muted,
 };
 
@@ -167,48 +167,6 @@ export const IsoSketch = defineDiagram("iso-sketch", () => {
       })}
       <T x={180} y={196} anchor="middle" size={12} weight={700}>Lines only go 3 ways: straight up and down, and two slants.</T>
       <T x={180} y={212} anchor="middle" size={11} tone={C.muted}>Join dots. Add the next cube by sharing an edge you already drew.</T>
-    </g>
-  );
-});
-
-/** One L piece (three in a row, one on top of the end cube) seen from the top, the front, and in isometric. */
-export const PieceViews = defineDiagram("piece-views", () => {
-  const s = 22;
-  const fill = { top: C.primarySoft, left: C.surface, right: C.border };
-  const cubes: [number, number, number][] = [[0, 0, 0], [1, 0, 0], [2, 0, 0], [2, 0, 1]];
-  const p = iso(281, 99, s);
-  const heights = [1, 1, 2];
-  return (
-    <g>
-      <Caption x={60} y={22}>Top view</Caption>
-      <T x={60} y={38} anchor="middle" size={10} tone={C.muted}>from straight above</T>
-      {heights.map((h, i) => (
-        <g key={i}>
-          <rect x={27 + i * s} y={99} width={s} height={s} fill={C.primarySoft} stroke={C.fg} strokeWidth={1.4} />
-          <T x={27 + i * s + s / 2} y={99 + s / 2 + 4} anchor="middle" size={12} weight={800}>{String(h)}</T>
-        </g>
-      ))}
-      <T x={60} y={166} anchor="middle" size={10.5} weight={700}>squares on the table</T>
-      <T x={60} y={181} anchor="middle" size={10} tone={C.muted}>number = cubes tall</T>
-      <Divider x={120} y0={30} y1={176} />
-
-      <Caption x={180} y={22}>Front view</Caption>
-      <T x={180} y={38} anchor="middle" size={10} tone={C.muted}>from straight in front</T>
-      {heights.flatMap((h, i) => Array.from({ length: h }, (_, k) => (
-        <rect key={`${i}-${k}`} x={147 + i * s} y={121 - (k + 1) * s + s} width={s} height={s} fill={C.surface} stroke={C.fg} strokeWidth={1.4} />
-      )))}
-      <T x={180} y={166} anchor="middle" size={10.5} weight={700}>how tall each part is</T>
-      <T x={180} y={181} anchor="middle" size={10} tone={C.muted}>sides and tops look flat</T>
-      <Divider x={240} y0={30} y1={176} />
-
-      <Caption x={300} y={22}>Isometric view</Caption>
-      <T x={300} y={38} anchor="middle" size={10} tone={C.muted}>from a corner</T>
-      {[...cubes].sort((m, n) => m[2] - n[2] || m[0] + m[1] - (n[0] + n[1])).map(([x, y, z], i) => (
-        <IsoBox key={i} p={p} x={x} y={y} z={z} w={1} d={1} h={1} fill={fill} sw={1.4} />
-      ))}
-      <T x={300} y={166} anchor="middle" size={10.5} weight={700}>three faces at once</T>
-      <T x={300} y={181} anchor="middle" size={10} tone={C.muted}>so it looks 3D</T>
-      <T x={180} y={206} anchor="middle" size={11} tone={C.muted}>Same piece, three ways to look at it. 4 cubes in all.</T>
     </g>
   );
 });

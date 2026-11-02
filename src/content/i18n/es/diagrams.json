@@ -470,18 +470,5 @@
   "Like the game: flat": "Como el juego: plana",
   "every cube on the table": "todos los cubos en la mesa",
   "Only in 3D: bends up": "Solo en 3D: se eleva",
-  "one cube climbs a layer": "un cubo sube una capa",
-  "One L-shaped piece of 4 cubes seen three ways. Top view: three squares on the table, numbered 1, 1 and 2 for how many cubes tall. Front view: columns 1, 1 and 2 cubes tall. Isometric view: three faces at once, so it looks 3D.": "Una pieza en L de 4 cubos vista de tres formas. Vista superior: tres cuadrados sobre la mesa, numerados 1, 1 y 2 según cuántos cubos de alto. Vista frontal: columnas de 1, 1 y 2 cubos de alto. Vista isométrica: tres caras a la vez, para que se vea en 3D.",
-  "from straight above": "desde justo arriba",
-  "from straight in front": "desde justo enfrente",
-  "from a corner": "desde una esquina",
-  "squares on the table": "cuadrados sobre la mesa",
-  "number = cubes tall": "número = cubos de alto",
-  "how tall each part is": "qué tan alta es cada parte",
-  "sides and tops look flat": "lados y partes de arriba se ven planos",
-  "three faces at once": "tres caras a la vez",
-  "so it looks 3D": "para que se vea en 3D",
-  "Same piece, three ways to look at it. 4 cubes in all.": "La misma pieza, tres formas de mirarla. 4 cubos en total.",
-  "Front view": "Vista frontal",
-  "Isometric view": "Vista isométrica"
+  "one cube climbs a layer": "un cubo sube una capa"
 }

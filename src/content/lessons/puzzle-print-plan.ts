@@ -51,6 +51,14 @@ export const lesson: LessonInput = {
       title: "Find the cubes in the air",
       blocks: [
         {
+          id: "hold-turn",
+          type: "teacherLed",
+          title: "Hold it, turn it",
+          minutes: 10,
+          students: "Rebuild your pieces from math cubes (or grab them from week 1). Set each one on the desk and find the side where every cube sits on the desk or on another cube.",
+          teacher: "Devices down for this: hands find good orientations faster than screens. Ask students to show you a piece with a cube in the air, then turn it so the cube is supported. Pieces that won't work any way round are tomorrow's chamfer candidates.",
+        },
+        {
           id: "checkup",
           type: "modelViewer",
           modelId: "puzzle-piece-checkup",
@@ -175,6 +183,16 @@ export const lesson: LessonInput = {
   ],
   teacher: {
     purpose: "Introduces layer-by-layer printing and orientation through a simple, checkable rule: every cube sits on the plate or another cube. Pieces that can't meet the rule are flagged for day 12's chamfer.",
+    runPlan: [
+      { minutes: 5, title: "Hook", teacher: "Layers and supports.", students: "Listen.", devices: "away" },
+      { minutes: 10, title: "Hold it, turn it", teacher: "Math-cube pieces on desks; find the supported side.", students: "Turn pieces by hand.", devices: "away" },
+      { minutes: 10, title: "Checks", teacher: "Hotspot and orientation checks.", students: "Answer.", devices: "open" },
+      { minutes: 20, title: "Turn in Tinkercad", teacher: "Circulate; side-view checks.", students: "Rotate and drop pieces.", devices: "open" },
+      { minutes: 7, title: "Table", teacher: "Orientation table and screenshot.", students: "Upload, reflect.", devices: "open" },
+      { minutes: 3, title: "Save", teacher: "Save 'puzzle cube print'.", students: "Save.", devices: "open" },
+    ],
+    lookFors: ["Every cube supported (or marked for a chamfer).", "Students testing with math-cube pieces before rotating on screen.", "Reasons written for each piece."],
+    differentiation: { support: ["Test each piece with math cubes first, then match it on screen.", "Do the table for three pieces, then the rest."], extend: ["Find the piece that needs a chamfer and predict where.", "Which orientation uses the least height (fewest layers)?"] },
     preparation: ["Optional: print the Puzzle Piece Checkup model, or a student piece in a good and a bad orientation, to pass around."],
     equipment: ["Student devices with Tinkercad", "Math cubes (handy for checking orientations by hand)"],
     misconceptions: [

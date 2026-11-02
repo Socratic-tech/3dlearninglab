@@ -30,6 +30,14 @@ export const lesson: LessonInput = {
           visual: { diagram: "text-raised-recessed", alt: "Raised text sits on a surface; recessed text is cut into it." },
         },
         {
+          id: "ideas",
+          type: "teacherLed",
+          title: "Show and decide",
+          minutes: 5,
+          students: "Look at the examples your teacher shows. Decide what you'll add: keychain size, a key-ring loop, initials, or nothing extra yet.",
+          teacher: "Show one or two examples (a keychain-size set, engraved initials). Keep 'nothing extra' a valid choice: some students are better served by catching up today. Remind everyone of the rule: touches only on outside faces.",
+        },
+        {
           id: "options",
           type: "text",
           title: "Pick one or more",
@@ -147,6 +155,14 @@ export const lesson: LessonInput = {
   ],
   teacher: {
     purpose: "Ownership and identity (UDL engagement) while practising holes, text and proportional scaling, with a real constraint: personal touches must not change the faces where pieces meet. Optional in a 3-week run.",
+    runPlan: [
+      { minutes: 5, title: "Show and decide", teacher: "Examples; the outside-faces rule.", students: "Choose a touch.", devices: "away" },
+      { minutes: 30, title: "Personalise", teacher: "Circulate; check engraving depth and placement.", students: "Add touches, keep pieces grouped.", devices: "open" },
+      { minutes: 10, title: "Fit check", teacher: "Partners put the cube back together on screen.", students: "Check nothing sticks into another piece.", devices: "open" },
+      { minutes: 10, title: "Record", teacher: "Screenshots; reflection.", students: "Upload, reflect.", devices: "open" },
+    ],
+    lookFors: ["Touches only on outside faces.", "Letters 5 mm or taller, 0.8 mm or deeper.", "Scaling all pieces together, never one alone."],
+    differentiation: { support: ["One touch only (colour or initials).", "Catch-up time counts as a good choice today."], extend: ["Loop + engraving + keychain size.", "Design a gift version for someone else."] },
     preparation: ["Decide if keychain size is allowed (smaller pieces are harder for some students to handle and print).", "Have key rings available if students will use them."],
     equipment: ["Student devices with Tinkercad"],
     misconceptions: [

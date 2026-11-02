@@ -32,6 +32,14 @@ export const lesson: LessonInput = {
           visual: { diagram: "exact-dimension", alt: "Typing an exact size into a shape's dimension box." },
         },
         {
+          id: "demo",
+          type: "teacherLed",
+          title: "Watch first, then try",
+          minutes: 8,
+          students: "Screens down. Watch your teacher make one exact cube: orbit, zoom, the home view, the Snap Grid and typing 15. Then it's your turn.",
+          teacher: "A live demo with narration beats any screen of steps. Show the moves students will need most: right-drag to orbit, the home button when lost, clicking a dimension to type it. Trackpad users often need the two-finger tips in Troubleshooting. If you have students who already know Tinkercad, consider naming them as coaches for the build time.",
+        },
+        {
           id: "views",
           type: "showMe",
           title: "Move around the workplane",
@@ -166,6 +174,16 @@ export const lesson: LessonInput = {
   ],
   teacher: {
     purpose: "A from-scratch Tinkercad start, in the project's context: navigation plus exact dimensions and a snap grid that divides the unit size. Students with Tinkercad experience can finish quickly and start day 7's layer.",
+    runPlan: [
+      { minutes: 5, title: "Why exact?", teacher: "One cube, copied 27 times: if it's exact, everything fits.", students: "Listen.", devices: "away" },
+      { minutes: 8, title: "Watch first", teacher: "Live demo: navigation, Snap Grid, typed size.", students: "Watch, ask questions.", devices: "away" },
+      { minutes: 20, title: "Build", teacher: "Circulate; coaches help; check sizes are typed.", students: "Make two exact cubes face to face.", devices: "open" },
+      { minutes: 10, title: "Checks", teacher: "Quick checks on dragging vs typing and snap grids.", students: "Answer the checks.", devices: "open" },
+      { minutes: 7, title: "Record", teacher: "Screenshot with size showing; reflection.", students: "Upload, reflect.", devices: "open" },
+      { minutes: 5, title: "Save and close", teacher: "Make sure designs are named 'puzzle cube'.", students: "Save, log out.", devices: "open" },
+    ],
+    lookFors: ["Sizes typed, not dragged.", "Snap Grid at 5 mm.", "Students recovering a lost view on their own (home button)."],
+    differentiation: { support: ["Printed shortcut card (orbit, zoom, home, Ctrl + D).", "Pair with a Tinkercad coach.", "Trackpad users: allow a mouse if one is available."], extend: ["Build a whole 3-cube row.", "Try the 10 mm keychain grid: which snap setting works?"] },
     preparation: ["Tinkercad accounts or class codes ready (add your Tinkercad class link in class settings).", "Demo the snap-grid menu and the corner handle on the projector."],
     equipment: ["Student devices with Tinkercad", "A mouse helps (orbit uses the right button)"],
     misconceptions: [

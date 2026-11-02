@@ -86,14 +86,12 @@ export const lesson: LessonInput = {
       title: "Run two playtests",
       blocks: [
         {
-          id: "micro",
-          type: "challenge",
-          kind: "micro",
-          where: "offline",
-          title: "Two testers",
-          prompt: "Run the playtest plan with two classmates who haven't seen your puzzle. Be a tester for others too.",
-          requirements: ["Two testers who haven't seen it", "Same timer and hint ladder both times", "Time, hints and stuck spot recorded for each"],
-          skills: ["F6", "F7"],
+          id: "playtest",
+          type: "teacherLed",
+          title: "Run the playtests",
+          minutes: 25,
+          students: "Run the playtest plan with two classmates who haven't seen your puzzle. Be a tester for others too. Write down time, hints and the stuck spot for each.",
+          teacher: "You set the pairs and the rotation. The hardest part for students is staying quiet: name it, and model 'not helping' before you start. Circulate and listen for testers' words; they're often the best design feedback.",
         },
         { id: "journal-test", type: "journal", projectKey: "puzzle-cube", promptIds: ["test", "failed"] },
       ],
@@ -142,6 +140,15 @@ export const lesson: LessonInput = {
   ],
   teacher: {
     purpose: "A real user test with comparable data. Students practise the hardest research skill, watching without helping, and compare results with the measurable target from day 1.",
+    runPlan: [
+      { minutes: 8, title: "Protocol", teacher: "The playtest plan; staying quiet; dignity.", students: "Listen, set up.", devices: "away" },
+      { minutes: 25, title: "Playtests", teacher: "Run rotations; listen to testers.", students: "Test and be tested.", devices: "away" },
+      { minutes: 10, title: "Compare", teacher: "Times vs targets; what the data says.", students: "Compare with the target.", devices: "away" },
+      { minutes: 7, title: "Record", teacher: "Notes upload; quick checks.", students: "Upload, check.", devices: "open" },
+      { minutes: 5, title: "Tidy", teacher: "Collect puzzles; preview tomorrow's revision.", students: "Tidy.", devices: "away" },
+    ],
+    lookFors: ["Testers left to think without hints.", "Notes with numbers.", "Kind, specific thanks to testers."],
+    differentiation: { support: ["Notes template: time / hints / stuck spot.", "Run one playtest, then a second with support."], extend: ["Add a third tester from another class or grade.", "Track which piece is placed last every time."] },
     preparation: [
       "Pair students across tables so testers haven't seen the puzzle; rotate so everyone tests and is tested twice.",
       "Post the playtest plan and hint ladder; have timers ready.",
