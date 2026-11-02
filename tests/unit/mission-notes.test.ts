@@ -1,9 +1,13 @@
 /** Teacher notes on missions: saved per class in the Sheet, sent to that class's students, plain text and limited. */
 import { beforeEach, describe, expect, it } from "vitest";
+import fs from "node:fs";
+import path from "node:path";
 import { execSync } from "node:child_process";
 import { makeEnv } from "../helpers/apps-script-env";
 
-execSync("npx tsx scripts/build-pages.ts", { stdio: "ignore" });
+// Build only when missing, like the other Apps Script tests: an unconditional rebuild deletes apps-script/dist
+// while those tests run in parallel and read from it.
+if (!fs.existsSync(path.join(process.cwd(), "apps-script/dist/Code.js"))) execSync("npx tsx scripts/build-pages.ts", { stdio: "ignore" });
 
 let env: ReturnType<typeof makeEnv>;
 let classId: string;
