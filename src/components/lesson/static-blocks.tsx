@@ -118,11 +118,25 @@ export function HeroBlock({ b, assets }: { b: BlockOf<"hero">; assets: Record<st
 
 const words = (t: string) => t.trim().split(/\s+/).length;
 
-/** Short by default: long explanations show their first sentence and hide the rest behind "Tell me more". */
+/**
+ * What a long text block shows before "Tell me more": its first sentence, or null to show everything.
+ * Steps and lists are never shortened (cutting at the first full stop used to leave just "1."), and a preview that
+ * would hide only a few words isn't worth the extra click.
+ */
+export function textPreview(body: string): string | null {
+  if (words(body) <= 30 || /^\s*([-*]|\d+\.)\s/m.test(body)) return null;
+  const firstPara = body.trim().split(/\n\s*\n/)[0];
+  // a sentence ends at . ! or ? followed by a space and a capital letter, quote or number (not "e.g. the" or "0.2 mm")
+  const first = firstPara.split(/(?<=[.!?])\s+(?=["“(*A-Z0-9])/)[0].trim();
+  return words(body) - words(first) < 8 ? null : first;
+}
+
+/** Short by default: long explanations show their first sentence and hide the rest behind "Tell me more". Lists always show in full. */
 export function TextBlock({ b }: { b: BlockOf<"text"> }) {
   const [open, setOpen] = useState(false);
-  const long = words(b.body) > 30;
-  const first = b.body.split(/(?<=[.!?])\s+/)[0];
+  const preview = textPreview(b.body);
+  const long = preview !== null;
+  const first = preview ?? b.body;
   return (
     <section className="rounded-2xl border-l-4 border-primary bg-surface px-5 py-4 text-lg">
       {b.title && <h3 className="mb-1 font-display text-xl font-semibold">{b.title}</h3>}

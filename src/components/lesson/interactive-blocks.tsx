@@ -138,8 +138,14 @@ function Header({ label, prompt, check, hint }: { label: string; prompt: string;
   return (
     <>
       <div className="mb-2 flex items-center gap-2">
-        <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-primary">{tr(label)}</p>
-        {check === "skill" && <Pill tone="accent">{tr("Skill check")}</Pill>}
+        {check === "skill" ? (
+          <>
+            <Pill tone="accent">{tr("Skill check")}</Pill>
+            <span className="text-xs text-muted">{tr("counts toward your skills")}</span>
+          </>
+        ) : (
+          <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-primary">{tr(label)}</p>
+        )}
       </div>
       <Md text={prompt} className="font-display text-xl font-bold sm:text-2xl" />
       {hint && (

@@ -170,3 +170,28 @@ export const IsoSketch = defineDiagram("iso-sketch", () => {
     </g>
   );
 });
+
+/** Two L pieces: one lying flat, one standing on its end. Same shape, turned. */
+export const SameShapeTurned = defineDiagram("same-shape-turned", () => {
+  const u = 26;
+  const fill = { top: C.primarySoft, left: C.surface, right: C.border };
+  const a = iso(62, 112, u);
+  const b = iso(258, 128, u);
+  // A: cubes at x = 0..2 on y = 0, plus (2, 1), all on the table
+  const A: [number, number, number][] = [[0, 0, 0], [1, 0, 0], [2, 0, 0], [2, 1, 0]];
+  // B: the same L tipped up: a column of three (z = 0..2) with one cube beside the bottom
+  const B: [number, number, number][] = [[1, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 2]];
+  const draw = (p: ReturnType<typeof iso>, cubes: [number, number, number][]) =>
+    [...cubes].sort((m, n) => m[2] - n[2] || m[0] + m[1] - (n[0] + n[1])).map(([x, y, z], i) => <IsoBox key={i} p={p} x={x} y={y} z={z} w={1} d={1} h={1} fill={fill} sw={1.4} />);
+  return (
+    <g>
+      <Caption x={90} y={22}>Piece A</Caption>
+      {draw(a, A)}
+      <T x={90} y={204} anchor="middle" size={11} tone={C.muted}>4 cubes, lying flat</T>
+      <Divider x={180} />
+      <Caption x={270} y={22}>Piece B</Caption>
+      {draw(b, B)}
+      <T x={270} y={204} anchor="middle" size={11} tone={C.muted}>4 cubes, standing up</T>
+    </g>
+  );
+});
