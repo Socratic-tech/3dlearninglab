@@ -22,6 +22,8 @@ import { decodePack } from "@/lib/answer-pack";
 import { localizedFlavor } from "@/content/i18n/localize";
 
 const PHASE_LABEL = { discover: "Discover", practice: "Practice", apply: "Apply", prove: "Prove", reflect: "Reflect" } as const;
+/** What each phase means, in plain words (shown above every screen's title). */
+const PHASE_MEANING = { discover: "Find out what's new", practice: "Try it with help", apply: "Use it yourself", prove: "Show what you can do", reflect: "Look back" } as const;
 
 export type PlayerProps = {
   courseId: string;
@@ -121,7 +123,7 @@ export function LessonPlayer(p: PlayerProps) {
     return Math.max(0, Math.min(gate, firstOpen >= 0 ? Math.min(firstOpen, last + 1) : last));
   });
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const phaseRef = useRef<HTMLOListElement>(null);
+  const phaseRef = useRef<HTMLDivElement>(null);
   // words students can tap for a meaning: this lesson's vocabulary first, then common technical words (English)
   const vocab = useMemo(() => {
     const own = p.lesson.vocabulary;
@@ -331,28 +333,40 @@ export function LessonPlayer(p: PlayerProps) {
     <I.LessonCtx.Provider value={ctx}>
       <S.VocabContext.Provider value={vocab}>
       <div className="mx-auto max-w-3xl">
-        {/* Phase strip: you are here */}
-        <ol ref={phaseRef} className="mb-2 grid scroll-mt-16 grid-cols-5 gap-1" aria-label={tr("Mission phases")}>
-          {p.lesson.sections.map((s, i) => {
-            const first = steps.findIndex((st) => st.section === i);
-            const state = i < curPhase ? "done" : i === curPhase ? "now" : "next";
-            return (
-              <li key={i}>
-                <button onClick={() => first >= 0 && go(first)} disabled={first > step && !directionsReady} aria-current={state === "now" ? "step" : undefined}
-                  className={cn("w-full rounded-lg px-1 py-1.5 text-center text-[11px] font-bold uppercase tracking-wider sm:text-xs",
-                    state === "now" ? "bg-primary text-primary-fg" : state === "done" ? "bg-primary-soft text-primary" : "bg-surface-2 text-muted")}>
-                  {state === "done" && <span aria-hidden className="hidden sm:inline">✓ </span>}{tr(PHASE_LABEL[s.phase])}{state === "done" && <span className="sr-only"> {tr("(done)")}</span>}
-                </button>
-              </li>
-            );
-          })}
-        </ol>
-        {/* Step progress */}
-        <div className="mb-4 flex items-center gap-3">
-          <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface-2" role="progressbar" aria-label={tr("Mission progress")} aria-valuemin={1} aria-valuemax={total} aria-valuenow={step + 1}>
-            <div className="h-full rounded-full bg-accent transition-[width] duration-500" style={{ width: `${((step + 1) / total) * 100}%` }} />
+        {/* One progress track: a segment per phase that fills as you go, phase names under it, and the screen count */}
+        <div className="mb-5 scroll-mt-16" ref={phaseRef}>
+          <div className="flex flex-col-reverse gap-1 sm:flex-row sm:items-start sm:gap-3">
+            <ol className="grid flex-1 grid-cols-5 gap-1.5" aria-label={tr("Mission phases")}>
+              {p.lesson.sections.map((s, i) => {
+                const first = steps.findIndex((st) => st.section === i);
+                const inPhase = steps.filter((st) => st.section === i).length || 1;
+                const doneHere = i < curPhase ? inPhase : i === curPhase ? Math.min(inPhase, step - first + 1) : 0;
+                const state = i < curPhase ? "done" : i === curPhase ? "now" : "next";
+                return (
+                  <li key={i}>
+                    <button
+                      onClick={() => first >= 0 && go(first)}
+                      disabled={first > step && !directionsReady}
+                      aria-current={state === "now" ? "step" : undefined}
+                      className="group block w-full rounded-md text-left disabled:cursor-not-allowed"
+                    >
+                      <span className="block h-2.5 overflow-hidden rounded-full bg-surface-2" aria-hidden>
+                        <span className={cn("block h-full rounded-full transition-[width] duration-500", state === "done" ? "bg-success" : "bg-accent")} style={{ width: `${(doneHere / inPhase) * 100}%` }} />
+                      </span>
+                      <span className={cn("mt-1 block truncate text-xs sm:text-sm", state === "now" ? "font-bold text-fg" : state === "done" ? "text-success" : "text-muted", "group-hover:underline")}>
+                        {state === "done" && <span aria-hidden>✓ </span>}{tr(PHASE_LABEL[s.phase])}
+                        {state === "done" && <span className="sr-only"> {tr("(done)")}</span>}
+                        {state === "now" && <span className="sr-only"> {tr("(you are here)")}</span>}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+            <span className="shrink-0 self-end pt-px text-xs font-semibold text-muted sm:self-auto sm:text-sm" role="status">
+              {p.completed ? tr("Review {n} of {total}", { n: step + 1, total }) : tr("Screen {n} of {total}", { n: step + 1, total })}
+            </span>
           </div>
-          <span className="font-mono text-xs text-muted">{p.completed ? tr("Review {n}/{total}", { n: step + 1, total }) : `${step + 1}/${total}`}</span>
         </div>
 
         <div key={step} ref={stepRef} className="animate-fade-up space-y-4">
@@ -360,9 +374,14 @@ export function LessonPlayer(p: PlayerProps) {
             finish
           ) : (
             <>
-              <h2 ref={headingRef} tabIndex={-1} className="font-display text-sm font-bold uppercase tracking-widest text-accent outline-none">
-                {p.lesson.sections[cur.section].title}
-              </h2>
+              <div>
+                <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-accent">
+                  {tr(PHASE_LABEL[p.lesson.sections[cur.section].phase])} · {tr(PHASE_MEANING[p.lesson.sections[cur.section].phase])}
+                </p>
+                <h2 ref={headingRef} tabIndex={-1} className="mt-1 font-display text-2xl font-bold leading-tight outline-none sm:text-3xl">
+                  {p.lesson.sections[cur.section].title}
+                </h2>
+              </div>
               {step === 0 && flavor && <S.RealWorldCard hook={flavor.hook} />}
               {step === 0 && <S.GoalCard goals={p.goals ?? []} buildsOn={p.buildsOn ?? []} vocabulary={p.lesson.vocabulary} />}
               {step === 0 && skillIds.length > 0 && !p.completed && !p.readOnly && !testOut && !passedTestOut && (

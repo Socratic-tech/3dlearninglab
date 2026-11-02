@@ -39,8 +39,9 @@ export function LessonPage({ me, apiUrl, lessonId, focusBlockId, onChange }: { m
       <header className="mx-auto mb-3 max-w-3xl">
         {preview && <div className="mb-3"><Alert tone="info" title={tr("Teacher preview")}>{tr("Try every activity like a student. Your answers go to your own test record, not to any class.")}</Alert></div>}
         <a href="#/" className="text-sm text-muted hover:text-fg">{tr("← Missions")}</a>
-        <h1 className="mt-1 font-display text-xl font-bold sm:text-2xl">{lesson.title} <span className="hidden text-base font-normal text-muted md:inline">· {lesson.subtitle}</span></h1>
-        <div className="mt-1 flex flex-wrap gap-2">
+        <h1 className="mt-1 font-display text-2xl font-bold leading-tight sm:text-4xl">{lesson.title}</h1>
+        <p className="mt-1 text-base text-muted sm:text-lg">{lesson.subtitle}</p>
+        <div className="mt-3 flex flex-wrap gap-2">
           {lesson.kind === "boss" && <Pill tone="accent">{tr("Boss battle")}</Pill>}
           <Pill>{tr("{n} min", { n: lesson.estimatedMinutes })}</Pill>
           {p?.status === "completed" && <Pill tone="success">{tr("Completed")}</Pill>}
