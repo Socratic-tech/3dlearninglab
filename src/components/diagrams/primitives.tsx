@@ -109,8 +109,23 @@ export function defineDiagram(name: DiagramName, render: (r: Refs) => ReactNode)
           <rect width="8" height="5" fill={C.primarySoft} />
           <line x1="0" y1="4.5" x2="8" y2="4.5" stroke={C.primary} strokeWidth="0.9" />
         </pattern>
+        <linearGradient id={`${id}-panel`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={C.surface} />
+          <stop offset="1" stopColor="color-mix(in srgb, var(--surface-2) 70%, var(--surface))" />
+        </linearGradient>
+        <pattern id={`${id}-dots`} width="12" height="12" patternUnits="userSpaceOnUse">
+          <circle cx="1" cy="1" r="0.7" fill={C.border} opacity="0.55" />
+        </pattern>
+        <filter id={`${id}-depth`} x="-5%" y="-5%" width="110%" height="115%">
+          <feDropShadow dx="0" dy="1.2" stdDeviation="1" floodColor="#000" floodOpacity="0.14" />
+        </filter>
       </defs>
-      {render(refs)}
+      {/* decorative panel: soft gradient + dot grid (hidden from assistive tech) */}
+      <g aria-hidden="true">
+        <rect x="0.5" y="0.5" width={VB_W - 1} height={VB_H - 1} rx="10" fill={`url(#${id}-panel)`} stroke={C.border} />
+        <rect x="0.5" y="0.5" width={VB_W - 1} height={VB_H - 1} rx="10" fill={`url(#${id}-dots)`} />
+      </g>
+      <g filter={`url(#${id}-depth)`}>{render(refs)}</g>
     </svg>
   );
   Component.displayName = `Diagram(${name})`;
