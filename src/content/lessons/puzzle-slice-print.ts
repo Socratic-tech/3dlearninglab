@@ -32,6 +32,15 @@ export const lesson: LessonInput = {
           visual: { diagram: "fdm-printer", alt: "A filament 3D printer: spool, heated nozzle and build plate." },
         },
         {
+          id: "tour",
+          type: "teacherLed",
+          title: "Slicer tour",
+          minutes: 8,
+          students: "Watch a tour of the slicer: supports off, layer height, infill, the layer slider, and where to find the print time and grams.",
+          teacher: "Project the slicer and slice a sample plate. Drag the layer slider slowly and ask students to call out anything floating. Decide now who sends prints (students or you) and say how the queue will run.",
+          devices: "open",
+        },
+        {
           id: "steps",
           type: "showMe",
           title: "Plate to print queue",
@@ -170,6 +179,16 @@ export const lesson: LessonInput = {
   ],
   teacher: {
     purpose: "Students take responsibility for a real print job: plate layout, export, slicer preview, sensible settings and estimating time and material. Prints run between day 13 and day 14 (or over a weekend).",
+    runPlan: [
+      { minutes: 5, title: "Hook", teacher: "From model to machine.", students: "Listen.", devices: "open" },
+      { minutes: 8, title: "Slicer tour", teacher: "Supports, infill, the preview, time and grams.", students: "Watch, call out problems.", devices: "open" },
+      { minutes: 10, title: "Checks", teacher: "Layers count, infill, floating layers.", students: "Answer the checks.", devices: "open" },
+      { minutes: 20, title: "Export and slice", teacher: "Circulate; check supports off and previews scrubbed.", students: "Lay out, export, slice.", devices: "open" },
+      { minutes: 7, title: "Send", teacher: "Print requests; record time and grams.", students: "Upload STL, request print.", devices: "open" },
+      { minutes: 5, title: "Queue plan", teacher: "Explain when prints will be ready; plan day 14.", students: "Listen.", devices: "open" },
+    ],
+    lookFors: ["Supports off.", "Previews scrubbed layer by layer.", "Time and grams written down."],
+    differentiation: { support: ["Teacher slices from the student's STL.", "Checklist card next to the screen."], extend: ["Compare times at 15% and 25% infill.", "Batch two students' sets on one plate."] },
     preparation: [
       "Set up the slicer with your printer profile; decide whether students slice or you do.",
       "A 45 mm set (about 91 cm³ of shape) at 15% infill often takes several hours: plan overnight runs or one plate per printer per day. A 30 mm keychain set takes roughly a third as long.",

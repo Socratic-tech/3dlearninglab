@@ -32,6 +32,14 @@ export const lesson: LessonInput = {
           visual: { diagram: "tolerance-stack", alt: "Three printed pieces 15.1 mm each add to 45.3 mm, which jams in a 45.0 mm box." },
         },
         {
+          id: "stack-demo",
+          type: "teacherLed",
+          title: "Stack-up demo",
+          minutes: 8,
+          students: "Watch your teacher line up three printed pieces and measure across them. Is it exactly 45 mm?",
+          teacher: "Real data beats a diagram: use a student's set (or your own) and measure live with calipers. Most sets come out a little over. Ask the class to predict before you read the number.",
+        },
+        {
           id: "predict-stack",
           type: "prediction",
           prompt: "Each piece prints 0.1 mm bigger than designed. Three pieces sit side by side across the cube. How wide is the cube?",
@@ -199,6 +207,16 @@ export const lesson: LessonInput = {
   ],
   teacher: {
     purpose: "Introduces clearance and tolerance on a part that has to fit something the student made. Measuring the real printed cube shows tolerance stack-up first-hand; the ring test applies 'prototype only the critical portion'. Students design the box today; full boxes print alongside day 16–17 revisions.",
+    runPlan: [
+      { minutes: 5, title: "Hook", teacher: "Why a 45 mm box won't fit.", students: "Predict.", devices: "away" },
+      { minutes: 8, title: "Stack-up demo", teacher: "Measure three printed pieces live.", students: "Predict, watch.", devices: "away" },
+      { minutes: 12, title: "Measure and calculate", teacher: "Circulate; check the biggest number is used.", students: "Measure, do the opening math.", devices: "open" },
+      { minutes: 20, title: "Design", teacher: "Box and test ring in Tinkercad; queue rings.", students: "Design, export the ring.", devices: "open" },
+      { minutes: 7, title: "Record", teacher: "Measurements, math and design.", students: "Upload, reflect.", devices: "open" },
+      { minutes: 3, title: "Ring queue", teacher: "Confirm ring print order.", students: "Request ring print.", devices: "open" },
+    ],
+    lookFors: ["The biggest measurement used.", "Clearance added on both sides.", "A ring printed before the full box."],
+    differentiation: { support: ["Calculation template: biggest + 2 × clearance + 2 × wall.", "Measure with a partner."], extend: ["Test two clearances side by side.", "Add a lid that slides on."] },
     preparation: [
       "Ring tests print in a few minutes each: queue them early in the period so students can test before the bell.",
       "Calipers, or rulers marked in 0.5 mm, for every pair.",

@@ -30,6 +30,15 @@ export const lesson: LessonInput = {
           visual: { modelId: "puzzle-cube-exploded", alt: "A sample puzzle cube pulled apart into its pieces." },
         },
         {
+          id: "demo",
+          type: "teacherLed",
+          title: "Check like an engineer",
+          minutes: 5,
+          students: "Watch how to check inside a solid cube: hide the top layer, check the middle against your map, then show everything again.",
+          teacher: "A quick demo of Hide and Show all, then let students build. The habit to model is checking layer by layer against the plan, not eyeballing the whole cube.",
+          devices: "open",
+        },
+        {
           id: "check-steps",
           type: "showMe",
           title: "Check inside the cube",
@@ -143,6 +152,15 @@ export const lesson: LessonInput = {
   ],
   teacher: {
     purpose: "Students complete the in-place build and verify it systematically (size, layer-by-layer with Hide, counts). Building in place guarantees fit; the checks catch errors before pieces are grouped.",
+    runPlan: [
+      { minutes: 5, title: "Demo", teacher: "Hide and Show all; checking against the layer map.", students: "Watch.", devices: "open" },
+      { minutes: 30, title: "Build", teacher: "Circulate; prompt layer-by-layer checks.", students: "Build the middle and top layers.", devices: "open" },
+      { minutes: 8, title: "Check", teacher: "Partners check each other's cube against the map.", students: "Hide layers, compare, fix.", devices: "open" },
+      { minutes: 7, title: "Record", teacher: "Screenshots: whole cube and top layer hidden.", students: "Upload, reflect.", devices: "open" },
+      { minutes: 5, title: "Catch-up", teacher: "Time for anyone behind; others help.", students: "Finish or help.", devices: "open" },
+    ],
+    lookFors: ["Checking one layer at a time.", "Size reads exactly 45 × 45 × 45.", "Students asking a partner to check, not just you."],
+    differentiation: { support: ["Check one layer with a partner before building the next.", "Starter file with the bottom layer done."], extend: ["Build a second version with two pieces traded.", "Find a cube that could be moved to make the puzzle harder."] },
     preparation: ["Show Hide and Show all on the projector."],
     equipment: ["Student devices with Tinkercad", "Layer maps"],
     misconceptions: [
