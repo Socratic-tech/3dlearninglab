@@ -271,6 +271,8 @@ export default function ModelViewer({
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       renderer.localClippingEnabled = true;
       renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.05;
       const canvas = renderer.domElement;
       canvas.style.display = "block";
       canvas.style.width = "100%";
@@ -326,8 +328,8 @@ export default function ModelViewer({
       if (format === "stl" || format === "obj") {
         ownedMaterial = new THREE.MeshStandardMaterial({
           color: palette.model,
-          roughness: 0.55,
-          metalness: 0.05,
+          roughness: 0.5,
+          metalness: 0.08,
           side: THREE.DoubleSide,
           flatShading: format === "stl",
         });
@@ -395,6 +397,9 @@ export default function ModelViewer({
       const fill = new THREE.DirectionalLight(0xffffff, 0.6);
       fill.position.set(-1.2, 0.6, -0.8);
       scene.add(fill);
+      const rim = new THREE.DirectionalLight(0xbcd8ff, 0.5);
+      rim.position.set(-0.4, 1.1, -1.6);
+      scene.add(rim);
 
       // Build plate: ≥ 1.5× footprint, 10 mm cells.
       const footprint = Math.max(size[0], size[1], 1);
@@ -417,6 +422,27 @@ export default function ModelViewer({
       plate.rotation.x = -Math.PI / 2;
       plate.position.y = -0.05;
       scene.add(plate);
+
+      // Soft contact shadow so the model feels seated on the plate (decorative, cheap).
+      const shadowCanvas = document.createElement("canvas");
+      shadowCanvas.width = shadowCanvas.height = 64;
+      const sctx = shadowCanvas.getContext("2d");
+      if (sctx) {
+        const g = sctx.createRadialGradient(32, 32, 4, 32, 32, 32);
+        g.addColorStop(0, "rgba(0,0,0,0.38)");
+        g.addColorStop(1, "rgba(0,0,0,0)");
+        sctx.fillStyle = g;
+        sctx.fillRect(0, 0, 64, 64);
+        const shadowTex = new THREE.CanvasTexture(shadowCanvas);
+        const contactShadow = new THREE.Mesh(
+          new THREE.PlaneGeometry(Math.max(size[0], 1) * 1.5, Math.max(size[1], 1) * 1.5),
+          new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false }),
+        );
+        contactShadow.rotation.x = -Math.PI / 2;
+        contactShadow.position.y = 0.03;
+        contactShadow.renderOrder = 1;
+        scene.add(contactShadow);
+      }
 
       const layerGroup = new THREE.Group();
       scene.add(layerGroup);
