@@ -94,7 +94,7 @@ export const lesson: LessonInput = {
           type: "callout",
           tone: "idea",
           title: "Other ways to sketch",
-          body: "Not a fan of dot paper? Build the piece from real cubes and trace or photograph it, or draw just the top view and write the height (1, 2 or 3) in each square. All of these count.",
+          body: "Not a fan of dot paper? Build the piece from math cubes and trace or photograph it, or draw just the top view and write the height (1, 2 or 3) in each square. All of these count.",
         },
       ],
     },
@@ -130,14 +130,14 @@ export const lesson: LessonInput = {
             "At least 8 different piece sketches",
             "Each piece has 3 to 7 cubes, with the count written beside it",
             "At least 3 pieces bend up into 3D",
-            "Each sketch is clear enough for a classmate to build it from real cubes",
+            "Each sketch is clear enough for a classmate to build it from math cubes",
           ],
           skills: ["F3"],
         },
         {
           id: "submit",
           type: "uploadEvidence",
-          prompt: "Upload a photo of your piece bank (or photos of pieces built from real cubes).",
+          prompt: "Upload a photo of your piece bank (or photos of pieces built from math cubes).",
           accepts: ["screenshot", "physical_test", "written"],
           competencyIds: ["F3"],
           checklist: ["8 or more pieces", "Cube count on each", "3 or more 3D pieces"],
@@ -162,10 +162,10 @@ export const lesson: LessonInput = {
     purpose: "Students learn a quick, low-cost way to generate and communicate 3D ideas. Isometric sketching on dot paper keeps every line on the cube grid, so pieces drawn here can be built directly in week 2.",
     preparation: [
       "Print isometric dot paper (triangle-grid dots), 2–3 sheets per student.",
-      "Have real cubes available for students who prefer building to drawing.",
+      "Have math cubes available for students who prefer building to drawing.",
       "Model the three-step cube on the board.",
     ],
-    equipment: ["Isometric dot paper", "Pencils and erasers", "Coloured pencils (optional)", "Small cubes (optional)"],
+    equipment: ["Isometric dot paper", "Pencils and erasers", "Coloured pencils (optional)", "Math cubes (optional)"],
     misconceptions: [
       { id: "count-faces", text: "Counting faces or lines instead of cubes.", response: "Point to each cube's top diamond and count those (plus any cubes hidden underneath)." },
     ],
@@ -180,7 +180,7 @@ export const lesson: LessonInput = {
     ],
     answerGuidance: [
       "Proficient: 8+ clear, distinct pieces of 3–7 cubes with counts, at least 3 of them 3D.",
-      "Clarity check: a classmate can build any sketched piece from real cubes without asking questions.",
+      "Clarity check: a classmate can build any sketched piece from math cubes without asking questions.",
     ],
     alternatives: {
       noPrinter: "No printer needed.",

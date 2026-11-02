@@ -172,6 +172,6 @@ export const lesson: LessonInput = {
       "Proficient: puzzle and box delivered, a card someone else can follow, v1 and v2 data, and a pitch that uses the numbers.",
       "Optional scoring: the capstone rubric's Testing & Iteration and Communication rows.",
     ],
-    alternatives: { noPrinter: "Ship the real-cube version with a card, a pitch and the Tinkercad design.", touchDevice: "Record the pitch with the tablet camera." },
+    alternatives: { noPrinter: "Ship the math-cube version with a card, a pitch and the Tinkercad design.", touchDevice: "Record the pitch with the tablet camera." },
   },
 };

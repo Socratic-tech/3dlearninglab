@@ -157,9 +157,9 @@ export const lesson: LessonInput = {
     discussionQuestions: ["Why keep the playtest exactly the same for version 2?"],
     troubleshooting: [
       "Changed pieces don't fit old ones: the change was made on a loose piece, not in the assembled backup. Redo it in place.",
-      "No printer time: re-test with a real-cube mock-up of the changed pieces.",
+      "No printer time: re-test with a math-cube mock-up of the changed pieces.",
     ],
     answerGuidance: ["Proficient: one change clearly linked to data, before/after shown, re-test compared (or a clear plan if prints are pending)."],
-    alternatives: { noPrinter: "Make the change with real cubes and re-test that version.", touchDevice: "Recolour cubes by tapping them; export from the tablet." },
+    alternatives: { noPrinter: "Make the change with math cubes and re-test that version.", touchDevice: "Recolour cubes by tapping them; export from the tablet." },
   },
 };
