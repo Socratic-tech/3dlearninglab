@@ -144,28 +144,28 @@ export function StreakCard({ stats }: { stats: Stats }) {
   const dayName = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString(getLocale() === "es" ? "es" : undefined, { weekday: "narrow", timeZone: "UTC" });
   return (
     <section aria-label={tr("Your streak and goal")} className="grid grid-cols-3 gap-3">
-      <div className="rounded-2xl border border-border bg-surface p-4 text-center">
-        <Flame className={cn("mx-auto size-8", stats.streak ? "text-warning" : "text-muted")} aria-hidden />
+      <div className="rounded-2xl border border-border bg-gradient-to-b from-surface to-surface-2/60 p-4 text-center shadow-[0_8px_16px_-12px_rgba(15,27,45,0.35)]">
+        <Flame className={cn("mx-auto size-8", stats.streak ? "text-warning drop-shadow-[0_0_6px_rgba(245,158,11,0.7)]" : "text-muted")} aria-hidden />
         <p className="font-display text-2xl font-bold">{stats.streak}</p>
         <p className="text-xs text-muted">{tr("day streak")}</p>
       </div>
-      <div className="rounded-2xl border border-border bg-surface p-4 text-center">
+      <div className="rounded-2xl border border-border bg-gradient-to-b from-surface to-surface-2/60 p-4 text-center shadow-[0_8px_16px_-12px_rgba(15,27,45,0.35)]">
         <svg viewBox="0 0 64 64" className="mx-auto size-12 -rotate-90" aria-hidden>
           <circle cx="32" cy="32" r={r} fill="none" stroke="var(--surface-2)" strokeWidth="8" />
-          <circle cx="32" cy="32" r={r} fill="none" stroke="var(--accent)" strokeWidth="8" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} />
+          <circle cx="32" cy="32" r={r} fill="none" stroke="var(--accent)" strokeWidth="8" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} style={{ transition: "stroke-dashoffset 800ms ease-out", filter: pct > 0 ? "drop-shadow(0 0 3px var(--accent))" : undefined }} />
         </svg>
         <p className="mt-1 font-display text-lg font-bold">{stats.todayXp}/{stats.goal}</p>
         <p className="text-xs text-muted">{pct >= 100 ? tr("goal done today!") : tr("today's goal")}</p>
       </div>
-      <div className="rounded-2xl border border-border bg-surface p-4 text-center">
-        <Sparkles className="mx-auto size-8 text-accent" aria-hidden />
+      <div className="rounded-2xl border border-border bg-gradient-to-b from-surface to-surface-2/60 p-4 text-center shadow-[0_8px_16px_-12px_rgba(15,27,45,0.35)]">
+        <Sparkles className="mx-auto size-8 text-accent drop-shadow-[0_0_6px_rgba(251,191,90,0.7)]" aria-hidden />
         <p className="font-display text-2xl font-bold">{stats.xp}</p>
         <p className="text-xs text-muted">{tr("total XP")}</p>
       </div>
       <ol className="col-span-3 flex justify-between rounded-2xl border border-border bg-surface px-4 py-3" aria-label={tr("This week")}>
         {stats.week.map((d, i) => (
           <li key={d.day} className="flex flex-col items-center gap-1 text-xs">
-            <span className={cn("grid size-8 place-items-center rounded-full", d.xp > 0 ? "bg-warning text-primary-fg" : "bg-surface-2 text-muted", i === 6 && "ring-2 ring-primary")}>
+            <span className={cn("grid size-8 place-items-center rounded-full", d.xp > 0 ? "bg-warning text-primary-fg shadow-[0_0_8px_rgba(245,158,11,0.55)]" : "bg-surface-2 text-muted", i === 6 && "ring-2 ring-primary")}>
               {d.xp > 0 ? <Flame className="size-4" aria-hidden /> : <Target className="size-4" aria-hidden />}
             </span>
             <span className="text-muted">{dayName(d.day)}<span className="sr-only">{d.xp > 0 ? `: ${d.xp} XP` : tr(": no activity")}</span></span>
