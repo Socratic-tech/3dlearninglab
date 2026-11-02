@@ -51,6 +51,14 @@ export const lesson: LessonInput = {
       title: "Find the cubes in the air",
       blocks: [
         {
+          id: "hold-turn",
+          type: "teacherLed",
+          title: "Hold it, turn it",
+          minutes: 10,
+          students: "Rebuild your pieces from math cubes (or grab them from week 1). Set each one on the desk and find the side where every cube sits on the desk or on another cube.",
+          teacher: "Devices down for this: hands find good orientations faster than screens. Ask students to show you a piece with a cube in the air, then turn it so the cube is supported. Pieces that won't work any way round are tomorrow's chamfer candidates.",
+        },
+        {
           id: "checkup",
           type: "modelViewer",
           modelId: "puzzle-piece-checkup",
@@ -207,32 +215,15 @@ export const lesson: LessonInput = {
       "What is the difference between a bridge and an overhang?",
     ],
     runPlan: [
-      { minutes: 6, title: "Hook", teacher: "Pass round a print with support scars (or show the diagram). Ask: 'Would you want this face sliding against another piece?'", students: "Feel or look at the scarred surface and describe it.", devices: "away" },
-      { minutes: 7, title: "Layers and the rule", teacher: "Use the layers diagram. Stack math cubes to act out a printer: 'Can I place this cube here?' Introduce the arch exception with two cubes and a bridge.", students: "Predict which placements the 'printer' can make.", devices: "away" },
-      { minutes: 10, title: "Find the cubes in the air", teacher: "Prompt students to orbit to a side view before answering. Discuss the hotspot feedback together.", students: "Model viewer, hotspot and the two orientation questions.", devices: "open" },
-      { minutes: 17, title: "Turn your pieces", teacher: "Circulate with math cubes. Ask 'What's under this cube?' and 'Have you looked from the side?'", students: "Rotate each piece in 90° steps, drop with D, mark any that need a chamfer.", devices: "open" },
-      { minutes: 10, title: "Orientation table and prove", teacher: "Check that every row has a reason, not just a position.", students: "Complete the table and upload the side view.", devices: "open" },
-      { minutes: 5, title: "Reflect and exit", teacher: "Ask who has a piece marked for a chamfer: that's tomorrow's work. Collect the exit ticket.", students: "Reflection and exit ticket.", devices: "open" },
+      { minutes: 5, title: "Hook", teacher: "Layers and supports.", students: "Listen.", devices: "away" },
+      { minutes: 10, title: "Hold it, turn it", teacher: "Math-cube pieces on desks; find the supported side.", students: "Turn pieces by hand.", devices: "away" },
+      { minutes: 10, title: "Checks", teacher: "Hotspot and orientation checks.", students: "Answer.", devices: "open" },
+      { minutes: 20, title: "Turn in Tinkercad", teacher: "Circulate; side-view checks.", students: "Rotate and drop pieces.", devices: "open" },
+      { minutes: 7, title: "Table", teacher: "Orientation table and screenshot.", students: "Upload, reflect.", devices: "open" },
+      { minutes: 3, title: "Save", teacher: "Save 'puzzle cube print'.", students: "Save.", devices: "open" },
     ],
-    lookFors: [
-      "Students switching to a side or front view before deciding a piece is fine.",
-      "Reasons in the table that mention what is under each cube, not just 'it looks right'.",
-      "Rotations in clean 90° steps, followed by D to drop.",
-      "Students using math cubes on the desk to test a position before rotating on screen.",
-      "Pieces that truly can't be fixed by turning flagged honestly for day 12.",
-    ],
-    differentiation: {
-      support: [
-        "Give each student math-cube copies of their pieces to test positions on the desk first.",
-        "Provide a partly filled orientation table with sentence frames: 'I put the ___ side down because ___.'",
-        "Model one piece fully on the projector, thinking aloud, before students start.",
-      ],
-      extend: [
-        "For each piece, compare two support-free orientations and argue which is better (contact area, height, look of the top face).",
-        "Estimate which orientation uses fewer layers for each piece, then check on day 13 in the slicer.",
-        "Research how bridges are tuned in a slicer and explain to the class what the cooling fan does.",
-      ],
-    },
+    lookFors: ["Every cube supported (or marked for a chamfer).", "Students testing with math-cube pieces before rotating on screen.", "Reasons written for each piece."],
+    differentiation: { support: ["Test each piece with math cubes first, then match it on screen.", "Do the table for three pieces, then the rest."], extend: ["Find the piece that needs a chamfer and predict where.", "Which orientation uses the least height (fewest layers)?"] },
     preparation: ["Optional: print the Puzzle Piece Checkup model, or a student piece in a good and a bad orientation, to pass around."],
     equipment: ["Student devices with Tinkercad", "Math cubes (handy for checking orientations by hand)"],
     misconceptions: [

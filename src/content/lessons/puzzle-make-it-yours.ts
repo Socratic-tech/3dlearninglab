@@ -30,6 +30,14 @@ export const lesson: LessonInput = {
           visual: { diagram: "text-raised-recessed", alt: "Raised text sits on a surface; recessed text is cut into it." },
         },
         {
+          id: "ideas",
+          type: "teacherLed",
+          title: "Show and decide",
+          minutes: 5,
+          students: "Look at the examples your teacher shows. Decide what you'll add: keychain size, a key-ring loop, initials, or nothing extra yet.",
+          teacher: "Show one or two examples (a keychain-size set, engraved initials). Keep 'nothing extra' a valid choice: some students are better served by catching up today. Remind everyone of the rule: touches only on outside faces.",
+        },
+        {
           id: "options",
           type: "text",
           title: "Pick one or more",
@@ -178,32 +186,13 @@ export const lesson: LessonInput = {
       "If you scaled your whole puzzle down, what else changed besides the size of the cube?",
     ],
     runPlan: [
-      { minutes: 5, title: "Hook", teacher: "Show a personalised object (a keychain, an engraved item). Ask: 'What makes you keep something?' Then the twist: every change must keep the puzzle working.", students: "Share an object they've kept because it was theirs.", devices: "away" },
-      { minutes: 7, title: "Touching faces vs free faces", teacher: "Assemble a math-cube puzzle or the projected backup. Point to faces you can still see once it's together. Show raised vs recessed text.", students: "Point to free faces on a classmate's or the class model.", devices: "away" },
-      { minutes: 8, title: "Practice checks", teacher: "Let students answer, then discuss the scaling prediction: why does scaling everything together keep the fit?", students: "Loop placement, scaling prediction, engraving depth.", devices: "open" },
-      { minutes: 20, title: "Personalise", teacher: "Circulate. Ask 'Which piece touches this face?' and 'How tall are those letters?' rather than fixing. Remind: save a copy first, scale before adding letters.", students: "Choose one or more touches and build them on the v2 copy.", devices: "open" },
-      { minutes: 10, title: "Fit check and prove", teacher: "Ask students to show you the cube reassembled before they upload.", students: "Run the fit check, then upload two screenshots.", devices: "open" },
-      { minutes: 5, title: "Reflect and exit", teacher: "Share one choice that respected the fit cleverly. Collect the exit ticket.", students: "Reflection and exit ticket.", devices: "open" },
+      { minutes: 5, title: "Show and decide", teacher: "Examples; the outside-faces rule.", students: "Choose a touch.", devices: "away" },
+      { minutes: 30, title: "Personalise", teacher: "Circulate; check engraving depth and placement.", students: "Add touches, keep pieces grouped.", devices: "open" },
+      { minutes: 10, title: "Fit check", teacher: "Partners put the cube back together on screen.", students: "Check nothing sticks into another piece.", devices: "open" },
+      { minutes: 10, title: "Record", teacher: "Screenshots; reflection.", students: "Upload, reflect.", devices: "open" },
     ],
-    lookFors: [
-      "Students orbiting the assembled cube to check faces, not just the single piece.",
-      "Letter height and depth checked against the 5 mm / 0.8 mm minimum before grouping.",
-      "A saved v2 copy, with the unpersonalised version kept safe.",
-      "Scaling done to all pieces together, with touches added afterwards.",
-      "Students explaining their choice in terms of the fit, not only how it looks.",
-    ],
-    differentiation: {
-      support: [
-        "Offer one touch only (initials) with a ready-made checklist: 6 mm tall, 1 mm deep, a free face.",
-        "Give a printed sketch of the assembled cube and let students colour the free faces before opening Tinkercad.",
-        "Pair students to check each other's fit, one reading the checklist aloud.",
-      ],
-      extend: [
-        "Design a symbol or logo (not just letters) that meets the same size rules.",
-        "Add a loop and design the box on day 15 so it still fits, explaining the extra room needed.",
-        "Hide a small 'maker's mark' on a free face that only shows once the puzzle is solved.",
-      ],
-    },
+    lookFors: ["Touches only on outside faces.", "Letters 5 mm or taller, 0.8 mm or deeper.", "Scaling all pieces together, never one alone."],
+    differentiation: { support: ["One touch only (colour or initials).", "Catch-up time counts as a good choice today."], extend: ["Loop + engraving + keychain size.", "Design a gift version for someone else."] },
     preparation: ["Decide if keychain size is allowed (smaller pieces are harder for some students to handle and print).", "Have key rings available if students will use them."],
     equipment: ["Student devices with Tinkercad"],
     misconceptions: [

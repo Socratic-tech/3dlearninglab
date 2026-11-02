@@ -78,6 +78,14 @@ export const lesson: LessonInput = {
       title: "Make version 2",
       blocks: [
         {
+          id: "conference",
+          type: "teacherLed",
+          title: "Revision conferences",
+          minutes: 10,
+          students: "Bring your playtest notes. Tell your teacher (or a partner) what the data says and the ONE change you'll make.",
+          teacher: "Short conferences: 'What did the test show? What will you change? How will you know it worked?' Push for one change linked to the data, made in the backup design so pieces still fit.",
+        },
+        {
           id: "tinkercad",
           type: "tinkercadLaunch",
           title: "Change, then print only what changed",
@@ -179,32 +187,15 @@ export const lesson: LessonInput = {
       "If you made a version 3, what would you change next, and why?",
     ],
     runPlan: [
-      { minutes: 4, title: "Hook", teacher: "Show a famous product's version 1 next to a later version (or a past student's v1 and v2). Ask: what changed, and why do you think?", students: "Suggest reasons the designer made the change.", devices: "away" },
-      { minutes: 8, title: "Read the data", teacher: "Ask students to re-read their playtest record and circle the result that worries them most. Walk through the menu of common changes.", students: "Link their stuck spot or times to one item on the menu.", devices: "away" },
-      { minutes: 6, title: "Pick the right change", teacher: "Discuss why changing the test hides the problem.", students: "The two change questions.", devices: "open" },
-      { minutes: 20, title: "Make version 2", teacher: "Circulate. Ask 'Which result is this change for?' and 'Are you editing the assembled backup?' Check piece rules on changed pieces.", students: "Copy the backup, make one change in place, check the cube, group, turn and export the changed pieces.", devices: "open" },
-      { minutes: 12, title: "Request, re-test or plan", teacher: "Queue reprints. Students with ready pieces (or math-cube mock-ups) re-test with a new tester; others write a re-test plan.", students: "Upload before/after and the print request; re-test or plan.", devices: "open" },
-      { minutes: 5, title: "Reflect and exit", teacher: "Share one change with a clear data link. Collect the exit ticket.", students: "Reflection and exit ticket.", devices: "open" },
+      { minutes: 5, title: "Hook", teacher: "Version 2 is where designs get good.", students: "Listen.", devices: "away" },
+      { minutes: 10, title: "Conferences", teacher: "One change linked to data.", students: "Explain the change.", devices: "away" },
+      { minutes: 20, title: "Change and export", teacher: "Circulate; check changes are made in the backup.", students: "Change, export, request prints.", devices: "open" },
+      { minutes: 10, title: "Re-test", teacher: "Re-test with a new tester if prints are ready.", students: "Re-test.", devices: "away" },
+      { minutes: 7, title: "Record", teacher: "Before/after and notes.", students: "Upload, reflect.", devices: "open" },
+      { minutes: 3, title: "Tidy", teacher: "Collect prints.", students: "Tidy.", devices: "away" },
     ],
-    lookFors: [
-      "A change that names a specific playtest result ('Tester 2 stuck on piece E for 4 minutes').",
-      "Edits made in the assembled backup, with moved cubes recoloured.",
-      "Piece rules and the 45 mm cube re-checked after the change.",
-      "Only changed pieces exported, with the same print settings.",
-      "New testers and the same protocol for the re-test.",
-    ],
-    differentiation: {
-      support: [
-        "Offer a sentence frame: 'My testers ___, so I will change ___, which should ___.'",
-        "Limit the menu to two options that match the student's data and talk through the choice.",
-        "Model moving one cube between two pieces in the backup on the projector, step by step.",
-      ],
-      extend: [
-        "Predict the new solve time before the re-test and compare the prediction with the result.",
-        "Plan a version 3 that tests a different lever, explaining what you expect to change.",
-        "Revise the box fit as well, as a separate, documented change with its own test.",
-      ],
-    },
+    lookFors: ["One change, linked to the data.", "Edits made in the backup (pieces still fit).", "Same test, so the comparison is fair."],
+    differentiation: { support: ["Use the change menu on the screen.", "Change one piece only."], extend: ["Make two versions and test both.", "Predict the new solve time before re-testing."] },
     preparation: ["Reserve printer time for small reprints (usually one or two pieces per student).", "Line up new testers (another table or class)."],
     equipment: ["Student devices with Tinkercad", "Printers", "Timers"],
     misconceptions: [

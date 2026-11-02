@@ -101,6 +101,14 @@ export const lesson: LessonInput = {
       title: "Prove it: ship your puzzle",
       blocks: [
         {
+          id: "showcase",
+          type: "teacherLed",
+          title: "Showcase",
+          minutes: 25,
+          students: "Present your puzzle: who it's for, what the playtests showed (with numbers), the change you made and why, and what you'd do next. Let visitors try your puzzle with your solution card.",
+          teacher: "Your format: gallery walk, presentations, or recorded pitches. Consider inviting the people the puzzles were made for, another class or families. Celebrate the journey from a 4 × 4 flat puzzle on day 1 to this.",
+        },
+        {
           id: "prove",
           type: "challenge",
           kind: "prove",
@@ -183,33 +191,14 @@ export const lesson: LessonInput = {
       "What is one skill from this project you could use in another subject or another design?",
     ],
     runPlan: [
-      { minutes: 5, title: "Hook", teacher: "Show a real product with its box and instructions. Ask: 'What did someone have to design besides the object?'", students: "List everything that ships with a product.", devices: "away" },
-      { minutes: 5, title: "Solution card choices", teacher: "Show the layer map and one other format. Emphasise choice.", students: "Choose a card format.", devices: "away" },
-      { minutes: 7, title: "Plan your pitch", teacher: "After the ordering, ask students to say their 'evidence' sentence with a number in it.", students: "Pitch order and the card question.", devices: "open" },
-      { minutes: 15, title: "Make and test the card", teacher: "Circulate. Help pair students with someone who hasn't solved their puzzle.", students: "Make the card, test it, fix anything that confused the tester.", devices: "away" },
-      { minutes: 6, title: "Rehearse", teacher: "Offer quiet corners or recording spots. Remind students of the 60-second arc.", students: "Rehearse or record the pitch with a partner.", devices: "away" },
-      { minutes: 12, title: "Pitches and gallery", teacher: "Run a gallery walk or small-group pitches; use the teacher check look-fors.", students: "Present and give one specific compliment and one question to others.", devices: "away" },
-      { minutes: 5, title: "Reflect and close", teacher: "Put first sketches next to finished cubes. Celebrate. Make sure submissions are uploaded.", students: "Journal, reflection and final upload.", devices: "open" },
+      { minutes: 5, title: "Hook", teacher: "From pencil sketch to a puzzle in someone's hands.", students: "Listen.", devices: "away" },
+      { minutes: 15, title: "Solution card", teacher: "Circulate; card tests with a new person.", students: "Make and test the card.", devices: "away" },
+      { minutes: 25, title: "Showcase", teacher: "Run the format you chose; celebrate.", students: "Present; try others' puzzles.", devices: "away" },
+      { minutes: 7, title: "Record", teacher: "Photos, card, pitch.", students: "Upload, reflect.", devices: "open" },
+      { minutes: 3, title: "Close", teacher: "Thank everyone; what's next.", students: "Listen.", devices: "away" },
     ],
-    lookFors: [
-      "Pitches that include at least one real number from playtesting.",
-      "A change explained by the data that prompted it.",
-      "Solution cards tried out with someone new, and revised after confusion.",
-      "Puzzle, box and card delivered together and fitting.",
-      "Students choosing a pitch format that lets them show their thinking clearly.",
-    ],
-    differentiation: {
-      support: [
-        "Provide a pitch template with five boxes matching the order (who, show, data, change, next).",
-        "Allow a recorded pitch or slide with voice-over, and let students rehearse with one trusted partner.",
-        "Offer a blank layer-map template to fill in for the solution card.",
-      ],
-      extend: [
-        "Design a branded package insert or label that tells the puzzle's story without giving away the solution.",
-        "Write a version 3 plan with a prediction and a test you'd use.",
-        "Make a solution card in two formats and compare which one a new tester found easier.",
-      ],
-    },
+    lookFors: ["Pitches that use numbers from the playtests.", "Solution cards a newcomer can follow.", "Students explaining one change and why."],
+    differentiation: { support: ["Pitch frame: who, numbers, change, next.", "Record the pitch instead of presenting live."], extend: ["Invite the people the puzzles were made for.", "Sketch version 3 from the feedback."] },
     preparation: [
       "Plan pitch format: live gallery walk, recorded videos, or slides.",
       "Optional: invite the 'client' (the person the puzzles are for), another class, or families.",
