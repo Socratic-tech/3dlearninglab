@@ -68,5 +68,7 @@
   "sections.4.blocks:reflect.prompt": "¿Por qué elegiste este tipo de prototipo en lugar de imprimir el diseño completo?",
   "sections.4.blocks:reflect.sentenceStarters.0": "Mi pregunta crítica es...",
   "sections.4.blocks:reflect.sentenceStarters.1": "Este prototipo responde porque…",
-  "sections.4.blocks:reflect.sentenceStarters.2": "Imprimir todo sería…"
+  "sections.4.blocks:reflect.sentenceStarters.2": "Imprimir todo sería…",
+  "sections.0.blocks:prototype-types.title": "Cuatro formas rápidas de hacer un prototipo",
+  "sections.0.blocks:prototype-types.body": "Elige la más barata que responda tu pregunta:\n\n- **Recorte de papel:** plano y a tamaño real. Forma rápida de comprobar si algo tiene el tamaño correcto.\n- **Maqueta de cartón y cinta:** una versión 3D tosca que puedes levantar. Sirve para ver cómo se siente al sostenerla o alcanzarla.\n- **Pieza de prueba impresa:** imprime solo la parte arriesgada. Sirve para comprobar si un ajuste real funciona.\n- **Impresión completa rápida y de poco detalle:** todo el objeto en baja calidad. Sirve para el equilibrio y la apariencia general."
 }

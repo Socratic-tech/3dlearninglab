@@ -36,6 +36,13 @@ export const lesson: LessonInput = {
           body: "Revise from **evidence**: a test result or user feedback. Change one important thing at a time when you can, so you know what made the difference. Save every version.",
         },
         {
+          id: "revision-pattern",
+          type: "callout",
+          tone: "idea",
+          title: "From result to revision",
+          body: "Work backwards in three steps: **test result → likely cause → one change.** Example: the bracket slid off the shelf (result). The base was too short to hold it down (cause). Make the base 10 mm longer (one change). \"Make it better\" is not a revision. A specific change you can re-test is.",
+        },
+        {
           id: "predict",
           type: "prediction",
           prompt: "Prototype 1 was too tight. For v2 you widened the hole, rotated the part and changed the infill. Now it fits. Which change fixed it?",

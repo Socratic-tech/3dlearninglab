@@ -90,6 +90,12 @@ export const lesson: LessonInput = {
           check: "practice",
         },
         {
+          id: "feedback-starters",
+          type: "text",
+          title: "Feedback that helps",
+          body: "Specific feedback names one feature and says why it works, or what to try next. Use three starters:\n\n- **Works because…** names something strong and says why.\n- **I wonder…** asks a question that makes the maker think.\n- **Next try…** suggests one specific change.\n\nFor example, \"Cool colours\" becomes \"Works because the bright handle shows me where to grab it.\"",
+        },
+        {
           id: "feedback-match",
           type: "matching",
           prompt: "Match each vague comment to a more specific version.",

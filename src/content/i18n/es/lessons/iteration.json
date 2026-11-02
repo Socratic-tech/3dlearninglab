@@ -70,5 +70,7 @@
   "sections.4.blocks:reflect.prompt": "¿Qué te enseñó la versión 1 que no podrías haber aprendido sin construirla?",
   "sections.4.blocks:reflect.sentenceStarters.0": "Antes de realizar la prueba, pensé…",
   "sections.4.blocks:reflect.sentenceStarters.1": "La versión 1 me mostró...",
-  "sections.4.blocks:reflect.sentenceStarters.2": "En v2 cambié…"
+  "sections.4.blocks:reflect.sentenceStarters.2": "En v2 cambié…",
+  "sections.0.blocks:revision-pattern.title": "Del resultado a la revisión",
+  "sections.0.blocks:revision-pattern.body": "Trabaja hacia atrás en tres pasos: **resultado de la prueba → causa probable → un cambio.** Ejemplo: el soporte se resbaló del estante (resultado). La base era demasiado corta para sujetarlo (causa). Haz la base 10 mm más larga (un cambio). \"Mejóralo\" no es una revisión. Un cambio específico que puedes volver a probar, sí."
 }

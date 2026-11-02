@@ -35,6 +35,8 @@ export const lesson: LessonInput = {
           title: "Check inside the cube",
           steps: [
             { text: "Select everything (drag a box around it) and read the size: 45 × 45 × 45.", diagram: "selection" },
+            { text: "Count the cubes: there should be 27. A gap you can see through means one is missing. 28 means two cubes are sitting in one spot.", diagram: "selection" },
+            { text: "Check that the size reads exactly 45.0. Something like 45.4 means one cube was dragged off the 5 mm snap grid, so drag it a little and let it snap back.", diagram: "selection" },
             { text: "Select the top layer's cubes and click the light bulb to hide them. Now you can check the middle layer.", diagram: "selection" },
             { text: "Compare each layer with your layer map, square by square.", diagram: "puzzle-layer-map" },
             { text: "Click 'Show all' (light bulb in the top toolbar) to bring everything back.", diagram: "selection" },

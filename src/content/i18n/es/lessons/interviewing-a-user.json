@@ -83,5 +83,7 @@
   "sections.4.title": "Reflexionar",
   "sections.4.blocks:reflect.prompt": "¿Qué dijo tu cliente que te sorprendió o cambió lo que planeabas diseñar?",
   "sections.4.blocks:reflect.sentenceStarters.0": "Esperaba…, pero dijeron…",
-  "sections.4.blocks:reflect.sentenceStarters.1": "Esto cambia mi diseño porque…"
+  "sections.4.blocks:reflect.sentenceStarters.1": "Esto cambia mi diseño porque…",
+  "sections.0.blocks:question-types.title": "¿Qué hace fuerte a una pregunta?",
+  "sections.0.blocks:question-types.body": "**Las preguntas de sí o no y las que sugieren la respuesta** (\"¿Tu mochila pesa mucho?\") reciben un \"sí\" rápido o un \"claro\" por cortesía. Casi no aprendes nada.\n\n**Las preguntas abiertas** empiezan con *qué*, *cómo*, *dónde* o *cuéntame paso a paso…* (\"Cuéntame paso a paso cómo empacaste tu mochila esta mañana\"). Consiguen historias y detalles con los que puedes diseñar.\n\nLas preguntas fuertes preguntan por la vida de la persona **ahora**, no por tu idea."
 }

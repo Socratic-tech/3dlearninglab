@@ -37,6 +37,12 @@ export const lesson: LessonInput = {
           body: "An interview is how you **understand** before you design. Your job is to ask, listen and take notes — not to pitch your idea.",
         },
         {
+          id: "question-types",
+          type: "text",
+          title: "What makes a question strong?",
+          body: "**Yes/no and leading questions** (\"Is your backpack heavy?\") get a quick \"yes\" or a polite \"sure\". You learn almost nothing.\n\n**Open questions** start with *what*, *how*, *where* or *walk me through…* (\"Walk me through packing your backpack this morning.\") They get stories and details you can design from.\n\nStrong questions ask about the person's life **now**, not about your idea.",
+        },
+        {
           id: "permission",
           type: "callout",
           tone: "safety",

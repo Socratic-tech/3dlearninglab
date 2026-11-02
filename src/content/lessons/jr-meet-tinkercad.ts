@@ -50,6 +50,7 @@ export const lesson: LessonInput = {
             { text: "To orbit, hold the right mouse button and drag. On a trackpad, use the view cube in the corner." },
             { text: "To zoom, use the mouse wheel, or the + and − buttons on the left.", diagram: "view-controls" },
             { text: "Click the house button to get back to the start view." },
+            { text: "To remove a shape, click it and press the Delete key." },
           ],
         },
       ],

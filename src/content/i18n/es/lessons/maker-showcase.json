@@ -74,5 +74,7 @@
   "sections.4.blocks:reflect.prompt": "¿Qué comentarios recibió con los que está de acuerdo y qué cambiaría debido a ellos?",
   "sections.4.blocks:reflect.sentenceStarters.0": "Un visitante notó…",
   "sections.4.blocks:reflect.sentenceStarters.1": "Estoy de acuerdo porque…",
-  "sections.4.blocks:reflect.sentenceStarters.2": "Yo cambiaría…"
+  "sections.4.blocks:reflect.sentenceStarters.2": "Yo cambiaría…",
+  "sections.1.blocks:feedback-starters.title": "Comentarios que ayudan",
+  "sections.1.blocks:feedback-starters.body": "Un comentario específico nombra una característica y dice por qué funciona, o qué probar después. Usa tres iniciadores:\n\n- **Funciona porque…** nombra algo fuerte y dice por qué.\n- **Me pregunto…** hace una pregunta que invita a pensar a quien lo hizo.\n- **Próximo intento…** sugiere un cambio específico.\n\nPor ejemplo, \"Qué buenos colores\" se convierte en \"Funciona porque el mango brillante me muestra dónde agarrarlo.\""
 }

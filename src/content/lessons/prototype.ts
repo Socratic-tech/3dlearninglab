@@ -36,6 +36,12 @@ export const lesson: LessonInput = {
           body: "Before building, ask: **what is most likely to go wrong?** That's your critical question. Build only enough to answer it.",
         },
         {
+          id: "prototype-types",
+          type: "text",
+          title: "Four quick ways to prototype",
+          body: "Pick the cheapest one that answers your question:\n\n- **Paper cut-out:** flat and full size. Fast way to check if something is the right size.\n- **Cardboard and tape mock-up:** a rough 3D version you can pick up. Good for how it feels to hold or reach.\n- **Printed test slice:** print only the one risky part. Good for checking whether a real fit works.\n- **Fast, low-detail full print:** the whole thing at low quality. Good for balance and overall look.",
+        },
+        {
           id: "predict",
           type: "prediction",
           prompt: "Your desk organizer's riskiest part is a hole for a 14 mm glue stick. What should you print first?",

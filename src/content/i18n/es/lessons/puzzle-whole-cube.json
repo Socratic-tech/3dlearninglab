@@ -12,9 +12,9 @@
   "sections.0.blocks:hook.visual.alt": "Un cubo rompecabezas de ejemplo separado en sus piezas.",
   "sections.0.blocks:check-steps.title": "Revisa el interior del cubo",
   "sections.0.blocks:check-steps.steps.0.text": "Selecciona todo (arrastra un recuadro alrededor) y lee el tamaño: 45 × 45 × 45.",
-  "sections.0.blocks:check-steps.steps.1.text": "Selecciona los cubos de la capa de arriba y haz clic en el foco para ocultarlos. Ahora puedes revisar la capa de en medio.",
-  "sections.0.blocks:check-steps.steps.2.text": "Compara cada capa con tu mapa de capas, cuadro por cuadro.",
-  "sections.0.blocks:check-steps.steps.3.text": "Haz clic en 'Mostrar todo' (Show all, el foco de la barra de herramientas de arriba) para que todo vuelva a aparecer.",
+  "sections.0.blocks:check-steps.steps.1.text": "Cuenta los cubos: deben ser 27. Un hueco por el que se ve a través significa que falta uno. 28 significa que dos cubos están en el mismo lugar.",
+  "sections.0.blocks:check-steps.steps.2.text": "Revisa que el tamaño diga exactamente 45.0. Algo como 45.4 significa que un cubo se arrastró fuera de la cuadrícula de 5 mm; arrástralo un poco y deja que se ajuste de nuevo.",
+  "sections.0.blocks:check-steps.steps.3.text": "Selecciona los cubos de la capa de arriba y haz clic en el foco para ocultarlos. Ahora puedes revisar la capa de en medio.",
   "sections.1.title": "Encuentra el problema",
   "sections.1.blocks:size-mc.prompt": "Seleccionas todo y el tamaño dice 45 × 45 × 60. ¿Cuál es el problema más probable?",
   "sections.1.blocks:size-mc.hint": "60 es una capa más de las que planeaste.",
@@ -58,5 +58,7 @@
   "sections.4.title": "Reflexiona",
   "sections.4.blocks:reflect.prompt": "¿Qué errores encontraste al revisar? Si no encontraste ninguno, ¿cómo te aseguraste de que no hubiera errores?",
   "sections.4.blocks:reflect.sentenceStarters.0": "Cuando oculté la capa de arriba vi…",
-  "sections.4.blocks:reflect.sentenceStarters.1": "Me aseguré al…"
+  "sections.4.blocks:reflect.sentenceStarters.1": "Me aseguré al…",
+  "sections.0.blocks:check-steps.steps.4.text": "Compara cada capa con tu mapa de capas, cuadro por cuadro.",
+  "sections.0.blocks:check-steps.steps.5.text": "Haz clic en 'Mostrar todo' (Show all, el foco de la barra de herramientas de arriba) para que todo vuelva a aparecer."
 }
