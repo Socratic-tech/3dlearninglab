@@ -13,7 +13,7 @@ import type { BlockEntry } from "./types";
 import type { LessonApi } from "./api";
 import { Button } from "@/components/ui/button";
 import { FriendlyError } from "@/components/ui/friendly-error";
-import { Field, Input, Select, Textarea } from "@/components/ui/field";
+import { Field, Input, Textarea } from "@/components/ui/field";
 import { Pill } from "@/components/ui/card";
 import LazyModelViewer from "@/components/viewer/LazyModelViewer";
 import { BlockFrame, Md, Visual } from "./static-blocks";
@@ -282,38 +282,127 @@ export function MatchingBlock({ b }: { b: BlockOf<"matching"> }) {
     return { id, text: rest.join("::") || p.right };
   });
   const [pairs, setPairs] = useState<Record<string, string>>(prev?.type === "matching" ? prev.pairs : {});
+  // tap/keyboard flow: pick a chip or an empty slot first, then the other one. Dragging works too.
+  const [held, setHeld] = useState<{ kind: "chip" | "slot"; id: string } | null>(null);
+  const [announce, setAnnounce] = useState("");
   const good = new Set((result?.reveal.correctPairIds as string[]) ?? []);
   // after a wrong check, mark each row: green = right, red = change this one (cleared as soon as they change it)
   const [edits, setEdits] = useState<{ after: unknown; ids: string[] }>({ after: null, ids: [] });
   const changed = new Set(edits.after === result ? edits.ids : []);
   const checked = !!result && result.correct === false;
+  const used = new Set(Object.values(pairs));
+  const bank = rights.filter((r) => !used.has(r.id));
+  const textOf = (id: string) => rights.find((r) => r.id === id)?.text ?? "";
+  const place = (slotId: string, chipId: string) => {
+    const next: Record<string, string> = {};
+    for (const [k, v] of Object.entries(pairs)) if (v !== chipId && k !== slotId) next[k] = v; // a chip lives in one slot; the old chip goes back to the bank
+    next[slotId] = chipId;
+    setPairs(next);
+    setEdits({ after: result, ids: [...changed, slotId, ...Object.keys(pairs).filter((k) => pairs[k] === chipId)] });
+    setHeld(null);
+    setAnnounce(`${textOf(chipId)} placed on ${b.pairs.find((x) => x.id === slotId)?.left ?? ""}`);
+  };
+  const clickChip = (id: string) => {
+    if (locked) return;
+    if (held?.kind === "slot") return place(held.id, id);
+    setHeld(held?.kind === "chip" && held.id === id ? null : { kind: "chip", id });
+  };
+  const clickSlot = (slotId: string) => {
+    if (locked) return;
+    const here = pairs[slotId];
+    if (held?.kind === "chip") return place(slotId, held.id);
+    if (here) {
+      // pick the chip back up
+      const { [slotId]: _gone, ...rest } = pairs;
+      void _gone;
+      setPairs(rest);
+      setEdits({ after: result, ids: [...changed, slotId] });
+      setHeld({ kind: "chip", id: here });
+      setAnnounce(`${textOf(here)} picked up. Choose where it goes.`);
+      return;
+    }
+    setHeld(held?.kind === "slot" && held.id === slotId ? null : { kind: "slot", id: slotId });
+  };
+  const drop = (e: React.DragEvent, slotId: string) => {
+    e.preventDefault();
+    const id = e.dataTransfer.getData("text/plain");
+    if (id && rights.some((r) => r.id === id)) place(slotId, id);
+  };
+  const chipCls = (active: boolean) =>
+    cn(
+      "touch-manipulation select-none rounded-xl border-2 px-4 py-2.5 text-left font-semibold shadow-[0_2px_0_var(--border)] transition-transform motion-reduce:transition-none",
+      active ? "-translate-y-0.5 border-accent bg-accent-soft ring-2 ring-accent" : "border-primary/50 bg-primary-soft text-fg hover:-translate-y-0.5 hover:border-primary",
+      locked && "opacity-70",
+    );
   return (
     <BlockFrame tone="check">
       <Header label="Match" prompt={b.prompt} check={b.check} hint={b.hint} />
+      {!locked && (
+        <p className="mt-2 text-sm text-muted">{tr("Tap an answer, then tap where it goes. You can also drag it. Tap a placed answer to pick it up again.")}</p>
+      )}
       <div className="mt-3 space-y-2">
         {b.pairs.map((p) => {
           const marked = checked && !changed.has(p.id);
           const ok = good.has(p.id) && !changed.has(p.id);
+          const chip = pairs[p.id];
+          const waiting = held?.kind === "slot" && held.id === p.id;
           return (
-          <div key={p.id} className={cn("grid gap-2 rounded-xl border-2 p-3 sm:grid-cols-2 sm:items-center", ok ? "border-success bg-success-soft" : marked ? "border-danger/60" : "border-border")}>
-            <label htmlFor={`${b.id}-${p.id}`} className="font-semibold">
-              {ok ? <span className="mr-1 text-success" aria-hidden>✓</span> : marked ? <span className="mr-1 text-danger" aria-hidden>✗</span> : null}
-              {p.left}
-              {marked && !ok && <span className="block text-xs font-normal text-muted">{tr("Try a different match for this one")}</span>}
-              {marked && <span className="sr-only">{ok ? tr("(right)") : tr("(not yet)")}</span>}
-            </label>
-            <Select id={`${b.id}-${p.id}`} value={pairs[p.id] ?? ""} disabled={locked} onChange={(e) => { setPairs({ ...pairs, [p.id]: e.target.value }); setEdits({ after: result, ids: [...changed, p.id] }); }}>
-              <option value="">{tr("Choose…")}</option>
-              {rights.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.text}
-                </option>
-              ))}
-            </Select>
-          </div>
+            <div key={p.id} className={cn("grid gap-2 rounded-xl border-2 p-3 sm:grid-cols-2 sm:items-center", ok ? "border-success bg-success-soft" : marked ? "border-danger/60" : "border-border")}>
+              <p id={`${b.id}-${p.id}-l`} className="font-semibold">
+                {ok ? <span className="mr-1 text-success" aria-hidden>✓</span> : marked ? <span className="mr-1 text-danger" aria-hidden>✗</span> : null}
+                {p.left}
+                {marked && !ok && <span className="block text-xs font-normal text-muted">{tr("Try a different match for this one")}</span>}
+                {marked && <span className="sr-only">{ok ? tr("(right)") : tr("(not yet)")}</span>}
+              </p>
+              <button
+                type="button"
+                disabled={locked}
+                aria-labelledby={`${b.id}-${p.id}-l`}
+                aria-describedby={`${b.id}-${p.id}-v`}
+                aria-pressed={waiting}
+                onClick={() => clickSlot(p.id)}
+                onDragOver={(e) => !locked && e.preventDefault()}
+                onDrop={(e) => !locked && drop(e, p.id)}
+                className={cn(
+                  "min-h-12 w-full rounded-xl border-2 px-4 py-2.5 text-left transition-colors motion-reduce:transition-none",
+                  chip ? "border-solid border-primary bg-primary-soft font-semibold" : "border-dashed border-border bg-surface-2/50 text-muted",
+                  (held?.kind === "chip" || waiting) && !locked && "border-accent bg-accent-soft/60 text-fg",
+                  waiting && "ring-2 ring-accent",
+                )}
+              >
+                <span id={`${b.id}-${p.id}-v`}>{chip ? textOf(chip) : held?.kind === "chip" ? tr("Place it here") : waiting ? tr("Now pick an answer") : tr("Empty — tap to choose")}</span>
+              </button>
+            </div>
           );
         })}
       </div>
+      {!locked && (
+        <div className="mt-4 rounded-2xl border-2 border-dashed border-border bg-surface-2/40 p-3" role="group" aria-label={tr("Answers to place")}>
+          {bank.length ? (
+            <div className="flex flex-wrap gap-2">
+              {bank.map((r) => (
+                <button
+                  key={r.id}
+                  type="button"
+                  draggable
+                  onDragStart={(e) => { e.dataTransfer.setData("text/plain", r.id); e.dataTransfer.effectAllowed = "move"; }}
+                  aria-pressed={held?.kind === "chip" && held.id === r.id}
+                  onClick={() => clickChip(r.id)}
+                  className={chipCls(held?.kind === "chip" && held.id === r.id)}
+                >
+                  {r.text}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted">{tr("Every answer is placed. Check it when you are ready.")}</p>
+          )}
+        </div>
+      )}
+      {held?.kind === "chip" && !bank.some((r) => r.id === held.id) && !locked && (
+        <p className="mt-2 text-sm font-semibold text-accent">{tr("Holding: {text}. Tap a slot to place it.", { text: textOf(held.id) })}</p>
+      )}
+      <p className="sr-only" aria-live="polite">{announce}</p>
       <CheckButton blockId={b.id} label="Check" ready={b.pairs.every((p) => pairs[p.id])} pending={pending} run={() => submit({ type: "matching", pairs })} result={result} error={error} locked={locked} />
       <InlineError error={error} />
       <ResultPanel result={result} />

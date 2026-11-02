@@ -537,5 +537,12 @@
   "Note for students": "Nota para los estudiantes",
   "Grab a bag of math cubes from the back table before you start.": "Antes de empezar, toma una bolsa de cubos de matemáticas de la mesa del fondo.",
   "Save note": "Guardar nota",
-  "Remove note": "Eliminar nota"
+  "Remove note": "Eliminar nota",
+  "Tap an answer, then tap where it goes. You can also drag it. Tap a placed answer to pick it up again.": "Toca una respuesta y luego toca dónde va. También puedes arrastrarla. Toca una respuesta ya colocada para volver a levantarla.",
+  "Place it here": "Colócala aquí",
+  "Now pick an answer": "Ahora elige una respuesta",
+  "Empty — tap to choose": "Vacío: toca para elegir",
+  "Answers to place": "Respuestas para colocar",
+  "Every answer is placed. Check it when you are ready.": "Todas las respuestas están colocadas. Compruébalas cuando estés listo.",
+  "Holding: {text}. Tap a slot to place it.": "Tienes: {text}. Toca un espacio para colocarla."
 }
