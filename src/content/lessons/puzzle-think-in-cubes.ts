@@ -8,7 +8,7 @@ export const lesson: LessonInput = {
   subtitle: "Pick your pieces and fit them into 27 spaces.",
   domain: "F",
   kind: "lesson",
-  summary: "Students choose 5 or 6 pieces from their checked piece bank, fit them into a 3 × 3 × 3 cube with real cubes, and record the plan as a layer map with a count that adds to 27.",
+  summary: "Students choose 5 or 6 pieces from their checked piece bank, fit them into a 3 × 3 × 3 cube with math cubes, and record the plan as a layer map with a count that adds to 27.",
   estimatedMinutes: 55,
   printLevel: "digital",
   competencyIds: ["F2", "F3", "F4"],
@@ -16,6 +16,7 @@ export const lesson: LessonInput = {
   vocabulary: [
     { term: "Layer map", definition: "The cube drawn one layer at a time (bottom, middle, top), with a piece letter in every square." },
     { term: "Volume", definition: "How much space something fills. Your cube's volume is 27 unit cubes." },
+    { term: "Design brief", definition: "A short note that says who a design is for and what it has to do." },
   ],
   sections: [
     {
@@ -99,10 +100,18 @@ export const lesson: LessonInput = {
       title: "Fill the cube",
       blocks: [
         {
+          id: "fill-cube",
+          type: "teacherLed",
+          title: "Fill the cube",
+          minutes: 20,
+          students: "Build your chosen pieces from math cubes (a different colour per piece helps) and fit them into a 3 × 3 × 3 cube. Swap pieces from your bank if they don't fit.",
+          teacher: "This is the heart of the day: keep it hands-on and give it time. Confer with students who are stuck; the most useful nudge is usually 'which piece is hardest to place? Put it in a corner first.' If the last space won't fill, have the student move one cube between two neighbouring pieces and re-check the rules.",
+        },
+        {
           id: "how",
           type: "text",
           title: "Build it, then write it down",
-          body: "1. Build your chosen pieces from real cubes (a different colour per piece helps).\n2. Fit them into a 3 × 3 × 3 cube. Swap pieces from your bank if they don't fit.\n3. Take the cube apart one layer at a time and write a letter in each square of your layer map.",
+          body: "1. Build your chosen pieces from math cubes (a different colour per piece helps).\n2. Fit them into a 3 × 3 × 3 cube. Swap pieces from your bank if they don't fit.\n3. Take the cube apart one layer at a time and write a letter in each square of your layer map.",
         },
         {
           id: "micro",
@@ -114,7 +123,15 @@ export const lesson: LessonInput = {
           requirements: ["Count each letter in the layer map", "The counts add to 27", "Each piece has 3 to 7 cubes", "5 or 6 different letters"],
           skills: ["F2"],
         },
-        { id: "journal-plan", type: "journal", projectKey: "puzzle-cube", promptIds: ["first-idea", "why"] },
+        {
+          id: "brief",
+          type: "teacherLed",
+          title: "Who is it for? Set a target",
+          minutes: 8,
+          students: "Decide two things and write them down:\n\n- **Who** will solve your puzzle (a classmate, a younger student, someone at home)\n- **How hard:** a target time, like 'a first-timer needs 1 to 5 minutes'\n\nIn week 4 you'll time real solvers and check your puzzle against this target.",
+          teacher: "A short whole-class conversation works well here: what does 'too easy' or 'too hard' look like for a puzzle? Who in your life would enjoy this? Students will hold themselves to this target in week 4, so a number matters more than the wording.",
+        },
+        { id: "journal-plan", type: "journal", projectKey: "puzzle-cube", promptIds: ["user", "first-idea", "why"] },
       ],
     },
     {
@@ -133,16 +150,17 @@ export const lesson: LessonInput = {
             "5 or 6 pieces, each with 3 to 7 cubes",
             "A count that shows the pieces add to 27",
             "Every piece passes the piece rules",
+            "A design brief: who it's for and a target solve time with a number",
           ],
           skills: ["F2", "F3", "F4"],
         },
         {
           id: "submit",
           type: "uploadEvidence",
-          prompt: "Upload your layer map (photo, screenshot or typed as three rows of letters per layer). Add a photo of your real-cube cube if you built it.",
+          prompt: "Upload your layer map (photo, screenshot or typed as three rows of letters per layer). Add a photo of your math-cube cube if you built it.",
           accepts: ["screenshot", "physical_test", "written"],
           competencyIds: ["F2", "F3", "F4"],
-          checklist: ["All 27 squares have a letter", "Piece sizes add to 27", "Every piece passes the rules"],
+          checklist: ["All 27 squares have a letter", "Piece sizes add to 27", "Every piece passes the rules", "Who it's for and a target time"],
         },
       ],
     },
@@ -162,8 +180,18 @@ export const lesson: LessonInput = {
   ],
   teacher: {
     purpose: "Students select from their piece bank using the constraints (F4), connect the plan to volume (27 unit cubes) and record it in a form they'll build from in Tinkercad next week.",
-    preparation: ["Real cubes in several colours (27+ per student or pair).", "Blank layer-map sheets: three 3 × 3 grids labelled Bottom, Middle, Top."],
-    equipment: ["Small cubes", "Layer-map sheets", "Coloured pencils"],
+    runPlan: [
+      { minutes: 5, title: "Hook", teacher: "The goal today: 27 spaces, 5 or 6 pieces, no gaps.", students: "Listen; get cubes.", devices: "away" },
+      { minutes: 20, title: "Fill the cube", teacher: "Confer; biggest awkward piece in a corner first.", students: "Fit pieces into a 3 × 3 × 3 with math cubes.", devices: "away" },
+      { minutes: 8, title: "Set a target", teacher: "Whole-class talk on 'too easy / too hard'; students write who and a target time.", students: "Write a two-line brief.", devices: "away" },
+      { minutes: 12, title: "Layer map", teacher: "Model taking the cube apart one layer at a time and writing letters.", students: "Record the layer map; check counts add to 27.", devices: "away" },
+      { minutes: 7, title: "Record", teacher: "Devices open: upload the layer map and brief; quick checks.", students: "Upload, check.", devices: "open" },
+      { minutes: 3, title: "Clean up", teacher: "Keep each student's pieces together (bag or tray) for day 5.", students: "Bag pieces.", devices: "away" },
+    ],
+    lookFors: ["Students placing the most awkward piece first.", "Counts checked against 27 before the layer map is written.", "Briefs with a number for the target time."],
+    differentiation: { support: ["Start from the sample layer map and trade two cubes between pieces.", "Use 5 bigger pieces instead of 6.", "A layer-map template with the grid already drawn."], extend: ["Can your cube be solved more than one way? Try to find a second solution.", "Design a puzzle where two pieces look almost the same."] },
+    preparation: ["Math cubes in several colours (27+ per student or pair).", "Blank layer-map sheets: three 3 × 3 grids labelled Bottom, Middle, Top."],
+    equipment: ["Math cubes", "Layer-map sheets", "Coloured pencils"],
     misconceptions: [
       { id: "count-skipped", text: "Any set of piece sizes will work.", response: "Add the sizes out loud. The total must be exactly 27, the cube's volume." },
     ],
@@ -176,6 +204,6 @@ export const lesson: LessonInput = {
       "Accept layer maps drawn, typed ('Bottom: CFF / AAF / AAA') or photographed.",
       "Proficient: complete layer map, counts shown adding to 27, all pieces pass the rules.",
     ],
-    alternatives: { noPrinter: "No printer needed.", touchDevice: "Photograph each layer of the real-cube model instead of drawing the map." },
+    alternatives: { noPrinter: "No printer needed.", touchDevice: "Photograph each layer of the math-cube model instead of drawing the map." },
   },
 };

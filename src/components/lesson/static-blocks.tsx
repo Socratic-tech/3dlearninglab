@@ -14,6 +14,8 @@ import { cn } from "@/lib/cn";
 // ── Tap-to-define: lesson vocabulary (plus a few common technical words) can be tapped wherever it appears ──
 export type Term = { term: string; definition: string };
 export const VocabContext = createContext<Term[]>([]);
+/** True when a teacher (not a student) is viewing the mission: shows teacher-only moves on teacher-led parts. */
+export const TeacherViewContext = createContext(false);
 
 function escapeRe(s: string) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
 
@@ -667,5 +669,30 @@ export function ObserveBlock({ b }: { b: BlockOf<"observe"> }) {
         ))}
       </div>
     </BlockFrame>
+  );
+}
+
+/** A part of the lesson the teacher leads with the whole class. Students see what to do; teachers also see suggested moves. */
+export function TeacherLedBlock({ b }: { b: BlockOf<"teacherLed"> }) {
+  const teacherView = useContext(TeacherViewContext);
+  return (
+    <section className="overflow-hidden rounded-3xl border-2 border-accent bg-surface">
+      <div className="flex flex-wrap items-center gap-2 bg-accent-soft px-5 py-3">
+        <Users className="size-5 text-accent" aria-hidden />
+        <p className="font-display font-bold">{tr("Your teacher is leading this part")}</p>
+        {b.minutes && <span className="text-sm text-muted">· {tr("about {n} min", { n: b.minutes })}</span>}
+        {b.devices === "away" && <span className="ml-auto rounded-full bg-accent px-3 py-0.5 text-sm font-bold text-bg">{tr("Devices down")}</span>}
+      </div>
+      <div className="space-y-3 p-5 sm:p-6">
+        <h3 className="font-display text-2xl font-bold">{b.title}</h3>
+        <Md text={b.students} className="text-lg" />
+        {teacherView && (
+          <div className="rounded-2xl border border-primary/40 bg-primary-soft p-4">
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-primary">{tr("For you, the teacher · students don't see this")}</p>
+            <Md text={b.teacher} className="mt-1" />
+          </div>
+        )}
+      </div>
+    </section>
   );
 }

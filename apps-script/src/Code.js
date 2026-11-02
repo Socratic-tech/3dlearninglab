@@ -20,7 +20,7 @@ const BUILD = { version: "dev", site: "", clientId: "", usageUrl: "" }; // @buil
 
 const TABLES = {
   Config: ["key", "value", "notes"],
-  Classes: ["classId", "name", "section", "pathId", "tinkercadUrl", "unlockAll", "googleCourseId", "status", "createdAt", "custom"],
+  Classes: ["classId", "name", "section", "pathId", "tinkercadUrl", "unlockAll", "googleCourseId", "status", "createdAt", "custom", "notes"],
   Users: ["email", "name", "role", "sub", "status", "createdAt", "lastSeen"],
   Enrollments: ["email", "classId", "status", "source", "createdAt"],
   Progress: ["email", "lessonId", "status", "blockState", "startedAt", "completedAt", "updatedAt"],
@@ -356,7 +356,26 @@ function classOut_(c) {
     id: c.classId, name: c.name, section: c.section || "", pathId: c.pathId === "custom" && custom ? "custom" : pathIdOf_(c.pathId),
     tinkercadUrl: c.tinkercadUrl || null, unlockAll: String(c.unlockAll).toUpperCase() === "TRUE", googleCourseId: c.googleCourseId || null,
     custom: custom,
+    notes: notesOf_(c),
   };
+}
+
+// ── Teacher notes on missions: a short message a teacher adds for their class on any mission ("Grab a bag of math
+// cubes first", a link to their own video). Stored as JSON { lessonId: text } in the class row. Plain text only,
+// known missions only, length-limited. Students see it on the mission's first screen.
+const NOTE_MAX_ = 600;
+function notesOf_(c) {
+  if (!c || !c.notes) return {};
+  try {
+    const x = JSON.parse(String(c.notes));
+    const lessons = content_().lessons;
+    const out = {};
+    Object.keys(x || {}).forEach(function (id) { if (lessons[id] && typeof x[id] === "string" && x[id]) out[id] = x[id].slice(0, NOTE_MAX_); });
+    return out;
+  } catch (e) { return {}; }
+}
+function cleanNote_(v) {
+  return String(v || "").replace(/[\u0000-\u0008\u000b-\u001f]/g, "").trim().slice(0, NOTE_MAX_);
 }
 
 // ── Custom project paths: a teacher picks and orders existing lessons and ends with their own project mission, or
@@ -454,17 +473,17 @@ function sheet_(name) {
     sh.getRange(1, 1, 1, TABLES[name].length).setValues([TABLES[name]]).setFontWeight("bold");
     sh.setFrozenRows(1);
   } else if ((name === "Summary" || name === "Classes") && !headersChecked_(name)) {
-    // Older class Sheets have fewer columns (Summary: store columns; Classes: custom project paths). Add the new
+    // Older class Sheets have fewer columns (Summary: store columns; Classes: custom project paths, mission notes). Add the new
     // headers in place; existing rows and student work stay untouched.
     const headers = TABLES[name];
     const current = sh.getRange(1, 1, 1, headers.length).getValues()[0];
     if (headers.some(function (h, i) { return current[i] !== h; })) sh.getRange(1, 1, 1, headers.length).setValues([headers]);
-    try { CacheService.getScriptCache().put("hdr3_" + name, "1", 21600); } catch (e) { /* ignore */ }
+    try { CacheService.getScriptCache().put("hdr4_" + name, "1", 21600); } catch (e) { /* ignore */ }
   }
   return sh;
 }
 function headersChecked_(name) {
-  try { return !!CacheService.getScriptCache().get("hdr3_" + name); } catch (e) { return false; }
+  try { return !!CacheService.getScriptCache().get("hdr4_" + name); } catch (e) { return false; }
 }
 
 // Small, rarely changed tabs are shared between requests for up to 2 minutes (every write through table_ clears the
@@ -2037,6 +2056,15 @@ const ACTIONS = {
       if (a.tinkercadUrl !== undefined) patch.tinkercadUrl = String(a.tinkercadUrl || "");
       if (a.unlockAll !== undefined) patch.unlockAll = a.unlockAll ? "TRUE" : "FALSE";
       if (a.archived !== undefined) patch.status = a.archived ? "archived" : "active";
+      if (a.lessonNote !== undefined) {
+        const id = String((a.lessonNote && a.lessonNote.lessonId) || "");
+        if (!content_().lessons[id]) throw userError_("That mission isn't in the course.");
+        const notes = notesOf_(c);
+        const text = cleanNote_(a.lessonNote.text);
+        if (text) notes[id] = text; else delete notes[id];
+        if (Object.keys(notes).length > 200) throw userError_("This class has too many mission notes. Clear some old ones first.");
+        patch.notes = JSON.stringify(notes);
+      }
       let out;
       withLock_(function () { out = table_("Classes").upsert(function (r) { return r.classId === c.classId; }, patch); });
       return classOut_(out);

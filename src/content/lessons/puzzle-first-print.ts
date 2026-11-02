@@ -163,6 +163,6 @@ export const lesson: LessonInput = {
       "Many sets show elephant's foot: lower first-layer squish or add a small 0.4 mm chamfer to bottom edges next time.",
     ],
     answerGuidance: ["Proficient: every piece checked, problems named with causes, sensible cleanup and reprint decision, assembly attempted."],
-    alternatives: { noPrinter: "Use the fail gallery and a teacher-printed sample set; assemble the real-cube version.", touchDevice: "Photograph the inspection with the tablet." },
+    alternatives: { noPrinter: "Use the fail gallery and a teacher-printed sample set; assemble the math-cube version.", touchDevice: "Photograph the inspection with the tablet." },
   },
 };

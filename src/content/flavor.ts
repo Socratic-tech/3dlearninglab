@@ -239,13 +239,13 @@ export const FLAVOR: Record<string, Flavor> = {
     hook: { headline: "Pros switch tools all the time.", body: "Makerspaces, small product teams and machine shops use different CAD tools, and engineers often learn several. Once you know sketch, constrain and extrude, a new tool is mostly new button names." },
   },
   "puzzle-good-puzzle": {
-    hook: { headline: "A puzzle from a 1933 lecture.", body: "Danish inventor Piet Hein imagined a puzzle while listening to a physics lecture: odd pieces made of small cubes that fit together into one 3 × 3 × 3 cube. People have been inventing new cube puzzles ever since. Now it's your turn." },
+    hook: { headline: "A 1984 game you still know.", body: "Alexey Pajitnov, a computer engineer in Moscow, made Tetris in 1984. Its pieces are shapes made of four squares, which mathematicians call tetrominoes. Your puzzle cube uses the same idea, with cubes, in 3D." },
   },
   "puzzle-sketch-cubes": {
     hook: { headline: "Three faces at once.", body: "Isometric drawings show the top and two sides of an object together, using lines at 30°. Engineers use them in technical drawings, and many video games use the same view for their worlds." },
   },
   "puzzle-piece-rules": {
-    hook: { headline: "Shapes made of cubes have a name.", body: "Mathematicians call shapes made of cubes joined face to face polycubes. Falling-block video games use the flat version: pieces made of four squares joined edge to edge." },
+    hook: { headline: "A puzzle from a 1933 lecture.", body: "Danish inventor Piet Hein imagined a puzzle while listening to a physics lecture: odd pieces made of small cubes that fit together into one 3 × 3 × 3 cube. Every piece followed a few simple rules, just like yours will." },
   },
   "puzzle-think-in-cubes": {
     hook: { headline: "240 ways to make one cube.", body: "The famous seven-piece cube puzzle from 1933 can be put together in 240 different ways, not counting turns and mirror images. Your puzzle may have one solution or several. Planning helps you find out." },

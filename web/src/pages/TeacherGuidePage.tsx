@@ -122,6 +122,37 @@ export function TeacherGuidePage({ lessonId }: { lessonId: string }) {
       </div>
       {!g && <Alert tone="info" title="No teacher notes for this lesson yet." />}
       {g?.purpose && <Card><CardTitle>Why this lesson</CardTitle><div className="mt-2"><Md text={g.purpose} /></div></Card>}
+      {g?.runPlan && g.runPlan.length > 0 && (
+        <Card>
+          <CardTitle>Run the lesson</CardTitle>
+          <p className="mt-1 text-sm text-muted">One way to run the {g.runPlan.reduce((n, x) => n + x.minutes, 0)} minutes. Adapt it to your class: you know your students best.</p>
+          <ol className="mt-3 space-y-3">
+            {g.runPlan.map((x, i) => (
+              <li key={i} className="grid gap-x-4 gap-y-1 rounded-xl border border-border p-3 sm:grid-cols-[5rem_1fr]">
+                <div className="flex items-baseline gap-2 sm:block">
+                  <p className="font-display text-2xl font-bold leading-none">{x.minutes}<span className="text-sm font-semibold text-muted"> min</span></p>
+                  <p className={`text-xs font-semibold sm:mt-1 ${x.devices === "away" ? "text-accent" : "text-muted"}`}>{x.devices === "away" ? "Devices down" : "On devices"}</p>
+                </div>
+                <div>
+                  <p className="font-semibold">{x.title}</p>
+                  <p className="mt-1 text-sm"><strong>You:</strong> <Md text={x.teacher} className="inline [&_p]:inline" /></p>
+                  <p className="mt-1 text-sm text-muted"><strong>Students:</strong> {x.students}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </Card>
+      )}
+      {g?.lookFors && g.lookFors.length > 0 && <Card><CardTitle>Watch and listen for</CardTitle><ul className="mt-2 list-disc space-y-1 pl-5">{g.lookFors.map((p) => <li key={p}><Md text={p} /></li>)}</ul></Card>}
+      {g?.differentiation && (g.differentiation.support.length > 0 || g.differentiation.extend.length > 0) && (
+        <Card>
+          <CardTitle>Support and stretch</CardTitle>
+          <div className="mt-2 grid gap-4 sm:grid-cols-2">
+            {g.differentiation.support.length > 0 && <div><p className="font-semibold">More support</p><ul className="mt-1 list-disc space-y-1 pl-5">{g.differentiation.support.map((p) => <li key={p}><Md text={p} /></li>)}</ul></div>}
+            {g.differentiation.extend.length > 0 && <div><p className="font-semibold">Ready for more</p><ul className="mt-1 list-disc space-y-1 pl-5">{g.differentiation.extend.map((p) => <li key={p}><Md text={p} /></li>)}</ul></div>}
+          </div>
+        </Card>
+      )}
       {(prints.length > 0 || picks.length > 0) && (
         <Card>
           <CardTitle>Prints for this lesson</CardTitle>

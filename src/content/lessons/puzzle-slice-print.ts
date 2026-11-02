@@ -189,6 +189,6 @@ export const lesson: LessonInput = {
       "No printer time left: print one or two pieces as a test and finish the rest later.",
     ],
     answerGuidance: ["Proficient: correct plate, supports off, sensible infill, time and grams recorded, request sent."],
-    alternatives: { noPrinter: "Slice and record the time and grams; build the puzzle from real cubes for testing until prints are possible.", touchDevice: "Export from Tinkercad on the tablet; the teacher slices on a laptop." },
+    alternatives: { noPrinter: "Slice and record the time and grams; build the puzzle from math cubes for testing until prints are possible.", touchDevice: "Export from Tinkercad on the tablet; the teacher slices on a laptop." },
   },
 };

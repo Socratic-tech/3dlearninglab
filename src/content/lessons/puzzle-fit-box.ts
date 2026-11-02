@@ -228,7 +228,7 @@ export const lesson: LessonInput = {
     rubricId: "make-it-fit",
     alternatives: {
       noCalipers: "Measure with a ruler to the nearest 0.5 mm and start with a little more clearance (0.5 mm per side).",
-      noPrinter: "Build the puzzle from real cubes, measure that, design the box in Tinkercad, and test the opening with a cardboard frame cut to the inner size.",
+      noPrinter: "Build the puzzle from math cubes, measure that, design the box in Tinkercad, and test the opening with a cardboard frame cut to the inner size.",
       touchDevice: "Use the Align button in the toolbar and type sizes with the on-screen keyboard.",
     },
   },

@@ -1,1 +1,1 @@
-Fixes setup getting stuck after you deploy: paste your Web app URL in the side panel and you're set up. Your class links keep working.
+New: add your own note to any mission for a class (open the mission and click 'Add a note'). Students see it at the top of that mission. Use it for what to grab first, how you'll run the day, or a link to your own video.

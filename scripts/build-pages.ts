@@ -131,7 +131,7 @@ fs.writeFileSync(path.join(gen, "lessons.es.json"), JSON.stringify(publicEs));
 const prep = Object.fromEntries(
   lessons.filter((l) => l.teacher).map((l) => {
     const t = l.teacher!;
-    return [l.id, { purpose: t.purpose, preparation: t.preparation, equipment: t.equipment, printableObjects: t.printableObjects, slicerSettings: t.slicerSettings, troubleshooting: t.troubleshooting, misconceptions: t.misconceptions, discussionQuestions: t.discussionQuestions, alternatives: t.alternatives }];
+    return [l.id, { purpose: t.purpose, preparation: t.preparation, equipment: t.equipment, printableObjects: t.printableObjects, slicerSettings: t.slicerSettings, troubleshooting: t.troubleshooting, misconceptions: t.misconceptions, discussionQuestions: t.discussionQuestions, alternatives: t.alternatives, runPlan: t.runPlan, lookFors: t.lookFors, differentiation: t.differentiation }];
   }),
 );
 fs.writeFileSync(path.join(gen, "teacher-prep.json"), JSON.stringify(prep));

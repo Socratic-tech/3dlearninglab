@@ -153,10 +153,10 @@ export const lesson: LessonInput = {
     ],
     discussionQuestions: ["Why is staying silent the hardest part of running a playtest?", "What makes a puzzle hard but still fun?"],
     troubleshooting: [
-      "Puzzle not printed yet: playtest the real-cube version from day 5 and note it.",
+      "Puzzle not printed yet: playtest the math-cube version from day 5 and note it.",
       "A tester gets upset when stuck: stop, thank them, and note the stuck spot: it's useful data.",
     ],
     answerGuidance: ["Proficient: two playtests with times, hints and stuck spots, compared with the brief's target."],
-    alternatives: { noPrinter: "Playtest the hand-built real-cube puzzle.", touchDevice: "Record notes as audio on the tablet." },
+    alternatives: { noPrinter: "Playtest the hand-built math-cube puzzle.", touchDevice: "Record notes as audio on the tablet." },
   },
 };

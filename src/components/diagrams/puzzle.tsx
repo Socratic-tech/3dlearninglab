@@ -195,3 +195,78 @@ export const SameShapeTurned = defineDiagram("same-shape-turned", () => {
     </g>
   );
 });
+
+/** Every shape made of 4 squares joined edge to edge (turned and flipped copies count as the same). Drawn in our own style. */
+const TETROMINOES: { name: string; cells: [number, number][]; tone: string }[] = [
+  { name: "I", cells: [[0, 0], [0, 1], [0, 2], [0, 3]], tone: C.primary },
+  { name: "O", cells: [[0, 0], [1, 0], [0, 1], [1, 1]], tone: C.accent },
+  { name: "T", cells: [[0, 0], [1, 0], [2, 0], [1, 1]], tone: C.success },
+  { name: "S", cells: [[1, 0], [2, 0], [0, 1], [1, 1]], tone: C.danger },
+  { name: "L", cells: [[0, 0], [0, 1], [0, 2], [1, 2]], tone: C.muted },
+];
+function Squares({ x, y, s, cells, tone, label }: { x: number; y: number; s: number; cells: [number, number][]; tone: string; label?: string }) {
+  return (
+    <g>
+      {cells.map(([cx, cy], i) => <rect key={i} x={x + cx * s} y={y + cy * s} width={s} height={s} fill={tone} fillOpacity={0.28} stroke={C.fg} strokeWidth={1.3} />)}
+      {label && cells.map(([cx, cy], i) => <T key={`t${i}`} x={x + cx * s + s / 2} y={y + cy * s + s / 2 + 4} anchor="middle" size={11} weight={800}>{label}</T>)}
+    </g>
+  );
+}
+
+export const TetrominoSet = defineDiagram("tetromino-set", () => {
+  const s = 22;
+  const xs = [30, 76, 136, 222, 300];
+  return (
+    <g>
+      <Caption x={180} y={24}>Every shape made of 4 squares</Caption>
+      {TETROMINOES.map((t, i) => <Squares key={t.name} x={xs[i]} y={52} s={s} cells={t.cells} tone={t.tone} label={t.name} />)}
+      <T x={180} y={170} anchor="middle" size={12}>Only 5 shapes, if turned and flipped copies count as the same.</T>
+      <T x={180} y={190} anchor="middle" size={11} tone={C.muted}>Games use 7: you can&apos;t flip pieces there,</T>
+      <T x={180} y={205} anchor="middle" size={11} tone={C.muted}>so the mirror S and L count twice.</T>
+    </g>
+  );
+});
+
+export const FillSquare = defineDiagram("fill-square", () => {
+  const s = 34;
+  const x0 = 112;
+  const y0 = 36;
+  // I, O, L, L fill a 4 × 4 square (rows top to bottom: I L L L / I L O O / I L O O / I L L L)
+  const groups: Record<string, [number, number][]> = {
+    I: [[0, 0], [0, 1], [0, 2], [0, 3]],
+    L1: [[1, 0], [2, 0], [3, 0], [1, 1]],
+    O: [[2, 1], [3, 1], [2, 2], [3, 2]],
+    L2: [[1, 2], [1, 3], [2, 3], [3, 3]],
+  };
+  const tone: Record<string, string> = { I: C.primary, O: C.accent, L1: C.danger, L2: C.success };
+  return (
+    <g>
+      <Caption x={180} y={22}>One answer: I, O, L and L</Caption>
+      {Object.entries(groups).map(([k, cells]) => <Squares key={k} x={x0} y={y0} s={s} cells={cells} tone={tone[k]} label={k[0]} />)}
+      <rect x={x0} y={y0} width={4 * s} height={4 * s} fill="none" stroke={C.fg} strokeWidth={2.4} />
+      <T x={180} y={200} anchor="middle" size={11} tone={C.muted}>16 squares, 4 pieces of 4. No gaps, no overlaps.</T>
+    </g>
+  );
+});
+
+export const FlatVsUp = defineDiagram("flat-vs-up", () => {
+  const u = 24;
+  const fill = { top: C.primarySoft, left: C.surface, right: C.border };
+  const flat = iso(70, 118, u);
+  const up = iso(250, 128, u);
+  const flatCells: [number, number, number][] = [[0, 0, 0], [1, 0, 0], [2, 0, 0], [2, 1, 0]];
+  const upCells: [number, number, number][] = [[0, 0, 0], [1, 0, 0], [2, 0, 0], [0, 0, 1]];
+  const draw = (p: ReturnType<typeof iso>, cubes: [number, number, number][]) =>
+    [...cubes].sort((m, n) => m[2] - n[2] || m[0] + m[1] - (n[0] + n[1])).map(([x, y, z], i) => <IsoBox key={i} p={p} x={x} y={y} z={z} w={1} d={1} h={1} fill={fill} sw={1.4} />);
+  return (
+    <g>
+      <Caption x={90} y={22}>Like the game: flat</Caption>
+      {draw(flat, flatCells)}
+      <T x={90} y={196} anchor="middle" size={11} tone={C.muted}>every cube on the table</T>
+      <Divider x={180} />
+      <Caption x={270} y={22}>Only in 3D: bends up</Caption>
+      {draw(up, upCells)}
+      <T x={270} y={196} anchor="middle" size={11} tone={C.muted}>one cube climbs a layer</T>
+    </g>
+  );
+});

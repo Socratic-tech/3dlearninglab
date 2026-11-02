@@ -176,16 +176,16 @@ export const lesson: LessonInput = {
   teacher: {
     purpose: "Introduces layer-by-layer printing and orientation through a simple, checkable rule: every cube sits on the plate or another cube. Pieces that can't meet the rule are flagged for day 12's chamfer.",
     preparation: ["Optional: print the Puzzle Piece Checkup model, or a student piece in a good and a bad orientation, to pass around."],
-    equipment: ["Student devices with Tinkercad", "Real cubes (handy for checking orientations by hand)"],
+    equipment: ["Student devices with Tinkercad", "Math cubes (handy for checking orientations by hand)"],
     misconceptions: [
       { id: "upright-looks-right", text: "A piece should print standing the way it looks in the cube.", response: "The printer doesn't care how the piece sits in the puzzle. Turn it so every cube has plate or plastic under it." },
     ],
     discussionQuestions: ["Why do supports matter more for a puzzle than for a decoration?"],
     troubleshooting: [
-      "Students can test orientations with taped real-cube pieces on the desk.",
+      "Students can test orientations with their math-cube pieces on the desk.",
       "If no piece needs a chamfer, day 12 can be skipped (3-week run).",
     ],
     answerGuidance: ["Proficient: every piece oriented with a correct reason; pieces that can't be supported are identified."],
-    alternatives: { noPrinter: "Students complete the orientation table and test with real-cube pieces.", touchDevice: "Rotate with the curved arrows; they snap in steps." },
+    alternatives: { noPrinter: "Students complete the orientation table and test with math-cube pieces.", touchDevice: "Rotate with the curved arrows; they snap in steps." },
   },
 };
