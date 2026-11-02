@@ -179,12 +179,71 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students learn to choose print orientation from the load direction, layer direction and practical trade-offs. Next lesson they test the hook physically.",
+    purpose: "Students learn to choose print orientation from the load direction, layer direction and practical trade-offs. Next lesson they test the hook physically. The lesson bridges Layers (how parts are built) and Strength (testing it): the same CAD file can make a strong or a weak part depending on a decision made at the build plate, and that decision always trades strength against supports, surface finish and time.",
+    bigIdea: "How I place a part on the build plate decides which way its layers run, so I turn it so the load pulls along the layers, not between them, and weigh that against supports, looks and time.",
+    successCriteria: [
+      "I can draw an arrow to show which way the load pulls on a part.",
+      "I can explain why a print is stronger along its layers than between them.",
+      "I can rotate a part in Tinkercad and drop it onto the workplane in the orientation I chose.",
+      "I can justify an orientation using the words 'layers' and 'load', and name one trade-off.",
+    ],
+    background: [
+      { title: "Why prints are stronger in some directions", body: "Within a layer, plastic is laid down as long, continuous lines that are fully melted together. Each new layer, though, is pressed onto a layer that has already started to cool, so the two only partly fuse. The joint between layers (the **layer boundary**) is therefore usually the weakest place in an FDM print. How much weaker depends on the material, temperature, cooling and layer height, so avoid quoting a single number. Engineers call a material that behaves differently in different directions **anisotropic** ('not the same in every direction'). Wood is the classic example: it splits easily along the grain but is hard to snap across a long piece." },
+      { title: "Finding the load path", body: "Before choosing an orientation, decide what the part's job is and draw the **load**: where a force pushes or pulls, and which way. Then imagine how the part would bend or stretch. When something bends, one surface is stretched (in **tension**) and the opposite surface is squashed (in **compression**). Tension pulling straight across layer boundaries peels them apart, like peeling sticky notes off a pad. The goal is to turn the part so the stretched regions run **along** continuous lines of plastic instead of across the joints between layers. In practice that often means laying the part so the shape that carries the load is drawn within each layer." },
+      { title: "It's always a trade-off", body: "Orientation changes more than strength. **Supports**: overhangs steeper than roughly 45° from vertical usually need support material, which costs time and plastic and leaves marks (the Supports lesson goes further). **Base**: a large flat face on the plate sticks well; a small contact point can tip over or come loose mid-print. **Surface finish**: curves facing upwards show the staircase of layers, and the face on the bed takes the bed's texture. **Holes**: holes with a vertical axis print round; holes lying sideways have a drooping top. **Time**: tall parts have more layers. A good designer names the job the part must do and picks the orientation that serves it best, accepting the costs knowingly." },
+      { title: "Rotating in Tinkercad (and in the slicer)", body: "In Tinkercad, select the part and drag one of the curved rotation arrows. While dragging you can see the angle, and you can type an exact angle such as 90. Rotation often leaves a part floating above or sunk below the workplane, so press **D** to drop it back onto the workplane and check its height. Tinkercad doesn't show layers: imagine flat slices parallel to the workplane. Most slicers can also rotate a part and have a tool to lay a chosen face flat on the bed, so the final decision can be made there too. Either way, the layers always run parallel to the build plate." },
+      { title: "Where this leads", body: "Layers explained how prints are built; this lesson turns that into a design decision. Next lesson, Strength, students load-test hooks printed two ways and read the evidence in the break, then look at walls and infill as the other strength controls. Supports and bridging follow, where orientation decisions balance strength against overhangs. The same reasoning appears in industry: carbon-fibre sheets are laid so the fibres follow the loads, and carpenters choose grain direction for shelves and chair legs." },
+    ],
+    studentQuestions: [
+      { q: "If one way is weaker, why would anyone print it that way?", a: "Sometimes it's the only way the part fits on the plate, or it avoids a lot of supports, or one surface needs to look good. Orientation is a trade-off; you decide what matters most for the part's job." },
+      { q: "Do infill and walls change which way is strongest?", a: "They change how strong the part is overall, but the joins between layers are still the weak spot. We look at walls and infill next lesson." },
+      { q: "My part is floating above the workplane after I rotated it.", a: "Rotating can lift or sink a part. Select it and press D to drop it onto the workplane." },
+      { q: "Can't I just rotate it in the slicer?", a: "Yes, most slicers can rotate parts too. What matters is choosing the orientation on purpose and being able to explain why." },
+      { q: "How do I work out which way the load goes?", a: "Imagine the part doing its job. What pushes or pulls on it, and where? Draw an arrow there, then picture which way the part would bend." },
+    ],
+    connections: [
+      "Carpenters choose which way the wood grain runs in a shelf or chair leg for the same reason: wood splits easily along the grain.",
+      "Composite engineers lay carbon-fibre sheets in chosen directions so the fibres line up with the loads on a bike frame, boat hull or aircraft part.",
+      "Additive manufacturing engineers plan the orientation of every production part, balancing strength, support removal, surface finish and machine time.",
+    ],
+    exitTicket: [
+      "Sketch an everyday object you might print (a bracket, a clip or a peg). Add an arrow for the load and show which way you would want the layers to run.",
+      "Name two things, other than strength, that orientation changes.",
+      "Finish the sentence: 'A print is usually weakest where…'",
+    ],
+    runPlan: [
+      { minutes: 5, title: "Hook", teacher: "If you have pre-printed hooks, pass both round and let students flex them over a tray. If not, use a sticky-note pad: slide the pad sideways, then peel the top note off.", students: "Feel the difference and describe it.", devices: "away" },
+      { minutes: 8, title: "Explain and choose", teacher: "Use the viewer to slide through the standing hook's layers. Ask everyone to commit to an orientation and a reason before reading the feedback.", students: "Read the explanation and answer the orientation question.", devices: "open" },
+      { minutes: 10, title: "Three questions", teacher: "Model the show-me steps with load arrows drawn on the board.", students: "Ruler-strip and trade-off questions.", devices: "open" },
+      { minutes: 10, title: "Lay the hook down", teacher: "Check that rotated hooks are dropped to the workplane and the height box shows 10 mm.", students: "Import, rotate and drop the hook, then write the orientation card.", devices: "open" },
+      { minutes: 9, title: "Start the headphone hanger", teacher: "Ask students to draw the load arrow before they build anything. Finishing can carry into the next lesson.", students: "Design the hanger and place it in a chosen print orientation.", devices: "open" },
+      { minutes: 3, title: "Reflect", teacher: "Ask one student to explain how one file can make a strong or weak part.", students: "Reflection.", devices: "open" },
+    ],
+    lookFors: [
+      "Load arrows drawn before an orientation is chosen.",
+      "Accurate use of 'along the layers' and 'between the layers'.",
+      "Rotated parts dropped to the workplane, with the height checked.",
+      "Justifications that name a trade-off (supports, finish, time or base), not only strength.",
+      "Students linking the idea back to the layer lines from the Layers lesson.",
+    ],
+    differentiation: {
+      support: [
+        "Use a physical model: a sticky-note pad or a stack of building bricks. Students pull it in different directions to feel strong and weak.",
+        "Give a three-question card with picture icons: Where's the load? Which way do the layers run? What sits on the plate?",
+        "Offer sentence frames: 'I placed it ___ so the load pulls ___ the layers. The trade-off is ___.' Students can type angles instead of dragging the rotation handles.",
+      ],
+      extend: [
+        "Find an object where the strongest orientation needs a lot of support. Propose a compromise, such as splitting it into two parts that are joined after printing.",
+        "Try a slicer's 'lay on face' tool on the hook and compare its choice with yours. Which goal is the tool optimising for?",
+        "Compare print layers with wood grain or carbon-fibre direction, and sketch how each would be arranged for the same load.",
+      ],
+    },
     preparation: [
       "Optional but powerful: print two hooks before class (one standing, one flat) and let students try to bend them by hand over a tray.",
       "Check the Orientation Hook imports cleanly on a student device.",
+      "Have a sticky-note pad (and, if possible, a thin strip of wood) to demonstrate strong and weak directions.",
     ],
-    equipment: ["Student devices with Tinkercad", "Optional: pre-printed hooks in two orientations"],
+    equipment: ["Student devices with Tinkercad", "Optional: pre-printed hooks in two orientations", "Sticky-note pad or paper stack for modelling layers", "Tray to catch pieces if hooks are flexed"],
     misconceptions: [
       { id: "tall-is-strong", text: "Standing a part upright makes it stronger because it is printed 'the way it's used'.", response: "Use a stack of sticky notes: pull along the stack vs. peel the top off. Layers peel apart too." },
       { id: "orientation-only-looks", text: "Orientation only changes how a print looks.", response: "Pass around two hooks printed differently and ask students to compare how they flex." },
@@ -192,10 +251,13 @@ export const lesson: LessonInput = {
     discussionQuestions: [
       "Where have you seen a print break? Which way were the layers?",
       "Can you think of a part where the strongest orientation needs lots of support? What would you do?",
+      "Which matters most for a phone stand: strength, looks or print time? Would that change your orientation?",
     ],
     troubleshooting: [
       "If the rotated hook floats above or sinks below the workplane, select it and press D.",
       "If rotation lands on an odd angle, type 90 into the angle box while dragging.",
+      "Part balances on a point or thin edge after rotating: check from the side view and choose an orientation with a flat face on the workplane.",
+      "Students can't picture the layers in Tinkercad: remind them layers are always flat slices parallel to the workplane, or show the slicer's layer preview.",
     ],
     answerGuidance: [
       "Which orientation: flat.",

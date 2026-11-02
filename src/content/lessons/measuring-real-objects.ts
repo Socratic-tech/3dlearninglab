@@ -205,13 +205,75 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students learn to identify the critical dimension, measure it repeatedly with a ruler, and record measurements clearly enough for someone else to use.",
+    purpose: "Students learn to identify the critical dimension, measure it repeatedly with a ruler, and record measurements clearly enough for someone else to use. A measurement card is a tiny engineering drawing: the habits built today (critical dimension, repeat readings, units, a sketch of where) carry straight into Calipers, Tolerances and Make It Fit.",
+    bigIdea: "Find the measurement that decides whether the part works, measure it more than once, and write it down so clearly that someone else could build from it.",
+    successCriteria: [
+      "I can name the critical dimension of an object and explain why it matters most.",
+      "I can measure with a ruler from the 0 mark, looking straight down, to the nearest 0.5 mm.",
+      "I can take three readings, find the average and write every number with its unit.",
+      "I can make a measurement card that a classmate could model from without asking me questions.",
+    ],
+    background: [
+      { title: "Critical dimensions", body: "A part only meets the real world in a few places: the inside of a cap meets the outside of a marker; the slot of a holder meets the width of a glue stick. The sizes at those meeting places are the **critical dimensions**, and engineers mark them on drawings because they must be right. Everything else can be approximate. A quick test students can use: *if this number were 2 mm off, would the part still work?* If the answer is no, it's critical. Notice that critical dimensions often pair up: a part's **inside** dimension has to match an object's **outside** dimension." },
+      { title: "How precise can a ruler be?", body: "Most school rulers have 1 mm marks. With care you can tell whether an edge is on a mark or about halfway between, so **±0.5 mm** is a realistic limit. Two ideas help here. **Resolution** is the smallest step you can read; **accuracy** is how close your reading is to the true size. A ruler can be read to 0.5 mm and still be inaccurate if it is used badly. **Parallax** is the biggest technique error: the ruler's marks sit slightly above the object, so looking from an angle shifts the reading. Look straight down. Start at the **0 line**, not the end of the ruler, which may have a margin or be worn. If the 0 end is damaged, line the object up with the 10 mm mark and subtract 10." },
+      { title: "Why measure three times?", body: "Some errors are **random**: where you placed the ruler, a tiny shift of your eye, a slightly squashed eraser. Measuring several times and averaging smooths these out. Other errors are **systematic**: starting from the wrong mark shifts *every* reading by the same amount, and averaging cannot fix it. Real objects are also not perfect: markers taper, caps aren't perfectly round, batteries have a ridge at one end. That is why the lesson asks students to measure in slightly different spots. Readings that disagree by more than about 1 mm signal a technique problem, not a strange object. When you average, keep only the decimals your tool can support: a ruler average of 14.17 mm is honestly written as 14.2 mm." },
+      { title: "Measuring round things with a ruler", body: "A ruler laid across a circle is hard to place on the widest point. Two classroom workarounds give much better results. **Block method:** stand two square blocks (or books) against opposite sides of the object, then measure the gap between the blocks. **Paper strip method:** wrap a thin strip once around, mark where it overlaps, measure the length (the circumference) and divide by 3.14 (π) to get the diameter. Next lesson, calipers solve this properly, and students can compare." },
+      { title: "A measurement card is a drawing", body: "Engineers communicate size with drawings: a picture, labelled dimensions, units, and notes about which sizes matter. The measurement card is a student-sized version. A number without a unit is ambiguous (22.5 what?), and a number without a sketch is ambiguous too (22.5 mm across *where*?). The partner swap is the real test: if a classmate has to ask a question, something is missing from the card. Tinkercad works in millimetres by default, so recording in mm avoids conversion mistakes." },
+      { title: "Printed parts aren't exactly their CAD size", body: "If you measure a printed Axis Cube you may get something like 19.8–20.3 mm instead of exactly 20 mm. That's normal: plastic spreads slightly as it's laid down and the printer's movements have small errors. Treat the difference as useful data, not a failure. It sets up the Calipers lesson (seeing those differences clearly) and the Tolerances lesson (designing around them)." },
+    ],
+    studentQuestions: [
+      { q: "Why can't I start at the very end of the ruler?", a: "Many rulers have a small blank bit before 0, and the ends get worn. Start at the 0 line. If the 0 is damaged, start at 10 and subtract 10 from your reading." },
+      { q: "My three readings are all a bit different. Did I do it wrong?", a: "Probably not. Small differences are normal because objects aren't perfectly even and your eye moves a little. If they're within about 1 mm, average them. If they're further apart, check your technique and measure again." },
+      { q: "Why do I have to write 'mm' every single time?", a: "Because a number on its own could mean millimetres, centimetres or inches. Someone reading your card can't ask you which you meant." },
+      { q: "How do I measure something round?", a: "Stand two blocks against either side and measure between the blocks. Or wrap a paper strip round it, mark the overlap, measure the strip and divide by 3.14." },
+      { q: "My average has loads of decimals. Do I keep them all?", a: "No. A ruler can only measure to about half a millimetre, so one decimal place is plenty. Extra decimals pretend to be more precise than you really were." },
+    ],
+    connections: [
+      "Quality inspectors in factories measure sample parts at their critical dimensions and record the results, so a problem is caught before thousands of parts are made.",
+      "Tailors take a few key body measurements and write them on a card, so a garment can be made to fit without the person being there.",
+      "Builders and surveyors measure, re-measure and record with units, because a mistake on paper turns into an expensive mistake in wood or concrete.",
+      "Designers of splints, grips and other assistive devices measure the real hand or object first; the device only helps if the critical measurements are right.",
+    ],
+    exitTicket: [
+      "Name one object in the room and its critical dimension for a part you might design for it. Why is that the critical one?",
+      "Your three readings are 31.0 mm, 31.5 mm and 34.0 mm. What would you do next, and why?",
+      "Write one tip that would help a classmate get an accurate ruler reading.",
+    ],
+    runPlan: [
+      { minutes: 5, title: "Hook", teacher: "Read the pencil-holder hook aloud. Hold up a marker and its cap: 'Which one measurement decides whether this cap fits?'", students: "Suggest the critical measurement and why.", devices: "away" },
+      { minutes: 8, title: "Model measuring", teacher: "Under a document camera, show the 0 mark, looking straight down, reading to 0.5 mm and measuring in three spots. Deliberately read from an angle and ask what went wrong.", students: "Watch, spot the error, then answer the marker-cap prediction.", devices: "away" },
+      { minutes: 12, title: "Practise", teacher: "Hand out rulers and objects. Circulate with 'What's critical here?' and 'Where exactly did you measure?'", students: "Measure the cube (or use the viewer), average the battery readings, choose critical dimensions, measure the peg.", devices: "open" },
+      { minutes: 12, title: "Measurement card and swap", teacher: "Listen to partner swaps: what questions do students need to ask? Those questions show what the card is missing.", students: "Make a measurement card, model the object, then swap cards and model a partner's object.", devices: "open" },
+      { minutes: 10, title: "Blind build", teacher: "Hand out unseen objects. Do the one-minute teacher check with a few students while the rest work.", students: "Measure an unfamiliar object, write the card, model it and submit evidence.", devices: "open" },
+      { minutes: 3, title: "Reflect", teacher: "Ask: whose readings didn't agree, and what did you find out?", students: "Reflection.", devices: "open" },
+    ],
+    lookFors: [
+      "Object lined up with the 0 mark and eyes directly above the reading.",
+      "Measuring in different spots without being reminded.",
+      "Units written on every number, including inside sums.",
+      "Sketches that show *where* each measurement was taken, not just the outline.",
+      "Partners able to model from a card without asking, or able to say exactly what was missing.",
+    ],
+    differentiation: {
+      support: [
+        "Provide a measurement card template with boxes for sketch, critical dimension, readings 1–3, average, unit and tool used.",
+        "Start with flat-sided objects with clear edges (an eraser, a block) before round ones. Offer a magnifier or a large-print ruler for students who need it.",
+        "Allow a calculator for averages, and accept a labelled photo or a short voice note alongside or instead of handwriting.",
+      ],
+      extend: [
+        "Measure the same object with two different rulers and explain any difference using the words resolution and accuracy.",
+        "Make a card for an object with an inside dimension (a bottle cap or tape roll) and explain how you measured the inside using only a ruler.",
+        "Measure a printed Axis Cube on X, Y and Z and decide whether the printer is equally accurate in every direction.",
+      ],
+    },
     preparation: [
       "Collect a bin of everyday objects with clear critical dimensions: markers, glue sticks, AA/AAA batteries, erasers, building bricks, bottle caps.",
       "Optional: print a few Axis Cubes and Mystery Fit Objects as measuring specimens.",
       "Set aside 'mystery' objects for the prove challenge that students haven't handled yet.",
+      "Check the rulers: put aside any with a worn or missing 0 end, or show students the 'start at 10 and subtract' trick.",
+      "Have a few square blocks and paper strips ready for measuring round objects.",
     ],
-    equipment: ["Rulers with millimetre markings (one per pair)", "Everyday objects to measure", "Optional: printed Axis Cubes and Mystery Fit Objects", "Student devices with Tinkercad"],
+    equipment: ["Rulers with millimetre markings (one per pair)", "Everyday objects to measure", "Optional: printed Axis Cubes and Mystery Fit Objects", "Student devices with Tinkercad", "Square blocks and paper strips for round objects", "Optional: magnifiers or large-print rulers", "Document camera or projector for modelling"],
     misconceptions: [
       { id: "all-dims-equal", text: "Every dimension needs to be equally precise.", response: "Ask: if this number were 2 mm off, would the part still work? Only the 'no' answers are critical." },
       { id: "irrelevant-dim", text: "Properties like colour, brand or weight are measurements for CAD.", response: "CAD only knows shape and size. Ask what the printer would do with that number." },
@@ -219,12 +281,14 @@ export const lesson: LessonInput = {
     discussionQuestions: [
       "Why might a printed 20 mm cube measure 20.2 mm?",
       "What makes a measurement card good enough for someone else to use?",
+      "If you could only measure one dimension of your object, which would it be, and why?",
     ],
     printableObjects: ["Axis Cube 20 mm (a few for the class)", "Mystery Fit Object (a few for the class)"],
     slicerSettings: "Starting point: PLA, 0.2 mm layers, 15% infill, 2–3 walls, no supports. Adjust for your printer. Measure one printed cube yourself first so you know how your printer compares to 20 mm.",
     troubleshooting: [
       "Readings vary by several mm: check the student is starting from 0 and keeping the ruler straight along the object.",
       "Round objects are hard to measure: place two blocks against either side and measure between the blocks.",
+      "A reading looks ten times too big or small (2.25 instead of 22.5 mm): ask the student to read it aloud with its unit and compare it with something familiar, such as a fingertip width of roughly 15–20 mm.",
     ],
     answerGuidance: [
       "Accept ruler readings within ±0.5 mm of the true value; the process (repeat, units, sketch) matters more than precision today.",
