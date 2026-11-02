@@ -48,6 +48,15 @@ A typical lesson: hook (`hero`) → very short explanation (`text`) → demonstr
 | `challenge` | `micro`, `prove` or `boss` requirements card (boss = no tutorial, optional elapsed timer) | — |
 | `journal` | embeds design-journal prompts (`journalPrompts` in `badges.ts`) | — |
 | `observe` | Print-Detective style cards: notice / infer / evidence, then reveal | — |
+| `teacherLed` | A part the teacher runs with the class (devices usually down). Students see `students`; teacher views also show `teacher`, suggested moves (not a script) | — |
+
+### Teacher guide: running the period
+
+`teacher.runPlan` (segments with minutes, what the teacher and students do, devices away or open), `teacher.lookFors`
+(what to watch and listen for while circulating) and `teacher.differentiation` (`support`, `extend`) show on the
+teacher guide page as **Run the lesson**, **Watch and listen for** and **Support and stretch**. Write them as options
+for a skilled teacher, not a script. Teachers can also add their own note to any mission for a class (Pages edition);
+students see it at the top of the mission.
 
 ### Rules
 

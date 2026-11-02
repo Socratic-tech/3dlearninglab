@@ -100,6 +100,14 @@ export const lesson: LessonInput = {
       title: "Fill the cube",
       blocks: [
         {
+          id: "fill-cube",
+          type: "teacherLed",
+          title: "Fill the cube",
+          minutes: 20,
+          students: "Build your chosen pieces from math cubes (a different colour per piece helps) and fit them into a 3 × 3 × 3 cube. Swap pieces from your bank if they don't fit.",
+          teacher: "This is the heart of the day: keep it hands-on and give it time. Confer with students who are stuck; the most useful nudge is usually 'which piece is hardest to place? Put it in a corner first.' If the last space won't fill, have the student move one cube between two neighbouring pieces and re-check the rules.",
+        },
+        {
           id: "how",
           type: "text",
           title: "Build it, then write it down",
@@ -117,9 +125,11 @@ export const lesson: LessonInput = {
         },
         {
           id: "brief",
-          type: "text",
+          type: "teacherLed",
           title: "Who is it for? Set a target",
-          body: "Before you finish, write a two-line design brief:\n\n- **Who** will solve it (a classmate, a younger student, someone at home)\n- **How hard:** a target time, like 'a first-timer needs 1 to 5 minutes'\n\nIn week 4 you'll time real solvers and check your puzzle against this target.",
+          minutes: 8,
+          students: "Decide two things and write them down:\n\n- **Who** will solve your puzzle (a classmate, a younger student, someone at home)\n- **How hard:** a target time, like 'a first-timer needs 1 to 5 minutes'\n\nIn week 4 you'll time real solvers and check your puzzle against this target.",
+          teacher: "A short whole-class conversation works well here: what does 'too easy' or 'too hard' look like for a puzzle? Who in your life would enjoy this? Students will hold themselves to this target in week 4, so a number matters more than the wording.",
         },
         { id: "journal-plan", type: "journal", projectKey: "puzzle-cube", promptIds: ["user", "first-idea", "why"] },
       ],
@@ -170,6 +180,16 @@ export const lesson: LessonInput = {
   ],
   teacher: {
     purpose: "Students select from their piece bank using the constraints (F4), connect the plan to volume (27 unit cubes) and record it in a form they'll build from in Tinkercad next week.",
+    runPlan: [
+      { minutes: 5, title: "Hook", teacher: "The goal today: 27 spaces, 5 or 6 pieces, no gaps.", students: "Listen; get cubes.", devices: "away" },
+      { minutes: 20, title: "Fill the cube", teacher: "Confer; biggest awkward piece in a corner first.", students: "Fit pieces into a 3 × 3 × 3 with math cubes.", devices: "away" },
+      { minutes: 8, title: "Set a target", teacher: "Whole-class talk on 'too easy / too hard'; students write who and a target time.", students: "Write a two-line brief.", devices: "away" },
+      { minutes: 12, title: "Layer map", teacher: "Model taking the cube apart one layer at a time and writing letters.", students: "Record the layer map; check counts add to 27.", devices: "away" },
+      { minutes: 7, title: "Record", teacher: "Devices open: upload the layer map and brief; quick checks.", students: "Upload, check.", devices: "open" },
+      { minutes: 3, title: "Clean up", teacher: "Keep each student's pieces together (bag or tray) for day 5.", students: "Bag pieces.", devices: "away" },
+    ],
+    lookFors: ["Students placing the most awkward piece first.", "Counts checked against 27 before the layer map is written.", "Briefs with a number for the target time."],
+    differentiation: { support: ["Start from the sample layer map and trade two cubes between pieces.", "Use 5 bigger pieces instead of 6.", "A layer-map template with the grid already drawn."], extend: ["Can your cube be solved more than one way? Try to find a second solution.", "Design a puzzle where two pieces look almost the same."] },
     preparation: ["Math cubes in several colours (27+ per student or pair).", "Blank layer-map sheets: three 3 × 3 grids labelled Bottom, Middle, Top."],
     equipment: ["Math cubes", "Layer-map sheets", "Coloured pencils"],
     misconceptions: [

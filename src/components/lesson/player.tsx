@@ -57,6 +57,8 @@ export type PlayerProps = {
   bottomNav?: boolean;
   /** Teacher preview: may move past questions without answering. */
   freeNav?: boolean;
+  /** A teacher is viewing: teacher-led parts also show the teacher's suggested moves. */
+  teacherView?: boolean;
   /** Open on the screen that holds this block (e.g. from the review deck). */
   focusBlockId?: string;
   /** "I can…" statements for this lesson's competencies (shown on the goal card) */
@@ -195,6 +197,7 @@ export function LessonPlayer(p: PlayerProps) {
       case "teacherCheck": return <S.TeacherCheckBlock b={b} done={doneIds.has(b.id)} />;
       case "observe": return <S.ObserveBlock b={b} />;
       case "failGallery": return <S.FailGalleryBlock b={b} />;
+      case "teacherLed": return <S.TeacherLedBlock b={b} />;
       case "prediction": return <I.PredictionBlock b={b} />;
       case "multipleChoice": return <I.MultipleChoiceBlock b={b} />;
       case "ordering": return <I.OrderingBlock b={b} />;
@@ -287,7 +290,7 @@ export function LessonPlayer(p: PlayerProps) {
   if (p.mode === "scroll") {
     return (
       <I.LessonCtx.Provider value={ctx}>
-      <S.VocabContext.Provider value={vocab}>
+      <S.TeacherViewContext.Provider value={!!p.teacherView}><S.VocabContext.Provider value={vocab}>
         <div className="space-y-10">
           {flavor && <S.RealWorldCard hook={flavor.hook} />}
           <S.GoalCard goals={p.goals ?? []} buildsOn={p.buildsOn ?? []} vocabulary={p.lesson.vocabulary} />
@@ -301,7 +304,7 @@ export function LessonPlayer(p: PlayerProps) {
             </section>
           ))}
         </div>
-            </S.VocabContext.Provider>
+            </S.VocabContext.Provider></S.TeacherViewContext.Provider>
     </I.LessonCtx.Provider>
     );
   }
@@ -341,7 +344,7 @@ export function LessonPlayer(p: PlayerProps) {
 
   return (
     <I.LessonCtx.Provider value={ctx}>
-      <S.VocabContext.Provider value={vocab}>
+      <S.TeacherViewContext.Provider value={!!p.teacherView}><S.VocabContext.Provider value={vocab}>
       <div className="mx-auto max-w-3xl">
         {/* One progress track: a segment per phase that fills as you go, phase names under it, and the screen count */}
         <div className="mb-5 scroll-mt-16" ref={phaseRef}>
@@ -476,7 +479,7 @@ export function LessonPlayer(p: PlayerProps) {
         </div>
         <p className="mt-3 text-center text-sm"><Link href={links.missions} className="text-muted underline">Back to missions</Link></p>
       </div>
-          </S.VocabContext.Provider>
+          </S.VocabContext.Provider></S.TeacherViewContext.Provider>
     </I.LessonCtx.Provider>
   );
 }

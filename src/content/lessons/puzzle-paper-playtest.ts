@@ -48,12 +48,6 @@ export const lesson: LessonInput = {
       title: "Run a quick swap test",
       blocks: [
         {
-          id: "protocol",
-          type: "text",
-          title: "The swap test",
-          body: "1. Build each piece from math cubes, snapped firmly together.\n2. Take your cube apart and hand the pieces to a partner.\n3. Start a timer. **Don't help.** Stop at 5 minutes.\n4. Write down: time, where they got stuck, and anything that broke or fell apart.\n5. Swap roles.",
-        },
-        {
           id: "notes-mc",
           type: "multipleChoice",
           prompt: "Which note will help you most when you change your plan?",
@@ -74,16 +68,22 @@ export const lesson: LessonInput = {
       title: "Swap and change",
       blocks: [
         {
-          id: "micro",
-          type: "challenge",
-          kind: "micro",
-          where: "offline",
+          id: "swap",
+          type: "teacherLed",
           title: "Swap test",
-          prompt: "Run the swap test with a partner, both ways.",
-          requirements: ["Your puzzle built from math cubes", "Partner's time written down", "Where they got stuck (or what was too easy)"],
-          skills: ["F5", "F6"],
+          minutes: 20,
+          students: "1. Build each piece from math cubes, snapped firmly together.\n2. Take your cube apart and hand the pieces to a partner.\n3. Start a timer. **Don't help.** Stop at 5 minutes.\n4. Write down: time, where they got stuck, and anything that broke or was too easy.\n5. Swap roles.",
+          teacher: "Pairing and timing are your call; across-table pairs who haven't seen each other's plans work best. The hardest part for students is staying quiet while someone struggles with their puzzle. Name that out loud before you start, and model what 'not helping' looks like.",
         },
         { id: "journal-test", type: "journal", projectKey: "puzzle-cube", promptIds: ["prototype", "test"] },
+        {
+          id: "share",
+          type: "teacherLed",
+          title: "One change",
+          minutes: 8,
+          students: "Share with the class: what did your tester do that surprised you, and what one change will you make to your plan?",
+          teacher: "Collect a few changes on the board and sort them: too easy, too hard, pieces that broke. It sets up week 4's playtests and shows that changing a plan after a test is normal, not failure.",
+        },
       ],
     },
     {
@@ -131,6 +131,15 @@ export const lesson: LessonInput = {
   ],
   teacher: {
     purpose: "A low-cost prototype and first user test before any CAD. Students experience iteration when changes are cheap. Optional in a 3-week run: if skipped, have students build their plan from cubes for 10 minutes at the end of day 4.",
+    runPlan: [
+      { minutes: 5, title: "Hook", teacher: "Fix it now, for free: why test before CAD.", students: "Listen.", devices: "away" },
+      { minutes: 10, title: "Build it", teacher: "Students build their planned puzzle from math cubes; check against the layer map.", students: "Build all pieces.", devices: "away" },
+      { minutes: 20, title: "Swap test", teacher: "Organise pairs; remind: don't help; circulate and listen.", students: "Swap both ways, time, take notes.", devices: "away" },
+      { minutes: 8, title: "One change", teacher: "Share surprises and planned changes; sort them on the board.", students: "Share; choose one change.", devices: "away" },
+      { minutes: 12, title: "Plan version 2", teacher: "Devices open: update the layer map, upload photo and notes.", students: "Update the plan, upload, reflect.", devices: "open" },
+    ],
+    lookFors: ["Testers left to struggle without hints.", "Notes with a time and a stuck spot, not just 'it was fine'.", "Changes that respond to what the tester did."],
+    differentiation: { support: ["Test with a partner who has the layer map to check against, instead of a blind solve.", "Give a notes template: time / stuck spot / one change."], extend: ["Run a second swap with a new tester after the change.", "Make a 'hint card' that helps without giving the answer away."] },
     preparation: ["Math cubes for every student or pair (about 30). Several colours help tell pieces apart.", "Pair students with someone who hasn't seen their plan.", "Timers (phones, a class timer)."],
     equipment: ["Math cubes", "Timers"],
     misconceptions: [

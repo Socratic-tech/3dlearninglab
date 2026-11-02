@@ -37,6 +37,14 @@ export const lesson: LessonInput = {
           body: "1. Each piece has **3 to 7 cubes**.\n2. Every cube shares a **whole face** with another cube in its piece.\n3. **No two pieces are the same shape**, even turned around.\n4. At least **2 pieces bend in 3D**: they can't lie completely flat.\n5. Each piece has **one side it can lie on** with no cube hanging over air. (That's how it prints without supports. In week 3 you'll learn a trick for pieces that break this one.)",
         },
         {
+          id: "break-rules",
+          type: "teacherLed",
+          title: "Break the rules on purpose",
+          minutes: 10,
+          students: "Your teacher will show pieces built from math cubes. For each one, decide with your table: does it follow the rules? If not, which rule does it break?",
+          teacher: "Build a few 'rule-breakers' in advance: a piece of 9 cubes, two identical L pieces, a set that's all flat. Math cubes won't snap edge to edge, so the face rule is easy to show: try it in front of the class.\n\nAsk tables to justify each call before you confirm it. The 'same shape' rule causes the most debate; settle it by turning one piece in your hand until it matches the other.",
+        },
+        {
           id: "predict-edge",
           type: "prediction",
           prompt: "Two cubes in your piece touch only along one edge. You print the piece. What happens?",
@@ -107,19 +115,12 @@ export const lesson: LessonInput = {
       title: "Test your piece bank",
       blocks: [
         {
-          id: "micro",
-          type: "challenge",
-          kind: "micro",
-          where: "offline",
-          title: "Build and check",
-          prompt: "Build each piece from your piece bank out of math cubes. Check it against all five rules.",
-          requirements: [
-            "Run a finger over every joint: whole faces only",
-            "Set the piece on the table: find a side with no cube over air",
-            "Compare pieces: cross out any shape that's a copy of another",
-            "Mark each sketch ✓ (passes) or ✗ (fix or drop it)",
-          ],
-          skills: ["F2", "B1"],
+          id: "test-bank",
+          type: "teacherLed",
+          title: "Test your piece bank",
+          minutes: 15,
+          students: "Build each piece from your piece bank with math cubes and check it against all five rules. Mark each sketch ✓ or ✗, and fix one that fails.",
+          teacher: "Circulate and confer. Useful questions: 'Show me the side it lies on.' 'How do you know these two aren't the same?' Keep a student's favourite rule-breaker in mind: day 12 teaches a chamfer that can rescue a piece with one hanging cube.",
         },
       ],
     },
@@ -167,6 +168,16 @@ export const lesson: LessonInput = {
   ],
   teacher: {
     purpose: "Turns 'make cool pieces' into checkable constraints. Each rule has a physical reason students can test with math cubes: strength (face joins), variety (no copies), challenge (3D pieces), handling (3–7 cubes) and printing (a side to lie on).",
+    runPlan: [
+      { minutes: 5, title: "Hook", teacher: "Why rules? Strength, variety, challenge, handling, printing.", students: "Listen; predict which rule matters most.", devices: "away" },
+      { minutes: 10, title: "Break the rules on purpose", teacher: "Show rule-breaking pieces; tables decide and justify.", students: "Judge each piece against the rules.", devices: "away" },
+      { minutes: 15, title: "Test your piece bank", teacher: "Confer while students build and check their own pieces.", students: "Build, test, mark ✓/✗, fix one.", devices: "away" },
+      { minutes: 12, title: "Quick checks", teacher: "Devices open: spot the loose cube, the same-shape check, match the rules.", students: "Answer the checks.", devices: "open" },
+      { minutes: 8, title: "Record and reflect", teacher: "Photo of the marked bank; reflection.", students: "Upload, reflect.", devices: "open" },
+      { minutes: 5, title: "Clean up", teacher: "Preview tomorrow: fitting pieces into one cube.", students: "Tidy up.", devices: "away" },
+    ],
+    lookFors: ["Students testing 'same shape' by turning pieces, not by eye.", "Students naming the rule a piece breaks, not just 'it's wrong'.", "Fixes that keep the student's idea rather than replacing the piece."],
+    differentiation: { support: ["Check one rule at a time across the whole bank.", "Provide a printed rules card on each table.", "Start with 3- and 4-cube pieces only."], extend: ["Find a piece that passes every rule except the printing one, and fix it two different ways.", "How many different 4-cube pieces exist in 3D? (Try to find them all with math cubes.)"] },
     preparation: ["Math cubes for building pieces (30 or more per student or pair).", "Students' piece banks from day 2."],
     equipment: ["Math cubes", "Piece banks", "Pencils"],
     misconceptions: [

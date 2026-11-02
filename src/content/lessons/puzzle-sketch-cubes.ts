@@ -31,15 +31,12 @@ export const lesson: LessonInput = {
           visual: { diagram: "iso-sketch", alt: "Drawing a cube on dot paper in three steps." },
         },
         {
-          id: "how",
-          type: "showMe",
-          title: "One cube on dot paper",
-          steps: [
-            { text: "Draw a diamond for the top: join four dots that make a slanted square.", diagram: "iso-sketch" },
-            { text: "From the left, front and right corners of the diamond, draw three lines straight down, one dot each.", diagram: "iso-sketch" },
-            { text: "Join the bottoms of those lines. That's one cube. Shade the top lightly so it pops.", diagram: "iso-sketch" },
-            { text: "To add a cube, reuse an edge you already drew, then draw only the new lines.", diagram: "iso-sketch" },
-          ],
+          id: "draw-along",
+          type: "teacherLed",
+          title: "Draw along",
+          minutes: 12,
+          students: "Follow along on your dot paper as your teacher draws one cube, then a second cube beside it, then a piece of 3 or 4 cubes. Build the same piece from math cubes and hold it next to your drawing.",
+          teacher: "Model it live (board or document camera) and think aloud: the diamond on top, three lines straight down, join the bottoms, then reuse an edge for the next cube. Most students need to see the 'reuse an edge' move more than once.\n\nHolding the math-cube piece beside the drawing helps students who find drawing hard: they can check each line against the real thing. Accept other ways to show a piece (top view with heights written in, a photo of the cubes) for students who need them.",
         },
         {
           id: "directions",
@@ -103,6 +100,14 @@ export const lesson: LessonInput = {
       title: "Sketch a bank of pieces",
       blocks: [
         {
+          id: "gallery",
+          type: "teacherLed",
+          title: "Gallery check",
+          minutes: 8,
+          students: "Leave your piece bank on the desk. Walk the room. Pick one sketch you could build without asking, and one you couldn't. Tell the artist which is which.",
+          teacher: "A quick gallery walk makes 'clear enough for someone else to build' concrete. Keep it light: the goal is noticing what makes a sketch readable (cube counts, shading the tops, one piece per drawing).",
+        },
+        {
           id: "micro",
           type: "challenge",
           kind: "micro",
@@ -160,6 +165,16 @@ export const lesson: LessonInput = {
   ],
   teacher: {
     purpose: "Students learn a quick, low-cost way to generate and communicate 3D ideas. Isometric sketching on dot paper keeps every line on the cube grid, so pieces drawn here can be built directly in week 2.",
+    runPlan: [
+      { minutes: 5, title: "Hook", teacher: "Why sketch first? A sketch costs a minute; a print costs hours.", students: "Listen; one quick idea from the table.", devices: "away" },
+      { minutes: 12, title: "Draw along", teacher: "Model the three-move cube and the 'reuse an edge' move; students draw and build alongside.", students: "Draw cubes and a small piece; build it to check.", devices: "away" },
+      { minutes: 18, title: "Piece bank", teacher: "Circulate; ask students to explain a piece out loud; nudge toward 3D pieces.", students: "Sketch 8 or more pieces with cube counts.", devices: "away" },
+      { minutes: 8, title: "Gallery check", teacher: "Quick walk: which sketches could you build without asking?", students: "Give and get feedback on readability.", devices: "away" },
+      { minutes: 7, title: "Record and reflect", teacher: "Devices open for the views check, the photo upload and the reflection.", students: "Quick check, upload, reflect.", devices: "open" },
+      { minutes: 5, title: "Clean up", teacher: "Preview tomorrow: rules every piece must follow.", students: "Tidy up.", devices: "away" },
+    ],
+    lookFors: ["Students using the 'reuse an edge' move rather than drawing every cube separately.", "Cube counts that match the drawing (hidden cubes counted).", "At least a few pieces that bend into 3D.", "Students who prefer building: are they recording pieces some other way?"],
+    differentiation: { support: ["Start with flat pieces only, then add one cube on top.", "Top view with heights written in each square is a full alternative to isometric drawing.", "Pair a confident drawer with a confident builder."], extend: ["Draw the same piece from two different directions.", "Sketch a piece, hand it over, and see if a partner builds it exactly.", "Try a 6- or 7-cube piece that bends in two directions."] },
     preparation: [
       "Print isometric dot paper (triangle-grid dots), 2–3 sheets per student.",
       "Have math cubes available for students who prefer building to drawing.",

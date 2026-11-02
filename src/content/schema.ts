@@ -287,6 +287,21 @@ export const failGalleryBlock = z.object({
     .array(z.object({ id: z.string(), nickname: z.string(), diagram: z.string(), clue: z.string(), cause: z.string(), fix: z.string() }))
     .min(2),
 });
+/**
+ * A part of the lesson the teacher runs with the whole class (devices usually down). Students see what to do and
+ * that their teacher is leading; teachers previewing the mission also see `teacher`: suggested moves, not a script.
+ */
+export const teacherLedBlock = z.object({
+  ...base,
+  type: z.literal("teacherLed"),
+  title: z.string(),
+  minutes: z.number().int().positive().optional(),
+  /** What students see and do. */
+  students: z.string(),
+  /** Suggested moves for the teacher (shown only in teacher views). */
+  teacher: z.string(),
+  devices: z.enum(["away", "open"]).default("away"),
+});
 export const journalBlock = z.object({
   ...base,
   type: z.literal("journal"),
@@ -334,6 +349,7 @@ export const lessonBlockSchema = z.discriminatedUnion("type", [
   teacherCheckBlock,
   challengeBlock,
   journalBlock,
+  teacherLedBlock,
   observeBlock,
   failGalleryBlock,
 ]);
@@ -362,6 +378,14 @@ export const teacherGuideSchema = z.object({
   troubleshooting: z.array(z.string()).default([]),
   answerGuidance: z.array(z.string()).default([]),
   rubricId: z.string().optional(),
+  /** How the period can run, segment by segment. Suggestions for a skilled teacher, not a script. */
+  runPlan: z
+    .array(z.object({ minutes: z.number().int().positive(), title: z.string(), teacher: z.string(), students: z.string(), devices: z.enum(["away", "open"]).default("away") }))
+    .default([]),
+  /** What to watch and listen for while circulating (the day's real assessment). */
+  lookFors: z.array(z.string()).default([]),
+  /** Ways in for students who need more support, and ways further for those ready for more. */
+  differentiation: z.object({ support: z.array(z.string()).default([]), extend: z.array(z.string()).default([]) }).default({ support: [], extend: [] }),
   /** Alternatives offered automatically from equipment configuration */
   alternatives: z
     .object({

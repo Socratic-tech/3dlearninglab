@@ -11,6 +11,7 @@ import { assetsFor, buildsOnFor, competencyTitleFor, goalsFor, journalPromptsFor
 import { personalizeProject, PROJECT_ID } from "../custom-path";
 import { googleLessonApi } from "../api";
 import { actsAsStaff, studentStates, usePreviewUnlock, useStudentView } from "../state";
+import { TeacherNote } from "./TeacherNote";
 
 export function LessonPage({ me, apiUrl, lessonId, focusBlockId, onChange }: { me: Me; apiUrl: string; lessonId: string; focusBlockId?: string; onChange: () => void }) {
   useStudentView(); // re-render when a teacher switches student view on or off
@@ -52,6 +53,7 @@ export function LessonPage({ me, apiUrl, lessonId, focusBlockId, onChange }: { m
           )}
         </div>
       </header>
+      <div className="mx-auto max-w-3xl"><TeacherNote key={`${lessonId}-${me.cls?.id ?? ""}`} me={me} apiUrl={apiUrl} lessonId={lessonId} staff={preview} onChange={onChange} /></div>
       <LessonPlayer
         key={lessonId}
         courseId="class"
@@ -72,6 +74,7 @@ export function LessonPage({ me, apiUrl, lessonId, focusBlockId, onChange }: { m
         readOnly={false}
         bottomNav={false}
         freeNav={preview}
+        teacherView={preview}
         focusBlockId={focusBlockId}
         api={api}
         links={{ lesson: (id) => `#/lesson/${id}`, missions: "#/" }}
