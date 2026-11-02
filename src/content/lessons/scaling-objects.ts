@@ -197,9 +197,71 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students control which directions they resize and understand that proportional scaling multiplies volume quickly.",
-    preparation: ["Try the Shift + corner drag on a student device so you can show where the handles are."],
-    equipment: ["Student devices with Tinkercad", "Optional: two printed cubes, 10 mm and 20 mm, to pass around (the 20 mm one uses about 8× the plastic)"],
+    purpose: "Students control which directions they resize and understand that proportional scaling multiplies volume quickly. The lesson connects a CAD skill (choosing the right handle, holding Shift) to ratio reasoning from maths: scaling multiplies every size by the same factor, it doesn't add or subtract. It also prepares students for print planning, where a 'slightly bigger' model can mean a much longer print.",
+    bigIdea: "Scaling multiplies sizes: I can stretch one direction or grow all directions together, and when every direction doubles, the volume (and plastic) grows about eight times.",
+    successCriteria: [
+      "I can resize a shape in only the direction I choose.",
+      "I can scale a shape proportionally so it keeps its look.",
+      "I can use a percentage or scale factor to work out a new size.",
+      "I can explain why a part twice as big in every direction uses about eight times the plastic.",
+    ],
+    background: [
+      { title: "Scale factors multiply", body: "A **scale factor** is the number every size is multiplied by: 200% means × 2, 150% means × 1.5, 50% means × 0.5. Many students think additively at first ('make it 10 mm bigger on every side'), which keeps a shape's size changes equal but changes its proportions. This links to scale drawings and proportional relationships in Grade 7 maths. A useful check: after proportional scaling, the *ratios* between sizes stay the same (a 40 × 20 box is still twice as long as it is wide)." },
+      { title: "Tinkercad's handles", body: "Select a shape and white handles appear. **Corner** handles change length and width (X and Y) together; **side** handles change one direction; the **top** handle changes height. The **black cone** above the shape is *not* a resize handle: it moves the shape up or down, which students often mix up. Holding **Shift** while dragging keeps proportions; press Shift before the drag starts and release it after. Drags follow the Snap Grid, so a coarse grid makes resizing jumpy. The handle drag is approximate; the next lesson (Exact Dimensions) replaces it with typed numbers." },
+      { title: "The square–cube rule", body: "When every length is multiplied by *k*, every **area** is multiplied by *k*² and every **volume** by *k*³. Double a 20 mm cube to 40 mm and its volume goes from 20 × 20 × 20 = 8,000 mm³ to 64,000 mm³: eight times as much. Triple it and the volume is 27 times as much. This is why the hook's 'twice as big' cube uses far more than twice the plastic. Scientists call this the square–cube law, and it also explains why very large animals need proportionally thicker legs." },
+      { title: "Why print time is only roughly 8×", body: "Plastic used and print time grow quickly with size, but not exactly by *k*³. A printed part has solid walls, a solid top and bottom, and partly hollow infill inside. Walls and skins grow roughly with **surface area** (× 4 when doubling), while infill grows with **volume** (× 8). Heating up, travel moves and the first layer add a fixed chunk of time too. So a part scaled to 2× usually takes somewhere between about 4× and 8× as long, depending on the shape and settings. That's why the discussion question asks for a rough estimate and 'why only roughly?'." },
+      { title: "Stretching on purpose, and what scaling can't fix", body: "Non-proportional scaling is a design tool, not just a mistake: a stretched sphere makes an egg or a head, a squashed cylinder makes a coin or an oval badge. The Prove it task asks for one deliberate stretch. Be aware that scaling also changes details students care about later. Shrinking a model to 50% halves its walls (a 2 mm wall becomes 1 mm, which may print poorly) and its holes (a hole made to fit a pencil won't fit any more). Scaling is great for overall size, but features that must fit real objects need their own exact numbers." },
+    ],
+    studentQuestions: [
+      { q: "Why does my shape jump in steps when I resize it?", a: "Resizing follows the Snap Grid. Make the grid smaller (bottom right) for smoother resizing, or type the size you want." },
+      { q: "What's the difference between the black cone and the white square on top?", a: "The black cone moves the shape up or down. The white square on top changes how tall it is." },
+      { q: "Can I type a percentage in Tinkercad?", a: "Tinkercad shows sizes in millimetres, so work out the new size (for 150%, multiply by 1.5) and type that number. You'll practise typing sizes in the next lesson." },
+      { q: "Is a bigger print stronger?", a: "Usually it's harder to break, because everything is thicker. But a small copy has thinner walls and details, so a mini version can be much more fragile." },
+    ],
+    connections: [
+      "Prop makers and cosplayers often print a small test version of a model first, then scale it up for the real thing.",
+      "Architects and model-railway builders work at fixed scales; for example, HO-scale model trains are 1/87 of real size.",
+      "Engineers test scale models of cars, planes and buildings in wind tunnels before building the full-size version.",
+      "Shipping and packaging designers care about volume: a box twice as big in every direction holds eight times as much.",
+    ],
+    exitTicket: [
+      "A box is 10 × 20 × 30 mm. What are its sizes at 200%? Show your working.",
+      "Which handle would you use to make a cylinder taller without making it wider? How do you know?",
+      "In one sentence, explain why doubling every side of a part uses much more than double the plastic.",
+    ],
+    runPlan: [
+      { minutes: 5, title: "Hook", teacher: "Put one linking cube (or sugar cube) on the desk and ask how many you need to build one twice as wide, deep and tall. Collect guesses, then build it.", students: "Guess, then count the cubes in the 2 × 2 × 2 build.", devices: "away" },
+      { minutes: 7, title: "Model the handles", teacher: "On the projector, drag a side handle, the top handle, then Shift + a corner. Name what changes each time. Ask the cube-volume prediction.", students: "Call out which directions will change before each drag; answer the prediction.", devices: "away" },
+      { minutes: 10, title: "Resize practice", teacher: "Circulate. Ask 'Which directions did that change? Which did you want to change?'", students: "Make the 50 mm bar, the coin and the 3× shape, then a deliberate squash.", devices: "open" },
+      { minutes: 6, title: "Percent and handles", teacher: "Pause the class after the slider: 'Did anyone add instead of multiply?'", students: "Complete the percent slider and the handle matching.", devices: "open" },
+      { minutes: 7, title: "Family of shapes", teacher: "Look for Shift held before the drag. Ask students to show you a stretched star versus a scaled one.", students: "Build the star family and answer the two check questions.", devices: "open" },
+      { minutes: 8, title: "Prove it: shrink ray", teacher: "Steps disappear. Encourage a choice of theme (robot, animal, machine). Point stuck students back to the scale factor, not to a method.", students: "Build the original and the half-size copy, then submit evidence.", devices: "open" },
+      { minutes: 2, title: "Reflect and exit", teacher: "Collect the exit ticket.", students: "Reflection and exit ticket.", devices: "open" },
+    ],
+    lookFors: [
+      "Students choose a handle before dragging and can say which directions will change.",
+      "Shift pressed before the drag starts when the look must be kept.",
+      "Scaling described with 'times' or 'multiply', not 'plus' or 'minus'.",
+      "Volume growth explained with a model, a sketch or numbers, not just 'it's bigger'.",
+    ],
+    differentiation: {
+      support: [
+        "Use linking cubes to build a 1-cube and a 2 × 2 × 2 cube, and count, before doing any volume maths.",
+        "Give a handle map card: corner = length and width, side = one direction, top = height, cone = move (not resize).",
+        "For Prove it, allow three shapes instead of four, and let a partner check the half-size copy against the original.",
+      ],
+      extend: [
+        "Work out the volumes of 20 mm and 40 mm cubes, then estimate their mass in PLA (about 1.24 g per cm³; remember 1 cm³ = 1,000 mm³).",
+        "Predict the volume factor for a part scaled to 3× and to 50%, then explain what each means for print time.",
+        "Investigate what happens to a 2 mm wall and a 7 mm pencil hole when a design is shrunk to 50%, and suggest a fix.",
+      ],
+    },
+    preparation: [
+      "Try the Shift + corner drag on a student device so you can show where the handles are.",
+      "Have eight linking cubes, sugar cubes or dice per group (or one set for a demonstration) for the volume hook.",
+      "Check the Snap Grid is 1 mm on student devices so handle drags are smooth enough.",
+    ],
+    equipment: ["Student devices with Tinkercad", "Optional: two printed cubes, 10 mm and 20 mm, to pass around (the 20 mm one uses about 8× the plastic)", "Optional: eight small identical cubes per group for building a 2 × 2 × 2 cube"],
     misconceptions: [
       { id: "linear-volume", text: "Doubling a part's size doubles the material it uses.", response: "Stack eight 1 cm cubes into a 2 cm cube on the table. Count them." },
       { id: "shape-changes", text: "Shapes change form when they get bigger.", response: "Show that a Shift-scaled sphere stays round; only unequal scaling squashes it." },
@@ -213,6 +275,8 @@ export const lesson: LessonInput = {
     troubleshooting: [
       "If a shape won't resize smoothly, the Snap Grid may be large; set it to 1 mm or smaller.",
       "If Shift doesn't keep proportions, make sure Shift is held down before the drag starts and released after.",
+      "If a shape moves up instead of getting taller, the student grabbed the black cone (move) rather than the white top handle (resize).",
+      "If a resize went wrong, Ctrl + Z undoes it; there is no need to delete the shape.",
     ],
     answerGuidance: [
       "Micro: accept approximate sizes; the skill is Shift for proportional and single handles for stretching.",

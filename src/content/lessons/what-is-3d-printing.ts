@@ -214,10 +214,72 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students build a mental model of FDM printing as stacked layers, which every later design-for-printing decision depends on.",
+    purpose: "Students build a mental model of FDM printing as stacked layers, which every later design-for-printing decision depends on. They also learn the route every print takes (design, export, slice, print) and meet the first big printing rule: each layer needs something underneath it. Flat bottoms, overhangs, orientation, wall thickness and print time all come back to this picture, so it is worth getting right before anyone opens Tinkercad.",
+    bigIdea: "A 3D printer makes an object by adding thin layers of melted plastic one on top of another, so every layer needs something underneath it to sit on.",
+    successCriteria: [
+      "I can explain the difference between making something by removing material and by adding it.",
+      "I can put the steps from a CAD design to a printed object in order.",
+      "I can work out how many layers a part needs from its height and the layer height.",
+      "I can spot a part of an object that would hang in mid-air while it prints.",
+    ],
+    background: [
+      { title: "Three ways to make a thing", body: "**Subtractive** manufacturing starts with more material than you need and removes it: drilling, sawing, turning on a lathe, milling on a CNC machine. **Additive** manufacturing starts with nothing and adds material only where the part needs it, usually layer by layer. A third big family, **forming**, shapes material without really adding or removing it: injection moulding, casting, stamping and bending. Most plastic objects in a classroom (bottle caps, chair feet, pen barrels) are moulded, which is why the answer guidance accepts students who say a moulded object is neither. The international standard for additive manufacturing (ISO/ASTM 52900) sorts additive machines into seven process families; school printers belong to the one called **material extrusion**." },
+      { title: "How a filament printer actually works", body: "**FDM** (fused deposition modelling) is a trademarked name, so you will also see **FFF** (fused filament fabrication); they mean the same thing. A spool of plastic **filament** (usually 1.75 mm thick) is pushed by a geared motor into the **hot end**, where it melts and squeezes out of a small **nozzle**, most often 0.4 mm wide. For PLA, the most common school plastic, the nozzle runs at roughly 190–220 °C, and many printers also heat the build plate so the first layer sticks. For each layer the nozzle usually traces the outline first (the **walls** or perimeters), then fills the inside with a pattern called **infill**, so printed parts are often partly hollow inside. When a layer is finished, either the plate moves down or the nozzle moves up by one layer height, and the next layer begins." },
+      { title: "From design to object: STL and the slicer", body: "Students design in CAD (Tinkercad in this course) and export an **STL** file. An STL describes only the outside **surface** of the model as a mesh of tiny triangles: no colour, no material and no units, just numbers that software normally reads as millimetres. A **slicer** (free examples include Cura and PrusaSlicer; many printer brands supply their own) cuts the model into horizontal layers, plans every nozzle movement, adds supports if asked, and saves the result as **G-code**: a long list of simple instructions such as 'move to this X and Y while pushing out this much plastic'. This is the key to the *printer-knows* misconception. The printer does not know it is making a keychain; it just follows the G-code line by line. All the decisions are made by the designer and the slicer settings." },
+      { title: "Layer height and the layer-count maths", body: "Number of layers = part height ÷ layer height. Students often multiply instead of divide, so ask them to sense-check: 'Should a tall part have more layers or fewer?' Building up from 1 mm = five 0.2 mm layers (as the hint does) is a good bridge for students who are not yet secure with dividing by a decimal. **0.2 mm** is a very common default with a 0.4 mm nozzle; a common rule of thumb keeps layer height below about three-quarters of the nozzle width. Thinner layers make curved and sloped surfaces smoother (less visible 'staircase') but mean more layers, so the print takes longer. Layer height divides up the height of the part; it does not change the part's size, which comes from the design. Real slicer counts can differ by a layer or two, because many slicers print a slightly thicker first layer." },
+      { title: "Why mid-air is a problem", body: "Melted plastic needs something to land on. A gentle slope is fine, because each new layer only sticks out a little past the one below; a common rule of thumb is that slopes steeper than about 45° from upright start to droop. A flat section with nothing below it (an **overhang**) sags or turns into loose strands. Printers can stretch plastic across a short gap between two supports (a **bridge**) because it cools before it sags, but long bridges droop. The prediction introduces three fixes students will meet later: change the shape, change which way up it prints (orientation), or let the slicer add temporary **supports** that are snapped off afterwards." },
+      { title: "Where this picture leads", body: "Layers also explain strength. Plastic within one line is strong, but neighbouring layers are only fused at their surfaces, so a printed part usually breaks more easily *between* layers than along them. Students will see this on Object C in Print Detective and test it in the Strength lesson. Keep coming back to the stacked-layers picture: whenever a student asks 'will this print?', the first question is 'what is underneath each layer?'" },
+    ],
+    studentQuestions: [
+      { q: "How long does a print take?", a: "It depends on the size, the layer height and the settings. A small keychain might take well under an hour; a large part can take many hours. The slicer gives an estimate before you print." },
+      { q: "Is a printed part solid inside?", a: "Usually not. The slicer draws solid walls, a solid top and bottom, and a pattern of infill inside to save plastic and time. You can change how much infill there is." },
+      { q: "Can 3D printers print metal or other materials?", a: "Yes, but not our printer. Some industrial machines melt metal powder with a laser, some harden liquid resin with light, and some even print concrete. Ours melts plastic filament." },
+      { q: "Why is it called FDM?", a: "Fused deposition modelling: the plastic is melted (fused) and laid down (deposited) to build a model. Some people call the same thing FFF." },
+      { q: "Is it dangerous to touch?", a: "The nozzle is hot enough to burn (around 200 °C) and the plate can be hot too. Watch, but keep fingers away while it is running." },
+    ],
+    connections: [
+      "Audiologists and hearing-aid makers print custom hearing-aid shells from a scan of one person's ear, because every ear is a different shape.",
+      "Aerospace engineers print some complex metal rocket and jet-engine parts that would be very hard to machine from a solid block.",
+      "CNC machinists work the opposite way, cutting parts out of solid metal or plastic. Many workshops use both: print a quick prototype, then machine the final part.",
+      "Factories still mould most everyday plastic objects, because once a mould exists it can make thousands of identical parts quickly and cheaply.",
+    ],
+    exitTicket: [
+      "A part is 12 mm tall and printed with 0.2 mm layers. How many layers is that? Show how you worked it out.",
+      "Name one object made by adding material and one made by removing material. How can you tell?",
+      "Sketch a side view of a shape that has a part hanging in mid-air. Circle the part that would droop.",
+    ],
+    runPlan: [
+      { minutes: 5, title: "Hook", teacher: "Hold up a drilled or carved object next to a printed one. Ask: 'Was this made by taking material away or by adding it? What makes you think so?'", students: "Sort the objects you can see into adding, removing, or 'not sure', and give a reason.", devices: "away" },
+      { minutes: 10, title: "How a printer works", teacher: "Walk through the printer diagram and the design → STL → slice → print steps. If a printer is running, gather students to watch a few layers go down. Ask the floating-plastic prediction out loud before revealing.", students: "Watch, predict, and match each step to what the printer is doing.", devices: "away" },
+      { minutes: 12, title: "Look at the layers", teacher: "Circulate during the layer viewer and calculations. Ask 'Should a taller part have more layers or fewer?' to catch multiply-instead-of-divide errors.", students: "Use the layer slider, count layers for the 20 mm cube, pick the layer height, and order the steps.", devices: "open" },
+      { minutes: 8, title: "Faster or smoother?", teacher: "Let students work the micro challenge on paper first. Invite two students with different choices to defend them.", students: "Work out both layer counts and choose a layer height for a quick test part.", devices: "open" },
+      { minutes: 7, title: "Prove it: layer plan", teacher: "Steps disappear. Point students to objects with an interesting overhang (a mug handle, a stand). Accept a sketch, a labelled photo, or a spoken explanation.", students: "Pick a non-cube object and sketch how it would be built from the bottom up.", devices: "away" },
+      { minutes: 3, title: "Reflect and exit", teacher: "Collect the exit ticket. Note who still divides incorrectly for the next lesson's warm-up.", students: "Upload the layer plan, reflect, and complete the exit ticket.", devices: "open" },
+    ],
+    lookFors: [
+      "Students sort objects by asking 'was material added or taken away?' rather than by what the object is.",
+      "Layer counts found by dividing height by layer height, with a quick check that the answer makes sense.",
+      "Layer sketches that start at the build plate with horizontal lines.",
+      "Overhangs circled with a reason ('there's nothing under it'), not just guessed.",
+      "Students using additive, subtractive and layer in their own explanations.",
+    ],
+    differentiation: {
+      support: [
+        "Model layers with a stack of paper, coins or building bricks: count the pieces in a stack of known height.",
+        "Give a card with 'layers = height ÷ layer height' and the worked example 1 mm = 5 layers of 0.2 mm, plus a calculator.",
+        "Let students show the layer plan as a labelled photo, a spoken recording or a partner-scribed sketch instead of a drawing.",
+      ],
+      extend: [
+        "If a slicer is available, slice the same part at two layer heights and compare the estimated print times. Is the time difference as big as the layer-count difference?",
+        "Research one other additive process (resin printing or metal powder printing) and explain how it builds each layer.",
+        "Write a short argument: when would a company choose moulding over printing, and when printing over moulding?",
+      ],
+    },
     preparation: [
       "If you have a printer, start a short print (the 20 mm axis cube takes about 20–40 minutes) before class so students can watch layers form.",
       "Collect 3–4 everyday objects: one machined or drilled (wooden block, metal bracket), one molded (bottle cap), one 3D printed if available.",
+      "Optional: a stack of paper, coins or building bricks to model layers for students who need something to hold.",
+      "Pick two or three classroom objects with obvious overhangs (a mug with a handle, a phone stand) to suggest for the layer plan.",
     ],
     equipment: ["Student devices", "Paper and pencil for the layer plan", "Optional: a running 3D printer or any printed part with visible layer lines"],
     misconceptions: [
@@ -225,6 +287,7 @@ export const lesson: LessonInput = {
       { id: "printer-knows", text: "The printer understands the design and fixes problems on its own.", response: "Explain that the printer only follows the slicer's path, line by line. The designer and slicer settings make the decisions." },
       { id: "layer-size", text: "Thinner layers make a smaller part.", response: "The outside size comes from the design. Layer height only changes how the height is divided up." },
       { id: "layer-material", text: "Thicker layers use more plastic overall.", response: "The same part uses roughly the same plastic; it is just split into fewer, thicker slices." },
+      { id: "solid-inside", text: "Printed parts are solid plastic all the way through.", response: "Show a print cut in half, a print stopped part-way, or the slicer preview: solid walls and a top and bottom, with a pattern of infill inside." },
     ],
     discussionQuestions: [
       "Which objects in this room were made by removing material? Which by adding? Which were molded?",
@@ -234,6 +297,8 @@ export const lesson: LessonInput = {
     troubleshooting: [
       "If the layer slider is hard to see on a small screen, rotate the viewer so the cube is side-on.",
       "If students think the cube prints as one solid lump, pass around any printed part and have them run a fingernail up the side.",
+      "If students multiply height by layer height (20 × 0.2 = 4), ask whether a taller part should have more or fewer layers, then build up from 1 mm = 5 layers.",
+      "If a demonstration print fails, keep it: a failed print is perfect evidence for Print Detective.",
     ],
     answerGuidance: [
       "Micro challenge: 30 mm at 0.1 mm = 300 layers; at 0.3 mm = 100 layers. A quick test part is usually printed with thicker layers.",

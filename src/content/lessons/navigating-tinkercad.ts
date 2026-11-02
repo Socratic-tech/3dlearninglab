@@ -211,7 +211,65 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students gain fluent camera control and deliberate selection, the foundation for every later CAD lesson.",
+    purpose: "Students gain fluent camera control and deliberate selection, the foundation for every later CAD lesson. For many students this is their first time reasoning about a 3D scene shown on a flat screen, so the lesson also builds the habit that catches most later mistakes: check from a second view before trusting what you see.",
+    bigIdea: "In CAD I move the camera, not the shapes, so I can look from any side to check a design without changing it, and every edit only changes what I have selected.",
+    successCriteria: [
+      "I can orbit, pan and zoom to look at any part of a design.",
+      "I can get back to a useful view when I'm lost.",
+      "I can use a low side view to tell whether a shape touches the workplane.",
+      "I can select one shape, several shapes, or everything, on purpose.",
+    ],
+    background: [
+      { title: "You are the camera", body: "A Tinkercad design is a set of shapes with positions in 3D space. The screen is a window looking at that space through a virtual camera. **Orbit** swings the camera around a point in the scene, **pan** slides it sideways or up and down, and **zoom** moves it closer or farther away. None of these change the design itself: the shapes keep exactly the same positions and sizes. This is why students can explore freely. It is also why 'it moved!' after an orbit is a sign the student thinks they are turning the object, which the *orbit-moves* misconception targets." },
+      { title: "Why one view can lie", body: "A screen flattens depth. From straight above, a shape floating 18 mm in the air looks exactly like one sitting on the grid; perspective can also make nearer shapes look bigger than they are. Professionals always check from more than one direction, and the same habit is built here: orbit down low so you are looking *across* the workplane, and look for daylight underneath. Tinkercad also has a button (with the view controls on the left) that switches between perspective and **orthographic** view. Orthographic removes the perspective effect so parallel edges stay parallel, which makes it easier to judge whether things line up or are level." },
+      { title: "Controls on different devices", body: "With a mouse: right-drag orbits, Shift + right-drag or middle-drag pans, and the scroll wheel zooms toward the pointer. Trackpads and touch screens vary by device (see troubleshooting and the touch alternative). Every student, whatever their device, can also use the on-screen controls: the **view cube** (click a face or corner to jump to that view), the **Home** button, **Zoom to fit**, and zoom in/out buttons. A mouse makes this lesson noticeably easier, but it is not the only route. Students who cannot use a mouse comfortably should be shown the view cube first, not last." },
+      { title: "Selection is the most important habit", body: "Every Tinkercad action (colour, resize, move, delete, group) applies only to the **current selection**. Click selects one shape; Shift + click adds or removes shapes; dragging a box across empty space selects the shapes inside it; Ctrl + A selects everything; clicking empty space deselects. A selected shape shows handles and the shape panel. Many later 'bugs' (a resize that changed the wrong shape, a group that swallowed an extra piece) are really selection mistakes, so it is worth slowing down here." },
+      { title: "About the imported file", body: "**misplaced-shapes.stl** is a single mesh, so Tinkercad imports it as one shape: students can view it but cannot select the five pieces separately. Tinkercad may also place an import so its lowest point sits on the workplane, which hides how far the sphere is sunk (see Preparation). The in-app hotspot viewer keeps the true positions, so use it for the 'which shape is which' questions and use Tinkercad for practising the camera moves." },
+      { title: "How this connects", body: "Next lesson (Moving Objects) students fix floating and sunk shapes, which depends on spotting them from a side view first. Selection skills return the moment students group and align several shapes. The boss lesson (Workspace Rescue) ends with a live tour in which students drive the camera for you, so fluency here pays off directly." },
+    ],
+    studentQuestions: [
+      { q: "Did orbiting change my design?", a: "No. Orbit, pan and zoom only move the camera. Select a shape and check its numbers: they're the same as before." },
+      { q: "Why does the view jump when I zoom?", a: "Zoom moves toward wherever your pointer is. Put the pointer on the thing you want to look at, then scroll." },
+      { q: "Why can't I select just the cone in the imported file?", a: "The file arrived as one combined shape. Today is about looking, not editing; next lesson you'll build your own shapes that you can select one by one." },
+      { q: "I don't have a mouse. What do I do?", a: "Use the view cube and the Home, Fit and zoom buttons on screen. On a trackpad or tablet, try two-finger drag and pinch; it varies by device." },
+      { q: "Can I look from underneath the workplane?", a: "Yes. Keep orbiting downward and the camera goes below the grid, so you can see the bottoms of the shapes." },
+    ],
+    connections: [
+      "Game level designers and 3D animators navigate scenes all day, orbiting and zooming to place objects and check that nothing floats or clips through the floor.",
+      "Architects and engineers 'walk' clients around a 3D building model, switching views to show what a flat drawing can't.",
+      "Doctors and medical imaging specialists turn 3D scans to see an injury from every side before treatment.",
+    ],
+    exitTicket: [
+      "Explain the difference between orbit and pan in your own words, or sketch it.",
+      "Why can a shape look like it is on the workplane from one view but not from another?",
+      "You want to change the colour of two shapes but not a third. Describe how you would select them.",
+    ],
+    runPlan: [
+      { minutes: 5, title: "Hook", teacher: "Before class, make your own quick scene: two boxes, one lifted a few millimetres. Show it from straight above and ask: 'Are both on the floor?' Take votes, then orbit to a low side view. (Save the Misplaced Shapes for students to inspect themselves.)", students: "Vote, then explain what the new view shows that the first one didn't.", devices: "away" },
+      { minutes: 7, title: "Model the camera moves", teacher: "Drive Tinkercad on the projector. Have students call out the move ('orbit left', 'zoom in') and mime orbit and pan with their hands. Get lost on purpose, then press F or Home.", students: "Call out moves, mime them, and predict whether orbiting changes the shape.", devices: "away" },
+      { minutes: 13, title: "Explore the scene", teacher: "Circulate. Ask 'How do you know it touches the floor?' and point mouse-less students to the view cube.", students: "Import the file, follow the steps, and answer the floating-shape question.", devices: "open" },
+      { minutes: 8, title: "Selection drill", teacher: "Watch for students who re-click from scratch instead of using Shift + click.", students: "Complete the selection drill and the two check questions.", devices: "open" },
+      { minutes: 9, title: "Prove it", teacher: "Steps disappear. Do quick teacher checks of selection at desks while students take screenshots.", students: "Take the three screenshots and show the teacher your selection moves.", devices: "open" },
+      { minutes: 3, title: "Reflect and exit", teacher: "Collect the exit ticket.", students: "Reflection and exit ticket.", devices: "open" },
+    ],
+    lookFors: [
+      "Students orbit down low before deciding whether a shape touches the floor.",
+      "Lost views recovered with Fit or Home, not by starting a new design.",
+      "Shift + click used to add a shape, and empty-space clicks used to deselect.",
+      "Students can say that the design did not change when the view did.",
+    ],
+    differentiation: {
+      support: [
+        "Give a controls card showing mouse, trackpad and touch moves side by side, with the on-screen buttons labelled.",
+        "Pair students as 'driver' and 'navigator' who swap roles every few minutes; the navigator gives directions in words.",
+        "Start with only the view cube and Home button, then add mouse moves once students are comfortable.",
+      ],
+      extend: [
+        "Build a small 'mystery scene' with one hidden problem (a floating or sunk shape) for a partner to find.",
+        "Try the orthographic view button and explain when it helps and when perspective is better.",
+        "Time trial: produce all three Prove it views in under a minute without the mouse wheel.",
+      ],
+    },
     preparation: [
       "Make sure students can sign in to your Tinkercad Classroom and create a design there.",
       "Download misplaced-shapes.stl and test importing it once on a student device.",
@@ -227,11 +285,14 @@ export const lesson: LessonInput = {
     discussionQuestions: [
       "Which view helped you most to spot the floating cube? Why?",
       "When would you want to look at a design from underneath?",
+      "Why do you think CAD programs move the camera instead of the shapes when you look around?",
     ],
     troubleshooting: [
       "Trackpad users: two-finger drag usually orbits and pinch zooms; behaviour varies by device. A mouse makes this lesson much easier.",
       "If an import looks huge or tiny, check that the import units are millimetres.",
       "If right-click opens a browser menu, make sure the pointer is over the 3D workspace.",
+      "If a student has dragged a shape by accident while trying to orbit, press Ctrl + Z to undo, then practise orbiting with the pointer over empty space.",
+      "If the camera seems to orbit around the 'wrong' point, press F or Home to reset, then try again.",
     ],
     answerGuidance: [
       "The cube is the floating shape (18 mm gap). The sphere is the sunk shape (mostly below the workplane).",

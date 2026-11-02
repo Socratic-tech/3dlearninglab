@@ -187,9 +187,69 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students place workplanes on any face to build features that sit flush, and remember to return to the default workplane.",
-    preparation: ["Download wedge-block.stl and test one import plus a workplane on its slope."],
-    equipment: ["Student devices with Tinkercad"],
+    purpose: "Students place workplanes on any face to build features that sit flush, and remember to return to the default workplane. The big shift is realising that 'up' is not fixed: the workplane decides which way new shapes face and where they land. This is the same idea professional CAD (Onshape, Fusion) is built on, where every sketch starts on a chosen plane or face, so it is an important bridge to the pro lessons.",
+    bigIdea: "The workplane is the floor new shapes land on, and I can move it onto any flat face so new shapes sit flat on that face.",
+    successCriteria: [
+      "I can place a workplane on a sloped or upright face.",
+      "I can add a shape that sits flat on that face.",
+      "I can get back to the default workplane when I'm done.",
+      "I can explain when moving the workplane is easier than rotating a shape, and when it isn't.",
+    ],
+    background: [
+      { title: "What a workplane really is", body: "Every new shape in Tinkercad is placed on the **active workplane**: it decides where the shape lands and which way is 'up' for it. The **default workplane** is the blue grid that stands for the build plate. When you move the workplane onto a face, you are creating a temporary local 'floor' with its own directions. Measurements such as a shape's height above the floor are then generally taken from that workplane rather than from the build plate. Nothing about the workplane is printed: it is a placement guide, not part of the design." },
+      { title: "Faces and normals", body: "A **face** is one flat surface of a shape. Every face has a direction pointing straight out of it at a right angle, which mathematicians and CAD users call the **normal**. When the workplane sits on a face, new shapes stand up along that face's normal. That is why the prediction's cylinder ends up tilted: on the slope, 'up' is at right angles to the slope, not towards the ceiling. On curved surfaces, Tinkercad lays the grid flat against the surface at the point you click (a tangent plane), so where you click matters." },
+      { title: "Using the tool in Tinkercad", body: "Choose **Workplane** in the toolbar (or press **W**), hover over a face to see a preview grid, and click to place it. The placed workplane usually looks different from the default one (in current versions it shows in a different colour), which is a useful cue that it is active. To return, choose the Workplane tool again and click an empty area of the workspace. Shapes already placed don't move when the workplane changes; it only affects new shapes and where they are measured from. Orbiting so the target face is clearly visible before clicking avoids placing the grid on the wrong face." },
+      { title: "The wedge in numbers", body: "The wedge's top rises 20 mm over its 40 mm length (from 10 mm high to 30 mm high), so it slopes at roughly 27°. Students never need to calculate this: the workplane matches the slope exactly. It can still be a nice moment for students who enjoy maths, and it shows why guessing the angle by eye with rotate-and-nudge is fiddly. Use this as a contrast with the previous lesson, not as a rule that the workplane is always better." },
+      { title: "Printing features on slopes and walls", body: "A feature that sticks out sideways from a vertical wall is an **overhang** when printed. Small, thin features (a 2 mm window frame) usually print fine; a long feature sticking out a long way may droop, as Print Detective showed. Features on a gentle slope usually print well because each layer is only slightly offset from the one below. It is worth asking students, 'Which way up would this print?' when they add details to walls." },
+      { title: "From Tinkercad to pro CAD", body: "In Onshape and Fusion every 2D sketch is drawn on a **plane** or a flat face, then turned into 3D. Those programs also let you create extra construction planes at offsets and angles. Students who are comfortable choosing 'which floor am I building on?' here will find sketch planes much less confusing later. Workplanes are one of the Foundations skills students will need to choose for themselves in the boss lesson, Workspace Rescue." },
+    ],
+    studentQuestions: [
+      { q: "Does the workplane get printed?", a: "No. It's only a guide for where new shapes go. Only shapes are printed." },
+      { q: "Why does the grid look different now?", a: "That's the workplane you placed. It shows where new shapes will land." },
+      { q: "Can I put a workplane on a curved surface?", a: "Yes. It lays flat against the surface at the spot you click, so click exactly where you want the feature." },
+      { q: "If I move the workplane, do my old shapes move too?", a: "No. Shapes you've already placed stay put. The workplane only changes where new shapes land." },
+    ],
+    connections: [
+      "Product designers add logos, buttons and grips to angled and curved faces, such as the side of a shoe or the slope of a game controller.",
+      "Architects place solar panels on sloped roofs, angled to catch as much sun as possible.",
+      "Engineers using professional CAD start every sketch by choosing a plane or face to draw on, the same idea as a Tinkercad workplane.",
+    ],
+    exitTicket: [
+      "In your own words, what does the workplane decide?",
+      "Name one object with a feature on a sloped or upright face. Which face would you put the workplane on?",
+      "Rate yourself 1–3 on placing a workplane, building on it, and getting back to the floor. What would help with your lowest score?",
+    ],
+    runPlan: [
+      { minutes: 5, title: "Hook", teacher: "Prop a book up as a ramp. Ask: 'How would you stick a button on this so it sits flat?' Lay a sheet of grid paper on the slope.", students: "Suggest ways to place a shape flat on a slope.", devices: "away" },
+      { minutes: 7, title: "Model the workplane", teacher: "Show the wedge, then place a workplane on the slope live and drop in a cylinder. Ask the prediction first. Return to the default workplane while students watch.", students: "Predict which way the cylinder faces, then watch.", devices: "away" },
+      { minutes: 12, title: "Build on the wedge", teacher: "Circulate. Ask students to orbit edge-on to prove a feature sits flush.", students: "Import the wedge, add a cylinder on the slope and a box on the back face, then return to the floor.", devices: "open" },
+      { minutes: 10, title: "Control panel", teacher: "Listen for students explaining why they chose the workplane or rotation.", students: "Build the control panel and answer the check questions.", devices: "open" },
+      { minutes: 8, title: "Prove it: solar house", teacher: "Steps disappear. Students may need to finish next lesson; that's fine.", students: "Build the house with a solar panel, window and door, then submit evidence.", devices: "open" },
+      { minutes: 3, title: "Reflect and exit", teacher: "Collect the exit ticket.", students: "Reflection and exit ticket.", devices: "open" },
+    ],
+    lookFors: [
+      "Students orbit so the target face is clearly visible before clicking.",
+      "Features checked edge-on to confirm they sit flush, not floating or buried.",
+      "The default workplane restored before building on the floor.",
+      "A reason given for choosing the workplane or rotation.",
+    ],
+    differentiation: {
+      support: [
+        "Use a physical model: grid paper on a propped-up book, with a small block placed on it.",
+        "Start on the upright back face (easier to see), then move to the slope.",
+        "Give a three-step card: place the workplane, build, return to the floor.",
+      ],
+      extend: [
+        "Place a workplane on a face of a shape you rotated to an odd angle, and build on it.",
+        "Put a label on the curved side of a cylinder and describe what the workplane does there.",
+        "Find out how Onshape or Fusion choose a plane for a sketch, and compare with Tinkercad.",
+      ],
+    },
+    preparation: [
+      "Download wedge-block.stl and test one import plus a workplane on its slope.",
+      "Find a book or board to prop up as a ramp, and a sheet of grid paper, for the hook.",
+    ],
+    equipment: ["Student devices with Tinkercad", "Optional: a book or board and grid paper to model a workplane on a slope"],
     misconceptions: [
       { id: "workplane-cosmetic", text: "The workplane only changes the grid, not where shapes go.", response: "Drag the same shape in before and after placing a workplane on the slope. Compare." },
       { id: "workplane-permanent", text: "Once moved, the workplane can't go back (or the shape is broken).", response: "Demonstrate returning to the default workplane, then drag in a new shape." },
@@ -202,6 +262,7 @@ export const lesson: LessonInput = {
       "If the workplane snaps to the wrong face, orbit so the target face is clearly visible, then click again.",
       "If new shapes appear tilted unexpectedly, the workplane is still on another face.",
       "The Roof shape is in the Basic Shapes panel. If students can't find it, a Wedge shape works too.",
+      "If students lose track of which workplane is active, return to the default workplane and start the feature again.",
     ],
     answerGuidance: [
       "Wedge slope: rises 20 mm over 40 mm, about 27°. Students don't need the angle — the workplane handles it.",

@@ -216,7 +216,66 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students move shapes by exact amounts on X, Y and Z and build the habit of checking that parts sit on the workplane.",
+    purpose: "Students move shapes by exact amounts on X, Y and Z and build the habit of checking that parts sit on the workplane. They learn that Tinkercad's height number describes where the *bottom* of a shape is, which makes stacking a simple addition problem. Because the workplane stands for the printer's build plate, a part that floats or sinks here is a print that fails later, so this lesson connects directly to Print Detective.",
+    bigIdea: "Every position has an X, a Y and a Z, and a part has to sit exactly on the workplane (Z = 0) to print the way I designed it.",
+    successCriteria: [
+      "I can name the X, Y and Z directions on the workplane.",
+      "I can move a shape an exact distance with nudges.",
+      "I can raise or lower a shape on Z, and drop it to the workplane with D.",
+      "I can check from a side view that nothing is floating or sunk.",
+    ],
+    background: [
+      { title: "Three directions, three numbers", body: "CAD uses **Cartesian coordinates**: every point has an X (left–right), Y (front–back) and Z (up–down) value measured from an **origin**. Tinkercad's workplane is the flat X–Y 'floor', and Z measures height above it. Many CAD programs, Tinkercad included, colour the axes red, green and blue in that order (X, Y, Z), which is an easy memory hook: R-G-B = X-Y-Z. Students may already know X and Y from coordinate grids in maths; Z is the new idea. In some other programs and games, Y is the up axis instead, so students who say 'Y is up' may not be wrong in general, just not in Tinkercad." },
+      { title: "What the height number means", body: "In Tinkercad the height shown on the black cone handle is the **elevation** of the shape's **bottom** above the workplane, not of its middle or top. That makes stacking simple: to sit one shape exactly on top of another, set the upper shape's elevation to the top of the lower one (the lower shape's elevation plus its height). A 10 mm cube on a 20 mm box sits at Z = 20, as the slider shows. A negative elevation means the shape is partly below the workplane." },
+      { title: "Nudges, the snap grid and the D key", body: "With a shape selected, the arrow keys nudge it by a small step and Shift + arrow by a bigger step (1 mm and 10 mm with the Snap Grid at 1 mm, which is why the lesson asks students to check that setting). Ctrl + ↑ / ↓ moves the shape up or down on Z. Arrow keys move along the workplane relative to how you are looking at it, so if the view is turned well round, an arrow may move the shape along a different axis from the one students expect: if nudges feel 'wrong', return to the Home view. **D** drops the selected shape straight down so its lowest point rests on the workplane, without moving it on X or Y. Warn students that **Ctrl + D** is a different command (duplicate), so a mistyped D can leave two shapes stacked in the same place." },
+      { title: "Why floating and sunk parts break prints", body: "The workplane stands for the build plate. If one part of a design floats above the rest, the slicer will try to start that part in mid-air (the Spaghetti Monster from Print Detective), or need supports under it. A part sunk below the workplane is just as bad, though less obvious. What happens depends on the slicer: many lift the whole model so its lowest point touches the plate, which leaves everything else hovering; some cut away whatever is below the plate. Either way, the print is not what was designed. Checking from the side and pressing D before export avoids both." },
+      { title: "Dragging, nudging or typing?", body: "Dragging is fine for rough layout, but it follows the Snap Grid and is hard to control precisely. Nudges give exact steps you can count (3 × Shift + → and 4 × → = 34 mm). For exact positions, Tinkercad's **Ruler** tool shows a shape's distance from a chosen point and lets you type values; it has its own lesson later (The Ruler Tool), so treat it as optional here for students who are ready. The reflection asks students to decide when each method is good enough, which is the real skill: matching the precision of the tool to the precision the job needs." },
+      { title: "How this connects", body: "This lesson turns Navigating Tinkercad's 'look from the side' into a fix. Exact sizes (Exact Dimensions) and stacking build on the bottom-elevation idea, rotations (Rotating Objects) often leave shapes floating or sunk so D comes back, and the boss lesson asks students to clean up the same Misplaced Shapes scene with no steps." },
+    ],
+    studentQuestions: [
+      { q: "Why do the arrow keys move the camera instead of my shape?", a: "Nothing is selected. Click the shape first so it's highlighted, then use the arrows." },
+      { q: "What's the difference between D and Ctrl + D?", a: "D drops the shape to the workplane. Ctrl + D makes a duplicate. If you suddenly have two shapes on top of each other, that's what happened: press Ctrl + Z." },
+      { q: "Why does the height number show the bottom of the shape, not the middle?", a: "Because that's what you need for stacking and printing: you want to know where the shape starts. Top = bottom + height." },
+      { q: "My arrow key moved it the wrong way. Why?", a: "Arrow keys can follow the direction you're looking from, so a turned view changes which way they go. Click Home on the view cube to reset the view, then nudge again." },
+      { q: "Can I type a position instead of nudging?", a: "Yes. The Ruler tool shows distances you can click and type. Nudging is still worth practising because it's quick." },
+    ],
+    connections: [
+      "3D printers, laser cutters and CNC machines all move using X, Y and Z coordinates; the G-code a slicer writes is mostly a long list of them.",
+      "Game level designers place every platform, coin and enemy by its coordinates, and test that nothing floats or sinks into the floor.",
+      "Factory robot arms are programmed with exact positions so they pick up and place parts in the same spot every time.",
+    ],
+    exitTicket: [
+      "Which keys would you press to move a shape exactly 23 mm to the right? Explain why that way.",
+      "A 15 mm tall box sits on the workplane. At what height should the bottom of a second shape be so it sits exactly on top? Explain how you know.",
+      "Sketch the workplane and label the X, Y and Z directions.",
+    ],
+    runPlan: [
+      { minutes: 4, title: "Hook", teacher: "Hold a book a few centimetres above the desk: 'If the printer starts here, what happens?' Link to the Spaghetti Monster from Print Detective.", students: "Predict what happens to a part that starts in mid-air or below the floor.", devices: "away" },
+      { minutes: 8, title: "Axes and moves", teacher: "Have students point left–right (X), front–back (Y) and up (Z). Then demonstrate the four moves on the projector and do the nudge maths together.", students: "Point the axes, answer the nudge question and the D prediction.", devices: "away" },
+      { minutes: 12, title: "Make a mess, then fix it", teacher: "Circulate. Ask 'How do you know it's on the floor now?' Students should answer with a side view or the height number.", students: "Rebuild the floating box and sunk sphere, fix both with D, and find the sunk shape.", devices: "open" },
+      { minutes: 9, title: "Parking lot and checks", teacher: "Watch for students dragging by eye. Ask them to count nudges aloud.", students: "Park five shapes in a row, then do the slider and check questions.", devices: "open" },
+      { minutes: 9, title: "Prove it", teacher: "Steps disappear. If a student is stuck, ask 'Where is the bottom of this cube right now?'", students: "Build the floating staircase and submit side and top views.", devices: "open" },
+      { minutes: 3, title: "Reflect and exit", teacher: "Collect the exit ticket.", students: "Reflection and exit ticket.", devices: "open" },
+    ],
+    lookFors: [
+      "Students check from a side view or press D before calling a shape 'done'.",
+      "Nudges counted or the number read, rather than dragging and hoping.",
+      "The axis named along with the direction ('front–back is Y').",
+      "Stacking reasoned as 'bottom of the top shape = top of the shape below'.",
+      "Students who notice arrow keys behaving oddly and reset the view.",
+    ],
+    differentiation: {
+      support: [
+        "Give an axis card: red X arrow, green Y arrow, blue Z arrow, with a hand gesture for each.",
+        "Work on X and Z only at first (left–right and up), then add Y.",
+        "Let students show the staircase live to you, or with a single labelled screenshot, instead of two screenshots.",
+      ],
+      extend: [
+        "In the parking lot, try Ctrl + D on a moved copy: Tinkercad can repeat the last move for each new duplicate. Does it?",
+        "Use the Ruler tool to type exact positions, and compare speed with nudging.",
+        "Write a staircase spec with different heights for a partner, then check their build against it.",
+      ],
+    },
     preparation: [
       "Test the nudge keys and Snap Grid on a student device. Nudge step size follows the Snap Grid setting, so keep it at 1 mm.",
       "Download misplaced-shapes.stl. An imported STL usually arrives as one combined shape, which is why students rebuild the scene with Tinkercad shapes instead of editing the import.",
@@ -235,6 +294,8 @@ export const lesson: LessonInput = {
       "If arrow keys move the camera instead of the shape, click the shape first so it is selected.",
       "If a nudge moves the wrong distance, check the Snap Grid setting.",
       "If Ctrl + arrow doesn't work in a browser, use the cone handle and watch the height number while dragging.",
+      "If a shape suddenly appears doubled, Ctrl + D (duplicate) was pressed instead of D. Undo with Ctrl + Z.",
+      "If arrow keys move a shape along an unexpected axis, the view has been turned; click Home on the view cube and try again.",
     ],
     answerGuidance: [
       "Staircase: Cube 1 at X = 0, Z = 0; Cube 2 at X + 20, elevation 15; Cube 3 at X + 40, elevation 30. Cylinder 25 mm along Y from Cube 1, elevation 0.",
