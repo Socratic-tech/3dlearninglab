@@ -237,13 +237,74 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students zero and use digital calipers for outside, inside and depth measurements, compare precision with a ruler, and handle the tool safely.",
+    purpose: "Students zero and use digital calipers for outside, inside and depth measurements, compare precision with a ruler, and handle the tool safely. Calipers are what make the next two lessons possible: clearances in Tolerances and Make It Fit are a few tenths of a millimetre, below what a ruler can reliably show.",
+    bigIdea: "Calipers can see tenths of a millimetre, but only if I zero them, use the right part for the job, and measure gently and squarely.",
+    successCriteria: [
+      "I can zero the calipers with the jaws closed and check the zero before I measure.",
+      "I can choose the outside jaws, inside jaws or depth rod for a measurement.",
+      "I can take three consistent readings without squeezing or tilting.",
+      "I can explain when a ruler is good enough and when I need calipers.",
+    ],
+    background: [
+      { title: "The parts and what they do", body: "Digital calipers have a fixed **beam** (the long bar) and a **slider** that carries the display. The large lower **outside jaws** close around an object. The small upper **inside jaws** have thin outer edges that open against the walls of a hole or slot. As the jaws open, a thin **depth rod** slides out of the far end of the beam. Most calipers can also measure a **step**: the flat end of the slider and the end of the beam separate as the jaws open. Every part reads from the same scale, so one zero sets them all. Buttons usually include on/off, **zero** (sometimes labelled ORIGIN) and **mm/in**. Many have a small locking screw on top; if the slider won't move, check it's loose." },
+      { title: "Resolution is not the same as accuracy", body: "The display shows hundredths (0.01 mm), which is its **resolution**. Typical classroom digital calipers are accurate to a few hundredths of a millimetre when used well (the exact figure is printed on the packaging or manual). In practice, technique causes much bigger errors than the tool: squeezing, tilting, dirt on the jaws, or measuring near the jaw tips. Printed plastic adds its own variation: layer lines, the seam where each layer starts, and a slightly flared first layer can each change a reading by a tenth of a millimetre or more. So on a print, three readings that agree within about 0.1 mm are excellent, and a last digit that flickers is normal." },
+      { title: "Zero, and what a wrong zero does", body: "Zeroing tells the calipers 'this position is 0.00'. If the jaws are closed, that's correct. If the display isn't zeroed (or was zeroed while the jaws were open), every reading carries the same **offset**: a systematic error that repeat readings and averaging cannot fix. The prediction question works through this. A neat trick for later: zero the calipers with the outside jaws closed on a peg, then measure a hole with the inside jaws. Because every part reads from the same scale, the display now shows the *difference* between hole and peg, which is the clearance. Engineers call this comparative measurement." },
+      { title: "Technique: square, gentle, deep in the jaws", body: "Close the outside jaws until they **just touch**; soft things like erasers compress, and even rigid plastic gives a little. Keep the jaws **square** to the object: tilted outside jaws measure a diagonal and read too large, and tilted inside jaws read too small, so rock them gently to find the **largest** inside reading. On a round peg, turn it slightly between readings to catch any out-of-round shape. Measure as close to the beam as is practical rather than at the very tips, which can flex. On printed parts, measure above the first few layers, which are often slightly squashed outwards (called **elephant's foot**). For depth, rest the end of the beam flat on the top surface and keep the beam upright while the rod touches the bottom." },
+      { title: "Limits worth knowing", body: "The inside jaws can't fit into very small holes: when closed, their outer edges already have some width. For tiny holes, use a drill bit or pin of known size as a plug gauge, or measure the matching peg instead. Very soft, warm or moving objects can't be measured reliably. Thin or flexible items are easier to measure in a stack (measure ten and divide by ten). For even finer work, engineers use **micrometers** (reading to 0.001 mm) and, in factories, coordinate measuring machines." },
+      { title: "Where this goes next", body: "Students now have two measuring tools. Ruler readings (±0.5 mm) are fine for overall sizes; calipers are needed whenever two parts meet, because fits depend on tenths of a millimetre. In Tolerances they will measure printed pegs and holes to discover how the printer changes sizes, and in Make It Fit they will measure a real object and design around it. Keep the Axis Cube X/Y/Z readings: they are early calibration data for your printer." },
+    ],
+    studentQuestions: [
+      { q: "Why does the last number keep flickering?", a: "The display can show hundredths, which is finer than your hand can hold perfectly still. A flicker of one or two hundredths is normal. Let it settle, then read it." },
+      { q: "Can I use inches?", a: "The calipers can, but our CAD work is in millimetres. Press the mm/in button until you see mm, so you never have to convert." },
+      { q: "Why is my inside reading smaller than I expected?", a: "The inside jaws are probably tilted or not across the widest part of the hole. Rock them gently and watch for the biggest number." },
+      { q: "Should I squeeze to make sure the jaws are touching?", a: "No. Just touching is right. Squeezing bends soft things, and even plastic prints, so the number comes out too small." },
+      { q: "Can I use the pointy tips to scratch a line?", a: "No. It's unsafe and it blunts the tips, so they stop measuring accurately. Use a pencil to mark lines." },
+    ],
+    connections: [
+      "Machinists and quality inspectors check parts against drawings with calipers every day, and use micrometers when they need thousandths of a millimetre.",
+      "Bike mechanics measure seat posts, handlebars and brake discs with calipers, because the right replacement part can depend on a fraction of a millimetre.",
+      "3D-printing technicians calibrate printers by printing test shapes, measuring them with calipers and adjusting settings until prints match the design.",
+    ],
+    exitTicket: [
+      "List the steps you take before your first caliper reading of the day.",
+      "Give one job where a ruler is good enough and one where you would need calipers. Explain your choices.",
+      "Your three readings of a printed peg were 7.96, 8.31 and 7.98 mm. What would you check, and what would you do next?",
+    ],
+    runPlan: [
+      { minutes: 5, title: "Hook and safety", teacher: "Show a ruler and calipers side by side measuring the same peg. Read the care and safety card together and model passing calipers closed, display up.", students: "Compare the two readings and name what calipers might be for.", devices: "away" },
+      { minutes: 8, title: "Model measuring", teacher: "Under a document camera: switch on, set mm, wipe, close, zero, measure the peg three times while turning it. Then zero with the jaws slightly open and ask the class to find what's wrong.", students: "Watch, spot the error, then answer the zeroing prediction.", devices: "open" },
+      { minutes: 14, title: "Practise in pairs", teacher: "Pairs share one set: one measures, one records and repeats the number aloud with its unit; swap each item. Check zeroing and pressure as you circulate.", students: "Parts matching, post height, peg diameter, Axis Cube X/Y/Z.", devices: "open" },
+      { minutes: 10, title: "Outside, inside, depth", teacher: "Hand out objects with all three features. Watch for tilted inside jaws and squeezed soft objects.", students: "Measure outside, inside and depth three times each, then the follow-up questions.", devices: "away" },
+      { minutes: 10, title: "Prove it", teacher: "Hand out unfamiliar objects and run the teacher check with a few students at a time.", students: "Precision report: measure, record, model the features and submit.", devices: "open" },
+      { minutes: 3, title: "Reflect", teacher: "Collect one example of a ruler-versus-calipers comparison to share.", students: "Reflection.", devices: "open" },
+    ],
+    lookFors: [
+      "Jaws closed and zeroed before the first reading, without prompting.",
+      "The right part chosen for each job and named correctly.",
+      "A light touch, especially on soft objects.",
+      "Rocking or turning the object to find the true reading rather than accepting the first number.",
+      "Safe handling: jaws closed when passed, never pointed or used to scratch.",
+    ],
+    differentiation: {
+      support: [
+        "Give a picture card of the calipers with each part colour-coded and named, next to a photo of an example object for each part.",
+        "Start with a large, rigid, flat-sided object (the Axis Cube) before round, soft or inside measurements.",
+        "Pair a reader and a recorder: the reader says the number and unit aloud, the recorder repeats it back before writing. A magnifier helps students who find the small display hard to read.",
+      ],
+      extend: [
+        "Comparative measuring: zero on the peg with the outside jaws, then measure a hole with the inside jaws. Explain why the display now shows the difference.",
+        "Measure two prints of the Axis Cube on X, Y and Z and decide whether differences come from the printer or from your technique.",
+        "Find out how a micrometer reads to 0.001 mm and describe a job where an engineer would choose it over calipers.",
+      ],
+    },
     preparation: [
       "Check every caliper turns on, reads in mm, and zeroes. Replace flat batteries (often an LR44/SR44 button cell — check your model).",
       "Print a few Axis Cubes and Mystery Fit Objects if you didn't for the previous lesson.",
       "Prepare unfamiliar objects with an outside, inside and depth (tape roll, bottle cap, pen cap, PVC fitting) for the prove challenge.",
+      "Before class, set one caliper deliberately un-zeroed (zero it with the jaws slightly open) for the misconception demo, and label it.",
+      "Decide on a routine for handing out and returning calipers (closed, switched off, in the case) and count them back in.",
     ],
-    equipment: ["Digital calipers (one per pair is ideal)", "Printed Axis Cubes and Mystery Fit Objects (optional)", "Objects with inside and depth features", "Student devices with Tinkercad"],
+    equipment: ["Digital calipers (one per pair is ideal)", "Printed Axis Cubes and Mystery Fit Objects (optional)", "Objects with inside and depth features", "Student devices with Tinkercad", "Document camera or projector for modelling", "Optional: magnifier for reading the display", "Spare button-cell batteries"],
     misconceptions: [
       { id: "skip-zero", text: "The display is always right, even without zeroing.", response: "Hand out a caliper deliberately not zeroed; have students find the error with the jaws closed." },
       { id: "add-offset", text: "A starting offset should be added to the reading.", response: "Ask: with nothing between the jaws, should it read 0.32? So the extra must be taken away." },
@@ -253,6 +314,7 @@ export const lesson: LessonInput = {
     discussionQuestions: [
       "Why should you record exactly what you measured, even if you'll round later?",
       "What's the most precise tool you need for a cookie cutter? For a bottle cap?",
+      "Why might two careful people get slightly different readings on the same printed part?",
     ],
     printableObjects: ["Axis Cube 20 mm", "Mystery Fit Object"],
     slicerSettings: "Starting point: PLA, 0.2 mm layers, 15% infill, 2–3 walls, no supports. Adjust for your printer. Measure one print yourself first so you know your printer's typical difference from CAD.",
@@ -261,6 +323,8 @@ export const lesson: LessonInput = {
       "Readings in inches: press the unit button (often labelled mm/in).",
       "Display shows a minus sign: it was zeroed while the jaws were open. Close them and zero again.",
       "Inside measurement reads too small: the inside jaws were tilted. Rock them gently to find the largest reading.",
+      "Hole too small for the inside jaws: use a drill bit or pin of known size as a gauge, or measure the matching peg instead.",
+      "Slider won't move: check the small locking screw on top is loosened.",
     ],
     answerGuidance: [
       "Mystery Fit Object CAD sizes: peg 8.00 mm diameter, 12 mm tall; post 6 × 6 × 6 mm; base 34 × 22 × 10 mm. Printed parts usually read within a few tenths of a millimetre; differences depend on the printer and material.",

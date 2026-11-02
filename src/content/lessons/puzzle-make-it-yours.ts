@@ -154,7 +154,37 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Ownership and identity (UDL engagement) while practising holes, text and proportional scaling, with a real constraint: personal touches must not change the faces where pieces meet. Optional in a 3-week run.",
+    purpose: "Ownership and identity (UDL engagement) while practising holes, text and proportional scaling, with a real constraint: personal touches must not change the faces where pieces meet. Students revisit the subtraction skills from the Holes lesson, learn that tiny details have a printable minimum size, and practise checking a design against its job (the puzzle must still assemble) after every change. Optional in a 3-week run.",
+    bigIdea: "I can make a design my own, as long as every change respects the parts that have to fit.",
+    successCriteria: [
+      "I can tell which faces of my pieces touch other pieces and which faces are free to change.",
+      "I can scale all my pieces together so the shapes still match.",
+      "I can engrave letters or add a loop that are big and thick enough to print.",
+      "I can check that my puzzle still assembles after I personalise it.",
+    ],
+    background: [
+      { title: "Touching faces and free faces", body: "In an assembled 3 × 3 × 3 cube, every piece has two kinds of face. **Touching faces** press against another piece (or would, during assembly as pieces slide past each other). **Free faces** are on the outside of the finished cube. Anything that sticks out of a touching face, or sinks into one, changes the shape the neighbouring piece has to fit around. Engraving a touching face won't block the fit (it only removes plastic), but it can show a solver where pieces meet, which gives away part of the answer. The quickest check is the assembled backup from day 9: decorate the piece *in place*, then orbit the whole cube and confirm nothing pokes into a neighbour." },
+      { title: "Scaling the whole set", body: "Scaling proportionally multiplies every length by the same number. Going from 45 mm to 30 mm is a scale of two thirds, so each 15 mm cube becomes 10 mm and the pieces still match. Volume shrinks faster than length: two thirds × two thirds × two thirds is about 0.3, so a keychain set uses roughly a third of the plastic, and print time drops by a similar amount (not exactly, because travel moves and the first layer don't shrink as much). The risk is scaling pieces one at a time, or scaling with only one dimension changed. A useful habit: **add letters and loops after scaling**, so 6 mm letters stay 6 mm instead of shrinking below the printable minimum." },
+      { title: "How small is too small to print?", body: "A typical school printer has a 0.4 mm nozzle and prints lines of plastic about 0.4–0.45 mm wide, in layers usually 0.2 mm tall. Any detail narrower than about two lines (roughly 1 mm) prints poorly or disappears in the slicer. That is why the lesson asks for letters at least 5 mm tall (their strokes are then thick enough) and at least 0.8–1 mm deep (four or five layers, enough to read and to catch light). Bold, simple fonts survive better than thin or decorative ones. Loops need the same thinking: a Tube wall of 2 mm or more is a few lines thick and survives being pulled by a key ring." },
+      { title: "Engraved or raised?", body: "Engraved (recessed) letters are cut into the face with a Text hole, so the outside of the cube stays flat. Raised (embossed) letters stand up from the face and make the cube bigger. For this project engraving is usually the better choice: a flat outside keeps pieces sliding smoothly and keeps the cube's outside size the same for the box students design on day 15. A key-ring loop does stick out, so a student with a loop should know their box will need room for it (or may decide a keychain doesn't need a box)." },
+      { title: "Thinking ahead to printing", body: "Tomorrow students turn every piece so it prints without supports. Personal touches interact with that. Letters on a face that ends up facing up or sideways usually print cleanly; letters cut into the face that sits on the build plate leave small gaps that the printer has to bridge over, which can look rough. A loop that lies flat on the plate prints as a simple ring; a loop standing on its edge is weaker, because 3D prints are weakest *between* layers and a key ring pulls straight across them. The loop should also overlap the piece slightly (by half a millimetre or so) rather than just touching it, so it groups into one solid that the slicer reads as a single part." },
+    ],
+    studentQuestions: [
+      { q: "Can I put my name on every piece?", a: "You can, if every letter is on a free face and big enough to print. Short is often better: initials read clearly at this size, while a long name has to shrink below 5 mm to fit." },
+      { q: "Why can't I just make my letters smaller so they fit?", a: "The printer draws with a line of plastic about 0.4 mm wide. Letters under about 5 mm tall have strokes too thin for that line, so they blur or vanish." },
+      { q: "I scaled my cube and now my letters are tiny. What happened?", a: "Everything in a group scales together, letters included. Undo, scale first, then add the letters at full size." },
+      { q: "Can I use a different font?", a: "Yes, if the Text shape offers it. Pick something bold and simple, then check the thinnest part of each letter is at least about 1 mm wide." },
+    ],
+    connections: [
+      "Mass customisation: companies print custom hearing-aid shells and dental aligners shaped for one person, while the parts that must connect to standard components stay exactly the same.",
+      "Product and jewellery designers engrave names and serial numbers onto items, choosing depth and letter size so the marking survives use and cleaning.",
+      "Industrial designers call it 'protecting the interface': you can restyle a phone case, but the cut-outs for buttons and the camera must not move.",
+    ],
+    exitTicket: [
+      "Name one face of one of your pieces that is free to decorate, and one that is not. How did you tell?",
+      "Why do letters need a minimum size when they are printed, but not on screen?",
+      "If you scaled your whole puzzle down, what else changed besides the size of the cube?",
+    ],
     runPlan: [
       { minutes: 5, title: "Show and decide", teacher: "Examples; the outside-faces rule.", students: "Choose a touch.", devices: "away" },
       { minutes: 30, title: "Personalise", teacher: "Circulate; check engraving depth and placement.", students: "Add touches, keep pieces grouped.", devices: "open" },

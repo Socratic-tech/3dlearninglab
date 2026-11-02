@@ -151,7 +151,39 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Opens the 18-mission Puzzle Cube project with something students already know. This is a teacher-led day: math cubes, talk and a productive struggle, with devices down for most of the period. The screens are reference points, one quick check and the evidence upload. Falling-block game pieces (tetrominoes) make tiling, rotation and 'the count isn't enough, the shapes must fit' concrete in 2D before the jump to 3D polycubes. The design brief comes on day 4. For a 3-week run, skip days 5, 10 and 12.",
+    purpose: "Opens the 18-mission Puzzle Cube project with something students already know. This is a teacher-led day: math cubes, talk and a productive struggle, with devices down for most of the period. The screens are reference points, one quick check and the evidence upload. Falling-block game pieces (tetrominoes) make tiling, rotation and 'the count isn't enough, the shapes must fit' concrete in 2D before the jump to 3D polycubes. The design brief comes on day 4. For a 3-week run, skip days 5, 10 and 12. Underneath the fun, students meet three ideas the whole project depends on: two shapes are 'the same' if one can be turned (or flipped) to match the other, a correct count is necessary but not enough for pieces to fit, and some things can be proved impossible rather than just found hard.",
+    bigIdea: "A puzzle is about shape, not just count: pieces can have exactly the right number of squares and still not fit, and a third dimension gives pieces new ways to fit together.",
+    successCriteria: [
+      "I can find the different flat shapes made of 4 squares and explain why a turned or flipped copy isn't a new shape.",
+      "I can explain why having the right number of squares doesn't guarantee that pieces will fill a space.",
+      "I can make a flat puzzle, time a partner solving it, and change it to make it harder.",
+      "I can describe one thing a piece can do in 3D that a flat piece can't.",
+    ],
+    background: [
+      { title: "Polyominoes and polycubes", body: "A **tetromino** is a flat shape made of 4 squares joined edge to edge. It belongs to a family called *polyominoes*, named and made popular by the mathematician Solomon Golomb in the 1950s: dominoes (2 squares), trominoes (3), tetrominoes (4), pentominoes (5) and so on. If turning and flipping are allowed, there is 1 domino, 2 trominoes, 5 tetrominoes and 12 pentominoes. The 3D cousins are **polycubes**: cubes joined face to face. Every piece in this project is a polycube, so today's flat work with math cubes is the 2D warm-up for the real thing." },
+      { title: "Why 5 shapes, but 7 in the game", body: "In a falling-block game a piece can be rotated on screen but never picked up and turned over, so mirror-image pairs (the S and its mirror, the L and its mirror) count as different pieces: 5 shapes + 2 mirror twins = 7. On a desk, a student can lift a flat piece and flip it, so a mirror image is just the same piece turned over. This is worth leaving open for a minute in the launch, because it plants an idea that returns on day 3: some pieces that *aren't* flat have mirror twins you can never turn to match, like a left and a right hand." },
+      { title: "The checkerboard proof", body: "The I, O, T, S fill is a classic example of an *impossibility proof*. Colour the 4 × 4 square like a checkerboard: 8 light and 8 dark squares. Wherever you put an I, O or S, it covers 2 light and 2 dark. A T always covers 3 of one colour and 1 of the other. So I + O + S cover 6 light and 6 dark, and the T can only add 3 + 1, never the 2 + 2 needed. No amount of trying will ever work. The lesson for students is the reasoning move: instead of 'I tried lots of times', look for something that stays the same in every attempt. Colouring arguments like this also work in 3D, so they are a good extension for students who love proof." },
+      { title: "Running a productive struggle", body: "The impossible fill only works if students are allowed to struggle before anyone says 'impossible'. Useful moves: ask pairs to compare their closest attempts ('which square is always left over?'), ask 'how could we be *sure*?' rather than 'is it possible?', and celebrate the switch from trying to explaining. Some students find an unsolvable task unsettling. Name it as normal and deliberate: designers and mathematicians spend a lot of time ruling ideas out, and today ruling one out *is* the success." },
+      { title: "What makes a puzzle hard", body: "The stump-your-partner swap gives you real evidence for ideas the class will use all project. Puzzles tend to get harder when pieces look alike (solvers mix them up), when pieces have no long straight edge to line up against a side, and when a piece can be placed in many orientations, because every orientation is another option to try. Symmetrical pieces such as the O look the same however you turn them, so they have fewer options and tend to be easy. Collect students' explanations in their own words now; on days 4, 5 and 16 they will use them to tune their own puzzle." },
+      { title: "Where the project goes from here", body: "Day 2 sketches 3D pieces on isometric dot paper, day 3 sets the piece rules, day 4 plans the whole 3 × 3 × 3 cube as a layer map and sets a design brief, and day 5 tests a math-cube prototype. Week 2 builds the cube in Tinkercad, week 3 prints it and week 4 boxes, playtests and ships it. Puzzles like this have a long history: the best known is the **Soma cube**, invented by the Danish designer and poet Piet Hein, which students meet on day 3. You don't need to teach any of this today; it helps to know where each idea lands." },
+    ],
+    studentQuestions: [
+      { q: "Do I need to have played Tetris?", a: "No. All you need is the idea: pieces made of 4 squares that fill a space with no gaps and no overlaps." },
+      { q: "If I flip a shape over, is it a new shape?", a: "Not with real cubes: you can pick it up and turn it over, so it's the same piece. A game won't let you flip pieces, which is why it treats mirror images as different." },
+      { q: "Is it impossible, or am I just bad at it?", a: "Great question. Trying many times can't prove something is impossible. You need a reason that works for every attempt. Keep going for now, and notice what always goes wrong." },
+      { q: "Will our real puzzle be flat?", a: "No. It will be a 3 × 3 × 3 cube, and some pieces will climb up a layer. That's what makes 3D puzzles more interesting." },
+    ],
+    connections: [
+      "Packing is a real job: logistics planners and the software they use work out how to fit boxes of different shapes into lorries, shipping containers and warehouse shelves with as little empty space as possible.",
+      "Game and puzzle designers tune difficulty by playtesting, timing players just like today's swap, then changing one thing at a time.",
+      "Tilers, brick-layers and architects plan floors, walls and paving as tilings, choosing shapes that cover a space with no gaps.",
+      "Computer scientists study packing puzzles as search problems: programs that try placements, back up when stuck and try again.",
+    ],
+    exitTicket: [
+      "Two shapes made of 4 squares look different on your desk. How could you check whether they are really the same shape?",
+      "In your own words, why doesn't having the right number of squares guarantee a puzzle will fit?",
+      "What is one change that made a flat puzzle harder to solve, and why do you think it worked?",
+    ],
     preparation: [
       "Math cubes: about 30 per student or pair. They snap face to face, which matches the puzzle rule.",
       "Optional: something to show falling-block pieces (a sketch, a short clip, or a student who can describe the game).",
@@ -186,6 +218,8 @@ export const lesson: LessonInput = {
     },
     misconceptions: [
       { id: "count-skipped", text: "If the cube count works, the pieces will fit.", response: "The I, O, T, S challenge: 16 cubes, 16 spaces, and it still can't be done. Shapes matter, not only counts." },
+      { id: "flip-is-new", text: "A flipped (mirror-image) flat shape is a new shape.", response: "Pick the piece up and turn it over on the desk: it lands on top of its mirror image. Games treat mirrors as different only because you can't flip pieces on screen." },
+      { id: "impossible-means-hard", text: "If nobody has solved it yet, it must just be very hard.", response: "Ask what would convince everyone it can never work. A reason (like the checkerboard colours) beats any number of failed tries." },
     ],
     discussionQuestions: [
       "How do you know something is impossible, not just hard?",

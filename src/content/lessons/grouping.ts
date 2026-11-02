@@ -181,9 +181,68 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students decompose objects into primitives, group them into a single printable part, and edit groups safely.",
-    preparation: ["Build the Show Me table yourself once so you can demonstrate ungroup → edit → regroup."],
-    equipment: ["Student devices with Tinkercad", "Optional: a few classroom objects to 'decompose' as a warm-up"],
+    purpose: "Students decompose objects into primitives, group them into a single printable part, and edit groups safely. This is the core habit of all solid modelling: see a complex object as simple shapes, combine them, and keep the design editable. Every later Tinkercad lesson (holes, align, duplicate, mirror, text and the Name Tag boss) ends with 'group it into one part', so the time spent here on touching, overlapping and ungroup-edit-regroup pays off for the rest of the course.",
+    bigIdea: "Complex objects are built from simple shapes: grouping makes them act as one part, but only shapes that touch or overlap will print as one piece.",
+    successCriteria: [
+      "I can see the simple shapes (primitives) inside an everyday object.",
+      "I can build an object from primitives and group it so it moves and resizes as one.",
+      "I can make parts overlap so they would print as one connected piece.",
+      "I can ungroup, change one part and regroup without starting over.",
+    ],
+    background: [
+      { title: "Primitives and decomposition", body: "A **primitive** is a ready-made basic shape: box, cylinder, sphere, cone, wedge, roof and so on. Breaking a complex object into these shapes is called **decomposition**, and it is the same thinking used in computer science when a big problem is split into small ones. Professional designers do it constantly: before touching the software they ask 'what is this made of?' A quick paper sketch with shapes labelled ('cylinder body, cone nose, three wedge fins') is a valid plan and a great support for students who find the screen overwhelming." },
+      { title: "What grouping actually does", body: "In Tinkercad, **Group** (Ctrl+G, or the Group button in the toolbar) combines the selected shapes into one object. Behind the scenes this is a *Boolean union*: the shapes' volumes are merged, and overlapping regions become one solid. Once grouped, the object moves, rotates, resizes and exports as a single thing. Grouping does **not** move anything and does **not** fill gaps. If a cube is floating 5 mm above a cylinder, the group contains a cylinder and a separate floating cube. Holes (next lesson) are only cut when they are grouped with a solid, so grouping is also the 'make it happen' step for subtraction." },
+      { title: "Touching versus overlapping", body: "A 3D printer builds the part layer by layer from the bottom up. Anything with nothing underneath it, and nothing joining it to the rest of the part, has nowhere to go. Shapes that merely **touch** at a single point or along a hairline edge (two stacked spheres, a cylinder sitting exactly on the corner of a box) create a tiny, weak join, or one the software may treat as two separate pieces. Shapes that **overlap** share real volume, so the merged solid is continuous. A good habit is to sink parts 1 to 3 mm into each other. It costs nothing in the design and makes prints much stronger." },
+      { title: "Editing a group safely", body: "Dragging a handle on a group resizes the **whole group**: every part stretches together. To change one part, **Ungroup** (Ctrl+Shift+G), edit that shape, then select everything and group again. Undo (Ctrl+Z) works through grouping too, so mistakes are cheap. Teaching this one method gives students a reliable way to fix any part. Professional CAD keeps a *history* of features so any step can be edited later; ungroup-edit-regroup is Tinkercad's simple version of that idea." },
+      { title: "Colour, holes and the group's look", body: "When shapes are grouped, Tinkercad usually shows the group in a single colour (taken from one of the parts). This is cosmetic: most school printers print in whatever filament is loaded, so screen colour does not change the print. The shape panel offers a multicolour option for groups if students want their parts to keep their colours on screen. If a group suddenly looks striped or see-through, a shape inside it has been switched to **Hole**, which is the bridge into the next lesson." },
+    ],
+    studentQuestions: [
+      { q: "Why did my whole group turn one colour?", a: "That's normal: Tinkercad shows a group in one colour. It doesn't change the print. If you want your colours back on screen, look for the multicolour option in the shape panel." },
+      { q: "Can I group a group?", a: "Yes. You can group groups together, which is handy for big builds. Ungroup works one level at a time." },
+      { q: "How much should my shapes overlap?", a: "A few millimetres is plenty. Sink a part 1 to 3 mm into the one it joins so they share real volume, not just a touching edge." },
+      { q: "Do I have to group before I print?", a: "Grouping makes the object one part that's easy to move and export, and it's needed to cut holes. Most importantly, parts must touch or overlap; grouping alone won't join parts with a gap." },
+    ],
+    connections: [
+      "Toy designers and product designers sketch new products as simple blocks first (sometimes called 'blocking out') before adding detail.",
+      "Game and film 3D artists build characters and props from simple shapes and combine them, the same decomposition students practise here.",
+      "Engineers call a set of parts that work as one unit an 'assembly'; a bike, a chair or a phone is an assembly of simpler parts.",
+    ],
+    exitTicket: [
+      "Name an object in the room and list the primitives you would use to build it.",
+      "Two shapes are grouped but there is a 2 mm gap between them. What will happen when it prints, and how would you fix it?",
+      "Describe the steps to make just one part of a grouped model taller.",
+    ],
+    runPlan: [
+      { minutes: 5, title: "Hook: what's it made of?", teacher: "Hold up or show two or three objects (a marker, a mug, a toy). Ask students to name the shapes inside each. Accept sketches, gestures or words.", students: "Decompose objects aloud or on mini whiteboards.", devices: "away" },
+      { minutes: 8, title: "Model the table", teacher: "Build the Show Me table live. Group it, drag it, then resize the group to show every leg stretch. Ungroup, change one leg, regroup. Then pose the floating-cube prediction.", students: "Watch, call out the next step, answer the prediction.", devices: "away" },
+      { minutes: 12, title: "Build and explore", teacher: "Circulate. Ask 'Does every part touch something? Show me from the side.' Prompt orbiting rather than fixing for them.", students: "Build the table, make one leg 40 mm, regroup and orbit, undo. Then the matching activity.", devices: "open" },
+      { minutes: 15, title: "Rocket and desk buddy", teacher: "Let students choose: finish the rocket first, or go straight to the desk buddy. Check the ungrouped screenshot habit early.", students: "Build the rocket and/or desk buddy, answer the two checks, capture evidence.", devices: "open" },
+      { minutes: 5, title: "Reflect and exit", teacher: "Share one clever decomposition from the room. Collect the exit ticket.", students: "Reflection and exit ticket.", devices: "open" },
+    ],
+    lookFors: [
+      "Students naming primitives before building (aloud, on paper or in the reflection).",
+      "Parts sunk into each other rather than balanced on an edge or point.",
+      "Orbiting the model to check joins from the side and below.",
+      "Ungroup-edit-regroup used to change a part, rather than resizing the whole group or starting again.",
+    ],
+    differentiation: {
+      support: [
+        "Give a printed sketch of the rocket with each primitive labelled, so students match shapes rather than invent them.",
+        "Let students build the table with typed dimensions only (no dragging), reading each value from a card.",
+        "Pair students: one reads the steps aloud, the other builds, then swap for the rocket.",
+      ],
+      extend: [
+        "Build the desk buddy with at least one part rotated (a tilted arm or a leaning fin) that still overlaps its neighbour.",
+        "Decompose a more complex object (a bike, a lamp) on paper first, then build a simplified version in under 20 primitives.",
+        "Use grouping in layers: group the arms, group the head, then group everything, and explain why that order makes edits easier.",
+      ],
+    },
+    preparation: [
+      "Build the Show Me table yourself once so you can demonstrate ungroup → edit → regroup.",
+      "Choose two or three classroom objects (a marker, a mug, a toy) for the decomposition warm-up.",
+      "Decide how students will capture the ungrouped screenshot (built-in screenshot tool, or Tinkercad's own image export) and show it once.",
+    ],
+    equipment: ["Student devices with Tinkercad", "Optional: a few classroom objects to 'decompose' as a warm-up", "Optional: paper or mini whiteboards for shape sketches"],
     misconceptions: [
       { id: "group-glues", text: "Grouping glues shapes together even if they don't touch.", response: "Group a floating cube with a cylinder, then drag the group: the gap stays. Ask what the printer would do with the cube." },
       { id: "scale-group-part", text: "You can resize one part of a group by dragging the group's handles.", response: "Resize a grouped table and show every part stretched. Then ungroup and resize just one leg." },
@@ -197,6 +256,8 @@ export const lesson: LessonInput = {
       "If a group turns one colour, that's normal; colour doesn't change the print. Tinkercad offers a multicolour option in the shape panel for grouped objects.",
       "If a group looks striped or partly invisible, one shape was accidentally set to Hole. Ungroup and set it back to Solid.",
       "If Ctrl + G does nothing, check that more than one shape is selected.",
+      "If a part seems to vanish after grouping, it may be fully inside another part (merged away). Ungroup and orbit to find it.",
+      "If the rocket floats or sinks below the grid, select it and press D to drop it onto the workplane.",
     ],
     answerGuidance: [
       "Table: 60 × 40 × 4 top at 30 mm; four 6 × 6 × 30 legs under the corners; grouped.",

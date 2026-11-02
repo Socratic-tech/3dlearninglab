@@ -169,7 +169,38 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Applies the 45° self-supporting rule to puzzle pieces. Students reason that removing material can't block assembly, and weigh where a visible chamfer changes the puzzle. Optional when no piece needs one.",
+    purpose: "Applies the 45° self-supporting rule to puzzle pieces. Students reason that removing material can't block assembly, and weigh where a visible chamfer changes the puzzle. It is a first taste of 'design for manufacturing': changing a shape slightly so the machine can make it well, and judging when a small fix is enough and when the design itself must change. Optional when no piece needs one.",
+    bigIdea: "A 45° slope lets each layer rest partly on the one below, so I can cut away plastic to make a hanging cube printable without supports.",
+    successCriteria: [
+      "I can explain why a 45° slope prints without supports but a flat overhang doesn't.",
+      "I can place a Wedge hole under a hanging cube and check the slope from the side.",
+      "I can explain why removing plastic never stops the pieces fitting together.",
+      "I can decide whether a piece needs a chamfer or a redesign.",
+    ],
+    background: [
+      { title: "Overhangs and the 45° rule of thumb", body: "An **overhang** is any part of a print that leans out past the layer beneath it. Overhang angles are measured from straight up (vertical). At 45°, each new layer steps out by about the same distance as the layer height: with 0.2 mm layers, about 0.2 mm per layer. The printed line is roughly 0.4 mm wide, so about half of it still sits on plastic below. Steeper outward angles (flatter overhangs) leave more of each line over air, and the plastic droops, curls up or strings. Many printers can manage somewhat more than 45° with good cooling, but 45° is the widely used safe rule, and it is easy for students to check." },
+      { title: "How the Wedge hole makes a chamfer", body: "A Tinkercad **Wedge** is a triangular prism with a square corner. When its length and height are equal (for example 15 × 15 × 15), the sloped face is exactly 45°. Set to Hole and placed under the hanging cube, it removes the lower, outer half of that cube diagonally, leaving a ramp that rises from the supported side outwards. Each layer of the ramp sits partly on the layer below. The tricky part is rotation: the slope must rise *toward* the piece, with the square corner at the bottom outer edge of the hanging cube. Checking from the side view after each rotation catches most mistakes. For a 30 mm keychain set, the wedge is 10 × 10 × 10." },
+      { title: "Why removing plastic can't block the fit", body: "Each piece fills a set of cube-shaped spaces in the 3 × 3 × 3 block. A chamfer only makes a piece *smaller*: it takes up less of its own spaces and none of anyone else's. Another piece can't collide with empty space, so the puzzle still assembles, with a small triangular gap left inside. The real trade-offs are elsewhere: the chamfered cube is slightly weaker, and a notch on the outside of the finished cube is visible, which a sharp-eyed solver can use as a clue. Hiding the chamfer on a face that ends up inside the cube avoids that, if the geometry allows it." },
+      { title: "Chamfer, bridge or redesign?", body: "A quick decision path: if turning the piece fixes it, turn it (day 11). If a cube is held on both sides, it is a bridge and prints. If one cube hangs off a single face, a 45° chamfer under it works. If two or more cubes hang out in a row, a slope under them all would remove most of the arm and weaken the piece badly, so the better fix is to change the piece: move a cube to a neighbouring piece so less hangs out, then re-check the piece rules from week 1. This is exactly how engineers think: try the smallest fix first, and know when a small fix is the wrong tool." },
+      { title: "Why not just use supports?", body: "Slicers can add supports automatically, and some offer 'tree' supports that touch the part in fewer places. They still leave marks where they touch, they cost plastic and time, and removing them from the inside corners of a small puzzle piece is fiddly and risks damaging the part or a finger. Rough patches make puzzle pieces stick. The chamfer is a design solution, so the fix lives in the file and works every time the piece is printed, on any printer." },
+      { title: "Where students go wrong", body: "The common errors are: leaving the wedge as a Solid (it adds a ramp instead of cutting one); rotating so the slope faces the wrong way (it cuts the top or leaves a flat ledge); placing it slightly off the cube's edges, which leaves a thin sliver or ledge that is itself an overhang; making it a different size from the cube; and forgetting to group. Students sometimes also chamfer a piece that only needed turning. On day 13 the slicer preview is a second check: a correct chamfer shows each layer stepping out a little from the one below." },
+    ],
+    studentQuestions: [
+      { q: "Why exactly 45°? Why not 30° or 60°?", a: "45° is the safe rule: each layer still rests about halfway on the one below. A steeper slope (closer to upright) prints even more easily but cuts away more plastic. A flatter one starts to droop." },
+      { q: "Won't the missing corner make the piece wobble inside the cube?", a: "No. The other faces still hold it in place. You'll just have a small hidden gap where the corner was." },
+      { q: "Can I put the chamfer on the top instead?", a: "A slope on top doesn't help: the problem is the empty space under the cube. The slope has to be underneath, rising out from the supported side." },
+      { q: "My wedge made the piece bigger. What happened?", a: "It's still set to Solid. Ungroup, switch the wedge to Hole, then group again." },
+    ],
+    connections: [
+      "Engineers who design for metal and plastic 3D printing use self-supporting angles and chamfers so aerospace and medical parts print without supports that would be hard to remove.",
+      "Medieval stonemasons used corbelling: each stone steps out a little over the one below, the same idea as layers on a 45° slope.",
+      "Injection-mould designers add small angles (called draft) to part walls so parts release from the mould. Different process, same habit: shape the part for the way it is made.",
+    ],
+    exitTicket: [
+      "Draw a hanging cube from the side, then draw it again with a chamfer. Label the 45° slope.",
+      "Explain to a partner why cutting plastic away can't stop the puzzle fitting together.",
+      "When would you redesign a piece instead of chamfering it?",
+    ],
     runPlan: [
       { minutes: 5, title: "Why 45°", teacher: "Overhang angles; why a slope supports itself.", students: "Listen, look at the diagram.", devices: "open" },
       { minutes: 8, title: "Demo", teacher: "Wedge hole, rotate, align, group.", students: "Watch.", devices: "open" },

@@ -206,7 +206,38 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Introduces clearance and tolerance on a part that has to fit something the student made. Measuring the real printed cube shows tolerance stack-up first-hand; the ring test applies 'prototype only the critical portion'. Students design the box today; full boxes print alongside day 16–17 revisions.",
+    purpose: "Introduces clearance and tolerance on a part that has to fit something the student made. Measuring the real printed cube shows tolerance stack-up first-hand; the ring test applies 'prototype only the critical portion'. Students practise designing from measured data rather than from the CAD model, and choosing a clearance from evidence rather than guessing. Students design the box today; full boxes print alongside day 16–17 revisions.",
+    bigIdea: "Real parts are never exactly their designed size, so I measure the real thing, add a planned gap, and test a small piece before printing the whole box.",
+    successCriteria: [
+      "I can explain how small size errors in several pieces add up.",
+      "I can measure my printed cube in X, Y and Z and record the numbers with units.",
+      "I can work out a box opening by adding clearance on both sides.",
+      "I can test the fit with a thin ring and change one number if it fails.",
+    ],
+    background: [
+      { title: "Why printed parts aren't their CAD size", body: "FDM printers make parts from lines of melted plastic with rounded edges, and the plastic shrinks slightly as it cools. The printer's motion and the slicer's line widths are not perfect either. On many school printers, outside dimensions come out a little larger than designed and inside openings a little smaller, often by around a tenth or two of a millimetre, though every printer is different and some print slightly under size. None of this is visible on screen: Tinkercad's 15 mm cube is exact, the printed one is not." },
+      { title: "Tolerance stack-up", body: "When parts sit side by side, their small errors add. Three pieces across the cube, each a little over, give a cube that is three littles over. Real assembled cubes also have tiny gaps where pieces don't press perfectly together, plus any elephant's foot or warping from day 14, which add to the total. Engineers call this **tolerance stack-up**, and it is why designers measure real parts (or calculate a worst case) before designing anything that must fit around them. Students should measure all three directions, because an assembled cube is rarely the same size every way and it might go into the box any way round." },
+      { title: "Clearance counts on both sides", body: "**Clearance** is a gap designed on purpose so one part slides into another. A box opening needs clearance on the left *and* the right (and front and back), so the clearance is added twice in each direction, exactly as walls were counted twice in the Holes lesson. For sliding fits on FDM printers, a few tenths of a millimetre per side is a common starting range, but the right value depends on the printer, the filament and how snug the fit should be. That is why the lesson treats 0.4 mm per side as a starting guess to test, not a rule." },
+      { title: "Measuring with calipers", body: "Digital calipers show hundredths of a millimetre, but on a printed part only the first decimal place is really meaningful. Good habits: close the jaws and zero the calipers first; hold the jaws square to the faces, not tilted; squeeze gently (printed cubes compress slightly, and the pieces shift); and measure in more than one spot along each face. Students without calipers can use a ruler to the nearest 0.5 mm and should add a little more clearance to make up for the less precise number." },
+      { title: "Prototype the critical part only", body: "A full box can take a long time to print. The part that decides whether it fits is the opening, so the lesson prints just a thin ring, a few millimetres tall, with exactly that opening. It prints in minutes, uses a few grams of plastic, and gives a clear answer: too tight, slides, or too loose. If the ring fails, change *one* number (the clearance), reprint and retest. One caution: the ring's bottom edge has elephant's foot like any print, so if a cube passes through from the top but jams at the bottom, the first layer is the likely cause, not the clearance." },
+      { title: "Printing the box and what comes next", body: "The box prints with its floor on the plate and its open side up, so it needs no supports: the walls rise straight up and the finger notch is cut down from the top. The same slicer settings as the pieces keep the results comparable. Full boxes take longer than rings, so they usually print while students playtest (day 16) and revise (day 17). A student who added a key-ring loop on day 10 needs to account for it, either by giving the box room for the loop or by measuring the cube without it and deciding the loop sits outside." },
+    ],
+    studentQuestions: [
+      { q: "Why can't I just make the box 45 mm? That's what I designed.", a: "Your real cube is probably a little bigger than 45 mm, because each printed piece is a tiny bit over and those bits add up. Measure it and see." },
+      { q: "Why add the clearance twice?", a: "There's a gap on both sides of the cube: left and right, front and back. Each side needs its own gap." },
+      { q: "My calipers say 45.37. Do I write all of that?", a: "Writing 45.4 is enough. Printed parts aren't accurate to a hundredth, so the last digit isn't telling you anything useful." },
+      { q: "The ring is too tight. Should I make the whole box bigger?", a: "Change only the clearance, by a small step, print another ring and test again. Then you'll know exactly what fixed it." },
+    ],
+    connections: [
+      "Mechanical engineers set tolerances on every part drawing and calculate stack-up so that thousands of parts from different factories still assemble.",
+      "Packaging engineers design boxes and inserts with planned clearance so products slide in easily but don't rattle in transit.",
+      "Carpenters and furniture makers leave gaps for drawers and doors, because wood and hardware are never exactly their nominal size.",
+    ],
+    exitTicket: [
+      "Explain tolerance stack-up to someone who missed today, using the puzzle cube as your example.",
+      "Your ring was too loose. What one number would you change, and in which direction?",
+      "Why is printing a thin ring smarter than printing the whole box first?",
+    ],
     runPlan: [
       { minutes: 5, title: "Hook", teacher: "Why a 45 mm box won't fit.", students: "Predict.", devices: "away" },
       { minutes: 8, title: "Stack-up demo", teacher: "Measure three printed pieces live.", students: "Predict, watch.", devices: "away" },

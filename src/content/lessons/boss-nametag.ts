@@ -207,13 +207,73 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "A no-tutorial boss challenge with one clear goal: build a keychain tag to a five-rule spec. It combines exact dimensions, raised text, Align, holes and grouping. The broken-tag warm-up turns the spec into a checklist without giving steps.",
+    purpose: "A no-tutorial boss challenge with one clear goal: build a keychain tag to a five-rule spec. It combines exact dimensions, raised text, Align, holes and grouping. The broken-tag warm-up turns the spec into a checklist without giving steps. This is the first time steps are removed entirely, so the real skill being assessed is independence: reading a spec, planning an order, and checking your own work against numbers. Expect productive struggle; that is the point, not a sign the lesson is failing.",
+    bigIdea: "A spec is a checklist you can prove: if every rule is met and measured, the design is done, however you chose to build it.",
+    successCriteria: [
+      "I can read a design spec and turn it into a checklist.",
+      "I can find what's wrong with a design by comparing it with the spec.",
+      "I can plan and build a tag that meets every rule without step-by-step directions.",
+      "I can prove my design meets the spec using its dimensions, not just how it looks.",
+    ],
+    background: [
+      { title: "What a spec is, and why engineers use them", body: "A **specification** (spec) is a short list of exact, checkable requirements. Engineers write specs so that anyone can build the part and anyone can check it, without arguing about whether it 'looks right'. Good spec rules are measurable: 50 × 20 × 3 mm, letters at least 6 mm, 2 mm margin. Notice the spec says *what* the tag must be, not *how* to build it. That freedom is deliberate: students may build in different orders and still all succeed. When a student asks 'Is this right?', the most useful answer is 'Which rule are you checking? What does the number say?'" },
+      { title: "How the five rules connect to earlier lessons", body: "Each rule maps to a skill students already have. Exact size uses typed dimensions. Raised text uses the Text shape, a printable letter size and a correct Z position (Text lesson). Centring uses **Align** with the tag and name selected (Align lesson). The key-ring hole uses a cylinder set to **Hole**, placed with a margin (Holes lesson). One part uses **Group**, and overlapping or touching parts (Grouping lesson). The bonus uses **Mirror**. If a student is stuck on one rule, send them back to that lesson's Show Me rather than showing them the answer." },
+      { title: "Margins and why holes tear out", body: "A key ring pulls on the thin strip of plastic between the hole and the edge of the tag. That strip is the **margin**. If the hole breaks the edge (margin zero), the ring slips straight out; if the margin is very thin, the plastic is only a line or two of extrusion wide and can snap. A 2 mm margin is several nozzle widths (about 0.4 mm each on a typical printer), which is sturdy for a small tag. Remember the margin is measured from the **edge of the hole**, not its centre, a distinction that trips up many students." },
+      { title: "Using the overall size as a self-check", body: "The tag is 3 mm thick and the letters stand 1 mm proud, so the grouped tag should read **50 × 20 × 4 mm**. This single reading checks several rules at once: a taller number means floating or too-tall letters; a longer or wider number means a stray shape, a hole poking out, or text spilling past the edge. Teaching students to read the group's dimensions before submitting is the habit that makes them independent, and it is what the screenshot evidence asks for." },
+      { title: "Printing the tags", body: "Tags print flat with the name facing up, so they need no supports. At 0.2 mm layers the 3 mm body is about 15 layers and the letters about 5 more. If your slicer supports a **pause at layer height** (most do, sometimes called a colour change or filament change), pausing at 3 mm and swapping filament gives a two-colour tag with letters in a contrasting colour. A brim is rarely needed for a part this flat, but a clean, level bed matters because the whole tag relies on the first layer. Batch several tags on one plate to save time, and label the plate layout so tags go back to the right students." },
+    ],
+    studentQuestions: [
+      { q: "Is it OK if I build it in a different order from my partner?", a: "Yes. The spec says what the tag must be, not how to build it. If every rule checks out, your order works." },
+      { q: "My name doesn't fit at 6 mm. Can I make the letters smaller?", a: "No, 6 mm is a rule. Try a nickname, your initials or a gamer tag instead." },
+      { q: "How do I know I'm done?", a: "Go through the spec one rule at a time and find the number that proves each one. The grouped tag's size is a great final check." },
+      { q: "Does it matter how long I take?", a: "No. The timer is just for you. Your grade comes from meeting the spec." },
+    ],
+    connections: [
+      "Engineers and manufacturers work from specs every day; a part is accepted or rejected by checking it against the numbers.",
+      "Quality inspectors in factories measure parts against a spec and record whether each rule passes, much like the boss checklist.",
+      "Merchandise and product designers make personalised items such as tags, badges and keyrings, balancing a readable name against a fixed size.",
+    ],
+    exitTicket: [
+      "Which rule in the spec did you check last, and what number proved it?",
+      "Explain to a new student why a key-ring hole needs plastic all the way around it.",
+      "What is one thing you would do first next time you get a design spec?",
+    ],
+    runPlan: [
+      { minutes: 10, title: "Day 1 · The mission", teacher: "Introduce the boss and the spec. Read the five rules aloud and point out the timer is for awareness only. Run the floating-letters prediction.", students: "Read or listen to the spec; restate each rule in their own words; answer the prediction.", devices: "away" },
+      { minutes: 15, title: "Day 1 · Why does this tag fail?", teacher: "Let students orbit the Broken Tag. Ask pairs to list every fault before using the hotspot and matching.", students: "Find the faults, then complete the hotspot and fault-matching activities.", devices: "open" },
+      { minutes: 15, title: "Day 1 · Plan the build", teacher: "Encourage a quick paper sketch with dimensions. Ask 'Which rule does that step satisfy?'", students: "Answer the planning questions and put the build in order; sketch the tag with numbers.", devices: "open" },
+      { minutes: 5, title: "Day 1 · Checkpoint", teacher: "Ask each student to write the one rule they think will be hardest. Use these to plan who to check on first tomorrow.", students: "Name their hardest rule and one idea for meeting it.", devices: "away" },
+      { minutes: 5, title: "Day 2 · Reset", teacher: "Put the spec on screen. Remind students that you will answer questions with questions, and that the size check is their friend.", students: "Re-read the spec and their plan.", devices: "away" },
+      { minutes: 30, title: "Day 2 · Boss battle", teacher: "Circulate without touching mice or screens. Use 'Which rule? What does the number say?' Note who needs a targeted Show Me revisit.", students: "Build the tag, check each rule, capture the 50 × 20 × 4 mm screenshot and submit.", devices: "open" },
+      { minutes: 10, title: "Day 2 · Debrief", teacher: "Share two or three different build orders that all worked. Collect the exit ticket and queue prints if you are printing.", students: "Reflection (20+ words) and exit ticket.", devices: "open" },
+    ],
+    lookFors: [
+      "Students checking rules with numbers (dimensions, Z positions) rather than asking 'is this right?'",
+      "A plan or order made before building, even a rough one.",
+      "Align used with only the tag and name selected.",
+      "Calm recovery: ungrouping to fix one rule rather than starting over.",
+      "The grouped size read and compared with 50 × 20 × 4 mm before submitting.",
+    ],
+    differentiation: {
+      support: [
+        "Give a printed spec checklist with a tick box and a 'number that proves it' column for each rule.",
+        "Offer a 'hint ladder' card per rule that points back to the relevant earlier lesson's Show Me, not to the answer.",
+        "Let students submit in stages (tag and name first, then hole) so progress is visible and manageable.",
+      ],
+      extend: [
+        "Complete the mirrored icon bonus, keeping the name centred and the overall size within spec.",
+        "Design a two-colour version and write the slicer pause height needed for the letters to change colour.",
+        "Write your own five-rule spec for a different small object and swap with a classmate.",
+      ],
+    },
     preparation: [
       "Open the Broken Tag model once so you know what students will see.",
       "Have key rings or split rings ready if you'll print tags — students love getting them back.",
       "Plan for about two class periods: warm-up and planning, then the build.",
+      "Build a tag yourself to the spec so you know the sticking points, and keep it handy as a printed or on-screen example (without showing how it was built).",
+      "If printing, decide how many tags fit on one plate and how you'll label which tag belongs to whom.",
     ],
-    equipment: ["Student devices with Tinkercad", "Optional: 3D printer and key rings", "Optional: a printed example tag to pass around"],
+    equipment: ["Student devices with Tinkercad", "Optional: 3D printer and key rings", "Optional: a printed example tag to pass around", "Optional: printed spec checklists"],
     misconceptions: [
       { id: "group-glues", text: "Grouping glues parts together even if they don't touch.", response: "Group the broken tag and show that the letters still float 1 mm above it." },
       { id: "printer-fills-gaps", text: "The printer fills small gaps.", response: "The printer prints exactly what's in the file. A floating part prints in mid-air, or not at all." },
@@ -222,6 +282,7 @@ export const lesson: LessonInput = {
     discussionQuestions: [
       "Why does a key-ring hole need plastic around it? What would happen with only 0.5 mm?",
       "How could you prove your name is centered without trusting your eyes?",
+      "Why do you think the spec tells you what to build but not how to build it?",
     ],
     printableObjects: ["Students' finished name tags (about 15–20 minutes each; good for batch printing)"],
     slicerSettings: "Starting point: PLA, 0.2 mm layers, 15–20% infill, 3 walls, no supports. Print flat with the name facing up. A filament swap at 3 mm (pause at layer height) makes a two-color tag. Adjust for your printer.",
@@ -230,6 +291,8 @@ export const lesson: LessonInput = {
       "Group is wider than 50 mm: a stray shape or the hole sticks out past the end. Ungroup and look for extra shapes.",
       "Name isn't centered after Align: the hole was included in the selection. Ungroup and align only the tag and the name.",
       "Long names don't fit at 6 mm: shorten to initials or a nickname rather than shrinking letters below 6 mm.",
+      "Letters vanish after grouping: the text was set to Hole instead of Solid, so it removes material instead of adding it. Ungroup and switch it back to Solid.",
+      "Printed letters are messy or stringy: check the font is bold and the letters are at least 6 mm; very thin strokes are hard to print cleanly.",
     ],
     answerGuidance: [
       "Typical solution: 50 × 20 × 3 mm box; text about 8 mm tall and 1 mm high with its bottom at Z = 3; Align tag and text to center; 5 mm cylinder hole at X = 2–7 mm, centered on Y, cutting through; group; screenshot 50 × 20 × 4 mm.",

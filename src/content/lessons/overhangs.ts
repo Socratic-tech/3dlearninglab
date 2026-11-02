@@ -188,12 +188,72 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students learn to see a design the way a printer does — layer by layer — and spot overhangs before they become failed prints.",
+    purpose: "Students learn to see a design the way a printer does — layer by layer — and spot overhangs before they become failed prints. This is the first of three linked lessons (overhangs, bridging, supports) on designing for the printer: once students can read a shape from the bottom up and judge its angles, they can decide whether a part needs a bridge, a support, a redesign or a new orientation. The habit also feeds directly into CAD ER, where one of the broken phone stand's symptoms is a support problem.",
+    bigIdea: "A printer builds each layer on top of the last one, so any surface that leans out too far (past about 45° from straight up) has nothing to rest on and needs a redesign or support.",
+    successCriteria: [
+      "I can point to the overhangs in a design by imagining it printed from the bottom up.",
+      "I can explain why about 45° from vertical is a useful rule of thumb, using layer height and line width.",
+      "I can tell an overhang (held up at one end) from a bridge (held up at both ends).",
+      "I can design a part whose overhangs are all gentle enough to print without support.",
+    ],
+    background: [
+      { title: "How an FDM printer builds a part", body: "School printers are almost always **FDM** printers (fused deposition modelling, also called FFF). A heated nozzle squeezes out a thin line of melted plastic and draws one flat **layer** at a time, then moves up (or the bed moves down) by one layer height, often **0.2 mm**, and draws the next. The software that turns a Tinkercad model into these layers is the **slicer**. Because each new line is laid on top of the previous layer, every line needs *something* under it while it is still soft. That single fact explains this lesson, bridging and supports." },
+      { title: "Where the 45° rule of thumb comes from", body: "Each printed line is roughly as wide as the nozzle, about **0.4 mm** on a typical printer, and each layer is about **0.2 mm** tall. A line can hang out past the edge of the layer below by part of its width and still be held up by the rest. If every layer steps out by 0.2 mm while rising 0.2 mm, the surface leans at exactly **45° from vertical** and each line is half-supported. Lean further and more than half of every line is laid on air, so the edges curl, droop or look rough underneath. The slider in this lesson lets students discover this geometry for themselves. It is a **rule of thumb, not a law**: good part cooling, slower outer walls and a well-tuned printer can often manage 50–60°, while a hot nozzle or weak fan may struggle sooner. That is why the lesson keeps saying 'test your printer'." },
+      { title: "Measuring the angle: from vertical", body: "This course measures overhang angle **from vertical**: 0° is a straight wall (no overhang) and 90° is a flat ledge sticking straight out. Some students (and some slicer settings) measure from the table instead, which flips the numbers, so draw both on the board early. In Tinkercad, rotating a shape with the curved arrow handles snaps in **22.5° steps** by default, which makes 22.5° and 45° easy to hit; students can also type an exact angle into the box that appears while rotating. A box rotated 45° and sunk partly into the stem is a common way to make an angled surface; a 'wedge' shape (Roof or Wedge in the Basic Shapes panel) is another." },
+      { title: "Reading a model from the bottom up", body: "The key skill is a change of viewpoint. Students usually look at a model from the front, as a finished object. The printer 'sees' it as a stack of slices starting at the workplane. Encourage students to orbit and look **from below** or from the side, and to ask of each surface: 'When the printer reaches this height, is there already plastic underneath?' Downward-facing flat surfaces in mid-air are the worst case. Upward-facing surfaces and vertical walls are never overhangs. The layer slider in the model viewer (and the layer preview in any slicer) makes this concrete: scrub up and watch for lines that appear with nothing under them." },
+      { title: "Overhangs in shapes students already make", body: "Overhangs hide in familiar places. A **sideways round hole** (a cylinder lying on its side, set to Hole) has a ceiling that gets steeper towards the top; small holes usually print fine, and designers sometimes use a pointed 'teardrop' hole so the ceiling never gets flatter than 45°. A rounded edge (fillet) on the **bottom** of a part starts almost flat, while a **chamfer** (a 45° slope) prints cleanly, which is why the lesson's fix diagram uses a chamfer. Text and letters stood upright have overhangs wherever a stroke sticks out sideways. Students will meet all of these again in their own designs." },
+      { title: "Where this goes next", body: "This lesson only asks students to *spot* overhangs and keep them gentle. **Bridging** (next lesson) shows that a flat span held up at *both* ends can often print without help. **Supports** then covers the slicer's scaffolding and the three redesign moves: change the angle, change the orientation or split the part. **Orientation** matters a lot: the same part can have a terrible overhang one way up and none at all on its side, so it is worth asking 'Which way up will this print?' every time a student shows you a design." },
+    ],
+    studentQuestions: [
+      { q: "Why can't the printer just print in the air if it's quick enough?", a: "The plastic comes out soft and needs something to stick to while it cools. With nothing under it, it droops or gets dragged by the nozzle. Speed doesn't change that." },
+      { q: "Is 46° going to fail and 44° work?", a: "No, 45° isn't a cliff edge. Quality gets gradually worse the further you lean. 45° is a safe target that works on most printers." },
+      { q: "Does the top of my model count as an overhang?", a: "No. Overhangs only face downward. A top surface is printed on top of the layers below it, so it is always supported." },
+      { q: "How do I find the angle of something I made in Tinkercad?", a: "If you rotated it, use the angle you typed or snapped to. Otherwise look from the front or side view and compare the slope to a 45° shape placed next to it." },
+      { q: "What if I really need a flat ledge?", a: "You have options: turn the part so the ledge lies flat on the plate, add a 45° slope under it, or turn on supports. Next lessons cover all three." },
+    ],
+    connections: [
+      "Engineers who design parts for additive manufacturing (3D printing in industry, including metal printing) follow overhang rules too, and often add 45° slopes so parts need less support.",
+      "Architects use the same idea in corbelling: each row of stone or brick sticks out a little past the one below to build an arch or roof with no scaffolding underneath.",
+      "Cake decorators and potters know a shape that leans out too fast will slump while it is still soft, the same problem as hot plastic.",
+    ],
+    exitTicket: [
+      "Sketch a shape that has one overhang that will print well and one that will droop. Label the angles.",
+      "In your own words, why does 45° work as a rule of thumb? Use the words 'layer' and 'below'.",
+      "Name one way to fix a flat overhang without turning on supports.",
+    ],
+    runPlan: [
+      { minutes: 4, title: "Hook", teacher: "Ask: 'Can a printer draw in mid-air?' Show the overhang-angles diagram, or hold up a printed overhang test if you have one.", students: "Vote with fingers: which fin will droop first?", devices: "away" },
+      { minutes: 8, title: "Layers and the 45° rule", teacher: "Draw stair-stepped layers on the board: 0.2 mm up, 0.2 mm out. Show the fins in the viewer and scrub the layer slider. Make the 'measured from vertical' convention explicit.", students: "Watch, then make the prediction about the fin test.", devices: "away" },
+      { minutes: 10, title: "Spot the overhangs", teacher: "Circulate during the slider and hotspot tasks. Ask 'How much of that layer has something under it?' rather than giving angles.", students: "Slider, fin hotspot and the letters question.", devices: "open" },
+      { minutes: 6, title: "Find the problem", teacher: "Have pairs say aloud where the printer starts drawing on air before clicking. Preview the chamfer fix diagram.", students: "T-bracket hotspot, then look at the chamfer diagram.", devices: "open" },
+      { minutes: 13, title: "Prove it: the Y peg", teacher: "Hold back steps. Prompt students to plan the arm angle on paper first and to check it from the front view.", students: "Design the Y peg and submit a front view with the steepest angle stated.", devices: "open" },
+      { minutes: 4, title: "Reflect and exit", teacher: "Share one strong reflection that names a real object. Collect the exit ticket.", students: "Reflection and exit ticket.", devices: "open" },
+    ],
+    lookFors: [
+      "Students orbit to look from the side or below before deciding whether something is an overhang.",
+      "Angles described from vertical (0° = straight up), not from the table.",
+      "Students who distinguish 'leans gently' from 'sticks straight out' rather than treating every slope as a failure.",
+      "Y peg arms planned with a number (an angle) before building, and checked from the front view afterwards.",
+    ],
+    differentiation: {
+      support: [
+        "Give a printed 45° reference triangle (or a set square) that students can hold against the screen to compare slopes.",
+        "Pair students so one reads the model aloud from the bottom up ('first the stem, then…') while the other points.",
+        "Offer a partly built Y peg stem so students can focus on angling one arm, then mirror it.",
+      ],
+      extend: [
+        "Design a sideways hole in a block using a teardrop shape so no part of its ceiling is flatter than 45°.",
+        "Design your own overhang test (for example 40°, 50°, 55°) to find your printer's real limit, and predict the result first.",
+        "Find an everyday object that would print badly upright and redesign or reorient it so it doesn't need support.",
+      ],
+    },
     preparation: [
       "Optional: print the Overhang Angle Test ahead of time (about 30–45 minutes) so students can compare their predictions to a real result.",
       "Optional: also print the T-bracket without supports to show a drooping arm.",
+      "Practise rotating a box to 45° in Tinkercad (snap or type the angle) so you can demonstrate it quickly.",
+      "Prepare a quick board sketch of stair-stepped layers (0.2 mm up, 0.2 mm out) to explain the 45° rule.",
     ],
-    equipment: ["Student devices with Tinkercad", "Optional: printed overhang test and T-bracket"],
+    equipment: ["Student devices with Tinkercad", "Optional: printed overhang test and T-bracket", "Optional: protractor, set square or paper 45° triangle", "Projector for the layer slider demo"],
     misconceptions: [
       { id: "any-angle-prints", text: "A 3D printer can print any shape.", response: "Show the slicer layer preview of the 70° fin: the outer edge of each layer has nothing beneath it." },
       { id: "angle-from-horizontal", text: "Overhang angle is measured from the table, so small angles are the problem.", response: "Draw both on the board. In this course, 0° = straight up (no overhang) and 90° = flat ledge." },
@@ -202,10 +262,14 @@ export const lesson: LessonInput = {
     discussionQuestions: [
       "Why do you think 45° is a common rule of thumb?",
       "How could you turn a part so an overhang disappears?",
+      "Why do you think tops of objects are never overhangs?",
+      "Is 45° a rule or a guideline? How would you find out what your printer can really do?",
     ],
     troubleshooting: [
       "Students can't measure angles in Tinkercad: use the rotate handles, which snap in 22.5° steps, or type an exact angle.",
       "Hotspots hard to click on a small screen: zoom in first.",
+      "A rotated arm floats or sticks below the workplane: rotation pivots around the shape's centre, so drag it back into the stem and check the whole model sits on the workplane (select all, then press D to drop it).",
+      "Students can't tell which way a slope faces: switch to the front or side view using the view cube in the top left.",
     ],
     answerGuidance: [
       "Prediction: b (60° and 70°) is typical; results vary by printer.",

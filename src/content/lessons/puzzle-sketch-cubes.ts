@@ -276,7 +276,40 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students learn a quick, low-cost way to generate and communicate 3D ideas. Isometric sketching on dot paper keeps every line on the cube grid, so pieces drawn here can be built directly in week 2. Each technique is shown one step at a time: one cube, a cube beside it, a cube on top, and erasing lines that become hidden.",
+    purpose: "Students learn a quick, low-cost way to generate and communicate 3D ideas. Isometric sketching on dot paper keeps every line on the cube grid, so pieces drawn here can be built directly in week 2. Each technique is shown one step at a time: one cube, a cube beside it, a cube on top, and erasing lines that become hidden. Students also learn to read a piece from the top and front, which prepares them for the layer map on day 4 and gives anyone who finds drawing hard a complete alternative (a top view with heights). The piece bank they make today is the raw material for days 3 and 4.",
+    bigIdea: "An isometric sketch on dot paper shows a 3D piece with every cube the same size, so anyone can count its cubes and build it, as long as hidden lines are erased and hidden cubes are still counted.",
+    successCriteria: [
+      "I can draw one cube on isometric dot paper using lines that only go straight up and down or along the two slants.",
+      "I can add a cube beside or on top of another and erase the lines that become hidden.",
+      "I can describe a piece with a top view, writing how many cubes tall each square is.",
+      "I can sketch a bank of different pieces, each with its cube count, that a classmate could build without asking me.",
+    ],
+    background: [
+      { title: "What isometric drawing is", body: "An **isometric drawing** shows an object from a corner, so you see its top and two sides at once. The three edges that meet at a cube's corner are drawn equally spaced around it: one straight up and down, two slanting at 30° to the horizontal. Unlike a perspective drawing or a photo, there are no vanishing points: lines that are parallel on the object stay parallel, and every cube edge is drawn the same length however far away it is. That is exactly what we want for counting cubes. (Strictly, a true isometric *projection* shrinks every length slightly; drafters draw at full length and call it an isometric *drawing*. Students don't need this distinction.)" },
+      { title: "How the dot paper works", body: "Isometric dot paper is a triangle grid: every dot has six nearest neighbours. With the paper turned so the dots form straight vertical columns, those neighbours sit straight up, straight down and along two slants. Joining only neighbouring dots therefore gives lines in exactly the three isometric directions, all the same length, with no ruler. If the paper is turned a quarter turn, the neighbours line up horizontally instead and cubes come out squashed or tilted. This gives students a built-in self-check: **a horizontal line in a cube drawing means something has gone wrong**." },
+      { title: "Hidden lines and hidden cubes", body: "A single view can't show everything. Lines behind or inside the piece are erased so the drawing shows only what the eye would see, but whole cubes can also disappear behind or underneath others. That is why the lesson teaches students to ask 'what is holding this cube up?' for every cube that isn't on the table. Isometric drawings can also be ambiguous (the famous stacked-cubes illusion, where a corner seems to pop out or cave in). Consistent shading (top lightest, one side always darkest) removes most of that ambiguity, and building the piece from math cubes settles any argument." },
+      { title: "Top and front views", body: "Engineers usually describe a part with several flat **orthographic views**: looking straight down (top view, called a *plan* by architects) and straight at the front or side (an *elevation*). Each view hides something the others show. A top view with the height of each square written in (sometimes called a *mat plan* or height map) describes a piece completely, as long as no cube hangs over empty space. It is a fully valid alternative to isometric sketching, not a lesser one, and it leads straight into the layer map on day 4. Pieces with a cube hanging over air can't be captured by heights alone; they also matter for printing on days 3 and 12." },
+      { title: "Why sketch first, and why a bank", body: "Designers separate *generating* ideas from *choosing* them. Today is about quantity and variety; day 3 filters the bank against the piece rules and day 4 selects 5 or 6 pieces that fill 27 spaces. A good bank therefore needs a spread of sizes (so the totals can work) and several pieces that bend into 3D (so the puzzle isn't just stacked layers). Neatness matters only as far as someone else can build the piece: that is what the gallery check is testing." },
+      { title: "Spatial skills grow with practice", body: "Some students will find this the hardest day of week 1, and some confident builders struggle most with drawing. Research on spatial skills, including work with first-year engineering students, has found that sketching and building practice improves 3D visualisation. So say it plainly: this is a skill that grows, not a talent you have or don't. Holding the math-cube piece beside the drawing, accepting top views and photos, and pairing a drawer with a builder all keep the learning goal (communicate a 3D piece clearly) while widening the ways in." },
+    ],
+    studentQuestions: [
+      { q: "Why can't I draw a line straight across?", a: "Cube edges only go three ways on dot paper: up and down, and the two slants. A line straight across usually means the paper is turned the wrong way or two dots that aren't neighbours got joined." },
+      { q: "Why does my drawing look see-through?", a: "Some hidden lines are still there. Rebuild it one cube at a time and erase the lines that are now inside or behind after each cube." },
+      { q: "Do I have to use dot paper?", a: "No. A top view with the height written in each square, or a photo of the piece built from math cubes, counts too. The goal is that someone else could build it." },
+      { q: "Does a cube I can't see still count?", a: "Yes. If a cube is holding another one up, it's part of the piece even when the drawing hides it. Build it to check." },
+      { q: "How do I make it look 3D?", a: "Shade it: top lightest, one side medium, the other side darkest, the same way on every piece." },
+    ],
+    connections: [
+      "Product and industrial designers fill sketchbooks with quick drawings before any CAD, so only the best ideas get built.",
+      "Technical illustrators draw step-by-step assembly instructions for flat-pack furniture and building-brick sets in isometric-style views.",
+      "Video game artists use isometric views for many strategy and city-building games, because every tile stays the same size across the screen.",
+      "Architects and engineers communicate with plans (top views) and elevations (front and side views), just like today's views check.",
+    ],
+    exitTicket: [
+      "Sketch one cube on dot paper. Mark the three directions your lines went.",
+      "A friend's drawing looks see-through. What would you tell them to fix, and how?",
+      "Which is easier for you to read, an isometric sketch or a top view with heights? Why?",
+    ],
     runPlan: [
       { minutes: 5, title: "Hook", teacher: "Why sketch first? A sketch costs a minute; a print costs hours.", students: "Listen; one quick idea from the table.", devices: "away" },
       { minutes: 12, title: "Draw along", teacher: "Model the four-step cube, a cube beside it and a cube on top, erasing hidden lines; students draw and build alongside.", students: "Draw cubes and a small piece; build it to check.", devices: "away" },
@@ -297,6 +330,8 @@ export const lesson: LessonInput = {
       { id: "count-faces", text: "Counting faces or lines instead of cubes.", response: "Point to each cube's top diamond and count those, then add any cubes hidden underneath." },
       { id: "count-visible-only", text: "Only counting the cubes you can see.", response: "Ask what is holding up every cube that isn't on the table. Build the piece from math cubes and lift the top one off." },
       { id: "horizontal-lines", text: "Drawing horizontal lines (straight across) as cube edges.", response: "On isometric paper, edges only go up and down or along the two slants. Turn the paper so the dots make vertical columns." },
+      { id: "draw-far-smaller", text: "Cubes further back should be drawn smaller, like in a photo.", response: "In isometric drawing every cube is the same size so you can count and compare them. Every edge is exactly one dot long, front or back." },
+      { id: "erase-all-inside", text: "Erasing hidden lines means erasing every line between cubes.", response: "Keep the seams you can see on the top and front faces: they show where one cube ends and the next begins, so you can count them. Erase only lines that are behind or inside the piece." },
     ],
     discussionQuestions: [
       "Why is a cheap sketch worth doing before an expensive print?",

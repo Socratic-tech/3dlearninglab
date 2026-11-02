@@ -177,17 +177,79 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students learn that duplicates are exact and appear in place, use copy-paste between designs, and learn to spot hidden stacked copies.",
-    preparation: ["Try copying a shape from one Tinkercad design to another on a student device to confirm the clipboard works in your browser setup."],
-    equipment: ["Student devices with Tinkercad"],
+    purpose: "Students learn that duplicates are exact and appear in place, use copy-paste between designs, and learn to spot hidden stacked copies. The deeper idea is consistency: build one part carefully, then copy it so every copy is guaranteed to match. This lesson is the foundation for Repeat Duplicate (patterns) and Mirror (duplicate, then flip), and the copy-paste habit lets students reuse good parts across projects.",
+    bigIdea: "Build one part carefully, then duplicate it: every copy is identical, but it starts hidden on top of the original until you move it.",
+    successCriteria: [
+      "I can duplicate a shape and move the copy to where I need it.",
+      "I can explain why copies are better than rebuilding the same part by hand.",
+      "I can find and delete hidden stacked copies.",
+      "I can copy a part from one design and paste it into another.",
+    ],
+    background: [
+      { title: "Duplicate versus copy and paste", body: "**Duplicate** (Ctrl+D, or the Duplicate button in the toolbar) makes an exact copy in the **same position** as the original and selects the copy. **Copy** (Ctrl+C) puts the selection on a clipboard and **Paste** (Ctrl+V) adds it back. Paste adds the copy back into the design (it may not land exactly on the original), and it can work between two of your designs open in the same browser. Both keep every setting: size, rotation, colour, Solid or Hole, and any shape parameters." },
+      { title: "Why copies beat rebuilding", body: "If you drag four new boxes and type 6 × 6 × 30 into each, every one is a chance for a typo, and a 29 mm leg makes a table wobble. Duplicating removes that risk: one carefully made part becomes the master, and every copy matches it. In manufacturing this is called **interchangeability**: identical parts can swap places, which is what made mass production possible. In professional CAD, designers go further and *link* copies so changing the master changes them all. Tinkercad copies are independent, so if the master changes later, students must re-copy." },
+      { title: "The hidden copy problem", body: "Because Ctrl+D puts the copy exactly on top of the original, the screen looks unchanged. Students press it again, thinking it didn't work, and end up with several stacked copies in one spot. For a solid this is mostly harmless, though it can confuse later edits. For a hole it causes real surprises: one copy gets moved or resized and the 'same' dot ends up deeper or wider. To check, drag a selection box around one spot and then nudge the selection apart one shape at a time, or move the top shape aside to see if another is underneath. Nudging with an arrow key right after duplicating is a simple habit that makes the copy visible." },
+      { title: "Placing copies precisely", body: "With the default snap grid, each arrow-key press nudges the selection 1 mm and Shift+arrow nudges 10 mm (the Show Me relies on this: four Shift presses move 40 mm). Students can also drag, or type a position. Duplicating a **group of shapes** (both legs at once) doubles the whole set in one step, which is quicker than copying one at a time and keeps spacing consistent. Align (previous lesson) is useful after duplicating to line copies up along an edge." },
+      { title: "Where this goes next", body: "Repeat Duplicate builds on the fact that Ctrl+D remembers the move you made to a copy and can repeat it, which turns one careful copy into a whole evenly spaced row or wheel. Mirror starts with a duplicate too: you duplicate first so the original is kept, then flip the copy. Students who are confident with 'duplicate, then move the copy' find the next two lessons much easier." },
+    ],
+    studentQuestions: [
+      { q: "I pressed Ctrl+D and nothing happened. Is it broken?", a: "It worked. The copy is sitting exactly on top of the original. Press an arrow key and you'll see two shapes." },
+      { q: "Does the copy remember it's a hole?", a: "Yes. Duplicates keep everything: size, rotation, colour, and whether it's Solid or Hole." },
+      { q: "If I change the first leg, do the copies change too?", a: "Not in Tinkercad. Each copy is separate once it's made. If you change the master, delete the old copies and duplicate again." },
+      { q: "Can I paste into someone else's design?", a: "Copy and paste works between designs you have open in your own browser. To share with a classmate, share the design link instead." },
+    ],
+    connections: [
+      "Factories rely on identical, interchangeable parts: any bolt of the right size fits any matching nut. That idea transformed manufacturing.",
+      "Architects and engineers reuse standard components (windows, beams, screws) from libraries instead of redrawing them every time.",
+      "Furniture designers build one leg, bracket or drawer and repeat it, so the product looks consistent and costs less to make.",
+    ],
+    exitTicket: [
+      "You press Ctrl+D twice without moving anything. How many shapes are in that spot, and how could you check?",
+      "Name an object with identical parts and explain how duplicating would help you design it.",
+    ],
+    runPlan: [
+      { minutes: 5, title: "Hook: the wobbly table", teacher: "Show (or describe) a table with one short leg. Ask: 'How could a designer guarantee every leg matches?' Collect ideas.", students: "Suggest ways to make identical parts.", devices: "away" },
+      { minutes: 8, title: "Model the hidden copy", teacher: "Press Ctrl+D on the projector and pause. Take the prediction. Then nudge with an arrow key to reveal the copy. Build the four legs from the Show Me, duplicating the pair.", students: "Predict, then call out each step.", devices: "away" },
+      { minutes: 12, title: "Legs and copy-paste", teacher: "Circulate. Ask 'How do you know the copies are identical?' and 'How many shapes are in that spot?'", students: "Build the legs, copy them into a second design, answer the count and why-duplicate questions.", devices: "open" },
+      { minutes: 15, title: "Domino and stool", teacher: "Students choose: domino first, or straight to the stool. Watch for stacked hole copies on the domino; ask students to check with a selection box.", students: "Build the domino and/or the stool, check for hidden copies, capture evidence.", devices: "open" },
+      { minutes: 5, title: "Reflect and exit", teacher: "Share a real object with identical parts from the reflections. Collect the exit ticket.", students: "Reflection and exit ticket.", devices: "open" },
+    ],
+    lookFors: [
+      "Students nudging or moving a copy immediately after duplicating.",
+      "Checking a copy's dimensions in the shape panel rather than trusting their eyes.",
+      "Duplicating a set of shapes at once when it saves steps.",
+      "Using a selection box to find and delete hidden copies.",
+    ],
+    differentiation: {
+      support: [
+        "Give a habit card: 'Ctrl+D, then move it straight away.'",
+        "Colour the master part differently from the copies so students can see which is which.",
+        "Build the domino with three dots first, then add the other three once the method is clear.",
+      ],
+      extend: [
+        "Design a die (6 faces, 21 dots) using duplicates of one recessed dot.",
+        "Build a small part library: three useful parts in one design, then paste them into a new project.",
+        "Explain how Tinkercad's independent copies differ from 'linked' copies in professional CAD, and when each is better.",
+      ],
+    },
+    preparation: [
+      "Try copying a shape from one Tinkercad design to another on a student device to confirm the clipboard works in your browser setup.",
+      "Build the domino once yourself so you know where students may stack hidden hole copies.",
+    ],
+    equipment: ["Student devices with Tinkercad", "Optional: a domino, a die or a stool for the hook"],
     misconceptions: [
       { id: "dup-nothing", text: "Ctrl+D did nothing because the screen didn't change.", response: "Press an arrow key right after Ctrl+D on the projector to reveal the copy." },
       { id: "dup-scales", text: "Duplicating changes the size of the copy.", response: "Click the copy and read its dimensions aloud — identical." },
       { id: "dup-prints-faster", text: "Duplicated shapes print faster.", response: "The printer only sees the final shape; duplication is a design shortcut, not a print setting." },
       { id: "group-deepens", text: "Grouping makes holes deeper.", response: "Ungroup and count the shapes in that spot with a selection box." },
     ],
-    discussionQuestions: ["How could hidden copies cause a problem later when you print?", "When would you copy-paste between designs instead of duplicating?"],
+    discussionQuestions: [
+      "How could hidden copies cause a problem later when you print?",
+      "When would you copy-paste between designs instead of duplicating?",
+      "Which objects around you are made of identical parts, and why do you think the makers kept them identical?",
+    ],
     troubleshooting: [
+      "Copy moved in an unexpected direction: which way an arrow key moves can feel different when the view is turned. Click the front of the view cube to reset the view, then nudge.",
       "Paste does nothing in the second design: make sure the first design's shapes were copied with Ctrl+C (not just selected), and both designs are open in the same browser.",
       "Extra shapes appear when selecting: the student pressed Ctrl+D more than once; delete the extras.",
     ],

@@ -153,7 +153,41 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students apply duplicate, repeat-duplicate, snapping and vertical moves to a real build, using the layer map from week 1 as their spec.",
+    purpose: "Students apply duplicate, repeat-duplicate, snapping and vertical moves to a real build, using the layer map from week 1 as their spec. Colour becomes information (one colour per piece), so the in-place build carries the whole plan, and the size readout gives students a number they can check themselves. Small position errors are made visible here before they multiply across three layers on day 8.",
+    bigIdea: "Copying one exact cube and snapping each copy into place turns my layer map into a precise build, and because small errors add up, every cube has to land exactly.",
+    successCriteria: [
+      "I can use Ctrl + D, and repeat duplicate, to copy cubes in a straight line.",
+      "I can build a 3 × 3 layer of cubes that touch face to face with no gaps.",
+      "I can colour each cube to match its piece letter and keep a colour key on my layer map.",
+      "I can check a layer by selecting it and reading its size.",
+      "I can lift a copy one cube height to start the next layer.",
+    ],
+    background: [
+      { title: "Duplicate and repeat duplicate", body: "**Ctrl + D** makes an exact copy in exactly the same place, so at first it looks as if nothing happened. If you move the copy straight away and then press Ctrl + D again, Tinkercad repeats the same move for the next copy. That makes rows of evenly spaced cubes fast and exact. The chain breaks if the student clicks something else or adjusts the copy in between, which is the usual reason it 'stops working'. Copy and paste (Ctrl + C, Ctrl + V) is not the same: the pasted copy usually lands somewhere else and has to be placed again, so steer students to Ctrl + D." },
+      { title: "The layer map as a specification", body: "Today the layer map stops being a plan and becomes a **spec** to build to. Decide as a class which edge of the workplane is the 'front' (the edge nearest you in the home view works well) and match it to the bottom row of each grid, with the back row at the top. If students build one layer turned or flipped compared with the others, pieces that cross layers no longer line up: a piece can come apart or turn into a different shape. A quick 'which side is your front?' check during circulation prevents a lot of day 8 and day 9 confusion." },
+      { title: "Why small errors grow", body: "With the snap grid off, a dragged cube can stop a fraction of a millimetre away from where it belongs. Across three cubes those errors add up (engineers call this *tolerance stack-up*), and because pieces must meet on every face, a short piece and a long piece won't close the cube. Gaps and overlaps are hard to see on screen: overlapping cubes simply look merged, and a cube duplicated in place sits invisibly inside another. That's why the lesson relies on numbers: select the whole layer and read its size. A full, exact layer reads exactly 45 × 45 × 15 mm (30 × 30 × 10 for keychains)." },
+      { title: "Moving up: the cone handle", body: "The small black cone above a selected shape lifts it straight up or down. As you drag, Tinkercad shows how far the bottom of the shape is above the workplane, and you can click that number and type a value instead of dragging. Each new layer starts one cube height above the one below it. If a cube ends up floating or sunk, select it and press **D** to drop it back onto the workplane, then lift it again. This is the first time many students control height deliberately, so it is worth modelling slowly." },
+      { title: "Colour as information, accessibly", body: "Using one colour per piece letter means the build carries the plan, and on day 9 each colour becomes one grouped piece. Colour alone isn't accessible to everyone: red-green colour blindness is common, affecting roughly 1 in 12 boys and men and far fewer girls and women. Encourage colours that differ in **lightness** as well as hue (pale yellow next to dark blue rather than red next to green), keep a written key (A = red, B = blue) on the layer map, and allow temporary letter labels as the troubleshooting notes suggest." },
+      { title: "Building in place: a professional habit", body: "Building the whole puzzle assembled, then splitting it into pieces, mirrors what professional CAD users call *top-down design*: designing parts in the context of the finished assembly so they fit by design. Students rarely appreciate this until day 9, when the pieces come apart and fit back together without any measuring. Today is the foundation: the bottom layer, exact and coloured; day 8 adds the middle and top layers and checks everything." },
+    ],
+    studentQuestions: [
+      { q: "I pressed Ctrl + D and nothing happened.", a: "It did: the copy is sitting exactly on top of the original. Drag it and you'll see both." },
+      { q: "Why did repeat duplicate stop working?", a: "Move the copy straight after Ctrl + D, then press Ctrl + D again. If you click something else in between, Tinkercad forgets the move." },
+      { q: "My layer reads 45.4 mm. Is that close enough?", a: "No. It means one cube is a little out of place. Find it, then snap or type its position again until the layer reads exactly 45." },
+      { q: "Can two pieces be the same colour?", a: "No: tomorrow and the day after, colour is how you'll tell pieces apart. If you run out of colours, use very different light and dark shades." },
+      { q: "Which side of the workplane is the front?", a: "Pick the edge nearest you in the home view and keep it that way for every layer. It must match the bottom row of each grid on your map." },
+    ],
+    connections: [
+      "Bricklayers and tilers build from a plan and check each row: one brick out of line shows up as a bigger problem several rows later.",
+      "Knitting and cross-stitch charts are grids with a colour key, read row by row, just like a layer map.",
+      "Voxel artists and game level builders make 3D scenes from cubes, layer by layer, using copy and repeat tools.",
+      "Manufacturing engineers do 'tolerance stack-up' calculations so that parts made with tiny errors still fit together.",
+    ],
+    exitTicket: [
+      "Describe how you would make three cubes in a row with repeat duplicate.",
+      "Your layer's size doesn't read exactly what you expect. What does that tell you, and what will you do first?",
+      "How will someone who can't tell red from green still tell your pieces apart?",
+    ],
     runPlan: [
       { minutes: 5, title: "Recap", teacher: "Yesterday's exact cube; today's goal: the bottom layer.", students: "Open their design.", devices: "open" },
       { minutes: 6, title: "Demo", teacher: "Repeat-duplicate and lifting to 15 mm.", students: "Watch, predict.", devices: "open" },
@@ -168,8 +202,14 @@ export const lesson: LessonInput = {
     equipment: ["Student devices with Tinkercad", "Layer maps"],
     misconceptions: [
       { id: "close-enough", text: "A fraction of a millimetre doesn't matter.", response: "Three cubes each 0.4 mm off is over 1 mm. The pieces must close a cube with no gaps." },
+      { id: "front-doesnt-matter", text: "It doesn't matter which side of the workplane is the front.", response: "It does once there are three layers: if one layer is turned compared with the map, pieces that cross layers break apart or change shape. Agree a front and mark it." },
+      { id: "duplicate-moves", text: "Ctrl + D puts the copy in a new place.", response: "Press it once and drag: the copy was sitting exactly on the original. That's why repeat duplicate needs a move straight after the first copy." },
     ],
-    discussionQuestions: ["Why use colour instead of just remembering which cube is which?"],
+    discussionQuestions: [
+      "Why use colour instead of just remembering which cube is which?",
+      "Why is reading the size a better check than looking closely?",
+      "How could you choose colours that work for everyone in the class?",
+    ],
     troubleshooting: [
       "Repeat duplicate only repeats if you move the copy right after Ctrl + D, then press Ctrl + D again.",
       "Size reads 45.4: one cube was dragged with snap off. Re-place it.",

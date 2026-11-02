@@ -134,16 +134,87 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students control size and position with numbers, using whole millimeters only.",
-    preparation: ["Bring a ruler to show 10 mm and 100 mm.", "On trackpads, students should use typed sizes and the arrow keys instead of dragging."],
-    equipment: ["Chromebooks", "A ruler for the demo"],
+    purpose: "Students control size and position with numbers, using whole millimeters only. This is the shift from 'make it look right' to 'make it the right size', which every later lesson needs: holes that go through, letters that sit exactly on top, and a bookmark that fits a 150 × 40 mm limit. It also introduces the third direction, up, as something you set on purpose rather than by accident.",
+    bigIdea: "Designers type exact sizes in millimetres, and they lift a shape by moving it up, not by making it taller.",
+    successCriteria: [
+      "I can type a number to make a shape an exact size.",
+      "I can say which number is the length, the width and the height.",
+      "I can move a shape a little at a time with the arrow keys.",
+      "I can lift a shape off the workplane by a set amount.",
+    ],
+    background: [
+      { title: "Millimetres: the designer's unit", body: "Tinkercad works in **millimetres (mm)** by default, and so do almost all 3D printers. A millimetre is tiny: 10 mm is about the width of a fingernail, and 100 mm is about the length of a crayon. Holding up a ruler and showing 1 mm, 10 mm and 100 mm makes the numbers real. Grade 4–5 students often know centimetres better; you can bridge with '10 mm is 1 cm'. Keeping to whole millimetres in this course keeps the maths friendly while still being exact." },
+      { title: "Three directions: length, width, height", body: "Every shape has three sizes. On the workplane, two run flat along the table (Tinkercad shows them as the sizes along the grid) and one goes **up**. Tinkercad doesn't label them 'length' and 'width', so students need to look at *which side* a number sits beside. The up direction is called **Z** in CAD. Students don't need the letter yet, but it helps you: the black cone on top of a selected shape controls Z position, and the top white handle controls height (Z size)." },
+      { title: "Typing sizes in Tinkercad", body: "Click a shape to select it. White square **handles** appear on its corners and top. When you click or hover over a handle, the size numbers appear beside the edges. Click a number, type a new value and press **Enter**. Typing is exact every time; dragging a handle snaps to the grid but is easy to overshoot, especially on a trackpad. (Holding **Shift** while dragging a corner keeps the shape's proportions, a useful tip for later.) If the numbers don't show, the shape isn't selected, or the student needs to click a handle first." },
+      { title: "Moving and lifting", body: "With a shape selected, the **arrow keys** nudge it along the workplane by one grid step (the **Snap Grid** setting at the bottom right, usually 1 mm). Holding Shift with an arrow takes bigger steps. To lift, drag the **black cone** on top of the shape, or press **Ctrl + ↑** (Ctrl + ↓ moves it down). While dragging the cone, a number shows how high the bottom of the shape is above the workplane, and you can type into it. Pressing **D** drops a selected shape back onto the workplane, which rescues shapes that have sunk below it." },
+      { title: "Taller is not higher", body: "The most common error today is making a shape taller when asked to lift it. Making it taller stretches the top upwards, but the **bottom stays on the workplane**. Lifting moves the whole shape up and leaves a gap underneath. A good physical model: a student standing on tiptoe is taller, but a student standing on a chair is lifted. This difference matters later in two ways. Letters must be lifted to sit *on* a base, and hole shapes are lifted to leave a floor. It also links back to Lesson 1: a lifted shape with nothing underneath would print in mid-air." },
+    ],
+    studentQuestions: [
+      { q: "Can I type numbers with decimals?", a: "Tinkercad lets you, but in this course we use whole millimetres. They're easier to check and plenty exact for our designs." },
+      { q: "Which number is the width?", a: "Look at which side the number sits next to. Orbit if you need to. Width is across the shape, length is along it, height goes up." },
+      { q: "My shape went under the workplane!", a: "Select it and press D. That drops it back onto the workplane." },
+      { q: "Why not just drag until it looks right?", a: "Your eyes can be off by a few millimetres, and that's enough for a lid not to fit. Typing the number is exact every time." },
+    ],
+    connections: [
+      "Toy companies make building bricks to very tight measurements so every brick snaps onto every other one.",
+      "Carpenters and builders measure in millimetres or centimetres before they cut, because a guess leads to gaps and wobbles.",
+      "Engineers who design phone cases type the exact size of the phone so the case fits snugly.",
+    ],
+    exitTicket: [
+      "A box is 30 mm long. You make it twice as long. How long is it now?",
+      "What is the difference between making a shape taller and lifting it? Draw or say it.",
+    ],
+    runPlan: [
+      { minutes: 4, title: "Hook", teacher: "Hold up a ruler and show 10 mm and 100 mm. Read the hero aloud. Ask: 'Why would a designer type a size instead of guessing?'", students: "Find something about 10 mm wide (a fingernail) and about 100 mm long (a crayon).", devices: "away" },
+      { minutes: 6, title: "Show me", teacher: "Model selecting, typing a size, nudging with arrows and lifting with the cone. Then act out taller (tiptoe) versus lifted (standing on a step).", students: "Watch, then copy the tiptoe and step actions.", devices: "away" },
+      { minutes: 6, title: "Try it", teacher: "Circulate while students answer the practice questions and test each tool on a single box. Ask 'Is it taller or is it lifted? How can you tell?'", students: "Try each control on a box, then answer the three questions.", devices: "open" },
+      { minutes: 11, title: "Box builder", teacher: "Encourage students to orbit to check the gap under the cylinder. Ask them to read their numbers to a partner.", students: "Build the box and the lifted cylinder, check with a partner, then screenshot with the box selected.", devices: "open" },
+      { minutes: 3, title: "Reflect", teacher: "Share one or two reasons why typing beats guessing. Collect exit tickets.", students: "Reflection and exit ticket.", devices: "open" },
+    ],
+    lookFors: [
+      "Students clicking and typing size numbers rather than dragging handles.",
+      "Students lifting with the black cone (or Ctrl + ↑) instead of stretching the shape taller.",
+      "Students orbiting to check that a lifted shape really has a gap below it.",
+      "Students naming which side is length, width and height as they type.",
+    ],
+    differentiation: {
+      support: [
+        "Give a card with three labelled pictures: the white handles (size), the black cone (lift) and the arrow keys (nudge).",
+        "Let students build the box one size at a time, checking each number with a partner before moving on.",
+        "Offer a ruler at the desk so students can see each number they type.",
+      ],
+      extend: [
+        "Stack three shapes, each lifted to sit exactly on the one below, and check from the side.",
+        "Build a small table: a flat top lifted onto four legs, all sizes typed.",
+        "Try the Ruler tool to measure the distance between two shapes.",
+      ],
+    },
+    preparation: [
+      "Bring a ruler to show 10 mm and 100 mm.",
+      "On trackpads, students should use typed sizes and the arrow keys instead of dragging.",
+      "Check the Snap Grid is set to 1 mm on the demo device so arrow nudges move one millimetre at a time.",
+    ],
+    equipment: ["Chromebooks", "A ruler for the demo", "Optional: rulers for students"],
     misconceptions: [
       { id: "taller-is-lift", text: "Making a shape taller lifts it.", response: "Show both side by side: a taller shape still touches the workplane." },
       { id: "delete", text: "Delete moves a shape.", response: "Remind students Delete removes, and Undo brings it back." },
       { id: "eyeball", text: "Dragging is exact enough.", response: "Have two students drag to 20 mm without looking at the number, then compare." },
+      { id: "mm-is-big", text: "A millimetre is about the size of a centimetre (or an inch).", response: "Show 1 mm on a ruler next to 1 cm. Ten millimetres fit in one centimetre." },
     ],
-    discussionQuestions: ["When would a designer need an exact size? (A lid, a case, a part that fits something)"],
-    troubleshooting: ["If the size boxes don't show, the shape isn't selected. Click it once.", "If a shape sinks below the workplane, press D to drop it back down."],
-    answerGuidance: ["Twice as long: 80 mm.", "Box builder: 40 × 20 × 5 mm box, cylinder lifted 10 mm."],
+    discussionQuestions: [
+      "When would a designer need an exact size? (A lid, a case, a part that fits something)",
+      "How can you tell if a shape is lifted or just taller?",
+    ],
+    troubleshooting: [
+      "If the size boxes don't show, the shape isn't selected. Click it once.",
+      "If a shape sinks below the workplane, press D to drop it back down.",
+      "If arrow keys move the view instead of the shape, click the shape first so it is selected.",
+      "If arrow nudges jump by large amounts, check the Snap Grid setting at the bottom right.",
+    ],
+    answerGuidance: [
+      "Twice as long: 80 mm.",
+      "Box builder: 40 × 20 × 5 mm box, cylinder lifted 10 mm.",
+      "The prompt can be read two ways: lifted 10 mm off the workplane, or 10 mm above the top of the box. Accept either, as long as the cylinder is clearly lifted and the student can explain their number.",
+    ],
   },
 };

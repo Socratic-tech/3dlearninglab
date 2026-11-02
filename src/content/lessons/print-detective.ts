@@ -211,7 +211,66 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students learn to read physical evidence on a print and to separate design causes from printer causes, before they design anything themselves.",
+    purpose: "Students learn to read physical evidence on a print and to separate design causes from printer causes, before they design anything themselves. The lab builds two habits the rest of the course depends on: observing before explaining (a core science practice), and asking 'is this the shape, or the settings?' when something goes wrong. It also gives students the vocabulary (first layer, bridge, overhang, supports, stringing, layer orientation) that later design-for-printing lessons assume.",
+    bigIdea: "A print carries clues about how it was made: if I look closely before I guess, I can trace a problem back to the design or to the printer.",
+    successCriteria: [
+      "I can describe what I see and feel on a print before I explain it.",
+      "I can link a clue on a print to what the nozzle was doing at that spot.",
+      "I can decide whether a problem came from the design or the printer settings, and give a reason.",
+      "I can suggest one change to try on the next print.",
+    ],
+    background: [
+      { title: "Observation first, explanation second", body: "The detective rules separate **noticing** ('the underside of the arm is rough and pitted') from **explaining** ('supports were snapped off there'). This is the claim, evidence and reasoning structure students may know from science. Students who jump to explanations tend to name the defect they heard of most recently, rather than the one in front of them. Insisting on two specific observations (where, and what it looks or feels like) before any reveal slows them down enough to actually look. First observations are ungraded so students can be wrong safely; the reasoning is the skill being assessed." },
+      { title: "Four moments where prints go wrong", body: "Most defects can be traced to one moment in the print. **The first layer**: the nozzle has to be close enough to squash the first lines flat onto the plate; too high and the lines stay round and separate and the part may come loose; too close and plastic can't flow. The nozzle-to-plate gap is usually adjusted with a setting called the **Z-offset**. **Thin features**: the nozzle lays lines about as wide as its opening (often 0.4 mm), so a wall thinner than a couple of lines is fragile, gappy or skipped by the slicer. **Overhangs and bridges**: plastic laid over air sags unless it is a short span between two supports that cools before it droops. **Travel moves**: when the nozzle moves between parts, melted plastic can ooze out and leave hairs; slicers fight this with **retraction** (pulling the filament back slightly before travelling) and by keeping the temperature no higher than needed." },
+      { title: "Why layer direction changes strength", body: "Within one line, plastic is a continuous strand. Between layers, the new hot plastic only partly melts into the cooler layer below, so the bond is weaker. Engineers call a material that is stronger in some directions than others **anisotropic**. A hook printed standing up has layer lines running *across* its stem, giving it an easy place to split. The same hook printed lying down has lines running *along* its length. Same shape, same plastic, different strength: this is why orientation becomes a design decision later in the course." },
+      { title: "Design problem or printer problem?", body: "A helpful question for students: **would this still happen on a perfect, perfectly tuned printer?** If yes, the shape is the cause and the fix belongs in CAD (change the shape, change the orientation, or plan for supports). If no, the fix belongs in the printer or slicer settings. Some problems sit in between. **Warping** (corners curling up) comes from plastic shrinking as it cools: large flat parts and sharp corners make it worse (design), while bed temperature, adhesion and drafts also matter (printer). A **layer shift** is almost always mechanical: a bump, a loose belt or the nozzle catching on a curled part. Accept well-argued 'both' answers." },
+      { title: "Building and keeping the kit", body: "The samples are deliberately made to fail, one change at a time, so each defect is clear (see Preparation and the slicer settings note). Label samples only with a letter so the label does not give the answer away. A kit lasts for years if each sample lives in its own labelled bag; keep a spare of the fragile thin-wall sample. Any failed print from your own printer is a bonus sample: keep a 'fail bin' and add the best ones to the kit. Watch deliberately bad prints and stop the printer if a part comes loose, so a loose part doesn't get dragged around the plate." },
+      { title: "Where this goes next", body: "Every clue here returns later. First layers and parts floating off the workplane come back in Moving Objects. Wall thickness returns in Holes and in the container designs. Overhangs, bridges and supports return in the design-for-printing lessons, and the standing-versus-lying hook returns in the Strength lesson. When students later diagnose their own prints, point them back to this lab's question: what was the nozzle doing at that spot?" },
+    ],
+    studentQuestions: [
+      { q: "Why didn't the printer just stop when it went wrong?", a: "Most school printers can't see what they are printing. They follow the instructions from the slicer, line by line, whether the part is there or not. Some newer printers have sensors or cameras that can catch some failures, but most don't." },
+      { q: "Can you fix a print after it's finished?", a: "Small things, yes: strings can be picked or trimmed off and support scars can be sanded. Big things, like a weak layer or a sagging bridge, need a new print with a change." },
+      { q: "Why is the bottom of a print smooth or shiny?", a: "The first layer is squashed against the build plate, so it copies the plate's surface. A smooth plate gives a shiny bottom; a textured plate gives a textured one." },
+      { q: "Can failed prints be recycled?", a: "PLA is often not accepted in home recycling bins, so check what your area accepts. Many schools keep failed prints for kits like this one, or for testing." },
+    ],
+    connections: [
+      "Quality-control inspectors in factories examine parts for defects and trace each one back to a cause in the design or the process.",
+      "Failure-analysis engineers investigate why products, bridges or machine parts broke, starting from the evidence on the broken piece.",
+      "Makers of critical printed parts, such as some aircraft and medical parts, inspect them closely, sometimes with X-ray scanning, to find hidden gaps between layers.",
+      "Technicians who run rooms full of printers (print farms) diagnose failed prints all day and keep notes on which setting fixed what.",
+    ],
+    exitTicket: [
+      "What is the difference between an observation and an explanation? Write one of each about a print you looked at today.",
+      "Write the question you would ask yourself to decide whether a print problem came from the design or the printer.",
+      "Which sample fooled you at first, and what clue will you look for first next time?",
+    ],
+    runPlan: [
+      { minutes: 6, title: "Hook: fail gallery", teacher: "Show the fail gallery cards one at a time. Take guesses before flipping each card, and praise guesses that come with a reason.", students: "Guess the 'crime' for each card and say what clue made you think so.", devices: "away" },
+      { minutes: 4, title: "Detective rules and safety", teacher: "Model one observation on a sample that isn't in the kit: 'On the left edge I see… it feels…'. Go over handling rules.", students: "Practise one specific observation with a partner.", devices: "away" },
+      { minutes: 18, title: "Investigate the kit", teacher: "Run stations or pass samples round table groups. Circulate and ask 'Where exactly? What does it feel like?' before allowing any reveal.", students: "Record observations for each object in the app, then open the reveal and compare.", devices: "open" },
+      { minutes: 7, title: "Match and sort", teacher: "Bring the class together to sort the samples into 'design' and 'printer' piles, asking for a reason for each.", students: "Complete the matching and the design-or-printer questions.", devices: "open" },
+      { minutes: 10, title: "Prove it: the unknown sample", teacher: "Hand out unseen samples. No hints. Listen to a few case reports for the teacher check.", students: "Write or record a case report on the unknown sample.", devices: "away" },
+      { minutes: 5, title: "Reflect and exit", teacher: "Ask one student to share what fooled them. Collect the exit ticket.", students: "Reflection and exit ticket.", devices: "open" },
+    ],
+    lookFors: [
+      "Observations that name a location and a look or feel, written before any cause.",
+      "Students turning samples over and touching them, not just looking from one side.",
+      "Talk that links evidence to a cause with 'because'.",
+      "Students who change their explanation when they notice new evidence.",
+      "Design-versus-printer decisions backed by a reason, not a guess.",
+    ],
+    differentiation: {
+      support: [
+        "Give a sentence frame: 'On the ___ of Object ___, I see/feel ___. I think this happened because ___.'",
+        "Reduce to three objects (for example A, C and F) studied in depth instead of all six.",
+        "Let students record observations as a photo with a voice note, or with a partner as scribe.",
+      ],
+      extend: [
+        "Pick one design-caused defect and sketch a redesign that would avoid it.",
+        "Write a one-page troubleshooting card for the class printer: clue, likely cause, first thing to try.",
+        "Predict what a seventh sample (such as the overhang test) will look like before seeing it, then check.",
+      ],
+    },
     preparation: [
       "Build the Print Detective Kit 1–2 weeks ahead. Label each sample with a sticker (A–F) and nothing else.",
       "OBJECT A — support scars: print excessive-support-object (the T-bracket) standing on its stem with supports ON (touching build plate). Snap the supports off so the rough underside is visible.",
@@ -224,10 +283,11 @@ export const lesson: LessonInput = {
       "Pick one extra print for the Prove it task that students haven't seen: a failed print from your bin, a warped corner, or a second copy of a sample printed a different way.",
       "Set up six stations or pass objects around in table groups. Students record observations in the app before opening any reveal.",
     ],
-    equipment: ["The six labelled Print Detective samples", "One unknown sample per group for Prove it", "Optional: magnifying glasses or phone cameras for close-ups"],
+    equipment: ["The six labelled Print Detective samples", "One unknown sample per group for Prove it", "Optional: magnifying glasses or phone cameras for close-ups", "Zip bags or trays to keep each sample with its letter"],
     misconceptions: [
       { id: "all-design", text: "Every print problem means the design is wrong.", response: "Sort the six samples into 'design' and 'printer settings' piles together. Stringing and first-layer issues happen even with perfect designs." },
       { id: "shape-only", text: "The same shape is always equally strong no matter how it is printed.", response: "Show the layer lines on Object C and ask where the plastic is glued to itself versus melted together in one line." },
+      { id: "first-guess", text: "The first explanation that comes to mind is the answer.", response: "Ask for two observations before any explanation, then ask: 'What evidence would make you change your mind?'" },
     ],
     discussionQuestions: [
       "What is the difference between an observation and an explanation?",
@@ -241,6 +301,8 @@ export const lesson: LessonInput = {
       "If the 60 mm bridge prints cleanly, your cooling is good. Keep it and ask students why it still worked.",
       "If the first-layer sample detaches mid-print, keep the failed piece; it is excellent evidence.",
       "If students jump straight to answers, cover the reveals and require two written observations per object first.",
+      "If the thin-wall sample breaks during handling, keep the pieces: a broken thin wall is still good evidence. Print a spare for next year.",
+      "If a group finishes early, hand them a print from your fail bin as an extra case.",
     ],
     answerGuidance: [
       "A support scars; B stringing; C layer orientation (weak across the stem); D bridge failure on long spans; E thin wall; F first layer too high.",

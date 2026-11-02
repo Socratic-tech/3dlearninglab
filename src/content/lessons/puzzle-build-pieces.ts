@@ -153,7 +153,38 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students turn the in-place build into real parts with grouping, and see their design as an exploded view. A backup keeps an editable cube for later changes (day 17).",
+    purpose: "Students turn the in-place build into real parts with grouping, and see their design as an exploded view. A backup keeps an editable cube for later changes (day 17). This is the payoff of the in-place build: students see their pieces in 3D for the first time and can compare them with their day 2 sketches and day 4 plan. It also teaches a professional habit, saving a version before any big change, and makes clear that the software only does what you select.",
+    bigIdea: "Grouping joins only the shapes I select, so careful selection turns each colour into one solid piece, and a backup keeps my work safe if anything goes wrong.",
+    successCriteria: [
+      "I can save a backup copy of my design before making a big change.",
+      "I can select all the cubes of one colour and group them into one piece.",
+      "I can check that each piece moves as one part and that no cubes are left behind.",
+      "I can pull my puzzle apart into an exploded view and compare each piece with my plan.",
+    ],
+    background: [
+      { title: "What grouping does", body: "**Group** (Ctrl + G) combines the selected shapes into one object. For solid shapes that touch or overlap, the result behaves as a single solid: in CAD terms a *union*. When the piece is exported for printing, the faces between neighbouring cubes disappear and the slicer sees one solid part. Grouping can always be undone with **Ungroup** (Ctrl + Shift + G). Crucially, Tinkercad doesn't work out which shapes belong together: it joins exactly what is selected, nothing more and nothing less." },
+      { title: "Grouping doesn't check the piece rules", body: "Tinkercad will happily group shapes that don't touch, or that touch only along an edge. The group then moves as one on screen, but the printer will still produce separate bits, because there is no plastic between them. So 'it moves as one' (today's micro check) shows that the selection was complete; it doesn't prove that every cube shares a face. While students orbit around each piece, ask them to check the joints against rule 2 from day 3 as well." },
+      { title: "Colour after grouping", body: "A group normally shows a single colour. Because every cube in a piece is already the same colour, this is usually invisible, but if a stray cube of another colour was included, or Tinkercad picks an unexpected colour, simply select the group and set its colour again. Some versions of Tinkercad offer a *Multicolor* option for groups that keeps each shape's original colour; it isn't needed here. Colour on screen has no effect on the print: the printed colour comes from the filament." },
+      { title: "Selecting inside a crowded cube", body: "Shift + click adds a shape to the selection (or removes it if it's already selected). Inner cubes are hard to reach, so a reliable routine is: group the pieces you can see fully, **hide** each piece once it's grouped, and keep going until the inner pieces are exposed. Then Show all. Counting the groups against the layer map (5 or 6) and clicking each piece to see it move as one confirm that nothing was missed or doubled up." },
+      { title: "Backups and versions", body: "Before a change that is hard to reverse, professionals save a version. In Tinkercad, the simplest way is to duplicate the whole design from the dashboard (or select all, copy, and paste into a new design) and give it a clear name such as 'puzzle cube - cubes'. Ungrouping can undo a grouping mistake, but a separate ungrouped copy is much safer for big changes later: on day 17 students revise their puzzle from playtest data, and moving one cube between pieces is far easier in the ungrouped version." },
+      { title: "Exploded views and what comes next", body: "An **exploded view** pulls an assembly apart so each part is visible, the way assembly instructions and repair manuals show products. For students it's the first time they see their pieces as objects, and it's common for a piece to look different from what they imagined: a good moment to compare with the day 2 sketch and the day 4 map. Next, day 10 adds personal touches, and week 3 decides how each piece lies on the print bed (rule 5 from day 3 comes back) before slicing and printing." },
+    ],
+    studentQuestions: [
+      { q: "My piece turned the wrong colour when I grouped it.", a: "That's normal for groups. Select the piece and pick its colour again. The colour on screen doesn't change the print." },
+      { q: "I grouped the wrong cubes together.", a: "Press Ctrl + Z to undo, or select the group and Ungroup (Ctrl + Shift + G). Then select again, more carefully." },
+      { q: "Why do I need a backup if I can ungroup?", a: "Ungroup fixes small mistakes. A backup protects you from big ones, and in week 4 you'll want the ungrouped cube to make changes after playtesting." },
+      { q: "How do I know a piece is really one part?", a: "Click it and drag it: it should move all together. Then orbit round it and check every cube shares a whole face with another." },
+    ],
+    connections: [
+      "Product designers make exploded views for assembly instructions, repair guides and spare-parts catalogues.",
+      "Software developers use version control so they can always get back to a working copy, the same idea as today's backup.",
+      "Mechanical engineers turn an assembly into separate parts for manufacturing, checking each one can actually be made.",
+    ],
+    exitTicket: [
+      "Why did you save a backup before grouping? Describe one mistake it could rescue you from.",
+      "How many pieces does your puzzle have, and how did you check that it matches your layer map?",
+      "Which piece looks most different from how you imagined it, and why?",
+    ],
     runPlan: [
       { minutes: 5, title: "Demo", teacher: "Backup, group one colour, pull it out.", students: "Watch.", devices: "open" },
       { minutes: 25, title: "Group", teacher: "Circulate; check groups match the plan.", students: "Back up, group every piece.", devices: "open" },
@@ -167,8 +198,13 @@ export const lesson: LessonInput = {
     equipment: ["Student devices with Tinkercad"],
     misconceptions: [
       { id: "group-magic", text: "Grouping figures out which shapes belong together.", response: "Group joins only what's selected. Select carefully, then group." },
+      { id: "group-checks-rules", text: "If Tinkercad lets me group it, the piece must be properly joined.", response: "Group two cubes that only touch on an edge: Tinkercad groups them anyway. Grouping doesn't check the face rule; you do, by orbiting round each piece." },
+      { id: "screen-colour-prints", text: "The colour on screen is the colour the piece will print.", response: "The printer uses whatever filament is loaded. Screen colours are for telling pieces apart while designing." },
     ],
-    discussionQuestions: ["Why keep an ungrouped backup?"],
+    discussionQuestions: [
+      "Why keep an ungrouped backup?",
+      "Which of your pieces looks most different from your sketch, and what does that tell you about drawing in 3D?",
+    ],
     troubleshooting: [
       "Group turned everything one colour: select the group and set its colour (or use Multicolor if offered).",
       "A piece won't stay together: a cube may only touch on an edge. Recheck the plan.",

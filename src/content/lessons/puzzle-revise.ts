@@ -154,7 +154,38 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Evidence-based iteration: one targeted change linked to playtest data, a minimal reprint, and a comparable re-test. Keep this day even in a 3-week run; it's where the design cycle closes.",
+    purpose: "Evidence-based iteration: one targeted change linked to playtest data, a minimal reprint, and a comparable re-test. Students learn to change one variable so they can tell what worked, to make the change in the assembled backup so the fit is preserved, and to keep everything else (the test, the print settings) the same. Keep this day even in a 3-week run; it's where the design cycle closes.",
+    bigIdea: "I change one thing that my test data points to, keep everything else the same, and test again to find out whether it worked.",
+    successCriteria: [
+      "I can choose one change and say which playtest result it responds to.",
+      "I can make the change in my assembled backup so the pieces still fit.",
+      "I can reprint only the pieces that changed.",
+      "I can compare my re-test with version 1 and say whether the change worked.",
+    ],
+    background: [
+      { title: "One variable at a time", body: "If a student changes three things and the puzzle gets harder, they can't tell which change did it, or whether two changes cancelled out. Changing **one variable** and keeping everything else the same is the fair-test idea from science applied to design. It also keeps the work small enough to finish in one period. That doesn't mean every revision must be tiny: trading cubes between two pieces is one change, even though two pieces are reprinted." },
+      { title: "From data to a design lever", body: "Puzzle difficulty comes from the shapes, not the size. Useful levers: **3D pieces** (pieces that bend in more than one direction are harder to place than flat ones), **look-alike pieces** (similar pieces make solvers try the wrong one; very different pieces make it easier), **number of ways a piece could fit**, and **visible clues** (a mark, a colour or a visible chamfer). Students should start from their stuck spot and times, compare them with the target, and ask which lever is most likely behind them. Fit problems (sticking, a warped piece, a tight box) are a different kind of revision, fixed by cleanup, reprinting or the box clearance." },
+      { title: "Change pieces in place", body: "The ungrouped, assembled backup from week 2 is what keeps the fit. When a cube moves from one piece to a neighbour inside the assembled cube, both pieces still fill the 3 × 3 × 3 block exactly between them. Editing a loose, grouped piece on its own is the main way students break the fit. After the change, students re-check the piece rules from week 1 (for example, that every cube in a piece still joins its neighbours face to face) and that the whole cube is still 45 × 45 × 45 with 27 cubes. Recolouring the moved cubes makes the change easy to see in before/after screenshots." },
+      { title: "A minimal, consistent reprint", body: "Only the changed pieces are regrouped, oriented (day 11 rules still apply: a new shape may need a new orientation or a chamfer), exported and printed. Use the same printer and slicer settings as version 1 where possible. If the settings or printer change, the new pieces might come out a slightly different size and fit differently, which quietly becomes a second variable. Usually that means one or two short prints per student, which fits around full box prints." },
+      { title: "A fair re-test", body: "The re-test needs a **new** tester, because anyone who has solved version 1 now knows much of the answer. The same protocol from day 16 applies: same starting state, timer, 10-minute cap and hint ladder. With so few testers, students should describe results carefully: 'moved toward the target' is a better claim than 'fixed'. If reprints aren't ready, a math-cube mock-up of the changed pieces still allows a re-test, recorded as such." },
+      { title: "When the change doesn't work", body: "A revision that doesn't move the results is still a success as evidence: the student has learned that this lever wasn't the cause, and has a reason-based idea for version 3. Celebrate clear reasoning, not just improved numbers. This framing matters for students who feel their puzzle 'failed' the playtest, and it is the honest picture of how real design work goes." },
+    ],
+    studentQuestions: [
+      { q: "Why can't I fix everything at once?", a: "Then you won't know which change made the difference. One change, one re-test, and you'll know for sure." },
+      { q: "Can my old tester try the new version?", a: "They already know most of the answer, so their time won't be fair. Find someone new." },
+      { q: "My new pieces don't fit the old ones. Why?", a: "The change was probably made on a loose piece. Go back to your assembled backup, make the change there, and check the whole cube." },
+      { q: "My change didn't help. Did I fail?", a: "No. You found out something real about your puzzle. Write down what you learned and what you'd try in version 3." },
+    ],
+    connections: [
+      "Software companies run A/B tests: they change one thing (a button, a layout), show it to new users, and compare the numbers.",
+      "Engineers keep version histories of every design so they can compare versions and roll back a change that made things worse.",
+      "Game studios release patches that adjust one mechanic at a time, then watch player data to see the effect.",
+    ],
+    exitTicket: [
+      "What one change did you make, and which playtest result does it respond to?",
+      "What did you keep the same so your re-test is fair?",
+      "If you made a version 3, what would you change next, and why?",
+    ],
     runPlan: [
       { minutes: 5, title: "Hook", teacher: "Version 2 is where designs get good.", students: "Listen.", devices: "away" },
       { minutes: 10, title: "Conferences", teacher: "One change linked to data.", students: "Explain the change.", devices: "away" },

@@ -130,7 +130,38 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "A low-cost prototype and first user test before any CAD. Students experience iteration when changes are cheap. Optional in a 3-week run: if skipped, have students build their plan from cubes for 10 minutes at the end of day 4.",
+    purpose: "A low-cost prototype and first user test before any CAD. Students experience iteration when changes are cheap. Optional in a 3-week run: if skipped, have students build their plan from cubes for 10 minutes at the end of day 4. The day rehearses, in miniature, the full test-and-revise loop of week 4 (days 16 and 17): watch a real user, record data rather than opinions, and make one change because of the evidence. It also catches plans that can't be built at all before anyone spends time in CAD.",
+    bigIdea: "Testing a cheap prototype with a real person, and writing down what they actually did, shows me what to change while a change still costs seconds.",
+    successCriteria: [
+      "I can build my planned puzzle from math cubes and check it against my layer map.",
+      "I can run a fair test: time my partner and stay quiet while they solve.",
+      "I can record test results as data (a time and where they got stuck), not just an opinion.",
+      "I can make one change to my plan because of the test and explain why.",
+    ],
+    background: [
+      { title: "What a prototype is for", body: "A **prototype** is an early version built to answer a question. Designers talk about *low-fidelity* prototypes (quick, rough, cheap: paper, cardboard, math cubes) and *high-fidelity* ones (close to the real product). Today's math-cube puzzle answers two questions: does the plan actually fit together, and is it about the right difficulty for the student's target solver? The further a design travels (sketch, math cubes, CAD, print), the more each change costs in time and material, so the cheapest moment to find a problem is now." },
+      { title: "Running a fair user test", body: "Professional user researchers watch people use a product without helping, because help hides exactly the problems they're looking for. Ask testers to work alone, start a timer and stop at 5 minutes (record 'not solved in 5:00' as a result, not a failure). The designer's job is to watch and write: what the tester tried first, where they got stuck, and anything that was too easy or broke. Staying silent while someone struggles with your design is genuinely hard; naming that and modelling it before the swap helps a lot." },
+      { title: "Data versus opinion", body: "A time is **quantitative** data: it can be compared after a change. 'Stuck on where C goes for 2 minutes' is a **qualitative** observation that points to what to change. 'It was okay' is an opinion and can't be compared with anything. Also keep the sample size honest: one tester is one data point. Different people solve at very different speeds, so treat today's result as a clue, not a verdict. Week 4's playtests will collect more tests and look for patterns." },
+      { title: "Levers that change difficulty", body: "When a puzzle is too easy, common fixes are bending a flat piece into 3D, making two pieces look more alike (a mirror pair is the strongest version), or breaking up long straight runs that slot obviously along an edge. When it's too hard for the target solver, merge two small pieces, make a piece flatter or give one piece a distinctive shape that's easy to place. The easiest safe change is moving one cube between two neighbouring pieces: the total stays 27, and students only need to recheck the piece rules for those two pieces." },
+      { title: "Math cubes are not the final product", body: "Math cubes have small connectors and a little play between them, so a prototype feels looser than the printed puzzle will. Printed pieces are smooth, solid and fit with almost no gap, so they can feel stiffer and the puzzle may behave slightly differently. That's fine: the prototype is testing the *shapes* and the *difficulty*, not the feel. The feel gets tested on day 14 with the first print." },
+      { title: "Iteration is normal", body: "Students sometimes read a partner's quick solve as 'my puzzle failed'. Frame it the way designers do: the test worked, because it produced information. Sorting the class's changes on the board (too easy, too hard, broke) shows that almost everyone changed something. That normalises iteration before week 4, where a data-driven revision is a required step of the project." },
+    ],
+    studentQuestions: [
+      { q: "My partner solved it in 20 seconds. Did I fail?", a: "No. You found out something important while it's cheap to fix. Look at which pieces went in first and make one of them harder to place." },
+      { q: "Can I give my partner a hint?", a: "Not during the timed try: it would hide the problem you're looking for. Afterwards, ask them what would have helped." },
+      { q: "Nobody can solve mine. Is that good?", a: "Maybe too good. Check your target solver and time from yesterday. If a first-timer can't get near it, make one change to help them." },
+      { q: "Do I have to change something?", a: "Make one change, or write a clear reason why your test shows no change is needed. Either way, the reason should come from what your tester did." },
+    ],
+    connections: [
+      "User experience (UX) researchers run usability tests where they watch people use an app or product and deliberately don't help.",
+      "Board-game and video-game studios playtest early versions with paper, cards or rough levels long before final art is made.",
+      "Engineers build cardboard and foam mock-ups to test size and fit before paying for expensive tooling.",
+    ],
+    exitTicket: [
+      "Write your partner's time and where they got stuck. What does that tell you about your puzzle?",
+      "What one change will you make, and what do you predict it will do to the solve time?",
+      "Why is it cheaper to change your design today than next week?",
+    ],
     runPlan: [
       { minutes: 5, title: "Hook", teacher: "Fix it now, for free: why test before CAD.", students: "Listen.", devices: "away" },
       { minutes: 10, title: "Build it", teacher: "Students build their planned puzzle from math cubes; check against the layer map.", students: "Build all pieces.", devices: "away" },
@@ -139,14 +170,20 @@ export const lesson: LessonInput = {
       { minutes: 12, title: "Plan version 2", teacher: "Devices open: update the layer map, upload photo and notes.", students: "Update the plan, upload, reflect.", devices: "open" },
     ],
     lookFors: ["Testers left to struggle without hints.", "Notes with a time and a stuck spot, not just 'it was fine'.", "Changes that respond to what the tester did."],
-    differentiation: { support: ["Test with a partner who has the layer map to check against, instead of a blind solve.", "Give a notes template: time / stuck spot / one change."], extend: ["Run a second swap with a new tester after the change.", "Make a 'hint card' that helps without giving the answer away."] },
+    differentiation: { support: ["Test with a partner who has the layer map to check against, instead of a blind solve.", "Give a notes template: time / stuck spot / one change.", "Offer a short menu of safe changes (move one cube between two pieces, bend a flat piece up) so students can choose rather than invent from scratch."], extend: ["Run a second swap with a new tester after the change.", "Make a 'hint card' that helps without giving the answer away."] },
     preparation: ["Math cubes for every student or pair (about 30). Several colours help tell pieces apart.", "Pair students with someone who hasn't seen their plan.", "Timers (phones, a class timer)."],
     equipment: ["Math cubes", "Timers"],
     misconceptions: [
       { id: "fix-later", text: "It's fine to fix problems after printing.", response: "Compare: 30 seconds with math cubes vs. a 3-hour reprint. Test now." },
       { id: "opinion-is-data", text: "A tester's opinion is the test result.", response: "Ask: could you compare this note after a change? Times and stuck spots can be compared." },
+      { id: "one-test-proves", text: "One quick test proves the puzzle is good (or bad).", response: "One tester is one data point: people solve at very different speeds. Use it as a clue for one change, then test again with someone new." },
+      { id: "fast-solve-is-failure", text: "If my partner solved it fast, my design failed.", response: "The test succeeded: it found something to improve while changes are cheap. Ask which pieces went in first, and change one of them." },
     ],
-    discussionQuestions: ["What did watching someone else teach you about your own puzzle?"],
+    discussionQuestions: [
+      "What did watching someone else teach you about your own puzzle?",
+      "Why is it so hard not to help someone who is stuck on your design?",
+      "What is one note from today that you could compare after you change your puzzle?",
+    ],
     troubleshooting: [
       "Pieces come apart when they're handed over: snap them firmly, and photograph each piece so it can be rebuilt.",
       "If the puzzle was solved in seconds, suggest bending a flat piece into 3D.",

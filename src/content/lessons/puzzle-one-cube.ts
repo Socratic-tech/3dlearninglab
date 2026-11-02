@@ -173,7 +173,39 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "A from-scratch Tinkercad start, in the project's context: navigation plus exact dimensions and a snap grid that divides the unit size. Students with Tinkercad experience can finish quickly and start day 7's layer.",
+    purpose: "A from-scratch Tinkercad start, in the project's context: navigation plus exact dimensions and a snap grid that divides the unit size. Students with Tinkercad experience can finish quickly and start day 7's layer. The habit that matters most for the whole project starts here: when a number matters, type it. Every one of the 27 cubes is a copy of today's cube, so an exact unit cube and a snap grid that fits it are what make the pieces fit together later.",
+    bigIdea: "In CAD I type exact sizes and choose a snap grid that fits them, so every copy of one perfect cube lines up with no gaps and no overlaps.",
+    successCriteria: [
+      "I can orbit, zoom, pan and get back to the home view in Tinkercad.",
+      "I can make a box an exact size by typing its dimensions.",
+      "I can choose a snap grid that lets cubes land exactly side by side, and explain why.",
+      "I can place two cubes face to face with no gap and no overlap, and check it from more than one angle.",
+    ],
+    background: [
+      { title: "Tinkercad in one minute", body: "Tinkercad is free, browser-based CAD (computer-aided design) software from Autodesk. Nothing needs installing, and designs save automatically to the student's account. The screen has three parts students need today: the **workplane** (the blue grid you build on), the **shapes panel** on the right (Basic Shapes includes the Box) and the **shape panel/inspector** that appears when a shape is selected (colour, Solid or Hole). Sizes are in millimetres by default. A Box dragged in arrives at a default size, not the 15 mm the project needs, which is why the size must be typed." },
+      { title: "Moving the camera, not the model", body: "Orbit, zoom and pan move *your view*, not the shapes. That matters for new CAD users, who often think they've moved or broken their design when they've only turned the camera. The **view cube** at the top left shows which way you are looking; clicking a face of it jumps to that view, and the home button returns to the starting view. The controls beside it also include fit-to-view and a switch between *perspective* and *orthographic* view. Orthographic makes parallel lines stay parallel, so the cubes look like the isometric sketches from day 2." },
+      { title: "Typing versus dragging", body: "Dragging a white handle resizes a shape in steps set by the snap grid; typing a number into the dimension box ignores the grid and gives the exact value. Click a corner handle and the length and width boxes appear; the white handle on top controls height. Type the number and press **Enter** (or Tab): if you click away without confirming, Tinkercad may keep the old value. 15 mm cubes give a 45 mm puzzle that fits comfortably in a hand and prints in a reasonable time; 10 mm cubes give a 30 mm keychain version." },
+      { title: "Why the snap grid has to fit the cube", body: "The snap grid is the step size a shape jumps by when you drag it. If the cube is 15 mm, the next cube's position must be exactly 15 mm along, so the step size has to divide 15 a whole number of times; otherwise a dragged cube can only land a little short (overlapping) or a little long (leaving a gap). A very fine grid such as 1 mm also divides 15, but then a cube can easily land one step off without anyone noticing. A coarser grid that still divides the cube size makes 'exactly right' the easiest place to land. Check the setting at the start of every session, as it may not stay the way students left it." },
+      { title: "Why exact matters: errors add up", body: "Engineers call it *tolerance stack-up*: small errors in parts that sit side by side add together. A puzzle is three cubes wide in every direction, and pieces must fit against each other on every face, so an error of a fraction of a millimetre in one cube can stop the cube closing. Real printers also add small errors of their own (plastic squishes out slightly), so the design itself has to be exact. Day 7 makes this concrete with a 0.4 mm prediction, and day 15's box fit returns to it." },
+      { title: "Access: mouse, trackpad, touch and keyboard", body: "A mouse makes orbiting easiest (right-drag), but trackpads and touch screens work: see the troubleshooting and touch notes. Keyboard shortcuts help students who find precise dragging hard: with a shape selected, the arrow keys nudge it along the workplane and, in current versions, Ctrl with the up or down arrow moves it up or down. Shortcuts change between versions, so try them on your class devices before teaching them. Typing dimensions and positions is itself an accessibility feature: it replaces fine motor control with a number." },
+    ],
+    studentQuestions: [
+      { q: "Everything's upside down and I've lost my shapes!", a: "Click the little house by the view cube to go back to the home view. Your shapes didn't move; only your view did." },
+      { q: "I typed 15 but nothing changed.", a: "Press Enter after typing the number. Then click the shape again and check all three sizes say 15." },
+      { q: "Why can't I just drag carefully?", a: "Dragging jumps in snap-grid steps, so it can only land on certain sizes. Typing gives exactly the number you want." },
+      { q: "Which number is length, width and height?", a: "The two numbers by the corner handle are across the workplane; the one at the top is height. For a cube they're all the same, so type 15 in all three." },
+      { q: "Can I make the 10 mm keychain version?", a: "Check with your teacher first. If yes, every 15 in the steps becomes 10." },
+    ],
+    connections: [
+      "CAD technicians and engineers draw every part to exact, typed dimensions so parts made in different places fit together.",
+      "Building bricks fit any other brick from the same system because every one is made to the same exact sizes on a shared grid.",
+      "Architects and builders often design on a grid or module (a repeated standard size) so materials like bricks, tiles and panels fit without cutting.",
+    ],
+    exitTicket: [
+      "When should you type a number instead of dragging? Give one example from today.",
+      "Your cubes keep landing with a tiny gap. Name two things you would check.",
+      "How confident do you feel moving around Tinkercad (1 to 5)? Which control do you want to practise more?",
+    ],
     runPlan: [
       { minutes: 5, title: "Why exact?", teacher: "One cube, copied 27 times: if it's exact, everything fits.", students: "Listen.", devices: "away" },
       { minutes: 8, title: "Watch first", teacher: "Live demo: navigation, Snap Grid, typed size.", students: "Watch, ask questions.", devices: "away" },
@@ -189,8 +221,13 @@ export const lesson: LessonInput = {
     misconceptions: [
       { id: "drag-is-exact", text: "Careful dragging gives exact sizes.", response: "Show that dragging follows the snap grid; typing doesn't." },
       { id: "any-snap", text: "Any snap grid setting is fine.", response: "Ask how many steps make 15 mm. Only step sizes that divide 15 evenly land exactly." },
+      { id: "view-moves-shape", text: "Orbiting or zooming moves the shapes.", response: "Select a cube, note its size and position, orbit all the way round, then check again: nothing changed. Orbit moves your camera, not your design." },
+      { id: "looks-touching", text: "If two cubes look touching from one angle, they are touching.", response: "Orbit to look along the joint from the side and from above. A gap or overlap can hide completely from one viewpoint." },
     ],
-    discussionQuestions: ["When is dragging fine, and when must you type a number?"],
+    discussionQuestions: [
+      "When is dragging fine, and when must you type a number?",
+      "Why might a tiny error in one cube cause a big problem when there are 27 of them?",
+    ],
     troubleshooting: [
       "Trackpads: two-finger drag orbits on many laptops; Shift + two-finger drag pans.",
       "Typed size ignored: click the number, type, then press Enter.",

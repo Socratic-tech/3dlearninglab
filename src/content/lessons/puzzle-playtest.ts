@@ -139,7 +139,38 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "A real user test with comparable data. Students practise the hardest research skill, watching without helping, and compare results with the measurable target from day 1.",
+    purpose: "A real user test with comparable data. Students practise the hardest research skill, watching without helping, and compare results with the measurable target from day 1. They learn that a fair test means the same procedure every time, that numbers and observations work together, and that a stuck tester is information about the design, never a judgement of the person. Today's data drives tomorrow's single revision.",
+    bigIdea: "I find out how good my puzzle really is by watching other people try it, using the same test every time and writing down facts I can compare.",
+    successCriteria: [
+      "I can run a playtest without explaining or helping, using the hint ladder only when asked.",
+      "I can record time, hints and where a tester got stuck.",
+      "I can compare my results with the target in my brief.",
+      "I can treat my tester with respect, whatever happens.",
+    ],
+    background: [
+      { title: "Why designers can't test their own designs", body: "Once you know how something works, it is very hard to imagine not knowing. Psychologists call this the **curse of knowledge**. A student who built the puzzle sees the solution instantly, so their own sense of difficulty is useless as evidence. Professional designers run **user tests** (in games, **playtests**) for exactly this reason: a person who has never seen the design reveals where it is confusing, too easy or frustrating. The tester must not have seen the puzzle, its layer map or the student solving it." },
+      { title: "A fair test: same procedure every time", body: "For results to be comparable, every playtest must run the same way: pieces handed over in the same state (apart, mixed up), the same timer, the same 10-minute cap, the same hint ladder in the same order, and no other help. The hint ladder is the key tool here: it standardises help, so 'needed 2 hints' means the same thing for every tester. When students later re-test version 2 on day 17, any difference should come from the design change, not from a different test. This is the same idea as a fair test in science." },
+      { title: "Numbers and observations", body: "Good playtest notes combine **quantitative data** (things you count or time: solve time, number of hints) with **qualitative data** (what you see and hear: which piece they held longest, where they got stuck, what they said). Numbers tell you *how much* of a problem there is; observations tell you *where* it is and suggest what to change. Opinions such as 'it was cool' are pleasant but rarely point to a specific design change. Comparing the numbers with the measurable target in the brief from day 1 turns a pile of notes into a decision." },
+      { title: "Small samples and honest claims", body: "Two testers is a very small sample. One tester might be a puzzle expert and another might be having a bad day, so results can vary a lot. Encourage careful language: 'Both testers got stuck on piece E' is a pattern worth acting on; one fast solve is a hint, not proof. Professional user researchers often say that even a handful of testers reveals the biggest problems, which is why two is enough to choose a revision, as long as students don't over-claim." },
+      { title: "Observing with respect", body: "Watching someone struggle without helping feels uncomfortable, and testers can feel judged. Set the tone: the puzzle is being tested, not the person. Observers stay neutral (no sighs, pointing or 'you're so close'), thank every tester, and record testers by role ('Tester 1'), not full name. If a tester becomes frustrated, stopping early is fine: the stuck spot and time are still valid data. Students who are anxious about being watched can test in a quieter spot, or record notes by audio." },
+      { title: "Running it in a classroom", body: "A simple rotation works well: split the class into two halves seated apart, so testers come from tables that haven't seen each other's puzzles. Run two rounds; in each round half the class tests and half observes, then swap. Everyone tests twice and is tested twice. Post the protocol and hint ladder where everyone can see them, and give a two-minute warning before the 10-minute cap so rounds end together. If prints aren't ready, the math-cube version from day 5 gives usable data, as long as the student notes it." },
+    ],
+    studentQuestions: [
+      { q: "My tester solved it really fast. Did my puzzle fail?", a: "No: you found out something true about it. Compare the time with your target; tomorrow you can change one thing to make it harder." },
+      { q: "Can I give a hint if they look stuck?", a: "Only if they ask, and only the next step on the hint ladder. Then write it down. That keeps every test the same." },
+      { q: "What if my tester is my best friend? Is that OK?", a: "It's fine if they've never seen your puzzle. Just follow the same plan and stay quiet, the same as with anyone." },
+      { q: "Why do I have to stop at 10 minutes?", a: "So every test is the same length and you can compare them. 'Not solved in 10 minutes' is a useful result too." },
+    ],
+    connections: [
+      "Game designers and toy companies playtest repeatedly with new players, timing them and noting where they get stuck, before a product is released.",
+      "UX (user experience) researchers watch people use apps and websites without helping, recording task times and errors to guide redesigns.",
+      "Scientists and medical researchers use standard procedures so results from different people and places can be compared fairly.",
+    ],
+    exitTicket: [
+      "Write one piece of playtest data you collected today that you could compare tomorrow.",
+      "How did your results compare with the target in your brief?",
+      "Why does the hint ladder have to be the same for every tester?",
+    ],
     runPlan: [
       { minutes: 8, title: "Protocol", teacher: "The playtest plan; staying quiet; dignity.", students: "Listen, set up.", devices: "away" },
       { minutes: 25, title: "Playtests", teacher: "Run rotations; listen to testers.", students: "Test and be tested.", devices: "away" },

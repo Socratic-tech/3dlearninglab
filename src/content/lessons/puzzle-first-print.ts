@@ -155,7 +155,38 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students meet real-world print variation, diagnose it with vocabulary and causes, and make a reasoned reprint decision. The first assembly also gives measurements for day 15's box.",
+    purpose: "Students meet real-world print variation, diagnose it with vocabulary and causes, and make a reasoned reprint decision. They learn to separate printer problems from design problems by looking at *where* a fault appears, to clean up carefully without over-sanding, and to treat a flawed print as information rather than failure. The first assembly also gives measurements for day 15's box.",
+    bigIdea: "Real prints are never exactly like the screen, so I inspect them, name what went wrong and why, and fix only what needs fixing.",
+    successCriteria: [
+      "I can name common print problems and explain what causes them.",
+      "I can tell whether a problem comes from the printer or from my design.",
+      "I can clean up a piece safely without changing its shape too much.",
+      "I can decide, with a reason, whether a piece needs reprinting.",
+    ],
+    background: [
+      { title: "Getting prints off the plate", body: "Many school printers have a removable, flexible build sheet: bend it gently and PLA parts pop off. On a fixed plate, letting it cool often helps parts release, and a thin scraper used flat, pushing away from the hand that holds the plate, does the rest. Students should not pull small pieces off a hot plate with fingers. If prints come off before the lesson, store each set in a labelled bag or tray so pieces don't get mixed up between students." },
+      { title: "The first layer and elephant's foot", body: "Printers deliberately press the first layer slightly into the plate so it grips. That squish makes the first layer a little wider than the layers above, and on a heated bed the lowest layers stay warm and soft for longer, so they can spread a fraction of a millimetre more. The result is **elephant's foot**: a thin lip around the bottom edge of a part. On a decoration nobody notices. On a puzzle, where pieces are designed to meet exactly, a lip of a few tenths of a millimetre is enough to catch. A light pass with a file, nail file or deburring tool along that one edge usually solves it. For future prints, many slicers have a setting to compensate for it (names vary), and a tiny chamfer on bottom edges in the design also hides it." },
+      { title: "Stringing, warping and layer shifts", body: "**Stringing** is fine wisps left when molten plastic oozes from the nozzle as it travels between pieces. It is harmless and pulls off; slicer retraction settings reduce it, and filament that has absorbed moisture from the air tends to string more. **Warping** happens when a part cools and shrinks unevenly, so corners lift off the plate. PLA warps less than many other plastics, but large flat parts, a dirty plate (fingerprints reduce grip) or a cold draught can cause it; a brim helps. A **layer shift** is a sideways step part-way up a print, when the printer missed some movement, often because it was bumped, a belt was loose or the nozzle caught on something. Shifted pieces are the wrong shape and need reprinting." },
+      { title: "Printer problem or design problem?", body: "The most useful diagnostic question is *where* the problem is: on every piece or just one, along a whole face or only at one height, and at which height. Each print problem has a typical location (the fail gallery cards describe them), so the location narrows down the cause. A problem that would show on screen too (a piece that genuinely clashes in the Tinkercad model, or a piece printed from an old version) is a design or file problem. Students often blame the design first because it is the part they made; teaching them to locate the fault before deciding builds real troubleshooting habits." },
+      { title: "Cleaning up without over-fixing", body: "Every stroke of a file removes plastic, and puzzle pieces are designed at exact sizes. Encourage light, targeted cleanup: trim strings, ease a bulging bottom edge, and test the fit after each small change. Heavy sanding of whole faces can make the finished cube loose. Use the tools your school allows: files and sanding sponges for students, flush cutters with supervision. Work on a table, away from the body, and wipe dust up rather than blowing it." },
+      { title: "Printed parts and real sizes", body: "Printed parts are rarely exactly the CAD size. On many FDM printers, outside dimensions come out slightly larger and inside openings slightly smaller, typically by a tenth or two of a millimetre, depending on the printer and settings. One cube being a little over doesn't matter much; tomorrow students find out what happens when several pieces sit side by side in the assembled cube, and use that to design their box." },
+    ],
+    studentQuestions: [
+      { q: "Is my puzzle broken because it has strings on it?", a: "No. Strings are leftover wisps from the nozzle moving between pieces. Pull or trim them off and the piece is fine." },
+      { q: "Why does the bottom edge stick out?", a: "The first layer is squished onto the plate on purpose so it sticks, and it spreads a little. A light file along that edge fixes it." },
+      { q: "Should I just sand everything until it slides?", a: "Sand only where it catches, then test. Every bit you sand off is gone, and too much makes the cube loose." },
+      { q: "One piece is different from my design. Who made the mistake?", a: "Check your layer map and the file you exported. If the file is right, it's a print problem; if the file is wrong, fix it there." },
+    ],
+    connections: [
+      "Quality inspectors in factories check parts against the design, name each defect and decide whether to rework or scrap.",
+      "Additive manufacturing technicians post-process prints for a living: removing parts, trimming, sanding and checking fit before parts reach customers.",
+      "Mechanics and technicians use the same diagnostic habit: find where a problem happens before deciding what caused it.",
+    ],
+    exitTicket: [
+      "Name one problem you found (or one from the fail gallery) and its cause.",
+      "How can you tell whether a problem came from the printer or from your design?",
+      "Did you decide to reprint anything? Give your reason.",
+    ],
     runPlan: [
       { minutes: 10, title: "Unboxing", teacher: "Inspection routine; tool safety.", students: "Look before assembling.", devices: "away" },
       { minutes: 10, title: "Diagnose", teacher: "Fail gallery and diagnosis checks.", students: "Name problems and causes.", devices: "open" },

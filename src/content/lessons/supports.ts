@@ -213,12 +213,71 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students learn what supports do, when they're needed, and how to redesign so parts print without them — a key design-for-printing habit.",
+    purpose: "Students learn what supports do, when they're needed, and how to redesign so parts print without them — a key design-for-printing habit. The lesson frames supports as a deliberate trade-off (plastic, time, clean-up and surface finish against the shape you want) rather than a default switch, and gives students an ordered set of moves to try first: rotate, reshape, split. In the 9-week course this lesson follows layers, orientation and strength directly, so some students will meet overhangs and bridges here for the first time; the predictions and the slider re-teach the 45° idea in brief.",
+    bigIdea: "Supports are temporary scaffolding that let a printer build over air, but they cost plastic, time and surface quality, so good designers first try to rotate, reshape or split a part so it holds itself up.",
+    successCriteria: [
+      "I can predict whether a part will need support by looking for steep overhangs and flat ledges.",
+      "I can name three ways to avoid support: change the angle, change the orientation, or split the part.",
+      "I can explain the costs of support material, not just the benefit.",
+      "I can decide when using supports on purpose is the right call, and say why.",
+    ],
+    background: [
+      { title: "What support material is", body: "**Support material** is extra structure the slicer generates underneath overhangs, usually a thin grid, zig-zag or branching 'tree', printed from the same plastic as the part on single-material school printers. It holds up the overhang while it prints and is snapped or peeled off afterwards. The slicer leaves a small vertical gap between the top of the support and the part (often about one layer) so the two don't fuse completely. Too small a gap and support is welded on; too large and the surface above it droops. Where support touched the part, it leaves a rougher **support scar**." },
+      { title: "How the slicer decides where to put supports", body: "Supports are a **slicer setting**, not something drawn in Tinkercad. When supports are on, the slicer looks at every downward-facing surface and adds support under any that lean further than its **overhang threshold**. Many slicers default to somewhere in the 45–60° range, but slicers don't all measure the angle the same way (some from vertical, some from horizontal), so check the tooltip on your slicer before changing it. Common choices include supports **everywhere** or only **touching the build plate** (so support never starts on top of the part itself), and **normal/grid** versus **tree** supports. Tree supports branch up to the overhang and are often easier to remove and use less plastic on organic shapes; grid supports are simpler and more predictable. Slicer previews show supports in a different colour, which makes them a great 'test result' when you have no printer." },
+      { title: "The real cost of support", body: "Supports always work, but they cost: extra **plastic** that goes in the bin, extra **print time**, **clean-up** time with pliers, a rougher underside, and sometimes broken features when supports are hard to remove. The lesson's two T-brackets make this concrete. If you print both and weigh them (including the removed support), students can see the trade-off on a scale rather than taking your word for it. The amount saved varies with the slicer and settings, so avoid promising an exact number." },
+      { title: "Three ways to design supports out", body: "Designers usually try these in order of effort, though it's a habit rather than a rule. **Rotate:** turn the part so the overhang faces up or lies flat on the plate (orientation also changes strength, so check which direction the part will be loaded in). **Reshape:** replace a flat ledge with a 45° chamfer, a cone or a triangular **gusset**, so every surface leans gently enough to support itself. **Split:** cut the part into pieces that each print flat, then glue, peg or snap them together. In Tinkercad, reshaping usually means adding a rotated box or a Wedge/Roof shape under a ledge; splitting can be done by duplicating the part and cutting each copy with a large Hole box." },
+      { title: "When supports are the right call", body: "Supports are a tool, not a failure. They are the sensible choice when redesigning would ruin what the object is for, or when it's a one-off where time matters more than finish. The point of this lesson is that students turn supports on **on purpose**, for a reason they can state, rather than ticking the box 'just in case'. Thinking about which surfaces will show scars (and putting them on a hidden underside) is part of that choice." },
+      { title: "Safety and removal", body: "Support pieces can snap off suddenly and fly, so eye protection is sensible, and pliers or flush cutters are safer than fingernails. Students should pull or cut away from their bodies and hands. Removing support while a part is still warm can make it easier but also risks bending the part; let PLA prints cool on the plate first. Keep small offcuts off the floor and out of the printer." },
+    ],
+    studentQuestions: [
+      { q: "Why doesn't the slicer just add supports automatically every time?", a: "It can, if you tell it to. But then it might add support where you'd rather redesign, and you pay for that plastic and clean-up every print. Designers decide on purpose." },
+      { q: "Can I make supports in a different colour so they're easy to see?", a: "Only on printers that can switch between materials or colours. On most school printers, the support is the same plastic as the part." },
+      { q: "Why is the support so hard to get off?", a: "It may have fused to the part. Your teacher can increase the gap between support and part in the slicer, and pliers make removal easier and safer." },
+      { q: "Do holes need supports?", a: "Vertical holes don't, because their walls go straight up. Sideways holes have a ceiling that can overhang; small ones usually print fine without support." },
+      { q: "Is using supports cheating?", a: "No. It's a choice with costs. Good designers use them when the shape really needs them and can explain why." },
+    ],
+    connections: [
+      "Industrial additive-manufacturing engineers spend a lot of effort reducing supports, especially on metal printers, where support removal can mean machining or cutting.",
+      "Construction crews use temporary formwork and scaffolding to hold concrete or arches until they can stand on their own, then remove it: the same idea as print supports.",
+      "Product designers routinely split large or awkward parts into pieces that print or mould well, then join them with clips, screws or glue.",
+    ],
+    exitTicket: [
+      "Name one object you would print with supports on purpose, and one you would redesign instead. Explain each choice.",
+      "List two costs of using support material.",
+      "Sketch a ledge that needs support, then sketch one change that would remove the need.",
+    ],
+    runPlan: [
+      { minutes: 10, title: "Hook and predictions", teacher: "Hold up a supported print with scars (or show the support-scars diagram). Run the three predictions as a class vote before revealing each.", students: "Vote and justify: support or no support?", devices: "away" },
+      { minutes: 10, title: "Same part, two designs", teacher: "Show both T-brackets in the viewer, or pass round the printed pair and the removed support. Ask: 'Which used more plastic overall?'", students: "Compare the brackets, then do the quarter-support slider, compare question and ordering task.", devices: "open" },
+      { minutes: 5, title: "When support is right", teacher: "Discuss the 'when to support' question. If removing supports, model safe removal with eye protection and pliers.", students: "Answer the 'when to support' question.", devices: "open" },
+      { minutes: 20, title: "Prove it: pencil cup", teacher: "No steps. Insist on a side-view sketch first. Ask 'Which way up will this print?' and 'What's under that ledge?'", students: "Sketch, then design the pencil cup and write a one-sentence strategy.", devices: "open" },
+      { minutes: 5, title: "Reflect and exit", teacher: "Ask two students who used different strategies to share. Collect the exit ticket.", students: "Reflection and exit ticket.", devices: "open" },
+    ],
+    lookFors: [
+      "Students point to a specific surface and angle when deciding if support is needed, not just 'it looks hard'.",
+      "Side-view sketches that show the underside of the ledge before building.",
+      "The strategy sentence names rotate, reshape or split and matches what the model actually does.",
+      "Models placed in their real print orientation and sitting on the workplane.",
+    ],
+    differentiation: {
+      support: [
+        "Give a one-page visual of the three strategies (rotate, reshape, split) with a sketch of each.",
+        "Offer a plain cup already built so students can focus on adding and shaping the ledge.",
+        "Let students explain their strategy aloud or by annotating a screenshot instead of writing.",
+      ],
+      extend: [
+        "Slice your pencil cup and the original T-bracket with supports on and off; record grams and time for each and explain the difference.",
+        "Design the pencil cup two different ways (for example by reshaping and by splitting) and argue which is better for a real user.",
+        "Investigate tree versus grid supports in the slicer on a figure-like model and describe when each makes sense.",
+      ],
+    },
     preparation: [
       "If possible, print both T-brackets: excessive-support-object WITH supports on, and redesigned-support-object with supports off. Weigh both including the removed support.",
       "Have pliers and eye protection ready if students remove supports.",
+      "Open the T-bracket in your slicer with supports on and off, and note where the support setting, overhang threshold and support preview colour are so you can show them quickly.",
+      "If your 9-week class skipped the overhangs and bridging lessons, be ready to sketch the 45° stair-step idea on the board.",
     ],
-    equipment: ["Student devices with Tinkercad", "Optional: printed T-brackets", "Pliers and eye protection", "Optional: kitchen scale"],
+    equipment: ["Student devices with Tinkercad", "Optional: printed T-brackets", "Pliers and eye protection", "Optional: kitchen scale", "Optional: slicer on the projector", "Paper for side-view sketches"],
     misconceptions: [
       { id: "holes-need-support", text: "Any hole or empty space needs support.", response: "Vertical holes have straight walls. Only the ceiling of a sideways hole can overhang." },
       { id: "printer-figures-it-out", text: "The printer will figure out how to print anything.", response: "Show the slicer preview with supports off: the cap's first layer is printed on air." },
@@ -229,12 +288,16 @@ export const lesson: LessonInput = {
     discussionQuestions: [
       "What did you notice about the underside of the supported bracket?",
       "Which strategy (rotate, reshape, split) was most useful in your pencil cup?",
+      "Who pays for support material: the designer, the user, the school or the planet?",
+      "When would a support scar matter, and when wouldn't it?",
     ],
     printableObjects: ["excessive-support-object (with supports)", "redesigned-support-object (no supports)", "Optional: student pencil cups"],
     slicerSettings: "Starting point: PLA, 0.2 mm layers, 15% infill, 2–3 walls. Supports: on, 'touching build plate' only, for the original T-bracket; off for the redesign — adjust for your printer.",
     troubleshooting: [
       "Supports won't come off: print a little cooler, or increase the support gap in your slicer.",
       "Slicer adds support to the redesign: check the overhang threshold setting (often set around 45–55°).",
+      "Support fused to the part or the surface above support is droopy: the support gap (Z distance) is too small or too large; adjust in small steps and test.",
+      "Tinkercad chamfer doesn't meet the arm cleanly: make sure the rotated box or wedge overlaps both the stem and the arm slightly, then group.",
     ],
     answerGuidance: [
       "Predictions: cube hole — no; mushroom — yes; letter A — probably no.",

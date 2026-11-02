@@ -58,6 +58,26 @@ teacher guide page as **Run the lesson**, **Watch and listen for** and **Support
 for a skilled teacher, not a script. Teachers can also add their own note to any mission for a class (Pages edition);
 students see it at the top of the mission.
 
+### Teacher guide: background and slides
+
+Every lesson's guide also carries, for teachers new to CAD and printing:
+
+- `teacher.bigIdea` and `teacher.successCriteria` ("I can…"): shown on the guide and on the deck's goal and
+  self-rating slides.
+- `teacher.background`: 4–6 titled markdown sections on the engineering, math or science behind the lesson, why the
+  numbers are what they are, and where students go wrong.
+- `teacher.studentQuestions` ({q, a}), `teacher.connections` (uses and careers) and `teacher.exitTicket` (prompts only).
+
+Teacher notes ship in a public file on the Pages edition, so these fields must not contain answers to `skill`
+checks or solutions to `prove`/`boss` challenges; put those in `answerGuidance`, which is never published.
+
+**Slides.** "Download slides" on a teacher guide (and "Download all (.zip)" on the Lessons tab) builds a `.pptx` in the
+browser from the lesson and its guide: `src/lib/slides/plan.ts` decides the slides (pure, tested in
+`tests/unit/slides.test.tsx`), `render.ts` draws them with pptxgenjs, and `diagram-png.tsx` turns catalog diagrams
+into PNGs. Student-facing text goes on the slide; teacher moves, background and likely questions go in the speaker
+notes. The deck never shows answers: ordering and matching items are shuffled, and explanations are left out. Google
+Slides imports the file (upload to Drive → Open with → Google Slides, or File → Import slides).
+
 ### Rules
 
 - Language for ages 10–14: short sentences, no walls of text, concrete numbers.

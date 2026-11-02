@@ -28,6 +28,11 @@ Click **Open my dashboard** to import rosters from Google Classroom, watch the *
 class, review work, and run the **print queue**. Bookmark the page that opens.
 
 ## Good to know
+- **Teacher guides and slides:** every lesson has a teacher guide (Lessons tab → **Teacher guide**) with background
+  reading, the goal and success criteria, a minute-by-minute plan, questions students ask, and an exit ticket.
+  **Download slides** makes a deck for that lesson; **Download all (.zip)** on the Lessons tab makes one for every
+  lesson in your course. To use them in Google Slides, upload the file to Drive and choose **Open with → Google
+  Slides** (or, in a deck you already have, **File → Import slides**). Your teacher moves are in the speaker notes.
 - **Who can sign in:** your email domain is filled in for you. If students use a different domain
   (like `students.district.org`), add it under **Settings** in the panel.
 - **Updates:** the Sheet contains a small loader plus its manifest. The app and lessons come from the website, check for updates automatically, and keep a cached backup for outages. You do not have to replace script files after setup.

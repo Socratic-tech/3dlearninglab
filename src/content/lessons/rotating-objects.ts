@@ -201,7 +201,65 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students choose an axis and angle deliberately and learn to re-seat a shape on the workplane after rotating.",
+    purpose: "Students choose an axis and angle deliberately and learn to re-seat a shape on the workplane after rotating. Rotation is the first transformation where students must picture a movement before making it, so the lesson leans on physical models (a pencil, a box) as much as the screen. It also lays groundwork for print orientation: which way up a part sits changes how tall it is, how much room it takes and, later, how strong it prints.",
+    bigIdea: "Every rotation is two choices, an axis and an angle, so I picture the turn before I make it and check the shape is back on the workplane afterwards.",
+    successCriteria: [
+      "I can choose the axis I need before I rotate.",
+      "I can rotate a shape by snap steps or by typing an exact angle.",
+      "I can put a shape back on the workplane after tipping it.",
+      "I can turn a part so it fits inside a space.",
+    ],
+    background: [
+      { title: "Axis plus angle", body: "A rotation turns a shape around an imaginary line called the **axis of rotation**. In Tinkercad the three choices match the three directions students met in Moving Objects: X, Y and Z. The angle is measured in **degrees**: 360° is a full turn, 90° a quarter turn, 45° an eighth. Positive and negative angles turn opposite ways, so if a shape turns the wrong way, undo it and use the negative angle. Before anyone drags, ask them to say both parts aloud: 'around ___, by ___ degrees'." },
+      { title: "The three curved arrows", body: "Selecting a shape shows three curved arrows, one per axis. A simple way to tell them apart is to look at the path each arrow follows: the one that circles flat around the shape, parallel to the workplane, spins it like a record on a turntable; the two that stand upright tip it over forwards or sideways. Dragging close to the arrow snaps in **22.5°** steps (a quarter turn split into four), which makes 45° and 90° easy. Dragging farther away gives finer steps, and you can click the angle number while rotating and type an exact value such as 30. The exact snapping behaviour can feel different on different devices, so typing is the reliable route." },
+      { title: "Why shapes float or sink after rotating", body: "Tinkercad turns a shape around its own middle, not around its bottom. Take the 70 × 8 × 6 mm bar lying flat: its middle is 3 mm above the workplane. Stand it up and the middle stays at 3 mm, so the bar now reaches 35 mm above and 35 mm below that point, with its bottom about 32 mm *under* the workplane. Tipping a shape the other way can leave it floating instead. This is why the Show Me ends with **D**: after any tip, drop the shape back to the workplane, or check its height from the side." },
+      { title: "Rotations stack up", body: "Tinkercad doesn't store one fixed 'current angle' for a shape. Each rotation you make turns the shape from wherever it is now, and the angle readout shows only the turn you are making in that move. Students who expect the number to set an absolute angle (like a compass bearing) get confused when two turns combine. Suggest they keep a quick note of the rotations they've made, or undo back to the start if they lose track." },
+      { title: "Rotation, space and printing", body: "Turning a part changes how much room it takes up. The 70 mm rod standing up is 70 mm tall; lying flat, it is only a few millimetres tall. Tilted at an angle, it takes up room in two directions at once, which is why tilted parts don't fit neatly in a tray. When printing, the same idea decides which face sits on the build plate. A good print orientation gives a flat face on the plate, avoids overhangs and, as Print Detective showed with the hook, puts the layer lines where they make the part strongest." },
+      { title: "How this connects", body: "Rotation builds on Moving Objects (the axes and the D key) and Exact Dimensions (typed values). The next lesson, Workplanes, offers another way to put a shape at an angle: instead of rotating the shape, you move the 'floor'. In Workspace Rescue, students rotate tilted tools so they lie flat in a tray, with no steps provided." },
+    ],
+    studentQuestions: [
+      { q: "Why did my shape go through the floor?", a: "It turned around its middle, so part of it swung below the workplane. Press D to drop it back onto the workplane." },
+      { q: "It turned the wrong way. How do I fix it?", a: "Press Ctrl + Z to undo, then rotate the other way, or type a negative angle." },
+      { q: "Why does it snap to 22.5°?", a: "It's a quarter turn split into four equal steps, so 45° and 90° are easy to hit. For other angles, type the number." },
+      { q: "How do I know which arrow to use?", a: "Picture the turn first. Hold a pencil and turn it the way you want, then pick the arrow that turns the shape the same way." },
+    ],
+    connections: [
+      "Accessibility ramps are a tilted plank with a strict angle: in the US, guidelines limit wheelchair ramps to a rise of 1 unit for every 12 units of length.",
+      "Robot arms in factories are programmed with an angle for every joint, so precise rotation is everyday work for robotics technicians.",
+      "3D animators rotate characters' joints by chosen angles, frame by frame, to make them move.",
+      "Print technicians rotate parts on the build plate to reduce supports and make them stronger.",
+    ],
+    exitTicket: [
+      "Describe one rotation using both parts (the axis and the angle). Use an object on your desk as the example.",
+      "After you tip a shape over, what should you check, and how?",
+      "Sketch or describe an object you might rotate before printing it, and say why.",
+    ],
+    runPlan: [
+      { minutes: 5, title: "Hook", teacher: "Show the toolbox scene. Hand out pencils (or use your own) and have students show 'spin' and 'tip' with them.", students: "Use a pencil to show how the rod would need to turn to lie in the tray.", devices: "away" },
+      { minutes: 8, title: "Model and predict", teacher: "Rotate live, saying the axis and angle aloud each time. Stand the bar up, show it sink, then press D. Ask the turntable prediction.", students: "Predict each rotation with the pencil before you see it on screen.", devices: "away" },
+      { minutes: 10, title: "Rotation practice", teacher: "Circulate. Ask 'Which axis? How many degrees?' before students drag.", students: "Stand the bar up, lay it down, spin it, and type a 30° rotation.", devices: "open" },
+      { minutes: 9, title: "Pack the rod and checks", teacher: "Watch for shapes left floating or sunk after tipping.", students: "Complete Pack the rod, the snap slider and the check questions.", devices: "open" },
+      { minutes: 10, title: "Prove it: ramp and sign", teacher: "Steps disappear. Point stuck students to a side view and to the pencil, not to an angle.", students: "Build the ramp and the crossing sign, then submit evidence.", devices: "open" },
+      { minutes: 3, title: "Reflect and exit", teacher: "Collect the exit ticket.", students: "Reflection and exit ticket.", devices: "open" },
+    ],
+    lookFors: [
+      "Students name the axis (or act it out with a pencil) before dragging.",
+      "A side-view check or D after every tip.",
+      "Angles typed when they aren't on a snap step.",
+      "Wrong-way turns fixed with Undo, not by piling on more rotations.",
+    ],
+    differentiation: {
+      support: [
+        "Give each student a small box or eraser with X, Y and Z stickers to turn by hand before turning it on screen.",
+        "Start with 90° turns only, then add 45° and typed angles.",
+        "Provide a picture card from the lesson: the record on a turntable next to a pencil tipped over.",
+      ],
+      extend: [
+        "Rotate a shape 30° and then a further 15° around the same axis. Predict its final angle, then check.",
+        "Work out how much room a 70 mm rod takes along X and Y when spun 45° around Z, then measure it in Tinkercad.",
+        "Design a phone stand whose back rests at a typed angle you choose, and explain the choice.",
+      ],
+    },
     preparation: [
       "Practise one rotation with a typed angle so you can show where the angle box appears.",
       "Optional: download toolbox-parts.stl. It imports as a single shape, so it is a reference only; students build their own rod and block.",
@@ -219,6 +277,8 @@ export const lesson: LessonInput = {
       "If rotation jumps in big steps, drag closer to or farther from the arrow; the snap amount depends on where the pointer is.",
       "If a shape seems to vanish after rotating, it may be below the workplane. Press D.",
       "If students can't get the ramp to touch both ends, suggest rotating first, then moving it on Z and X while watching from the side.",
+      "If a shape turned the wrong way, Ctrl + Z undoes the rotation; stacking more rotations on top usually makes it harder to fix.",
+      "If students can't tell which arrow is which, have them orbit to the Home view first so the arrows are easier to see.",
     ],
     answerGuidance: [
       "Pack the rod: 90° around X or Y, then 90° around Z if needed so the length runs along X, then D.",

@@ -178,7 +178,38 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students take responsibility for a real print job: plate layout, export, slicer preview, sensible settings and estimating time and material. Prints run between day 13 and day 14 (or over a weekend).",
+    purpose: "Students take responsibility for a real print job: plate layout, export, slicer preview, sensible settings and estimating time and material. The slicer preview becomes the last cheap check of the orientation and chamfer decisions from days 11 and 12, and recording time and grams teaches that every setting is a trade-off between strength, quality, time and plastic. Prints run between day 13 and day 14 (or over a weekend).",
+    bigIdea: "The slicer turns my model into layers and moves, and its preview lets me catch problems and see the cost before the printer spends hours on it.",
+    successCriteria: [
+      "I can lay out all my pieces on one plate and export an STL file.",
+      "I can use the slicer's layer preview to check that nothing floats.",
+      "I can explain what infill and layer height change, and choose sensible settings.",
+      "I can record the print time and plastic used, and send my print request.",
+    ],
+    background: [
+      { title: "From Tinkercad to an STL file", body: "An **STL** file describes the outside surface of a model as thousands of tiny triangles. It stores shape only: no colours, no hole/solid settings (those are already applied by grouping), and no units. Slicers assume the numbers are millimetres, which matches Tinkercad, so sizes come through correctly. STL also keeps the positions of the pieces, so a plate laid out in Tinkercad arrives in the slicer laid out the same way. If a student exports the ungrouped backup as well, the slicer receives every loose cube and the duplicate set, which is a common cause of confusing plates." },
+      { title: "What a slicer actually does", body: "The **slicer** cuts the model into horizontal layers, then plans a path for the nozzle on each layer: outer **walls** (also called perimeters), solid **top and bottom** layers, and **infill** inside. It writes these moves as G-code, a long list of instructions the printer follows line by line. The **preview** shows that plan layer by layer, usually coloured by feature type. Because the printer does exactly what the G-code says, anything wrong in the preview (a floating island, a piece off the plate, a missing chamfer) will go wrong on the printer too. The print time and material estimates come from this plan; they are usually a reasonable guide, though the real time can differ from the estimate." },
+      { title: "The settings that matter for puzzle pieces", body: "**Layer height**: 0.2 mm is a common default for a 0.4 mm nozzle. Thinner layers look smoother but take longer; thicker ones are faster but rougher. **Walls**: two or three lines around the outside give most of the strength on small parts. **Infill**: the pattern inside, set as a percentage. Small, hand-sized parts get most of their strength from the walls and solid top and bottom layers, so a low-to-moderate percentage is usually plenty; very high infill mostly adds time and plastic, and zero leaves the top surface with nothing to rest on. **Supports**: off, because days 11 and 12 designed them away. **Brim**: a few extra lines around the base on the first layer that give small parts more grip on the plate; it is peeled off afterwards and any leftover lip must be trimmed so it doesn't catch. A **skirt** is a separate outline drawn around the parts, often used to start the plastic flowing; it doesn't touch them. Names vary between slicers, but these ideas appear in most of them." },
+      { title: "Reading the preview like an inspector", body: "Drag the layer slider slowly from the bottom. On the first layer, every piece should have a solid footprint on the plate. Moving up, each layer should sit on the one below. A small island of plastic appearing with nothing underneath is a floating cube that orientation or a chamfer should have fixed. A chamfer should show layers stepping out a little at a time. Check that pieces are spaced apart (the 5 mm gap keeps them from fusing, gives brims room and makes pieces easier to remove) and that all of them fit inside the printer's build area. Comparing the time and grams at two infill settings is a quick, concrete way to show students that settings have costs." },
+      { title: "Planning printer time", body: "A full 45 mm set often takes several hours, so most classes can't print every set during lessons. Common approaches: one plate per printer per day, batching several students' sets on one plate, or longer runs outside lessons. Check your school's policy on unattended printing before running prints overnight. A 30 mm keychain set takes roughly a third as long. Collecting time and grams from each student gives you the data to plan the queue, and makes cost visible to students: a gram of PLA is cheap, but hours of printer time are the class's scarcest resource." },
+      { title: "Where students go wrong", body: "Typical slips: exporting the wrong design (the backup, or an old version); pieces still floating above the workplane or overlapping each other; turning supports back on 'to be safe'; changing settings away from the class profile; and skimming the preview without moving the slider. If a preview problem appears, the fix belongs in Tinkercad (turn or chamfer), followed by a fresh export, not a supports checkbox. Tomorrow students inspect the real prints and compare them with today's preview." },
+    ],
+    studentQuestions: [
+      { q: "Why does the slicer say it will take so long?", a: "The nozzle draws every wall and every bit of infill as a line, one layer at a time, and there are a lot of layers. Laying pieces flat and keeping infill sensible are the biggest time savers." },
+      { q: "Why isn't my puzzle coloured in the slicer?", a: "STL files only store shape, not colour. The colour comes from the filament loaded in the printer." },
+      { q: "Can I just turn supports on to be safe?", a: "Supports would leave rough scars on faces that need to slide. If the preview shows something floating, fix the design instead." },
+      { q: "What's the difference between walls and infill?", a: "Walls are the solid outside lines that give the shape. Infill is the lighter pattern inside that holds up the top." },
+    ],
+    connections: [
+      "Manufacturing engineers estimate time and material for every job before it runs, because machine time and material are real costs.",
+      "Print farm operators and service bureaus lay out plates and choose settings to fit as many good parts as possible into each print.",
+      "The same layer-and-toolpath idea drives CNC machines and laser cutters, which also turn a CAD model into a list of machine moves.",
+    ],
+    exitTicket: [
+      "Name one thing the slicer preview showed you that Tinkercad didn't.",
+      "What would happen to print time and plastic if you raised the infill a lot? Why?",
+      "If the preview shows a layer floating, what should you do, and where?",
+    ],
     runPlan: [
       { minutes: 5, title: "Hook", teacher: "From model to machine.", students: "Listen.", devices: "open" },
       { minutes: 8, title: "Slicer tour", teacher: "Supports, infill, the preview, time and grams.", students: "Watch, call out problems.", devices: "open" },
