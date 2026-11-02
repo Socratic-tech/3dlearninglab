@@ -1,0 +1,184 @@
+import type { LessonInput } from "../schema";
+
+/** Puzzle Cube, day 6 of 18: first steps in Tinkercad, one exact unit cube on a snap grid. */
+export const lesson: LessonInput = {
+  id: "puzzle-one-cube",
+  number: 405,
+  title: "Puzzle Cube 6: One Perfect Cube",
+  subtitle: "Find your way around Tinkercad and make one exact cube.",
+  domain: "A",
+  kind: "lesson",
+  summary: "Students start Tinkercad from scratch: orbit, zoom and reset the view, drag in a Box, type an exact 15 × 15 × 15 mm size, set the snap grid to 5 mm and place a second cube exactly beside the first.",
+  estimatedMinutes: 55,
+  printLevel: "digital",
+  competencyIds: ["A1", "A2", "A4", "A9"],
+  prerequisites: ["puzzle-paper-playtest"],
+  vocabulary: [
+    { term: "Workplane", definition: "The blue grid in Tinkercad where you build. Shapes sit on it." },
+    { term: "Orbit", definition: "Turning the view around your design to see it from another side." },
+    { term: "Snap grid", definition: "The step size shapes jump by when you drag. At 5 mm, they move 5 mm at a time." },
+    { term: "Exact dimension", definition: "A size you type in, instead of dragging by eye." },
+  ],
+  sections: [
+    {
+      phase: "discover",
+      title: "Welcome to Tinkercad",
+      blocks: [
+        {
+          id: "hook",
+          type: "hero",
+          title: "Every puzzle starts with one perfect cube.",
+          hook: "Your whole puzzle is made of one shape, copied 27 times. If that one cube is exact, everything fits. Today you make it.",
+          visual: { diagram: "exact-dimension", alt: "Typing an exact size into a shape's dimension box." },
+        },
+        {
+          id: "views",
+          type: "showMe",
+          title: "Move around the workplane",
+          steps: [
+            { text: "Hold the right mouse button and drag to orbit (turn the view).", diagram: "view-controls" },
+            { text: "Scroll the mouse wheel to zoom in and out.", diagram: "view-controls" },
+            { text: "Hold Shift and right-drag (or drag with the middle button) to pan (slide the view).", diagram: "view-controls" },
+            { text: "Lost? Click the little house next to the view cube to go back to the home view.", diagram: "view-controls" },
+          ],
+        },
+        {
+          id: "cube-steps",
+          type: "showMe",
+          title: "One exact cube",
+          steps: [
+            { text: "Set Snap Grid (bottom right of the workplane) to 5 mm.", diagram: "nudge-keys" },
+            { text: "Drag a Box from Basic Shapes onto the workplane.", diagram: "selection" },
+            { text: "Click a white corner handle. Click each number and type 15 for length, width and height.", diagram: "exact-dimension" },
+            { text: "Pick a colour in the shape panel. This is your unit cube.", diagram: "exact-dimension" },
+          ],
+        },
+      ],
+    },
+    {
+      phase: "practice",
+      title: "Exact, not close",
+      blocks: [
+        {
+          id: "type-predict",
+          type: "prediction",
+          prompt: "Your snap grid is 5 mm. You try to drag a box to exactly 17 mm wide. What do you probably get?",
+          hint: "Dragging follows the snap grid.",
+          options: [
+            { id: "snap", text: "15 or 20 mm: dragging jumps in 5 mm steps" },
+            { id: "exact", text: "17 mm, if I'm careful", misconceptionId: "drag-is-exact" },
+          ],
+          expectedOptionId: "snap",
+          reveal: "Dragging follows the snap grid; typing ignores it. When a number matters, type it. Lucky for you, 15 is three snaps.",
+        },
+        {
+          id: "snap-mc",
+          type: "multipleChoice",
+          prompt: "Your unit cube is 15 mm. Which Snap Grid lets cubes land exactly next to each other when you drag?",
+          hint: "Which step size goes into 15 a whole number of times?",
+          options: [
+            { id: "two", text: "2 mm", misconceptionId: "any-snap" },
+            { id: "five", text: "5 mm" },
+            { id: "ten", text: "10 mm", misconceptionId: "any-snap" },
+          ],
+          correctOptionIds: ["five"],
+          explanation: "15 ÷ 5 = 3 snaps exactly. With 2 mm you land on 14 or 16; with 10 mm, on 10 or 20. (For 10 mm keychain cubes, 5 mm works too: two snaps.)",
+          competencyId: "A9",
+          check: "skill",
+        },
+        {
+          id: "position",
+          type: "measurement",
+          prompt: "Your first cube's left side is at 0 mm. Where should the second cube's left side be so the two cubes touch face to face?",
+          hint: "The first cube is 15 mm wide.",
+          answer: 15,
+          tolerance: 0,
+          unit: "mm",
+          explanation: "0 + 15 = 15 mm: three snaps to the right. Any less and they overlap; any more and there's a gap.",
+          competencyId: "A9",
+          check: "practice",
+        },
+      ],
+    },
+    {
+      phase: "apply",
+      title: "Try it in Tinkercad",
+      blocks: [
+        {
+          id: "tinkercad",
+          type: "tinkercadLaunch",
+          title: "Make your unit cube",
+          steps: [
+            "Create a new design. Rename it 'puzzle cube' (click the funny name at the top left).",
+            "Set Snap Grid to 5 mm.",
+            "Drag in a Box and type 15 × 15 × 15 (or 10 × 10 × 10 for a keychain).",
+            "Press Ctrl + D to duplicate it. Drag the copy three snaps to the right so the cubes touch.",
+            "Orbit around to check: no gap, no overlap.",
+          ],
+        },
+        {
+          id: "micro",
+          type: "challenge",
+          kind: "micro",
+          title: "Find your way",
+          prompt: "Practise the view controls until they feel easy.",
+          requirements: ["Orbit to see the cubes from underneath", "Zoom in until one cube fills the screen", "Go back to the home view"],
+          skills: ["A1", "A2", "A4"],
+        },
+      ],
+    },
+    {
+      phase: "prove",
+      title: "Prove it: two exact cubes",
+      blocks: [
+        {
+          id: "prove",
+          type: "challenge",
+          kind: "prove",
+          title: "Two Perfect Cubes",
+          prompt: "Make two unit cubes that touch face to face, with exact typed sizes.",
+          requirements: ["Both cubes exactly 15 × 15 × 15 mm (or 10 for a keychain)", "Touching face to face: no gap, no overlap", "Snap grid set to 5 mm", "Design named 'puzzle cube'"],
+          skills: ["A1", "A9"],
+        },
+        {
+          id: "submit",
+          type: "uploadEvidence",
+          prompt: "Upload a screenshot with one cube selected so its size shows, or share your design link.",
+          accepts: ["screenshot", "design_url"],
+          competencyIds: ["A9"],
+          checklist: ["Size 15 × 15 × 15 visible", "Cubes touching"],
+        },
+      ],
+    },
+    {
+      phase: "reflect",
+      title: "Reflect",
+      blocks: [
+        {
+          id: "reflect",
+          type: "reflection",
+          prompt: "Why does it matter that every cube is exactly the same size?",
+          sentenceStarters: ["If one cube were a little bigger …", "Typing sizes helps because …"],
+          competencyIds: ["A9"],
+        },
+      ],
+    },
+  ],
+  teacher: {
+    purpose: "A from-scratch Tinkercad start, in the project's context: navigation plus exact dimensions and a snap grid that divides the unit size. Students with Tinkercad experience can finish quickly and start day 7's layer.",
+    preparation: ["Tinkercad accounts or class codes ready (add your Tinkercad class link in class settings).", "Demo the snap-grid menu and the corner handle on the projector."],
+    equipment: ["Student devices with Tinkercad", "A mouse helps (orbit uses the right button)"],
+    misconceptions: [
+      { id: "drag-is-exact", text: "Careful dragging gives exact sizes.", response: "Show that dragging follows the snap grid; typing doesn't." },
+      { id: "any-snap", text: "Any snap grid setting is fine.", response: "Ask how many steps make 15 mm. Only step sizes that divide 15 evenly land exactly." },
+    ],
+    discussionQuestions: ["When is dragging fine, and when must you type a number?"],
+    troubleshooting: [
+      "Trackpads: two-finger drag orbits on many laptops; Shift + two-finger drag pans.",
+      "Typed size ignored: click the number, type, then press Enter.",
+      "Cube sinks or floats: select it and press D to drop it onto the workplane.",
+    ],
+    answerGuidance: ["Proficient: two exact cubes touching face to face, sizes typed, snap grid 5 mm."],
+    alternatives: { noPrinter: "Digital only.", touchDevice: "On tablets: one finger orbits, two fingers zoom and pan; tap a corner handle then tap the number to type." },
+  },
+};

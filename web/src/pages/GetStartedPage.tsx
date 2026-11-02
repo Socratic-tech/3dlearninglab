@@ -17,7 +17,7 @@ export function GetStartedPage({ onTry }: { onTry: () => void }) {
     { title: "18-week course", sub: "Grades 6–8 · full semester", body: `${lessonCount("18-week")} missions from first shapes to precision fit, print engineering, a repair challenge and a client capstone.` },
     { title: "9-week course", sub: "Grades 6–8 · quarter or wheel", body: `${lessonCount("9-week")} missions: core CAD skills, a boss battle, printability, CAD ER and a mini design challenge.` },
     { title: "Grades 4–5: Maker Junior", sub: "Elementary starter unit", body: `${lessonCount("jr-starter")} short lessons (25–30 min), read-aloud first, whole millimeters only, ending with a printed name bookmark.` },
-    { title: "Project: Puzzle Cube", sub: "Grades 6–8 · 6-week project", body: `${lessonCount("puzzle-cube")} missions: plan five or six pieces that make one cube, build them in Tinkercad, print them support-free, design a box that fits, then playtest and ship it.` },
+    { title: "Project: Puzzle Cube", sub: "Grades 6–8 · 3–4 week project", body: `${lessonCount("puzzle-cube")} one-period missions from a pencil sketch to a 3D-printed puzzle: plan the pieces on paper, build them in Tinkercad, print them, then playtest, improve and ship. No Tinkercad experience needed.` },
     { title: "Custom project path", sub: "Any grade · your project", body: "Pick only the lessons your students need, in your order, ending with your own project. Reviewing it credits every skill in the path." },
   ];
   return (

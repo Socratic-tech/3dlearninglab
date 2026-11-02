@@ -1,5 +1,5 @@
 /** Diagrams: the Puzzle Cube project path (six solid pieces that fill a 3 × 3 × 3 cube). */
-import { Arrow, C, Caption, Dim, Divider, IsoBox, T, Verdict, defineDiagram, iso } from "./primitives";
+import { Arrow, C, Caption, Dim, Divider, IsoBox, Poly, T, Verdict, defineDiagram, iso } from "./primitives";
 
 /** The sample puzzle, layer by layer (rows listed back to front). Same letters as the puzzle-cube-exploded model. */
 const LAYERS: { name: string; rows: string[] }[] = [
@@ -114,6 +114,59 @@ export const PuzzleChamfer = defineDiagram("puzzle-chamfer", (r) => {
       <T x={204 + s + 10} y={plate - s - 26} size={11} weight={700} tone={C.success}>45°</T>
       <line x1={190} y1={plate} x2={350} y2={plate} stroke={C.fg} strokeWidth={2} />
       <Verdict x={270} y={204} ok>Prints on its own</Verdict>
+    </g>
+  );
+});
+
+/** Isometric dot paper: drawing one cube in three steps. */
+export const IsoSketch = defineDiagram("iso-sketch", () => {
+  const u = 30;
+  const steps = ["1 · Top", "2 · Down", "3 · Bottom"];
+  return (
+    <g>
+      {steps.map((label, k) => {
+        const ox = 60 + k * 120;
+        const oy = 92;
+        const p = iso(ox, oy, u);
+        const dots: [number, number][] = [];
+        const seen = new Set<string>();
+        for (let a = -2; a <= 3; a++)
+          for (let b = -2; b <= 3; b++)
+            for (let c = 0; c <= 2; c++) {
+              const [x, y] = p(a, b, c);
+              const key = `${Math.round(x)}|${Math.round(y)}`;
+              if (seen.has(key) || x < ox - 54 || x > ox + 54 || y < 34 || y > 168) continue;
+              seen.add(key);
+              dots.push([x, y]);
+            }
+        const top: [number, number, number][] = [[0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]];
+        return (
+          <g key={label}>
+            {k > 0 && <Divider x={ox - 60} y0={30} y1={176} />}
+            <Caption x={ox} y={24}>{label}</Caption>
+            {dots.map(([x, y], i) => <circle key={i} cx={x} cy={y} r={1.4} fill={C.muted} />)}
+            {k === 2 && (
+              <>
+                <Poly p={p} points={[[1, 0, 1], [1, 1, 1], [1, 1, 0], [1, 0, 0]]} fill={C.border} stroke="none" />
+                <Poly p={p} points={[[0, 1, 1], [1, 1, 1], [1, 1, 0], [0, 1, 0]]} fill={C.surface} stroke="none" />
+              </>
+            )}
+            <Poly p={p} points={top} fill={k === 2 ? C.primarySoft : "none"} stroke={k === 0 ? C.primary : C.fg} sw={k === 0 ? 2.4 : 1.6} />
+            {k >= 1 && [[1, 0], [1, 1], [0, 1]].map(([a, b]) => {
+              const [x1, y1] = p(a, b, 1);
+              const [x2, y2] = p(a, b, 0);
+              return <line key={`${a}${b}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke={k === 1 ? C.primary : C.fg} strokeWidth={k === 1 ? 2.4 : 1.6} />;
+            })}
+            {k === 2 && [[[1, 0, 0], [1, 1, 0]], [[1, 1, 0], [0, 1, 0]]].map(([a, b], i) => {
+              const [x1, y1] = p(a[0], a[1], a[2]);
+              const [x2, y2] = p(b[0], b[1], b[2]);
+              return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={C.primary} strokeWidth={2.4} />;
+            })}
+          </g>
+        );
+      })}
+      <T x={180} y={196} anchor="middle" size={12} weight={700}>Lines only go 3 ways: straight up and down, and two slants.</T>
+      <T x={180} y={212} anchor="middle" size={11} tone={C.muted}>Join dots. Add the next cube by sharing an edge you already drew.</T>
     </g>
   );
 });

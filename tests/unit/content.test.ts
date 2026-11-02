@@ -39,13 +39,19 @@ describe("curriculum content", () => {
     expect(eighteen.weeks.filter((w) => !w.bonus).at(-1)!.lessonIds.at(-1)).toBe("maker-showcase");
   });
 
-  it("the Puzzle Cube project path builds to a playtest finish", () => {
+  it("the Puzzle Cube path is 18 one-period missions, sketch to ship, each building on the one before", () => {
     const ids = lessonsInPath("puzzle-cube").map((x) => x.lesson.id);
-    const puzzle = ids.filter((id) => id.startsWith("puzzle-"));
-    expect(puzzle).toEqual(["puzzle-think-in-cubes", "puzzle-build-pieces", "puzzle-print-plan", "puzzle-fit-box", "puzzle-playtest"]);
-    expect(ids.at(-1)).toBe("puzzle-playtest");
-    // every puzzle mission comes after the review missions it builds on
-    for (const id of puzzle) for (const pre of lessons.find((l) => l.id === id)!.prerequisites) if (ids.includes(pre)) expect(ids.indexOf(pre), `${id} ← ${pre}`).toBeLessThan(ids.indexOf(id));
+    expect(ids).toHaveLength(18);
+    expect(ids.every((id) => id.startsWith("puzzle-"))).toBe(true);
+    expect(ids[0]).toBe("puzzle-good-puzzle");
+    expect(ids.at(-1)).toBe("puzzle-ship-it");
+    ids.forEach((id, i) => {
+      const l = lessons.find((x) => x.id === id)!;
+      expect(l.estimatedMinutes, id).toBeLessThanOrEqual(55);
+      expect(l.prerequisites, id).toEqual(i === 0 ? [] : [ids[i - 1]]);
+      expect(l.kind === "lesson" || id === "puzzle-ship-it", `${id} is not listed as its own project`).toBe(true);
+    });
+    expect(paths.find((p) => p.id === "puzzle-cube")!.weeks).toHaveLength(4);
   });
 
   it("every bundled model file exists on disk", () => {

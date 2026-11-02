@@ -1,18 +1,18 @@
 import type { LessonInput } from "../schema";
 
-/** Puzzle Cube path, mission 4: measure the printed cube and design a box with clearance, testing a thin ring first. */
+/** Puzzle Cube, day 15 of 18: measure the printed cube and design a box with clearance, testing a thin ring first. */
 export const lesson: LessonInput = {
   id: "puzzle-fit-box",
-  number: 403,
-  title: "Puzzle Cube: Fit and the Box",
+  number: 414,
+  title: "Puzzle Cube 15: Design the Box",
   subtitle: "Measure the real cube, then design a box it slides into.",
   domain: "C",
-  kind: "lab",
+  kind: "lesson",
   summary: "Students learn that small print errors add up (tolerance stack-up), measure their assembled printed cube, design a storage box with clearance, and test only a thin ring of the box before printing the whole thing.",
-  estimatedMinutes: 90,
+  estimatedMinutes: 55,
   printLevel: "prototype",
   competencyIds: ["C3", "C5", "C6", "C7", "C10"],
-  prerequisites: ["puzzle-print-plan", "tolerances"],
+  prerequisites: ["puzzle-first-print"],
   vocabulary: [
     { term: "Clearance", definition: "A planned gap so one part slides into another." },
     { term: "Tolerance stack-up", definition: "When small size errors in several parts add together into one bigger error." },
@@ -107,7 +107,7 @@ export const lesson: LessonInput = {
           type: "callout",
           tone: "warning",
           title: "Your printer, your numbers",
-          body: "0.4 mm per side is a starting point, not a rule. Use your class tolerance test: if a 10.2 mm hole fit the 10 mm peg on your printer, your printer is accurate; if it needed 10.4 or more, start with more clearance.",
+          body: "0.4 mm per side is a starting point, not a rule. Every printer is a little different. That's why you print a thin test ring first: it tells you what YOUR printer needs.",
         },
       ],
     },
@@ -164,7 +164,7 @@ export const lesson: LessonInput = {
           prompt: "Design and test a box your assembled cube slides into and out of by hand.",
           requirements: [
             "Cube measured in X, Y and Z, with units; the biggest number used",
-            "Clearance chosen with a reason (from your class tolerance test or ring test)",
+            "Clearance chosen with a reason (from your ring test)",
             "Inner opening = biggest measurement + clearance on both sides",
             "Walls and floor at least 2 mm thick",
             "Thin test ring printed and tested before the full box",
@@ -198,9 +198,9 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Puts tolerance and clearance to work on a part that has to fit something the student made. Measuring the real printed cube shows tolerance stack-up first-hand; the ring test applies 'prototype only the critical portion'.",
+    purpose: "Introduces clearance and tolerance on a part that has to fit something the student made. Measuring the real printed cube shows tolerance stack-up first-hand; the ring test applies 'prototype only the critical portion'. Students design the box today; full boxes print alongside day 16–17 revisions.",
     preparation: [
-      "Have the class tolerance-test results (from the Tolerances mission) posted.",
+      "Ring tests print in a few minutes each: queue them early in the period so students can test before the bell.",
       "Calipers, or rulers marked in 0.5 mm, for every pair.",
       "Set a print-queue rule: test rings first (they print in minutes), full boxes only after a passing ring.",
     ],

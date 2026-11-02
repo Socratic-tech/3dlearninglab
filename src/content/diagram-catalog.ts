@@ -63,6 +63,7 @@ export const diagramCatalog = {
   "pro-moves": "Four pro features: fillet rounds an edge, shell hollows a part, mirror copies across a plane, pattern repeats a feature.",
   "puzzle-layer-map": "A 3 × 3 × 3 puzzle cube drawn as three layer maps (bottom, middle, top). Each square has a piece letter A–F; same letter means same piece. A, B and C use 5 cubes, D, E and F use 4: 27 cubes in all.",
   "face-vs-edge": "Top view. Left: two cubes sharing a whole face make one strong piece. Right: two cubes touching only along an edge have no plastic joining them, so they snap apart.",
+  "iso-sketch": "Drawing a cube on isometric dot paper in three steps: 1, a diamond for the top; 2, three lines straight down; 3, the bottom edges. Lines only go straight up and down or along two slants.",
   "puzzle-chamfer": "Side view. Left: a cube sticks out sideways from the top of a two-cube column with air underneath, so it needs supports. Right: the same cube with a 45° wedge cut from its underside, so it prints on its own.",
   "tolerance-stack": "Three printed pieces, each 15.1 mm instead of 15, add up to 45.3 mm. A 45.0 mm box opening jams; a 46.1 mm opening lets the cube slide in and out.",
 } as const;
