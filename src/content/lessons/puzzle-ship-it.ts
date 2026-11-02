@@ -150,7 +150,66 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "The Puzzle Cube finale. Students communicate a complete design journey (brief → sketch → plan → CAD → print → test → revise) with evidence, and produce a solution card in the format that suits them. Assigning this project from the Projects page gives the class all 18 missions in order.",
+    purpose: "The Puzzle Cube finale. Students communicate a complete design journey (brief → sketch → plan → CAD → print → test → revise) with evidence, and produce a solution card in the format that suits them. They learn that a product is more than the object: the box, the instructions and the story are designed and tested too. Choice of card and pitch format (UDL action and expression) lets every student show the same evidence in a way that suits them. Assigning this project from the Projects page gives the class all 18 missions in order.",
+    bigIdea: "A finished product includes its packaging, its instructions and the story of how it was made, and I can back that story up with my own test data.",
+    successCriteria: [
+      "I can make a solution card that someone new can follow.",
+      "I can deliver my puzzle with its box and card together.",
+      "I can tell the story of my design in about 60 seconds, using my test numbers.",
+      "I can explain what I changed, why, and what I'd do next.",
+    ],
+    background: [
+      { title: "A product is more than the object", body: "Real products ship with packaging, instructions and a story: what it is, who it's for and why it's good. Today students complete all three. The box from day 15 protects the pieces and keeps them together, the solution card lets a player check their answer, and the pitch explains the design to someone who wasn't there. Before packing, check that the cube, the folded card (if paper) and anything else still fit in the box together." },
+      { title: "Designing a solution card", body: "A solution card is a set of instructions, and instructions are a design problem of their own. A **layer map** shows the cube as three 3 × 3 grids, read from the bottom layer up, with each square labelled by piece letter and colour. Step photos show the cube after each piece goes in. Audio or video walkthroughs suit learners who find written or diagram instructions hard. Whatever the format, good cards use consistent letters and colours, one step per picture, a clear starting point and a clear end. The same principle from day 16 applies to instructions as to puzzles: the designer is the worst judge of whether they make sense." },
+      { title: "Packaging and the solution's privacy", body: "A solution card should not spoil the puzzle. Simple approaches: fold the card with the solution inside, put it under the cube in the box, or keep it as a separate file or link (a QR code to a video, for example) that a player opens only when they want to check. Students choose; the conversation about 'when should a player see the answer?' is itself good product thinking." },
+      { title: "A pitch built on evidence", body: "A 60-second pitch follows a simple arc: who it's for and the target, show the product, what the tests showed (with numbers), the change and why, and what's next. Numbers are what make the story believable: 'version 1 took 40 seconds; after I made piece C 3D, version 2 took 2 minutes 15 seconds' is far stronger than 'it got harder'. A change that didn't work is still a strong pitch if the student explains what the data showed. Live, recorded, slide with voice-over or gallery-walk formats all show the same evidence." },
+      { title: "Assessing the journey", body: "The teacher check focuses on the evidence chain rather than polish: does the student name the target, give data, connect one change to that data and say what's next? A beautifully printed puzzle with no data is weaker evidence of learning than a rough one with a clear v1/v2 comparison. The capstone rubric's Testing & Iteration and Communication rows fit well. Students whose prints or box are late can present with screenshots, the ring test and their data." },
+      { title: "Closing the project", body: "Eighteen missions ago, students had a brief and a blank page. Use the last minutes to look back at the first isometric sketches next to the finished cube. Students who struggled with one stage (sketching, CAD, printing, testing) often excelled at another, and naming that helps every student see themselves as someone who can design. If a 'client' was named in the brief, delivering the puzzles to them gives the project a real ending." },
+    ],
+    studentQuestions: [
+      { q: "Do I have to talk in front of everyone?", a: "No. You can present live, record a video or audio, or make a slide with voice-over. The evidence is what counts, not the format." },
+      { q: "My change didn't make the puzzle better. What do I say?", a: "Say what you changed, what the numbers showed, and what you'd try next. That's an honest, strong pitch." },
+      { q: "Does my solution card have to be a layer map?", a: "No. Step photos, a video, an audio walkthrough or a folded card all work, as long as someone new can follow it." },
+      { q: "How do I stop players seeing the answer straight away?", a: "Fold it, hide it under the cube, or make it a link they open only when they want to check." },
+    ],
+    connections: [
+      "Product designers and technical writers create instructions and packaging, and test them with new users before a product ships.",
+      "Inventors and start-up founders pitch products in a minute or two, using test results to show the idea works.",
+      "Toy and board-game companies design rule sheets and solution guides as carefully as the game itself.",
+    ],
+    exitTicket: [
+      "What is one number from your testing that you used in your pitch, and what did it show?",
+      "Which stage of the whole project are you proudest of, and why?",
+      "What is one skill from this project you could use in another subject or another design?",
+    ],
+    runPlan: [
+      { minutes: 5, title: "Hook", teacher: "Show a real product with its box and instructions. Ask: 'What did someone have to design besides the object?'", students: "List everything that ships with a product.", devices: "away" },
+      { minutes: 5, title: "Solution card choices", teacher: "Show the layer map and one other format. Emphasise choice.", students: "Choose a card format.", devices: "away" },
+      { minutes: 7, title: "Plan your pitch", teacher: "After the ordering, ask students to say their 'evidence' sentence with a number in it.", students: "Pitch order and the card question.", devices: "open" },
+      { minutes: 15, title: "Make and test the card", teacher: "Circulate. Help pair students with someone who hasn't solved their puzzle.", students: "Make the card, test it, fix anything that confused the tester.", devices: "away" },
+      { minutes: 6, title: "Rehearse", teacher: "Offer quiet corners or recording spots. Remind students of the 60-second arc.", students: "Rehearse or record the pitch with a partner.", devices: "away" },
+      { minutes: 12, title: "Pitches and gallery", teacher: "Run a gallery walk or small-group pitches; use the teacher check look-fors.", students: "Present and give one specific compliment and one question to others.", devices: "away" },
+      { minutes: 5, title: "Reflect and close", teacher: "Put first sketches next to finished cubes. Celebrate. Make sure submissions are uploaded.", students: "Journal, reflection and final upload.", devices: "open" },
+    ],
+    lookFors: [
+      "Pitches that include at least one real number from playtesting.",
+      "A change explained by the data that prompted it.",
+      "Solution cards tried out with someone new, and revised after confusion.",
+      "Puzzle, box and card delivered together and fitting.",
+      "Students choosing a pitch format that lets them show their thinking clearly.",
+    ],
+    differentiation: {
+      support: [
+        "Provide a pitch template with five boxes matching the order (who, show, data, change, next).",
+        "Allow a recorded pitch or slide with voice-over, and let students rehearse with one trusted partner.",
+        "Offer a blank layer-map template to fill in for the solution card.",
+      ],
+      extend: [
+        "Design a branded package insert or label that tells the puzzle's story without giving away the solution.",
+        "Write a version 3 plan with a prediction and a test you'd use.",
+        "Make a solution card in two formats and compare which one a new tester found easier.",
+      ],
+    },
     preparation: [
       "Plan pitch format: live gallery walk, recorded videos, or slides.",
       "Optional: invite the 'client' (the person the puzzles are for), another class, or families.",

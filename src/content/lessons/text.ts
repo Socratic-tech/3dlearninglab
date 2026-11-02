@@ -193,10 +193,66 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students make raised and recessed text, change shape parameters, and size details with printing limits in mind.",
+    purpose: "Students make raised and recessed text, change shape parameters, and size details with printing limits in mind. This is the first lesson where the physical limits of the printer shape design decisions: something perfectly sharp on screen can be unreadable in plastic. It prepares students directly for the Name Tag boss (raised text, 6 mm letters, touching the plate) and introduces the shape panel's settings as a faster alternative to building everything from extra shapes.",
+    bigIdea: "Text and fine details must be designed for the printer, not the screen: big, bold, about 1 mm raised or recessed, and touching the part.",
+    successCriteria: [
+      "I can add text and make it raised (Solid on top) or recessed (Hole sunk in).",
+      "I can position text so it touches the surface or cuts in to a planned depth.",
+      "I can choose a letter size and font that will print clearly, and explain why.",
+      "I can change a shape setting (sides, bevel or segments) to change a shape's form on purpose.",
+    ],
+    background: [
+      { title: "Why tiny text fails on a printer", body: "A typical school printer squeezes melted plastic through a nozzle about **0.4 mm** wide, so the thinnest line it draws well is roughly that width. The *stroke* of a letter (the thickness of its lines) shrinks as the letter shrinks. In a 3 mm tall letter in a thin font, strokes may be well under 0.4 mm: the slicer either drops them or blobs them together. Bold, simple (sans-serif) fonts have thick, even strokes, which is why the lesson suggests letters at least 5–6 mm tall in a bold font. These numbers are starting points; a well-tuned printer or a smaller nozzle can do finer work, so test on your own machine." },
+      { title: "Raised versus recessed", body: "**Raised** text is a Solid sitting on top of a surface, like the letters on a sign. It is easy to read from the side and easy to paint, but thin raised letters can snap off or wear down. **Recessed** (engraved) text is a Hole sunk into the surface, so the letters are protected and the part stays flat, which makes it tougher for things that are handled or live outdoors. A common finishing trick is to fill recessed letters with paint and wipe the surface clean. Around **1 mm** of height or depth is a good starting point: at the common 0.2 mm layer height that is about five layers, enough to see and feel clearly." },
+      { title: "Getting the Z position right", body: "Raised text must **touch** the surface: its bottom must sit exactly at the top of the plate (or overlap it slightly). Floating text grouped with a plate still floats, and in the slicer it prints in mid-air. For recessed text, the hole's **bottom** sets the depth and its **top** must poke out above the surface so it cuts cleanly. In the Show Me, the plate is 4 mm thick, the text hole is 2 mm tall and its bottom sits at Z = 3 mm, so 1 mm cuts in and 1 mm sticks out above. If the hole starts at Z = 0, it cuts straight through the plate." },
+      { title: "Shape parameters: sides, segments, bevel", body: "Many Tinkercad shapes have settings in the **shape panel** that change their form. A Polygon's **sides** turns it into a triangle, hexagon or decagon. Curved shapes such as cylinders are actually drawn as many flat faces; the **sides** or **segments** setting controls how many. More sides look rounder on screen and in the exported STL file (which stores everything as flat triangles), but a very low number can be useful on purpose, for example a 6-sided cylinder for a hex key. Some shapes also have a **bevel** setting that softens their edges. Changing a parameter is usually faster and cleaner than building the same form out of extra shapes." },
+      { title: "Fonts and resizing text", body: "The Text shape's font menu offers a small set of fonts, and simple bold ones print best. When resizing text, hold **Shift** while dragging a corner handle to keep the letters in proportion; otherwise they stretch on one axis and look squashed. Typing exact dimensions in the size boxes works too. Long words become very wide at a readable height, so the honest design choice is often a shorter word, initials or a nickname rather than shrinking letters below a printable size, which is exactly the trade-off students meet in the Name Tag boss." },
+    ],
+    studentQuestions: [
+      { q: "Why can't I just make the letters really small to fit my whole name?", a: "The printer draws lines about 0.4 mm wide, so tiny letters turn into blobs. Keep letters around 6 mm tall and use a nickname or initials if it won't fit." },
+      { q: "Raised or recessed: which is better?", a: "It depends on the object. Raised is easy to read and paint; recessed is tougher and stays flat. Choose for how the object will be used." },
+      { q: "My text looks squashed. How do I fix it?", a: "It was stretched on one axis. Undo, then hold Shift while you drag a corner handle so it keeps its shape." },
+      { q: "Why does my cylinder look like it has flat sides?", a: "Curves are made of flat faces. Turn up the number of sides in the shape panel to make it smoother." },
+    ],
+    connections: [
+      "Sign makers and engravers choose letter size, stroke and depth so signs stay readable from a distance and after years of weather.",
+      "Accessibility designers make raised text and symbols on signs, lift buttons and packaging so people can read them by touch.",
+      "Product designers mould logos, safety warnings and recycling symbols into plastic parts, either raised or recessed.",
+    ],
+    exitTicket: [
+      "Give two design rules that help text print clearly, and explain one of them.",
+      "Your raised text prints in mid-air in the slicer. What would you check first?",
+      "Which shape setting did you change today, and what did it do?",
+    ],
+    runPlan: [
+      { minutes: 5, title: "Hook: can you read it?", teacher: "Pass round (or show photos of) a print with tiny text and one with large bold text. Ask why one failed.", students: "Compare samples and suggest reasons.", devices: "away" },
+      { minutes: 10, title: "Model recessed text and parameters", teacher: "Build the recessed plate live, saying the Z numbers aloud. Then change a Polygon's sides and a Cylinder's sides. Run the 3 mm text prediction.", students: "Predict the result; call out the Z position for each step.", devices: "away" },
+      { minutes: 15, title: "Raised, recessed and reshaped", teacher: "Circulate. Ask 'Where is the bottom of your text? Where is the top of the plate?' Encourage side views.", students: "Build both plates, explore parameters, then the depth and matching questions.", devices: "open" },
+      { minutes: 15, title: "Locker label and plant marker", teacher: "Students choose: locker label first, or straight to the plant marker. During the marker, ask about readability and depth rather than giving fixes.", students: "Build the label and/or the marker; write one sentence about the parameter used.", devices: "open" },
+      { minutes: 5, title: "Reflect and exit", teacher: "Take a quick vote: raised or recessed for outdoors? Ask for reasons. Collect the exit ticket.", students: "Reflection and exit ticket.", devices: "open" },
+    ],
+    lookFors: [
+      "Students checking the text's Z position against the plate's height before grouping.",
+      "Bold fonts and letters around 6 mm or taller chosen on purpose.",
+      "Shift held (or typed sizes used) so text keeps its proportions.",
+      "A shape parameter changed for a reason the student can explain.",
+    ],
+    differentiation: {
+      support: [
+        "Give a side-view diagram card showing plate height, text bottom and text top with the numbers filled in for the Show Me.",
+        "Allow initials or a short word so students can focus on the Z positions, not fitting long text.",
+        "Let students use voice typing or the on-screen keyboard to enter text in the shape panel.",
+      ],
+      extend: [
+        "Design a tactile label with raised symbols and test whether a classmate can identify it by touch alone (if you print).",
+        "Make a test strip with the same word at 3, 4, 5, 6 and 8 mm to find your printer's real limit.",
+        "Use a curved or angled surface: put text on a cylinder or a sloped face and solve the positioning problems.",
+      ],
+    },
     preparation: [
       "If you have them, show one printed sample with tiny text and one with large bold text.",
       "Check which fonts are available in your Tinkercad Text shape; bold, simple fonts work best.",
+      "If you have a printer, consider printing a small text test strip (the same word at several heights) to show what your machine can really do.",
     ],
     equipment: ["Student devices with Tinkercad", "Optional: printed text samples"],
     misconceptions: [
@@ -204,8 +260,14 @@ export const lesson: LessonInput = {
       { id: "printer-fixes", text: "The printer or slicer will fix small details.", response: "Slicers drop details that are too thin — they never enlarge them." },
       { id: "text-cant-raise", text: "Text can only be cut in, not raised.", response: "Demo a Solid Text shape sitting on a plate; then show a floating one in the slicer." },
     ],
-    discussionQuestions: ["Why are recessed letters often tougher than raised ones?", "Which shape parameters did you discover today?"],
+    discussionQuestions: [
+      "Why are recessed letters often tougher than raised ones?",
+      "Which shape parameters did you discover today?",
+      "Who might need to read your label by touch, or from far away? How would that change your design?",
+    ],
     troubleshooting: [
+      "Text is too wide for the plate at 6 mm tall: shorten the word, use initials, or make the plate longer, rather than shrinking the letters.",
+      "Raised letters print but break off easily: they may be very thin strokes. Choose a bolder font or make the letters bigger.",
       "Text won't cut in after grouping: the text is still Solid, or it doesn't reach above the plate's top surface.",
       "Text cuts all the way through: the hole starts at Z = 0. Raise it so only the top 1 mm overlaps the plate.",
       "Letters are squashed: Shift wasn't held while resizing, so the text was stretched on one axis.",

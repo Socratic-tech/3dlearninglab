@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Download, ExternalLink, Printer } from "lucide-react";
+import { BookOpen, Download, ExternalLink, Presentation, Printer } from "lucide-react";
+import { SlidesButton } from "@/components/teacher/slides-button";
 import type { ModelAsset, TeacherGuide } from "@/content/schema";
 import { Alert, Card, CardTitle, Pill } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,13 +32,56 @@ function picksFor(lessonId: string): PrintablesPick[] {
 /** Teacher prep notes ship separately from the student lessons (and without answer guidance); loaded on first use. */
 type Prep = Record<string, Partial<TeacherGuide>>;
 let prepCache: Prep | null = null;
+export async function loadPrep(): Promise<Prep> {
+  if (!prepCache) prepCache = (await import("../generated/teacher-prep.json")).default as unknown as Prep;
+  return prepCache;
+}
 function usePrep(): Prep | null {
   const [prep, setPrep] = useState<Prep | null>(prepCache);
   useEffect(() => {
     if (prepCache) return;
-    void import("../generated/teacher-prep.json").then((m) => { prepCache = m.default as unknown as Prep; setPrep(prepCache); });
+    void loadPrep().then(setPrep);
   }, []);
   return prep;
+}
+
+/** Slides for every lesson in the class's course, in teaching order, as one .zip of .pptx files. */
+export function CourseSlides({ lessonIds }: { lessonIds: string[] }) {
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [error, setError] = useState(false);
+  const run = async () => {
+    setError(false);
+    setProgress({ done: 0, total: lessonIds.length });
+    try {
+      const [{ buildDeck, saveBlob }, prep] = await Promise.all([import("@/lib/slides/build"), loadPrep()]);
+      const files: { name: string; data: Uint8Array }[] = [];
+      for (const [i, id] of lessonIds.entries()) {
+        const lesson = lessonById.get(id);
+        if (!lesson) continue;
+        const { name, blob } = await buildDeck({ lesson, guide: prep[id] });
+        files.push({ name: `${String(i + 1).padStart(2, "0")} ${name}`, data: new Uint8Array(await blob.arrayBuffer()) });
+        setProgress({ done: i + 1, total: lessonIds.length });
+      }
+      saveBlob(makeZip(files), "3d-design-academy-slides.zip");
+    } catch (e) {
+      console.error(e);
+      setError(true);
+    } finally {
+      setProgress(null);
+    }
+  };
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-surface p-3">
+      <span className="min-w-0 flex-1">
+        <strong>Slides for the whole course</strong>{" "}
+        <span className="text-sm text-muted">· one deck per lesson ({lessonIds.length}), numbered in teaching order. Upload to Google Drive and open with Google Slides; your teacher moves are in the speaker notes.</span>
+      </span>
+      <Button size="sm" variant="secondary" disabled={!!progress} onClick={() => void run()}>
+        <Presentation className="size-4" aria-hidden /> {progress ? `Building ${progress.done} of ${progress.total}…` : "Download all (.zip)"}
+      </Button>
+      <span role="status" className="w-full text-sm text-danger empty:hidden">{error ? "Couldn't build the slides in this browser. Try again, or use Chrome or Edge." : ""}</span>
+    </div>
+  );
 }
 
 function printsFor(g?: Partial<TeacherGuide>) {
@@ -118,10 +162,24 @@ export function TeacherGuidePage({ lessonId }: { lessonId: string }) {
         <p className="mt-2 flex flex-wrap gap-2 print:hidden">
           <a href={`#/lesson/${lesson.id}`} className="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-fg hover:brightness-110">Open the lesson</a>
           <a href={`#/print/${lesson.id}`} className="rounded-lg border border-border px-3 py-1.5 text-sm font-semibold hover:bg-surface-2">Student handout</a>
+          <SlidesButton lesson={lesson} guide={g} />
         </p>
       </div>
       {!g && <Alert tone="info" title="No teacher notes for this lesson yet." />}
       {g?.purpose && <Card><CardTitle>Why this lesson</CardTitle><div className="mt-2"><Md text={g.purpose} /></div></Card>}
+      {(g?.bigIdea || (g?.successCriteria?.length ?? 0) > 0) && (
+        <Card>
+          <CardTitle>Today&apos;s goal</CardTitle>
+          {g?.bigIdea && <p className="mt-2 text-lg font-semibold"><Md text={g.bigIdea} className="inline [&_p]:inline" /></p>}
+          {(g?.successCriteria?.length ?? 0) > 0 && (
+            <>
+              <p className="mt-3 text-sm text-muted">Success criteria to share with students (they&apos;re on the goal slide too):</p>
+              <ul className="mt-1 list-disc space-y-1 pl-5">{g!.successCriteria!.map((c) => <li key={c}><Md text={c} /></li>)}</ul>
+            </>
+          )}
+        </Card>
+      )}
+      {(g?.background?.length ?? 0) > 0 && <BackgroundCard sections={g!.background!} />}
       {g?.runPlan && g.runPlan.length > 0 && (
         <Card>
           <CardTitle>Run the lesson</CardTitle>
@@ -179,17 +237,44 @@ export function TeacherGuidePage({ lessonId }: { lessonId: string }) {
           <ul className="mt-2 space-y-2">{g.misconceptions.map((m) => <li key={m.id}><strong>{m.text}</strong><div className="text-sm text-muted"><Md text={m.response} /></div></li>)}</ul>
         </Card>
       )}
+      {(g?.studentQuestions?.length ?? 0) > 0 && (
+        <Card>
+          <CardTitle>Questions students ask</CardTitle>
+          <dl className="mt-2 space-y-3">{g!.studentQuestions!.map((q) => <div key={q.q}><dt className="font-semibold">“{q.q}”</dt><dd className="text-sm text-muted"><Md text={q.a} /></dd></div>)}</dl>
+        </Card>
+      )}
       {g?.discussionQuestions && g.discussionQuestions.length > 0 && <Card><CardTitle>Discussion questions</CardTitle><ul className="mt-2 list-disc space-y-1 pl-5">{g.discussionQuestions.map((q) => <li key={q}>{q}</li>)}</ul></Card>}
+      {(g?.exitTicket?.length ?? 0) > 0 && <Card><CardTitle>Exit ticket</CardTitle><p className="mt-1 text-sm text-muted">Students can write, draw or say their answers.</p><ol className="mt-2 list-decimal space-y-1 pl-5">{g!.exitTicket!.map((q) => <li key={q}><Md text={q} /></li>)}</ol></Card>}
+      {(g?.connections?.length ?? 0) > 0 && <Card><CardTitle>In the real world</CardTitle><p className="mt-1 text-sm text-muted">Uses and careers worth mentioning.</p><ul className="mt-2 list-disc space-y-1 pl-5">{g!.connections!.map((c) => <li key={c}><Md text={c} /></li>)}</ul></Card>}
       {g?.alternatives && Object.values(g.alternatives).some(Boolean) && (
         <Card>
           <CardTitle>If you&apos;re missing equipment</CardTitle>
           <ul className="mt-2 space-y-1 text-sm">
             {g.alternatives.noPrinter && <li><strong>No printer:</strong> {g.alternatives.noPrinter}</li>}
             {g.alternatives.noCalipers && <li><strong>No calipers:</strong> {g.alternatives.noCalipers}</li>}
+            {g.alternatives.touchDevice && <li><strong>Touch devices:</strong> {g.alternatives.touchDevice}</li>}
           </ul>
         </Card>
       )}
     </div>
+  );
+}
+
+/** The content knowledge behind the lesson, for teachers new to CAD and printing. */
+function BackgroundCard({ sections }: { sections: { title: string; body: string }[] }) {
+  return (
+    <Card>
+      <CardTitle><BookOpen className="mr-1 inline size-5 align-[-3px]" aria-hidden />Teacher background</CardTitle>
+      <p className="mt-1 text-sm text-muted">What you need to know to teach this with confidence. Also in the speaker notes on the first slide.</p>
+      <div className="mt-3 space-y-4">
+        {sections.map((x) => (
+          <section key={x.title}>
+            <h3 className="font-semibold">{x.title}</h3>
+            <div className="mt-1"><Md text={x.body} /></div>
+          </section>
+        ))}
+      </div>
+    </Card>
   );
 }
 

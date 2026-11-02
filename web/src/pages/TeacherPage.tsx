@@ -19,6 +19,7 @@ import { classLessons, projectUpdate } from "../custom-path";
 import { CustomPathBuilder } from "./CustomPathBuilder";
 import { markSetupStep, SetupCheckPanel, SetupChecklist } from "./SetupHelp";
 import { offlineChallenges } from "./HandoutPage";
+import { CourseSlides } from "./TeacherGuidePage";
 import { UpdateBanner } from "./UpdateBanner";
 import { classCompletion, ClassHero, classStudents, ClassTrail, FocusCard, SectionHeading, TodaysWins, whereTheClassIs, winsToday } from "./TeacherWarmth";
 
@@ -851,6 +852,7 @@ function LessonLibrary({ data }: { data: ClassData }) {
         <span className="min-w-0 flex-1"><strong>Print kit</strong> <span className="text-sm text-muted">· every print this course needs, in teaching order, with STL downloads and optional Printables extras</span></span>
         <span className="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-fg">Open</span>
       </a>
+      <CourseSlides lessonIds={inPath.map((x) => x.lesson.id)} />
       <p className="text-sm text-muted">All lessons are open to teachers and admins at any time. Opening one shows it exactly as students see it; your answers go to your own test record, not to the class.</p>
       <Input aria-label="Search lessons" placeholder="Search lessons…" value={q} onChange={(e) => setQ(e.target.value)} />
       <ul className="space-y-2">{inPath.map(({ lesson, week }) => row(lesson, week))}</ul>

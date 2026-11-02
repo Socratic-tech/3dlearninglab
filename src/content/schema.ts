@@ -369,6 +369,21 @@ export const sectionSchema = z.object({
 
 export const teacherGuideSchema = z.object({
   purpose: z.string(),
+  /** The one idea students should leave with, in a sentence a student could say back. */
+  bigIdea: z.string().optional(),
+  /** "I can…" statements, shown to students on the goal slide so they can monitor their own progress. */
+  successCriteria: z.array(z.string()).default([]),
+  /**
+   * Teacher background: the content knowledge behind the lesson (the engineering, math or science, and how it shows
+   * up in Tinkercad or on the printer), in short titled sections. Markdown. For teachers new to CAD and 3D printing.
+   */
+  background: z.array(z.object({ title: z.string(), body: z.string() })).default([]),
+  /** Questions students tend to ask, with an answer the teacher can give on the spot. */
+  studentQuestions: z.array(z.object({ q: z.string(), a: z.string() })).default([]),
+  /** Real-world uses and careers to mention, each one or two sentences. */
+  connections: z.array(z.string()).default([]),
+  /** A quick check to close the period: prompts only (no answers, since teacher notes ship with the public site). */
+  exitTicket: z.array(z.string()).default([]),
   preparation: z.array(z.string()).default([]),
   equipment: z.array(z.string()).default([]),
   misconceptions: z.array(z.object({ id: z.string(), text: z.string(), response: z.string() })).default([]),

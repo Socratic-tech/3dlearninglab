@@ -128,18 +128,83 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students get comfortable joining the class and controlling the view, so later lessons can focus on building.",
+    purpose: "Students get comfortable joining the class and controlling the view, so later lessons can focus on building. Moving around a 3D space on a flat screen is a new skill for many students, and some find it disorienting at first. This lesson gives them low-stakes time to get lost and find their way back (Home view, Undo), so that mistakes feel normal from day one.",
+    bigIdea: "In Tinkercad I can turn, zoom and reset my view to look at a design from any side, and I can always undo a mistake.",
+    successCriteria: [
+      "I can join my class in Tinkercad and start a new 3D design.",
+      "I can drag shapes onto the workplane.",
+      "I can orbit and zoom to look at my design from different sides.",
+      "I can get back to the start view and fix a mistake.",
+    ],
+    background: [
+      { title: "What Tinkercad is", body: "Tinkercad is a free, browser-based 3D design tool made by Autodesk. It runs on Chromebooks with nothing to install. Students build by combining ready-made shapes (boxes, cylinders, cones, text) rather than drawing, which is why it suits young designers. Designs **save automatically** to the student's account as they work, so there is no Save button to forget. Later courses move to professional CAD (computer-aided design) tools, but the habits from today (look from every side, undo freely) carry straight over." },
+      { title: "Classes, codes and nicknames", body: "Tinkercad Classes let a teacher create a class and give students a **class code**. Students join with that code and a **nickname** the teacher sets up, so children under 13 don't need their own personal account or email. You can see every student's designs from your teacher dashboard. Set this up and test one sign-in before the lesson: most first-day problems are joining problems, not design problems. If your school uses a different sign-in route (for example a school Google account), follow your school's policy." },
+      { title: "The workplane and the 3D view", body: "The blue grid is the **workplane**: think of it as a table that shapes sit on. The screen is flat, but the scene is 3D, so students need to move the *camera*, not the shapes, to see other sides. **Orbit** turns the camera around the design (right mouse button and drag, or the **view cube** in the corner). **Zoom** moves the camera closer or farther (mouse wheel, or the + and − buttons). The **Home** button (the house) puts the camera back to the start. A common surprise: orbiting doesn't change the design at all. If a shape seems to 'move', the student has probably dragged the shape instead of the view." },
+      { title: "Mouse, trackpad and touch", body: "A mouse makes orbiting much easier because the right button is used for turning. On a Chromebook trackpad, two-finger dragging and right-clicking can be fiddly, so teach the **view cube** (click a face or corner to jump to that view) and the on-screen **+ / −** buttons as the main controls. Clicking a face of the view cube, such as BACK, is a reliable way to complete today's challenge without a mouse. Offer students the choice of whichever method works for them; both are real designer skills." },
+      { title: "Undo is a designer's tool", body: "Undo (the curved arrow, or **Ctrl + Z**) takes back the last step, and you can press it many times to go back further. Tinkercad also has Redo for when you undo too far. Professionals undo constantly, so frame it as normal design practice, not a sign of failure. Students who believe mistakes are permanent often freeze or start a new design every time; modelling Undo openly saves a lot of lost work and builds confidence for the rest of the course." },
+    ],
+    studentQuestions: [
+      { q: "Do I need to save?", a: "No. Tinkercad saves your design by itself while you work. You can find it again on your dashboard." },
+      { q: "My view is upside down / I can't find my shapes!", a: "Click the house button. It always takes you back to the start view." },
+      { q: "Why is the grid blue?", a: "That's the workplane, like a table for your shapes. The blue helps you see where the table is." },
+      { q: "Can I change my nickname?", a: "Your teacher sets the nicknames so everyone can be found. Ask your teacher if yours needs fixing." },
+    ],
+    connections: [
+      "Video game artists and animators orbit and zoom around 3D models all day to check every side of a character.",
+      "Architects turn their building designs around on screen to see them from the street, from above and from inside.",
+      "Toy and product designers start every new idea on an empty workplane, just like students do today.",
+    ],
+    exitTicket: [
+      "Show me (or tell me) how you would look at the back of a shape.",
+      "You get lost in the view. What button helps?",
+      "Give a thumbs up, sideways or down: how do you feel about using Tinkercad?",
+    ],
+    runPlan: [
+      { minutes: 4, title: "Hook", teacher: "Read the hero aloud. Project your own Tinkercad and drag one shape onto the workplane. Ask: 'What do you think is behind it?'", students: "Listen, look, and guess what the back of the shape looks like.", devices: "away" },
+      { minutes: 7, title: "Join the class", teacher: "Display the class code and nickname list large. Walk through the four join steps together, pausing until most hands are up.", students: "Join the class and open a new 3D design.", devices: "open" },
+      { minutes: 6, title: "Look around", teacher: "Model orbit, zoom and Home on the projector with both a mouse and the view cube. Then let students explore. Celebrate someone using Home after getting lost.", students: "Drag shapes, orbit, zoom and use Home. Do the matching and Undo questions.", devices: "open" },
+      { minutes: 10, title: "Shape parade", teacher: "Circulate. Ask 'How did you get to the back?' and invite students to show a neighbour their method.", students: "Line up 5 different shapes, orbit to the back and take a screenshot.", devices: "open" },
+      { minutes: 3, title: "Reflect", teacher: "Ask a few students what was tricky and what helped. Collect exit tickets.", students: "Reflection and exit ticket (say, write or show).", devices: "open" },
+    ],
+    lookFors: [
+      "Students using Home or Undo on their own when something goes wrong.",
+      "Students changing the view (orbit, view cube) rather than dragging shapes to see other sides.",
+      "Shapes placed on the workplane, not left floating off-screen.",
+      "Students choosing a method that suits their device (mouse, trackpad or view cube).",
+    ],
+    differentiation: {
+      support: [
+        "Pre-print a card with each student's class code and nickname so they can join without copying from the board.",
+        "Pair a confident student with a less confident one for joining, then swap who drives.",
+        "Teach only the view cube and Home first; add mouse orbiting once students are comfortable.",
+      ],
+      extend: [
+        "Challenge students to view their parade from the top, the side and underneath, and screenshot each.",
+        "Ask students to stack two shapes and orbit underneath to check whether the top one is touching.",
+      ],
+    },
     preparation: [
       "Create a Tinkercad class before this lesson and write the class code and nicknames where students can see them. Students under 13 join with the class code and a nickname, with no personal account.",
       "Test one Chromebook first. A mouse helps a lot; on a trackpad, show the view cube and the + / − buttons.",
+      "Check that your school network or filter allows Tinkercad on student devices.",
     ],
-    equipment: ["Chromebooks (mice if you have them)", "The Tinkercad class code"],
+    equipment: ["Chromebooks (mice if you have them)", "The Tinkercad class code", "Projector for live modelling"],
     misconceptions: [
       { id: "start-over", text: "A mistake means starting over.", response: "Model pressing Undo several times. Mistakes are normal in design." },
       { id: "gone-forever", text: "Deleted shapes are gone forever.", response: "Delete something on purpose, then Undo it in front of the class." },
+      { id: "orbit-moves-shape", text: "Orbiting moves the shapes.", response: "Orbit around, then click Home: the shapes are exactly where they were. Only the camera moved." },
     ],
-    discussionQuestions: ["Why would a designer need to look at the back of a design?"],
-    troubleshooting: ["If a student gets lost in the view, click the house (home) button.", "If the class code fails, check that the class is active in Tinkercad."],
+    discussionQuestions: [
+      "Why would a designer need to look at the back of a design?",
+      "What helped you when you got lost in the view?",
+      "Why might it be good that mistakes can be undone?",
+    ],
+    troubleshooting: [
+      "If a student gets lost in the view, click the house (home) button.",
+      "If the class code fails, check that the class is active in Tinkercad.",
+      "If a student moved a shape instead of the view, press Undo, then remind them that orbit uses the right mouse button or the view cube.",
+      "If shapes disappear off the edge, zoom out or click Home.",
+    ],
     answerGuidance: ["Shape parade: 5 different shapes on the workplane, screenshot taken from a turned view."],
   },
 };

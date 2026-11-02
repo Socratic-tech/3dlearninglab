@@ -199,12 +199,69 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students learn that Align works one axis at a time, choose between centre and edge alignment, and pick a reference shape on purpose.",
+    purpose: "Students learn that Align works one axis at a time, choose between centre and edge alignment, and pick a reference shape on purpose. Align replaces 'looks about right' with exact positions, which matters as soon as parts must fit, spin or look symmetric. It is used in almost every later build: centring holes, centring names on the Name Tag, lining up stacked parts and closing mirrored seams.",
+    bigIdea: "Align lines shapes up exactly, one axis at a time, either by their centres or by their edges, and the reference shape you choose stays still.",
+    successCriteria: [
+      "I can select two or more shapes and use Align to centre them on X and on Y.",
+      "I can choose an end dot to make edges flush instead of centring.",
+      "I can pick a reference shape so the part that matters stays still.",
+      "I can check my alignment from more than one view.",
+    ],
+    background: [
+      { title: "Bounding boxes: what Align actually lines up", body: "Every shape in Tinkercad sits inside an invisible rectangular box that just fits around it, called its **bounding box**. Align works with these boxes, not with the visible outline. For each axis there are three positions: the minimum edge, the centre, and the maximum edge of the selection's bounding box. That is why the dots come in threes. For simple symmetric shapes (boxes, cylinders) the bounding-box centre is the true centre. For lopsided shapes (a wedge, a letter, an imported part) the bounding-box centre may not be where your eye says the middle is, which explains some 'Align didn't work' moments." },
+      { title: "One axis at a time", body: "Tinkercad uses **X** (left–right), **Y** (front–back) and **Z** (up–down). After selecting shapes and pressing **L** (or the Align button), dots appear along each axis. Clicking a dot only moves shapes along that one axis. So centring a hole in a box takes two clicks: centre on X **and** centre on Y. Nothing changes height unless you click a Z dot. This is the most common misunderstanding, and orbiting to a top view after each click is the quickest way for students to see it." },
+      { title: "Reference shape", body: "By default, Align lines everything up to the bounding box of the whole selection, so every shape may move a little. After pressing L, clicking one of the selected shapes makes it the **reference**: it stays put and the others move to it. Engineers use the same idea, called a *datum*: a fixed feature everything else is measured from. Choosing the base, or whichever part is already in the right place, keeps a design from drifting around the workplane." },
+      { title: "Centres versus flush edges", body: "Centring is for things that must be balanced or spin: wheels, knobs, holes for a pencil, a name on a tag. **Flush** edges are for things that must line up along a face: a drawer front, a shelf against a wall, a shed in the corner of a base. The end dots on an axis make the chosen faces line up exactly. Students who only know 'centre' tend to nudge for flush edges and end up 0.5 mm off, which makes a visible step." },
+      { title: "Why eyeballing fails", body: "With the default 1 mm snap grid, a shape dragged by mouse lands on whole millimetres, but a hole that looks centred can easily be 1 mm off, and on a 30 mm wheel that is enough to wobble. Screens also distort depth in perspective view, so something that looks centred from one angle is not from another. Align, typed positions, or the Ruler tool are reliable; eyes are not. This lesson also sets up Duplicate and Mirror, where a single misaligned part is copied many times." },
+    ],
+    studentQuestions: [
+      { q: "I pressed L and nothing appeared. Why?", a: "Align needs at least two things selected. Shift+click a second shape (or drag a selection box), then press L again." },
+      { q: "The wrong shape moved. How do I stop that?", a: "Undo, press L again, then click the shape you want to stay still before you click a dot. That shape becomes the reference." },
+      { q: "Can I align three or more shapes at once?", a: "Yes. Select them all and every one lines up on the dot you click." },
+      { q: "My letter looks off-centre even after Align. Is it broken?", a: "Align uses the invisible box around each shape. Letters and odd shapes can look heavier on one side even when their boxes are centred. Check with the dimensions or a top view." },
+    ],
+    connections: [
+      "Machinists and engineers pick a 'datum' (a fixed reference face or point) and measure every feature from it, just like a reference shape in Align.",
+      "Graphic and web designers use align tools to centre text and make edges flush; the same idea in 2D.",
+      "Carpenters and kitchen fitters need flush edges so cupboard doors and shelves line up without visible steps.",
+    ],
+    exitTicket: [
+      "You clicked only the X centre dot. What changed, and what didn't?",
+      "Give one example of something that should be centred and one that should have flush edges.",
+      "Why does it matter which shape you choose as the reference?",
+    ],
+    runPlan: [
+      { minutes: 5, title: "Hook: close enough?", teacher: "Show the Misaligned Stack and orbit it slowly. Ask: 'Would this spin smoothly as a wheel? How far off is it?' Introduce the idea that eyes can't see 0.5 mm.", students: "Predict which cylinders are off and in which direction.", devices: "away" },
+      { minutes: 8, title: "Model one axis at a time", teacher: "Centre a hole in a box live. Click X only, orbit to a top view, then click Y. Show choosing a reference shape. Then run the cube prediction.", students: "Predict each click before you make it; answer the prediction.", devices: "away" },
+      { minutes: 14, title: "Straighten the stack", teacher: "Circulate. Ask 'Which shape is your reference, and why?' and 'Show me from the front and the side.'", students: "Import and fix the stack, then the reference hotspot and the edge question.", devices: "open" },
+      { minutes: 13, title: "Target and lighthouse", teacher: "Offer a choice: the target first for confidence, or straight to the lighthouse. Stay hands-off during the lighthouse; ask questions about axes instead.", students: "Build the target, then the lighthouse; capture top and front screenshots.", devices: "open" },
+      { minutes: 5, title: "Reflect and exit", teacher: "Ask for one 'edge, not centre' example from the room. Collect the exit ticket.", students: "Reflection and exit ticket.", devices: "open" },
+    ],
+    lookFors: [
+      "Students saying which axis they are aligning before they click.",
+      "A reference shape chosen on purpose (the base, or whatever was already placed).",
+      "Checking from a second view (top and front) after aligning.",
+      "End dots used for flush edges rather than nudging by eye.",
+    ],
+    differentiation: {
+      support: [
+        "Give a card showing the three dots on one axis labelled 'left edge, centre, right edge' (and the same for front/back).",
+        "Have students colour their reference shape a different colour so it is easy to click first.",
+        "Start with two boxes only before the four-cylinder stack.",
+      ],
+      extend: [
+        "Add a feature that is flush on one axis and centred on another (for example a handle centred left–right but flush with the front).",
+        "Use the Ruler tool to confirm positions numerically and record them.",
+        "Explain in writing why Align may not centre a letter or wedge the way the eye expects.",
+      ],
+    },
     preparation: [
       "Import the Misaligned Stack into Tinkercad yourself once to check whether it arrives as one piece (students may need to ungroup it).",
       "Have a projector ready to demonstrate one axis at a time.",
+      "Practise choosing a reference shape (press L, click the shape, then click a dot) so you can show it smoothly.",
+      "Optional: a toy wheel or spinner to show what happens when an axle hole is off-centre.",
     ],
-    equipment: ["Student devices with Tinkercad", "Projector"],
+    equipment: ["Student devices with Tinkercad", "Projector", "Optional: a wheel, spinner or stacked cups for the hook"],
     misconceptions: [
       { id: "align-all-axes", text: "One click on Align centres shapes in every direction.", response: "Demo clicking only the X centre dot, then orbit to show Y is unchanged." },
       { id: "align-z-auto", text: "Align also changes height automatically.", response: "Point out that the Z dots are separate; nothing moves on Z unless you click one." },
@@ -214,11 +271,14 @@ export const lesson: LessonInput = {
     discussionQuestions: [
       "Why is the base the best reference for the stack?",
       "Name an object where things must be centred, and one where edges must be flush.",
+      "Why might you check your model from the top and the front, rather than just one view?",
     ],
     troubleshooting: [
       "No dots appear: at least two shapes (or a grouped object plus a shape) must be selected before pressing L.",
       "Wrong shape moved: press Ctrl+Z, press L again, and click the shape that should stay still before clicking a dot.",
       "Shape jumped far away: the student clicked an end dot instead of the middle one.",
+      "Imported stack won't separate: it arrived as one object. Ungroup it (Ctrl+Shift+G) before aligning the parts.",
+      "Shapes look aligned in one view but not another: perspective can mislead. Switch to a top view (view cube) to check X and Y.",
     ],
     answerGuidance: [
       "Stack: centre all four on X and Y with the bottom cylinder as reference.",

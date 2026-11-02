@@ -174,7 +174,65 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Introduces layer-by-layer printing and orientation through a simple, checkable rule: every cube sits on the plate or another cube. Pieces that can't meet the rule are flagged for day 12's chamfer.",
+    purpose: "Introduces layer-by-layer printing and orientation through a simple, checkable rule: every cube sits on the plate or another cube. Students learn that how a part sits on the printer is a design decision, separate from how it looks in use, and that good orientation removes the need for supports (which would leave rough, sticky faces on puzzle pieces). Pieces that can't meet the rule are flagged for day 12's chamfer.",
+    bigIdea: "A printer builds from the bottom up, so I turn each piece until every part of it has something underneath.",
+    successCriteria: [
+      "I can explain why each layer of a print needs something under it.",
+      "I can spot a cube that would print over air by looking from the side.",
+      "I can turn a piece so it prints without supports, or say why it can't.",
+      "I can record and explain the orientation I chose for every piece.",
+    ],
+    background: [
+      { title: "How a school 3D printer builds", body: "Most school printers are **FDM** printers (fused deposition modelling): a motor pushes plastic filament (usually **PLA**) into a hot nozzle, which melts it and draws thin lines onto the build plate. When one layer is finished, the nozzle rises by one layer height (commonly 0.2 mm) and draws the next layer on top. Molten plastic can't hang in mid-air, so every line needs something to rest on: the plate, or the layer below. That single fact explains orientation, supports, overhangs and chamfers." },
+      { title: "Orientation is a design decision", body: "Orientation means which face of a part sits on the build plate. It is chosen for the *printer*, not for how the piece sits in the puzzle. Good orientations usually put a large flat face down: more contact means better grip on the plate, a stable part that won't wobble as it grows, and fewer cubes left hanging. Height matters too: a part lying low needs fewer layers than the same part standing tall, so it is usually faster and less likely to be knocked over. Students often want to print pieces 'the right way up', which is why the misconception below is so common." },
+      { title: "Supports, and why puzzles avoid them", body: "If part of a model hangs over air, the slicer can add **supports**: thin scaffolding printed underneath, snapped off afterwards. Supports work, but they leave a rough, scarred surface where they touched, they use extra plastic and time, and removing them from small parts can be fiddly and needs care with tools. On a puzzle, scarred faces rub and stick when pieces slide past each other, and a scar can even give away where a piece goes. So this path sets a clear goal: no supports at all." },
+      { title: "Bridges: the arch exception", body: "A **bridge** is a horizontal span printed between two supported points. The printer stretches a line of plastic across the gap and the cooling fan sets it before it sags much. Short bridges, like a single 15 mm cube held up on both sides, usually print fine on a well-tuned printer, though the underside may look slightly droopy or stringy. A cube held on only *one* side is an overhang, not a bridge, and that is what day 12's chamfer fixes. Exact bridging limits vary between printers, so treat 15 mm as comfortably short rather than as a maximum." },
+      { title: "Checking in Tinkercad and by hand", body: "In Tinkercad, use the view cube to look straight from the front and the side: any cube with empty workplane under it, and no cube directly below, is over air. After rotating, press **D** to drop the piece onto the workplane so nothing floats. (Many slicers also drop parts onto the bed when they load them, but checking in Tinkercad keeps the design honest.) Math-cube copies of the pieces are a fast, concrete check: set each one on the desk in different ways and look underneath. Students who struggle with mental rotation often reason better with the cubes in hand." },
+      { title: "Where students go wrong, and what comes next", body: "Common errors: rotating by eye to an odd angle instead of 90° steps; checking a piece from the top view only (where hanging cubes are invisible); forgetting to drop to the workplane; and assuming one 'good' side exists for every piece when some genuinely need a chamfer. Pieces that hang over air in every position are not a failure: students mark them and fix them tomorrow with a 45° chamfer. On day 13 the slicer preview acts as a second check of today's decisions." },
+    ],
+    studentQuestions: [
+      { q: "Why can't the printer just print it the way it goes in the puzzle?", a: "It could, with supports. But supports leave rough patches, and rough faces make puzzle pieces stick. Turning the piece costs nothing." },
+      { q: "Doesn't the piece look upside down now?", a: "On the plate, yes. Once it's printed you can hold it any way you like. The printer only cares what's underneath each layer." },
+      { q: "Is an arch the same as hanging over air?", a: "No. An arch is held up on both sides, so the printer can stretch plastic across it like a bridge. A cube held on one side has nothing to stretch to." },
+      { q: "What if none of the sides work?", a: "Mark that piece. Tomorrow you'll cut a 45° slope under the hanging cube so it can print on its own." },
+    ],
+    connections: [
+      "Additive manufacturing engineers plan part orientation for strength, surface finish and print time before a single part is made, in industries from medical implants to aerospace brackets.",
+      "Builders and bricklayers face the same rule: every brick needs something under it, which is why arches and lintels exist over doors and windows.",
+      "Print farm technicians, who run many printers at once, lay out and orient parts to fit as many on a plate as possible without supports.",
+    ],
+    exitTicket: [
+      "In your own words, why does every layer need something under it?",
+      "Sketch one of your pieces in the position you chose. Mark where it touches the plate.",
+      "What is the difference between a bridge and an overhang?",
+    ],
+    runPlan: [
+      { minutes: 6, title: "Hook", teacher: "Pass round a print with support scars (or show the diagram). Ask: 'Would you want this face sliding against another piece?'", students: "Feel or look at the scarred surface and describe it.", devices: "away" },
+      { minutes: 7, title: "Layers and the rule", teacher: "Use the layers diagram. Stack math cubes to act out a printer: 'Can I place this cube here?' Introduce the arch exception with two cubes and a bridge.", students: "Predict which placements the 'printer' can make.", devices: "away" },
+      { minutes: 10, title: "Find the cubes in the air", teacher: "Prompt students to orbit to a side view before answering. Discuss the hotspot feedback together.", students: "Model viewer, hotspot and the two orientation questions.", devices: "open" },
+      { minutes: 17, title: "Turn your pieces", teacher: "Circulate with math cubes. Ask 'What's under this cube?' and 'Have you looked from the side?'", students: "Rotate each piece in 90° steps, drop with D, mark any that need a chamfer.", devices: "open" },
+      { minutes: 10, title: "Orientation table and prove", teacher: "Check that every row has a reason, not just a position.", students: "Complete the table and upload the side view.", devices: "open" },
+      { minutes: 5, title: "Reflect and exit", teacher: "Ask who has a piece marked for a chamfer: that's tomorrow's work. Collect the exit ticket.", students: "Reflection and exit ticket.", devices: "open" },
+    ],
+    lookFors: [
+      "Students switching to a side or front view before deciding a piece is fine.",
+      "Reasons in the table that mention what is under each cube, not just 'it looks right'.",
+      "Rotations in clean 90° steps, followed by D to drop.",
+      "Students using math cubes on the desk to test a position before rotating on screen.",
+      "Pieces that truly can't be fixed by turning flagged honestly for day 12.",
+    ],
+    differentiation: {
+      support: [
+        "Give each student math-cube copies of their pieces to test positions on the desk first.",
+        "Provide a partly filled orientation table with sentence frames: 'I put the ___ side down because ___.'",
+        "Model one piece fully on the projector, thinking aloud, before students start.",
+      ],
+      extend: [
+        "For each piece, compare two support-free orientations and argue which is better (contact area, height, look of the top face).",
+        "Estimate which orientation uses fewer layers for each piece, then check on day 13 in the slicer.",
+        "Research how bridges are tuned in a slicer and explain to the class what the cooling fan does.",
+      ],
+    },
     preparation: ["Optional: print the Puzzle Piece Checkup model, or a student piece in a good and a bad orientation, to pass around."],
     equipment: ["Student devices with Tinkercad", "Math cubes (handy for checking orientations by hand)"],
     misconceptions: [
