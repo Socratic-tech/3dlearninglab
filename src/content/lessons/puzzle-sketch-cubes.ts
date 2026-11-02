@@ -16,6 +16,7 @@ export const lesson: LessonInput = {
   vocabulary: [
     { term: "Isometric drawing", definition: "A 3D drawing where lines only go straight up and down or along two slants, so you see three faces of a cube at once." },
     { term: "Dot paper", definition: "Paper with dots in a pattern that makes isometric lines easy to draw." },
+    { term: "Front view", definition: "What a piece looks like when you stand in front of it and look straight at it. It shows how tall each part is." },
     { term: "Top view", definition: "What a piece looks like from straight above: its footprint on the table." },
   ],
   sections: [
@@ -35,7 +36,7 @@ export const lesson: LessonInput = {
           type: "teacherLed",
           title: "Draw along",
           minutes: 12,
-          students: "Follow along on your dot paper as your teacher draws one cube, then a second cube beside it, then a piece of 3 or 4 cubes. Build the same piece from math cubes and hold it next to your drawing.",
+          students: "Follow along on your dot paper as your teacher draws one cube, then a second cube beside it, then a piece of 3 or 4 cubes. Build the same piece from math cubes and hold it next to your drawing. Then look at your piece from straight above and from straight in front, and notice what each view shows.",
           teacher: "Model it live (board or document camera) and think aloud: the diamond on top, three lines straight down, join the bottoms, then reuse an edge for the next cube. Most students need to see the 'reuse an edge' move more than once.\n\nHolding the math-cube piece beside the drawing helps students who find drawing hard: they can check each line against the real thing. Accept other ways to show a piece (top view with heights written in, a photo of the cubes) for students who need them.",
         },
         {
@@ -58,10 +59,17 @@ export const lesson: LessonInput = {
       title: "Read a piece",
       blocks: [
         {
+          id: "views-guide",
+          type: "diagram",
+          name: "piece-views",
+          caption: "One piece, three ways to look at it. The top view shows the squares on the table, with a number for how many cubes tall. The front view shows how tall each part is. The isometric view shows three faces at once.",
+          alt: "An L piece of 4 cubes. Top view: three squares numbered 1, 1, 2. Front view: columns 1, 1 and 2 cubes tall. Isometric view: the piece in 3D.",
+        },
+        {
           id: "views",
           type: "matching",
-          prompt: "Match each view to what it shows.",
-          hint: "Picture standing over the piece, then in front of it.",
+          prompt: "Match each view of the L piece to what it shows. The picture above can help.",
+          hint: "Look at the picture above. Which view shows the squares on the table? Which shows how tall?",
           pairs: [
             { id: "top", left: "Top view", right: "The footprint: the squares that touch the table" },
             { id: "front", left: "Front view", right: "How tall each part is, seen from the front" },
@@ -167,7 +175,7 @@ export const lesson: LessonInput = {
     purpose: "Students learn a quick, low-cost way to generate and communicate 3D ideas. Isometric sketching on dot paper keeps every line on the cube grid, so pieces drawn here can be built directly in week 2.",
     runPlan: [
       { minutes: 5, title: "Hook", teacher: "Why sketch first? A sketch costs a minute; a print costs hours.", students: "Listen; one quick idea from the table.", devices: "away" },
-      { minutes: 12, title: "Draw along", teacher: "Model the three-move cube and the 'reuse an edge' move; students draw and build alongside.", students: "Draw cubes and a small piece; build it to check.", devices: "away" },
+      { minutes: 12, title: "Draw along", teacher: "Model the three-move cube and the 'reuse an edge' move; students draw and build alongside. Finish by holding one built piece above and in front of the class so they see the top and front views before the picture.", students: "Draw cubes and a small piece; build it to check.", devices: "away" },
       { minutes: 18, title: "Piece bank", teacher: "Circulate; ask students to explain a piece out loud; nudge toward 3D pieces.", students: "Sketch 8 or more pieces with cube counts.", devices: "away" },
       { minutes: 8, title: "Gallery check", teacher: "Quick walk: which sketches could you build without asking?", students: "Give and get feedback on readability.", devices: "away" },
       { minutes: 7, title: "Record and reflect", teacher: "Devices open for the views check, the photo upload and the reflection.", students: "Quick check, upload, reflect.", devices: "open" },

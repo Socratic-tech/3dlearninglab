@@ -9,7 +9,7 @@ import { FdmPrinter, LayersStack, SubtractiveVsAdditive, XyzAxes } from "./print
 import { ExactDimension, MoveZ, NudgeKeys, RotateHandles, RulerTool, ScaleHandles, Selection, ViewControls, Workplane } from "./cad";
 import { AlignHandles, DieNet, DuplicatePattern, GroupHole, MirrorAxis, SolidVsHole, TextRaisedRecessed } from "./modeling";
 import { ConstraintColors, FeatureHistory, ProMoves, ShapesVsSketches, SketchExtrude, VariableRipple } from "./procad";
-import { FaceVsEdge, FillSquare, FlatVsUp, IsoSketch, SameShapeTurned, TetrominoSet, PuzzleChamfer, PuzzleLayerMap, ToleranceStack } from "./puzzle";
+import { FaceVsEdge, FillSquare, FlatVsUp, IsoSketch, PieceViews, SameShapeTurned, TetrominoSet, PuzzleChamfer, PuzzleLayerMap, ToleranceStack } from "./puzzle";
 import { CaliperParts, ClearanceFit, FitTypes, MeasureCritical, PrototypeCritical, ToleranceRange } from "./precision";
 import {
   BridgeSpan,
@@ -101,6 +101,7 @@ export const diagramComponents: Record<DiagramName, FC<DiagramProps>> = {
   "tolerance-stack": ToleranceStack,
   "puzzle-chamfer": PuzzleChamfer,
   "iso-sketch": IsoSketch,
+  "piece-views": PieceViews,
   "same-shape-turned": SameShapeTurned,
   "tetromino-set": TetrominoSet,
   "fill-square": FillSquare,

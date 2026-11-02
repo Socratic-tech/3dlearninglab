@@ -67,6 +67,7 @@ export const diagramCatalog = {
   "fill-square": "A 4 by 4 square filled with four pieces: an I down the left side, an O in the middle right, and two L pieces wrapping the top and bottom. No gaps, no overlaps.",
   "flat-vs-up": "Left: four cubes lying flat in an L, every cube on the table, like a game piece. Right: four cubes where one cube climbs up a layer, something only a 3D piece can do.",
   "same-shape-turned": "Two four-cube L pieces. A lies flat on the table; B is the same L standing up on one end. Tipping B onto its side makes it match A.",
+  "piece-views": "One L-shaped piece of 4 cubes seen three ways. Top view: three squares on the table, numbered 1, 1 and 2 for how many cubes tall. Front view: columns 1, 1 and 2 cubes tall. Isometric view: three faces at once, so it looks 3D.",
   "iso-sketch": "Drawing a cube on isometric dot paper in three steps: 1, a diamond for the top; 2, three lines straight down; 3, the bottom edges. Lines only go straight up and down or along two slants.",
   "puzzle-chamfer": "Side view. Left: a cube sticks out sideways from the top of a two-cube column with air underneath, so it needs supports. Right: the same cube with a 45° wedge cut from its underside, so it prints on its own.",
   "tolerance-stack": "Three printed pieces, each 15.1 mm instead of 15, add up to 45.3 mm. A 45.0 mm box opening jams; a 46.1 mm opening lets the cube slide in and out.",
