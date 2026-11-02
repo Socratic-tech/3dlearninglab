@@ -1,0 +1,164 @@
+import type { LessonInput } from "../schema";
+
+/** Puzzle Cube, day 10 of 18 (optional in a 3-week run): size, a key-ring loop and engraved initials. */
+export const lesson: LessonInput = {
+  id: "puzzle-make-it-yours",
+  number: 409,
+  title: "Puzzle Cube 10: Make It Yours",
+  subtitle: "Size, a key-ring loop, your initials: without breaking the fit.",
+  domain: "B",
+  kind: "lesson",
+  summary: "Students personalise their puzzle without breaking the fit: optionally scale the whole cube to keychain size, add a key-ring loop on an outside face, and engrave initials into one piece. Optional in a 3-week run.",
+  estimatedMinutes: 55,
+  printLevel: "digital",
+  competencyIds: ["B10", "B3", "A8"],
+  prerequisites: ["puzzle-build-pieces"],
+  vocabulary: [
+    { term: "Engrave", definition: "Cut letters into a surface with a hole shape, so they sink in." },
+    { term: "Scale proportionally", definition: "Resize evenly in every direction (hold Shift while dragging a corner, or type all three sizes)." },
+  ],
+  sections: [
+    {
+      phase: "discover",
+      title: "Personal, but still a puzzle",
+      blocks: [
+        {
+          id: "hook",
+          type: "hero",
+          title: "Make it yours, keep it working.",
+          hook: "A puzzle with your initials or on your keys is one you'll actually keep. The challenge: every change must still let the pieces fit together.",
+          visual: { diagram: "text-raised-recessed", alt: "Raised text sits on a surface; recessed text is cut into it." },
+        },
+        {
+          id: "options",
+          type: "text",
+          title: "Pick one or more",
+          body: "- **Keychain size:** select every piece at once and scale proportionally from 45 mm to 30 mm.\n- **Key-ring loop:** add a small loop to the outside of one piece.\n- **Initials:** engrave 1–2 letters into a face of one piece.\n- **Colours:** choose the filament colours you'd like (if your class has a choice).",
+        },
+      ],
+    },
+    {
+      phase: "practice",
+      title: "Changes that keep the fit",
+      blocks: [
+        {
+          id: "loop-mc",
+          type: "multipleChoice",
+          prompt: "Where should the key-ring loop go?",
+          hint: "Picture the cube put together. What would the loop bump into?",
+          options: [
+            { id: "outside", text: "On a face that's on the OUTSIDE of the finished cube" },
+            { id: "inside", text: "On a face that touches another piece inside the cube", misconceptionId: "anywhere-goes" },
+          ],
+          correctOptionIds: ["outside"],
+          explanation: "Anything sticking out of an inside face would block the next piece. Outside faces are free.",
+          competencyId: "B3",
+          check: "skill",
+        },
+        {
+          id: "scale-predict",
+          type: "prediction",
+          prompt: "You select ALL the pieces at once and scale them from 45 mm to 30 mm. Will they still fit together?",
+          hint: "Every piece shrinks by the same amount.",
+          options: [
+            { id: "yes", text: "Yes: everything shrinks together, so the shapes still match" },
+            { id: "no", text: "No: the pieces will be different sizes", misconceptionId: "scale-breaks" },
+          ],
+          expectedOptionId: "yes",
+          reveal: "Scaling everything together keeps the shapes in proportion. Just don't scale one piece on its own. (Very small pieces are fiddly; 30 mm is about the smallest that's comfortable.)",
+        },
+        {
+          id: "depth",
+          type: "measurement",
+          prompt: "Printers lay plastic in 0.2 mm layers. How many layers deep is an engraving 1 mm deep?",
+          hint: "1 ÷ 0.2",
+          answer: 5,
+          tolerance: 0,
+          unit: "layers",
+          explanation: "5 layers: deep enough to read. Engrave at least 0.8–1 mm deep with letters 5 mm tall or more, or they disappear.",
+          competencyId: "B10",
+          check: "practice",
+        },
+      ],
+    },
+    {
+      phase: "apply",
+      title: "Personalise",
+      blocks: [
+        {
+          id: "tinkercad",
+          type: "tinkercadLaunch",
+          title: "Add your touches",
+          steps: [
+            "Save a copy first ('puzzle cube v2').",
+            "Keychain: select all pieces, hold Shift, drag a corner until the cube is 30 mm (or type sizes).",
+            "Loop: add a Tube (about 10 mm across, 3 mm thick) touching an outside face of one piece. Group it with that piece.",
+            "Initials: add Text, make it a Hole, about 6 mm tall and 1 mm deep, sunk into an outside face. Group it with the piece.",
+            "Put the pieces back together (or check your backup) to make sure nothing sticks into another piece.",
+          ],
+        },
+        {
+          id: "micro",
+          type: "challenge",
+          kind: "micro",
+          title: "Fit check",
+          prompt: "Check every personal touch is on an outside face.",
+          requirements: ["Loop and letters only on outside faces", "Letters at least 5 mm tall and 0.8 mm deep", "Pieces still grouped"],
+          skills: ["B10", "B3"],
+        },
+      ],
+    },
+    {
+      phase: "prove",
+      title: "Prove it: your version",
+      blocks: [
+        {
+          id: "prove",
+          type: "challenge",
+          kind: "prove",
+          title: "My Puzzle, My Way",
+          prompt: "Personalise your puzzle in at least one way and show it still fits together.",
+          requirements: ["At least one personal touch (size, loop or initials)", "All touches on outside faces", "Pieces still assemble into the cube", "Engraving 0.8 mm deep or more, letters 5 mm or taller (if used)"],
+          skills: ["B10", "B3", "A8"],
+        },
+        {
+          id: "submit",
+          type: "uploadEvidence",
+          prompt: "Upload a screenshot of your personalised piece and one of the cube put back together.",
+          accepts: ["screenshot", "design_url"],
+          competencyIds: ["B10", "B3"],
+          checklist: ["Personal touch visible", "Cube still assembles"],
+        },
+      ],
+    },
+    {
+      phase: "reflect",
+      title: "Reflect",
+      blocks: [
+        {
+          id: "reflect",
+          type: "reflection",
+          prompt: "What did you add, and how did you make sure it didn't break the puzzle?",
+          sentenceStarters: ["I added … because …", "I checked the fit by …"],
+          competencyIds: ["B10"],
+        },
+      ],
+    },
+  ],
+  teacher: {
+    purpose: "Ownership and identity (UDL engagement) while practising holes, text and proportional scaling, with a real constraint: personal touches must not change the faces where pieces meet. Optional in a 3-week run.",
+    preparation: ["Decide if keychain size is allowed (smaller pieces are harder for some students to handle and print).", "Have key rings available if students will use them."],
+    equipment: ["Student devices with Tinkercad"],
+    misconceptions: [
+      { id: "anywhere-goes", text: "Decorations can go anywhere on a piece.", response: "Assemble the cube and point to the faces you can still see: only those are free." },
+      { id: "scale-breaks", text: "Scaling the puzzle stops it fitting.", response: "Everything scales together, so shapes match. Scaling one piece alone would break it." },
+    ],
+    discussionQuestions: ["Why do people keep personalised things longer?"],
+    troubleshooting: [
+      "Text hole doesn't cut: it must overlap the piece and be grouped with it.",
+      "Loop too thin to print: keep the tube wall 2 mm or more.",
+    ],
+    answerGuidance: ["Proficient: one or more personal touches, all on outside faces, sizes printable, cube still assembles."],
+    alternatives: { noPrinter: "Digital only.", touchDevice: "Use the Text shape's panel to type letters; scale by typing sizes." },
+  },
+};

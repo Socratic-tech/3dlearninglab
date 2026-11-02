@@ -79,14 +79,12 @@ export const pathInputs: P[] = [
     id: "puzzle-cube",
     title: "Project Path: Puzzle Cube",
     description:
-      "A 6-week project: plan five or six solid pieces that fit together into one 3 × 3 × 3 cube, build them in Tinkercad, print them without supports, design a box that fits, then playtest with classmates and ship it with a solution card. Review missions come first; turn them off if your class already knows them.",
+      "18 one-period missions (55 minutes each, about 4 weeks) that take students from a pencil sketch to a 3D-printed puzzle: design 5 or 6 pieces that fit into one cube, build them in Tinkercad from scratch, print them without supports, then design a box, playtest, revise and ship. For a 3-week run, turn off missions 5, 10 and 12.",
     weeks: [
-      { week: 1, title: "Tinkercad tune-up", focus: "Navigate, type exact sizes, group and cut holes", lessonIds: ["navigating-tinkercad", "exact-dimensions", "grouping", "holes"] },
-      { week: 2, title: "Think in cubes", focus: "Align and duplicate, then plan 5 or 6 pieces that make 27 cubes", lessonIds: ["align", "duplicate", "puzzle-think-in-cubes"] },
-      { week: 3, title: "Build the pieces", focus: "Build the cube assembled on a snap grid, then pull it apart", lessonIds: ["puzzle-build-pieces"] },
-      { week: 4, title: "Print plan", focus: "Layers, orientation, supports and 45° chamfers; print every piece support-free", lessonIds: ["layers", "orientation", "supports", "puzzle-print-plan"] },
-      { week: 5, title: "Fit and the box", focus: "Tolerance stack-up, clearance and a ring test before the box", lessonIds: ["tolerances", "puzzle-fit-box"] },
-      { week: 6, title: "Playtest and ship", focus: "Test with real solvers, revise once, make a solution card", lessonIds: ["puzzle-playtest"] },
+      { week: 1, title: "From idea to paper", focus: "Brief, isometric sketches, piece rules, a layer-map plan and a hand-built prototype", lessonIds: ["puzzle-good-puzzle", "puzzle-sketch-cubes", "puzzle-piece-rules", "puzzle-think-in-cubes", "puzzle-paper-playtest"] },
+      { week: 2, title: "Into Tinkercad", focus: "One exact cube, snapped layers, the whole cube, grouped pieces, personal touches", lessonIds: ["puzzle-one-cube", "puzzle-stack-layers", "puzzle-whole-cube", "puzzle-build-pieces", "puzzle-make-it-yours"] },
+      { week: 3, title: "Ready to print", focus: "Orientation, 45° chamfers, slicing and inspecting the first print", lessonIds: ["puzzle-print-plan", "puzzle-chamfer", "puzzle-slice-print", "puzzle-first-print"] },
+      { week: 4, title: "Box, playtest, ship", focus: "A box that fits, real playtests, one data-driven revision and the finished product", lessonIds: ["puzzle-fit-box", "puzzle-playtest", "puzzle-revise", "puzzle-ship-it"] },
     ],
   },
 ];

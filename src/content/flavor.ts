@@ -238,22 +238,61 @@ export const FLAVOR: Record<string, Flavor> = {
   "pro-fusion-bonus": {
     hook: { headline: "Pros switch tools all the time.", body: "Makerspaces, small product teams and machine shops use different CAD tools, and engineers often learn several. Once you know sketch, constrain and extrude, a new tool is mostly new button names." },
   },
+  "puzzle-good-puzzle": {
+    hook: { headline: "A puzzle from a 1933 lecture.", body: "Danish inventor Piet Hein imagined a puzzle while listening to a physics lecture: odd pieces made of small cubes that fit together into one 3 × 3 × 3 cube. People have been inventing new cube puzzles ever since. Now it's your turn." },
+  },
+  "puzzle-sketch-cubes": {
+    hook: { headline: "Three faces at once.", body: "Isometric drawings show the top and two sides of an object together, using lines at 30°. Engineers use them in technical drawings, and many video games use the same view for their worlds." },
+  },
+  "puzzle-piece-rules": {
+    hook: { headline: "Shapes made of cubes have a name.", body: "Mathematicians call shapes made of cubes joined face to face polycubes. Falling-block video games use the flat version: pieces made of four squares joined edge to edge." },
+  },
   "puzzle-think-in-cubes": {
-    hook: { headline: "A puzzle from a 1933 lecture.", body: "Danish inventor Piet Hein imagined a puzzle while listening to a physics lecture: odd pieces made of small cubes that fit together into one 3 × 3 × 3 cube. People have been designing new cube puzzles ever since. Now it's your turn." },
+    hook: { headline: "240 ways to make one cube.", body: "The famous seven-piece cube puzzle from 1933 can be put together in 240 different ways, not counting turns and mirror images. Your puzzle may have one solution or several. Planning helps you find out." },
     themes: { prove: [{ label: "Keychain", idea: "Small and pocket-sized: 10 mm cubes, a 30 mm puzzle" }, { label: "Desk toy", idea: "Easy to hold: 15 mm cubes, a 45 mm puzzle" }, { label: "Brain buster", idea: "Four or more pieces that bend in 3D" }] },
   },
-  "puzzle-build-pieces": {
+  "puzzle-paper-playtest": {
+    hook: { headline: "Cardboard before steel.", body: "Product designers build quick mock-ups from cardboard, foam and tape before paying for real parts. A cheap prototype that fails tells you just as much as an expensive one." },
+  },
+  "puzzle-one-cube": {
+    hook: { headline: "The sugar cube is from 1843.", body: "Jakub Kryštof Rad, a sugar factory manager in what is now the Czech Republic, patented sugar cubes in 1843. Cubes stack, pack and count easily. That's why your puzzle is made of them." },
+  },
+  "puzzle-stack-layers": {
+    hook: { headline: "Ships stack boxes by the thousand.", body: "Container ships stack steel boxes many layers high. It works because every container is built to the same standard size, so the corners line up exactly, like cubes on your snap grid." },
+  },
+  "puzzle-whole-cube": {
     hook: { headline: "Games and scanners build with tiny cubes.", body: "Block-building video games and medical CT scans both describe 3D shapes as tiny cubes called voxels: volume pixels. Your puzzle is 27 big voxels." },
-    themes: { prove: [{ label: "Keychain", idea: "10 mm cubes with a key-ring loop on one piece" }, { label: "Desk size", idea: "15 mm cubes, easy to hold and solve" }, { label: "Colour code", idea: "Colours that help a solver, or colours that trick them" }] },
+  },
+  "puzzle-build-pieces": {
+    hook: { headline: "Exploded views explain everything.", body: "Repair manuals and furniture instructions use exploded views: the object drawn pulled apart so you can see how every part fits. Today you make one of your own puzzle." },
+  },
+  "puzzle-make-it-yours": {
+    hook: { headline: "Your name on it.", body: "Engraved bottles, custom sneakers, a name on a jersey: people personalise the things they care about. A small personal touch can make a design feel like yours." },
+    themes: { prove: [{ label: "Keychain", idea: "30 mm cube with a key-ring loop" }, { label: "Signed", idea: "Your initials engraved on one piece" }, { label: "Gift", idea: "Someone else's initials, made for them" }] },
   },
   "puzzle-print-plan": {
     hook: { headline: "Supports are plastic you throw away.", body: "Every bit of support is printed, then snapped off and binned. Engineers who print lots of parts turn them so flat faces sit on the plate: less waste, less cleanup and smoother surfaces." },
+  },
+  "puzzle-chamfer": {
+    hook: { headline: "A 3,000-year-old overhang trick.", body: "The Treasury of Atreus in Greece, built around 1250 BC, has a stone dome with no arches: each ring of stones sticks out a little past the one below. Small steps, no scaffolding needed. A 45° chamfer works the same way." },
+  },
+  "puzzle-slice-print": {
+    hook: { headline: "Your printer reads a recipe.", body: "A slicer turns your model into G-code: a long list of moves like 'go here, push out this much plastic'. A small puzzle can take tens of thousands of lines." },
+  },
+  "puzzle-first-print": {
+    hook: { headline: "Makers name their mistakes.", body: "Elephant's foot, stringing, warping: printer users gave common problems memorable names so they can spot them fast and share fixes. Naming a problem is the first step to fixing it." },
   },
   "puzzle-fit-box": {
     hook: { headline: "Car engineers add up tiny errors.", body: "An engine has many parts stacked together. Each one can be a tiny bit off, and those bits add up. Engineers run 'stack-up' calculations so everything still fits. Your three puzzle pieces stack up too." },
   },
   "puzzle-playtest": {
     hook: { headline: "Game designers watch players in silence.", body: "Video game and board game studios run playtests: designers watch real players without explaining anything and note where they get stuck. Then they change the game and test again." },
+  },
+  "puzzle-revise": {
+    hook: { headline: "5,127 tries.", body: "James Dyson built 5,127 prototypes of his first bagless vacuum before it worked the way he wanted. You only need a version 2, but the idea is the same: test, change one thing, test again." },
+  },
+  "puzzle-ship-it": {
+    hook: { headline: "Puzzle boxes, made by hand for over 100 years.", body: "In Hakone, Japan, craftspeople make wooden secret boxes that open only after a sequence of hidden moves. Each one is a small product: a puzzle, a package and a story. Yours is too." },
     clients: { prove: { name: "Mr. Alvarez", who: "runs the indoor-recess game bin", message: "Students finish the old puzzles in seconds. Can you make one that takes a first-timer a few minutes, with a box so pieces don't get lost and a card that shows the answer?" } },
   },
 };

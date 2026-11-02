@@ -44,10 +44,23 @@ import { lesson as l_pro_sketch_extrude } from "./pro-sketch-extrude";
 import { lesson as l_product_design } from "./product-design";
 import { lesson as l_prototype } from "./prototype";
 import { lesson as l_puzzle_build_pieces } from "./puzzle-build-pieces";
+import { lesson as l_puzzle_chamfer } from "./puzzle-chamfer";
+import { lesson as l_puzzle_first_print } from "./puzzle-first-print";
 import { lesson as l_puzzle_fit_box } from "./puzzle-fit-box";
+import { lesson as l_puzzle_good_puzzle } from "./puzzle-good-puzzle";
+import { lesson as l_puzzle_make_it_yours } from "./puzzle-make-it-yours";
+import { lesson as l_puzzle_one_cube } from "./puzzle-one-cube";
+import { lesson as l_puzzle_paper_playtest } from "./puzzle-paper-playtest";
+import { lesson as l_puzzle_piece_rules } from "./puzzle-piece-rules";
 import { lesson as l_puzzle_playtest } from "./puzzle-playtest";
 import { lesson as l_puzzle_print_plan } from "./puzzle-print-plan";
+import { lesson as l_puzzle_revise } from "./puzzle-revise";
+import { lesson as l_puzzle_ship_it } from "./puzzle-ship-it";
+import { lesson as l_puzzle_sketch_cubes } from "./puzzle-sketch-cubes";
+import { lesson as l_puzzle_slice_print } from "./puzzle-slice-print";
+import { lesson as l_puzzle_stack_layers } from "./puzzle-stack-layers";
 import { lesson as l_puzzle_think_in_cubes } from "./puzzle-think-in-cubes";
+import { lesson as l_puzzle_whole_cube } from "./puzzle-whole-cube";
 import { lesson as l_quick_demo } from "./quick-demo";
 import { lesson as l_repeat_duplicate } from "./repeat-duplicate";
 import { lesson as l_rotating_objects } from "./rotating-objects";
@@ -109,10 +122,23 @@ export const lessonInputs: LessonInput[] = [
   l_product_design,
   l_prototype,
   l_puzzle_build_pieces,
+  l_puzzle_chamfer,
+  l_puzzle_first_print,
   l_puzzle_fit_box,
+  l_puzzle_good_puzzle,
+  l_puzzle_make_it_yours,
+  l_puzzle_one_cube,
+  l_puzzle_paper_playtest,
+  l_puzzle_piece_rules,
   l_puzzle_playtest,
   l_puzzle_print_plan,
+  l_puzzle_revise,
+  l_puzzle_ship_it,
+  l_puzzle_sketch_cubes,
+  l_puzzle_slice_print,
+  l_puzzle_stack_layers,
   l_puzzle_think_in_cubes,
+  l_puzzle_whole_cube,
   l_quick_demo,
   l_repeat_duplicate,
   l_rotating_objects,
