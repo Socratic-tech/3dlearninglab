@@ -7,7 +7,7 @@ export default function PublicCurriculum() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
       <h1 className="font-display text-3xl font-bold">The curriculum</h1>
-      <p className="mt-2 max-w-2xl text-muted">Two complete course arcs built on explicit competencies. Every mission runs Discover → Practice → Apply → Prove → Reflect.</p>
+      <p className="mt-2 max-w-2xl text-muted">Two complete course arcs built on explicit competencies. Every mission runs Define → Imagine → Create → Evaluate.</p>
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         {paths.map((p) => (
           <section key={p.id} className="rounded-2xl border border-border bg-surface p-5">

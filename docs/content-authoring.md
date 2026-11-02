@@ -16,6 +16,8 @@ npm run content:validate   # schema + cross-reference validation (also runs in t
 See `src/content/schema.ts` for the authoritative schema and `src/content/lessons/holes.ts` for a complete example.
 
 Every lesson follows **DISCOVER → PRACTICE → APPLY → PROVE → REFLECT** using `sections` with those `phase` values.
+Students see these as four design stages, **Define · Imagine · Create · Evaluate** (discover → Define, practice → Imagine,
+apply → Create, prove and reflect → Evaluate), in the lesson player's progress track and above every screen title.
 A typical lesson: hook (`hero`) → very short explanation (`text`) → demonstration (`showMe`, `diagram`, `modelViewer`)
 → `prediction` → Tinkercad practice (`tinkercadLaunch`, `modelDownload`) → micro-challenge (`challenge` kind `micro`)
 → debug activity when appropriate (`hotspot`, `multipleChoice`) → independent skill check (`challenge` kind `prove` +
