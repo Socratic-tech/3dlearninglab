@@ -2,7 +2,7 @@ import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 export function Card({ className, ...props }: ComponentProps<"div">) {
-  return <div className={cn("rounded-2xl border border-border bg-surface p-5 shadow-[0_1px_0_rgba(0,0,0,0.03)]", className)} {...props} />;
+  return <div className={cn("rounded-2xl border border-border bg-surface p-5 shadow-[0_1px_2px_rgba(15,27,45,0.06),0_8px_20px_-12px_rgba(15,27,45,0.18)]", className)} {...props} />;
 }
 
 export function CardTitle({ children, className, as: As = "h2" }: { children: ReactNode; className?: string; as?: "h2" | "h3" | "h4" }) {

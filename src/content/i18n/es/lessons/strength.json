@@ -40,7 +40,7 @@
   "sections.1.blocks:mc-break.options:c.text": "La abrazadera lo cortó.",
   "sections.1.blocks:mc-break.explanation": "Una ruptura limpia y plana a lo largo de una línea de capa es la firma de la separación de capas. Ésa es la debilidad que la orientación puede diseñar.",
   "sections.2.title": "Dentro de la pieza",
-  "sections.2.blocks:explain-inside.body": "La mayoría de las impresiones no son sólidas. El slicer imprime algunas **paredes** alrededor del exterior y un patrón de **relleno** más claro en el interior. Ambos cambian la fuerza, el peso y el tiempo de impresión.",
+  "sections.2.blocks:explain-inside.body": "La mayoría de las impresiones no son sólidas. El slicer imprime algunas **paredes** alrededor del exterior y un patrón de **relleno** más claro en el interior. Ambos cambian la fuerza, el peso y el tiempo de impresión.\n\n- **Más paredes** hacen mucho más rígidas las piezas delgadas, como el brazo de un gancho.\n- **Más relleno** es más fuerte pero más pesado y lento, y cada aumento extra ayuda menos.\n- **Muy poco relleno** deja poco debajo de la superficie de arriba, así que la parte superior puede hundirse.",
   "sections.2.blocks:walls.caption": "Las paredes son el contorno sólido; el relleno llena el medio.",
   "sections.2.blocks:walls.alt": "Sección transversal que muestra los perímetros (paredes exteriores) y el relleno en el medio.",
   "sections.2.blocks:infill.caption": "10%, 20% y 50% de relleno. Más relleno = más pesado y más lento.",

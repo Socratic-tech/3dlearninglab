@@ -35,7 +35,7 @@ export const lesson: LessonInput = {
           id: "parts",
           type: "diagram",
           name: "caliper-parts",
-          caption: "Outside jaws, inside jaws, depth rod, zero button and display.",
+          caption: "The big jaws measure the outside of things (a marker, a peg). The small tips on top, the inside jaws, measure the inside of things (a bottle cap). The depth rod slides out the end to measure how deep a hole is. Press zero with the jaws closed before every measurement.",
           alt: "Digital calipers with each part labelled.",
         },
         {

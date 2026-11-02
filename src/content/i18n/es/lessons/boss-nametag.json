@@ -84,5 +84,7 @@
   "sections.4.blocks:reflect.prompt": "¿Qué regla de la especificación fue más difícil de cumplir? ¿Cómo comprobaste que lo habías cumplido?",
   "sections.4.blocks:reflect.sentenceStarters.0": "La regla más difícil era...",
   "sections.4.blocks:reflect.sentenceStarters.1": "Lo comprobé por…",
-  "sections.4.blocks:reflect.sentenceStarters.2": "La próxima vez haría…"
+  "sections.4.blocks:reflect.sentenceStarters.2": "La próxima vez haría…",
+  "sections.1.blocks:fix-toolbox.title": "Tu caja de herramientas para arreglar",
+  "sections.1.blocks:fix-toolbox.body": "La mayoría de los arreglos usan tres movimientos: **escribe números exactos** en el panel de la forma (por ejemplo, largo 50), **ajusta la altura** (Z es la parte de abajo de una forma; las letras sobre una placa de 3 mm van en Z = 3) y **Alinear** (presiona L y haz clic en los puntos del centro) para centrar las formas. Mueve el agujero hacia adentro desde el borde para que le queden 2 mm de plástico."
 }

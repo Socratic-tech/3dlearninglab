@@ -33,7 +33,7 @@ export const lesson: LessonInput = {
         {
           id: "explain",
           type: "text",
-          body: "Onshape colors sketch lines to tell you what's still loose:\n\n- **Blue**: under-defined. You can still drag it.\n- **Black**: fully defined. Its size and spot are locked.\n- **Red**: a conflict. Two rules disagree, so remove one.\n\nYou lock a sketch with **dimensions** (sizes) and **constraints** (rules like Horizontal or Equal). A quick test: try to drag a line. If it moves, something is missing.",
+          body: "Onshape colors sketch lines to tell you what's still loose:\n\n- **Blue**: under-defined. You can still drag it.\n- **Black**: fully defined. Its size and spot are locked.\n- **Red**: a conflict. Two rules disagree, so remove one.\n\nYou lock a sketch with **dimensions** (sizes) and **constraints** (rules). Four you will use a lot: **Coincident** makes two points touch, **Horizontal** makes a line flat, **Equal** makes two lines the same length, and **Midpoint** puts a point in the middle of a line. A quick test: try to drag a line. If it moves, something is missing.",
         },
         {
           id: "predict",
@@ -55,6 +55,17 @@ export const lesson: LessonInput = {
       title: "Lock it down",
       blocks: [
         {
+          id: "show-me",
+          type: "showMe",
+          title: "Turn a rectangle black",
+          steps: [
+            { text: "Sketch a corner rectangle on the Top plane, away from the origin. Its lines are blue: it's loose.", diagram: "constraint-colors" },
+            { text: "Press D. Set the width to 40 and the height to 25. Drag a corner: the size stays, but the whole rectangle still slides." },
+            { text: "Select one corner of the rectangle and the origin point, then choose Coincident. Now the lines turn black." },
+            { text: "Test it: try to drag any line. If nothing moves, the sketch is fully defined." },
+          ],
+        },
+        {
           id: "match",
           type: "matching",
           prompt: "Match each constraint to what it does.",
@@ -68,17 +79,6 @@ export const lesson: LessonInput = {
           explanation: "Constraints are rules. Dimensions are sizes. A sketch usually needs both before it turns black.",
           competencyId: "H3",
           check: "practice",
-        },
-        {
-          id: "show-me",
-          type: "showMe",
-          title: "Turn a rectangle black",
-          steps: [
-            { text: "Sketch a corner rectangle on the Top plane, away from the origin. Its lines are blue: it's loose.", diagram: "constraint-colors" },
-            { text: "Press D. Set the width to 40 and the height to 25. Drag a corner: the size stays, but the whole rectangle still slides." },
-            { text: "Select one corner of the rectangle and the origin point, then choose Coincident. Now the lines turn black." },
-            { text: "Test it: try to drag any line. If nothing moves, the sketch is fully defined." },
-          ],
         },
         {
           id: "count",

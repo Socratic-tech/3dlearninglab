@@ -83,6 +83,13 @@ export const lesson: LessonInput = {
           check: "practice",
         },
         {
+          id: "fix-toolbox",
+          type: "callout",
+          tone: "tip",
+          title: "Your fix-it toolbox",
+          body: "Most fixes use three moves: **type exact numbers** in the shape panel (like length 50), **set the height** (Z is the bottom of a shape; letters sit on a 3 mm tag at Z = 3), and **Align** (press L, then click the middle dots) to center shapes. Move a hole in from the edge so it keeps 2 mm of plastic.",
+        },
+        {
           id: "fault-match",
           type: "matching",
           prompt: "Match each fault to its fix.",

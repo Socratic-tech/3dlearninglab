@@ -34,7 +34,7 @@ export const lesson: LessonInput = {
         {
           id: "explain",
           type: "text",
-          body: "Tinkercad is great for quick ideas. Pro CAD tools like **Onshape** and **Fusion** work a different way:\n\n- You **sketch** a 2D outline on a flat plane.\n- You **extrude** it (pull it) into a 3D part.\n- Every step goes into a **feature list**. Change step 2, and steps 3, 4 and 5 rebuild on their own.\n\nEverything you learned still counts: exact sizes, holes, walls, fit and printability.",
+          body: "Tinkercad is great for quick ideas. Pro CAD tools like **Onshape** and **Fusion** work a different way:\n\n- You **sketch** a 2D outline on a flat plane.\n- You **extrude** it (pull it) into a 3D part.\n- Every step goes into a **feature list**. Change step 2, and steps 3, 4 and 5 rebuild on their own, so you can go back and edit any step instead of pressing undo again and again.\n- The **Dimension** tool types an exact size into a sketch.\n- **Extrude** can **Add** material or **Remove** it, like a hole shape in Tinkercad.\n\nEverything you learned still counts: exact sizes, holes, walls, fit and printability.",
         },
         {
           id: "predict",

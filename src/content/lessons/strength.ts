@@ -100,7 +100,7 @@ export const lesson: LessonInput = {
         {
           id: "explain-inside",
           type: "text",
-          body: "Most prints aren't solid. The slicer prints a few **walls** around the outside and a lighter **infill** pattern inside. Both change strength, weight and print time.",
+          body: "Most prints aren't solid. The slicer prints a few **walls** around the outside and a lighter **infill** pattern inside. Both change strength, weight and print time.\n\n- **More walls** make thin parts, like a hook arm, much stiffer.\n- **More infill** is stronger but heavier and slower, and each extra bit helps less.\n- **Very low infill** leaves little under the top surface, so the top can sag.",
         },
         { id: "walls", type: "diagram", name: "walls-perimeters", caption: "Walls are the solid outline; infill fills the middle.", alt: "Cross-section showing perimeters (outer walls) and infill in the middle." },
         { id: "infill", type: "diagram", name: "infill-patterns", caption: "10%, 20% and 50% infill. More infill = heavier and slower.", alt: "Cut-away views of 10%, 20% and 50% infill inside a part with solid walls." },

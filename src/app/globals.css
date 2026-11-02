@@ -330,3 +330,9 @@ body {
 .xp-spark:nth-child(3n + 1) { background: var(--success); }
 :root[data-motion="reduce"] .xp-burst { display: none; }
 @media (prefers-reduced-motion: reduce) { .xp-burst { display: none; } }
+
+/* Mission path: soft pulse on the current mission (off with reduce motion) */
+@keyframes mission-pulse { 0% { transform: scale(1); opacity: .7; } 100% { transform: scale(1.45); opacity: 0; } }
+.mission-pulse { animation: mission-pulse 2s ease-out infinite; }
+:root[data-motion="reduce"] .mission-pulse { display: none; }
+@media (prefers-reduced-motion: reduce) { .mission-pulse { display: none; } }

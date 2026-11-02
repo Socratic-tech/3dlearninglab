@@ -212,21 +212,21 @@ export function LessonPlayer(p: PlayerProps) {
   };
 
   const finish = (
-    <section aria-label={tr("Finish this mission")} className="rounded-3xl border border-border bg-surface p-6 text-center sm:p-10">
+    <section aria-label={tr("Finish this mission")} className="rounded-3xl border border-border bg-gradient-to-b from-success-soft/60 to-surface p-6 text-center shadow-[0_12px_32px_-16px_rgba(15,27,45,0.35)] sm:p-10">
       {completed ? (
         <div className="relative animate-unlock">
           {result && <Celebration kind={p.celebration} />}
-          <CircleCheck className="mx-auto size-16 text-success" aria-hidden />
+          <span className="mx-auto grid size-24 place-items-center rounded-full bg-success-soft shadow-[inset_0_0_0_6px_var(--surface),0_0_0_3px_var(--success),0_10px_24px_-8px_rgba(21,128,61,0.55)]"><CircleCheck className="size-14 text-success" aria-hidden /></span>
           <p className="mt-3 font-display text-3xl font-bold">{tr("Mission complete!")}</p>
           {pending && !result?.stats && <p className="mt-4 animate-pulse text-sm text-muted">{tr("Adding up your XP…")}</p>}
           {result?.stats && (
             <div className="mx-auto mt-5 grid max-w-sm grid-cols-2 gap-3">
-              <div className="rounded-2xl border-2 border-accent bg-accent-soft p-4">
+              <div className="rounded-2xl border-2 border-accent bg-gradient-to-b from-accent-soft to-surface p-4 shadow-[0_6px_14px_-8px_rgba(180,83,9,0.5)]">
                 <Sparkles className="mx-auto size-7 text-accent" aria-hidden />
                 <p className="mt-1 font-display text-2xl font-bold">+{result.stats.byLesson[p.lesson.id] ?? 0} XP</p>
                 <p className="text-sm text-muted">{tr("this mission")}</p>
               </div>
-              <div className="rounded-2xl border-2 border-warning bg-warning-soft p-4">
+              <div className="rounded-2xl border-2 border-warning bg-gradient-to-b from-warning-soft to-surface p-4 shadow-[0_6px_14px_-8px_rgba(161,98,7,0.5)]">
                 <Flame className="mx-auto size-7 text-warning" aria-hidden />
                 <p className="mt-1 font-display text-2xl font-bold">{trn(result.stats.streak, "{n} day", "{n} days")}</p>
                 <p className="text-sm text-muted">{tr("streak")}</p>
@@ -362,8 +362,8 @@ export function LessonPlayer(p: PlayerProps) {
                       aria-current={state === "now" ? "step" : undefined}
                       className="group block w-full rounded-md text-left disabled:cursor-not-allowed"
                     >
-                      <span className="block h-2.5 overflow-hidden rounded-full bg-surface-2" aria-hidden>
-                        <span className={cn("block h-full rounded-full transition-[width] duration-500", state === "done" ? "bg-success" : "bg-accent")} style={{ width: `${(doneHere / idx.length) * 100}%` }} />
+                      <span className="block h-3 overflow-hidden rounded-full bg-surface-2 shadow-[inset_0_1px_2px_rgba(15,27,45,0.18)]" aria-hidden>
+                        <span className={cn("block h-full rounded-full transition-[width] duration-500", state === "done" ? "bg-gradient-to-b from-success to-success/80 shadow-[0_0_8px_rgba(21,128,61,0.45)]" : "bg-gradient-to-b from-accent to-accent/80")} style={{ width: `${(doneHere / idx.length) * 100}%` }} />
                       </span>
                       <span className={cn("mt-1 block truncate text-xs sm:text-sm", state === "now" ? "font-bold text-fg" : state === "done" ? "text-success" : "text-muted", "group-hover:underline")}>
                         {state === "done" && <span aria-hidden>✓ </span>}{tr(stage.label)}
@@ -449,7 +449,7 @@ export function LessonPlayer(p: PlayerProps) {
             </p>
           )}
           {!sheet && chk?.error && <div className="rounded-t-2xl border-2 border-b-0 border-danger bg-surface p-3"><FriendlyError {...chk.error} /></div>}
-          <div className={cn("flex items-center gap-1.5 border border-border bg-surface/95 p-2 shadow-lg backdrop-blur sm:gap-3 sm:p-3", sheet || chk?.error ? "rounded-b-2xl" : "rounded-2xl")}>
+          <div className={cn("flex items-center gap-1.5 border border-border bg-surface/95 p-2 shadow-[0_10px_30px_-10px_rgba(15,27,45,0.35)] backdrop-blur sm:gap-3 sm:p-3", sheet || chk?.error ? "rounded-b-2xl" : "rounded-2xl")}>
             <Button variant="secondary" size="lg" className={cn("px-3 sm:px-5", sheet && "hidden sm:inline-flex")} disabled={step === 0} onClick={() => go(step - 1)} aria-label={tr("Previous step")}>←<span className="hidden sm:inline"> {tr("Back")}</span></Button>
             <ReadAloud key={step} target={stepRef} />
             <StuckHelp vocabulary={p.lesson.vocabulary} />

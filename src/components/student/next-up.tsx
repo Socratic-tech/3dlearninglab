@@ -86,11 +86,15 @@ function KeepGoing({ item }: { item: NextUpItem }) {
   const steps = item.steps && item.steps.total > 0 ? item.steps : null;
   const boss = item.kind === "boss";
   return (
-    <section aria-label={tr("Your next mission")} className="rounded-3xl bg-gradient-to-br from-primary to-[#1e40af] p-6 text-primary-fg shadow-lg">
-      <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] opacity-90">
+    <section aria-label={tr("Your next mission")} className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-[#1e40af] p-6 text-primary-fg shadow-[0_16px_32px_-16px_rgba(11,92,173,0.7)]">
+      <svg aria-hidden viewBox="0 0 100 100" className="pointer-events-none absolute -right-4 -top-4 size-40 opacity-15 sm:size-52" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round">
+        <path d="M50 8 L88 29 L88 71 L50 92 L12 71 L12 29 Z M12 29 L50 50 L88 29 M50 50 V92" />
+      </svg>
+      <span aria-hidden className="pointer-events-none absolute -left-10 -top-16 size-48 rounded-full bg-white/10 blur-2xl" />
+      <p className="relative font-mono text-xs font-semibold uppercase tracking-[0.18em] opacity-90">
         {started ? tr("Keep going") : tr("Up next")} · {tr("Unit {n}", { n: item.week })}
       </p>
-      <h2 className="mt-1 flex items-center gap-2 font-display text-3xl font-bold">
+      <h2 className="relative mt-1 flex items-center gap-2 font-display text-3xl font-bold">
         {boss && <Swords className="size-7" aria-hidden />}
         {item.title}
       </h2>
@@ -99,16 +103,16 @@ function KeepGoing({ item }: { item: NextUpItem }) {
       )}
       {item.due && <p className="mt-1 font-semibold">{tr("Due {date}", { date: item.due })}</p>}
       {steps && (
-        <div className="mt-4">
+        <div className="relative mt-4">
           <div className="flex gap-1.5" aria-hidden>
             {Array.from({ length: steps.total }, (_, i) => (
-              <span key={i} className={cn("h-2 flex-1 rounded-full", i < steps.done ? "bg-white" : "bg-white/30")} />
+              <span key={i} className={cn("h-2 flex-1 rounded-full", i < steps.done ? "bg-white shadow-[0_0_8px_rgba(255,255,255,0.7)]" : "bg-white/30")} />
             ))}
           </div>
           <p className="mt-1 text-sm opacity-90">{tr("{done} of {total} activities done", { done: steps.done, total: steps.total })}</p>
         </div>
       )}
-      <Link href={item.href} className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-primary-fg px-5 py-3 font-display text-lg font-bold text-primary shadow-sm hover:brightness-95" aria-current="step">
+      <Link href={item.href} className="relative mt-5 inline-flex items-center gap-2 rounded-2xl border-b-4 border-black/20 bg-primary-fg px-5 py-3 font-display text-lg font-bold text-primary shadow-[0_8px_16px_-6px_rgba(0,0,0,0.4)] transition-transform hover:-translate-y-0.5 hover:brightness-95 active:translate-y-0.5 active:border-b-2 motion-reduce:transition-none" aria-current="step">
         {started ? tr("Continue") : tr("Start")} <ArrowRight className="size-5" aria-hidden />
       </Link>
     </section>
@@ -117,8 +121,8 @@ function KeepGoing({ item }: { item: NextUpItem }) {
 
 function CourseDone() {
   return (
-    <section className="rounded-3xl border-2 border-success bg-success-soft p-6 text-center">
-      <Trophy className="mx-auto size-10 text-success" aria-hidden />
+    <section className="rounded-3xl border-2 border-success bg-gradient-to-b from-success-soft to-surface p-6 text-center shadow-[0_12px_28px_-16px_rgba(21,128,61,0.6)]">
+      <span className="mx-auto grid size-16 place-items-center rounded-full bg-success-soft shadow-[inset_0_0_0_4px_var(--surface),0_0_0_2px_var(--success)]"><Trophy className="size-9 text-success" aria-hidden /></span>
       <h2 className="mt-2 font-display text-2xl font-bold">{tr("You finished every mission!")}</h2>
       <p className="text-muted">{tr("Open any mission below to look back at your work.")}</p>
     </section>
@@ -136,7 +140,7 @@ function stateLabel(x: NextUpItem, current: boolean) {
 }
 const dot = (x: NextUpItem, current: boolean) =>
   cn(
-    "grid size-9 shrink-0 place-items-center rounded-full",
+    "grid size-9 shrink-0 place-items-center rounded-full shadow-[inset_0_2px_0_rgba(255,255,255,0.3),0_3px_6px_-3px_rgba(15,27,45,0.4)]",
     x.state === "completed" && "bg-success text-primary-fg",
     x.state === "locked" && "bg-surface-2 text-muted",
     (x.state === "available" || x.state === "in_progress") && !current && "border-2 border-primary bg-primary-soft text-primary",
@@ -151,8 +155,8 @@ function Tile({ item, current }: { item: NextUpItem; current: boolean }) {
       <span className="sr-only">, {stateLabel(item, current)}</span>
     </>
   );
-  const cls = cn("flex h-full flex-col items-center rounded-2xl border bg-surface p-3 text-center", current ? "border-2 border-accent" : "border-border");
-  return item.state === "locked" ? <div className={cls}>{body}</div> : <Link href={item.href} className={cn(cls, "hover:bg-surface-2")}>{body}</Link>;
+  const cls = cn("flex h-full flex-col items-center rounded-2xl border bg-surface p-3 text-center shadow-[0_1px_2px_rgba(15,27,45,0.06),0_8px_16px_-12px_rgba(15,27,45,0.25)] transition-transform motion-reduce:transition-none", current ? "border-2 border-accent bg-gradient-to-b from-accent-soft/50 to-surface" : "border-border");
+  return item.state === "locked" ? <div className={cls}>{body}</div> : <Link href={item.href} className={cn(cls, "hover:-translate-y-0.5 hover:bg-surface-2")}>{body}</Link>;
 }
 
 function Fold({ summary, count, children }: { summary: React.ReactNode; count: string; children: React.ReactNode }) {

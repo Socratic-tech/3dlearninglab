@@ -54,5 +54,6 @@
   "sections.3.title": "Piénsalo",
   "sections.3.blocks:reflect.prompt": "¿Qué fue fácil hoy? ¿Qué fue difícil?",
   "sections.3.blocks:reflect.sentenceStarters.0": "Fácil: …",
-  "sections.3.blocks:reflect.sentenceStarters.1": "Difícil: …"
+  "sections.3.blocks:reflect.sentenceStarters.1": "Difícil: …",
+  "sections.0.blocks:how.steps.4.text": "Para quitar una forma, haz clic en ella y presiona la tecla Suprimir."
 }

@@ -42,15 +42,23 @@ export function Celebration({ kind = "fx-confetti" }: { kind?: string }) {
   if (kind === "fx-trophy") {
     return (
       <div aria-hidden className="mx-auto mb-2 w-28">
-        <svg viewBox="0 0 120 110" className="w-full">
+        <svg viewBox="0 0 120 110" className="w-full drop-shadow-[0_6px_8px_rgba(15,27,45,0.25)]">
+          <defs>
+            <linearGradient id="trophy-gold" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="var(--warning)" />
+              <stop offset="0.5" stopColor="var(--accent)" />
+              <stop offset="1" stopColor="var(--warning)" />
+            </linearGradient>
+          </defs>
           <rect x="10" y="4" width="100" height="10" rx="3" fill="var(--fg)" opacity=".75" />
           <rect x="54" y="14" width="12" height="10" fill="var(--fg)" opacity=".75" />
           <path d="M57 24 L60 30 L63 24 Z" fill="var(--accent)" />
           <g className="fx-print">
-            <path d="M38 40 h44 v10 a22 22 0 0 1 -44 0 z" fill="var(--warning)" />
+            <path d="M38 40 h44 v10 a22 22 0 0 1 -44 0 z" fill="url(#trophy-gold)" />
+            <path d="M45 44 v8 a15 15 0 0 0 6 11" fill="none" stroke="#fff" strokeOpacity=".55" strokeWidth="3" strokeLinecap="round" />
             <path d="M38 44 h-8 a8 8 0 0 0 8 12 M82 44 h8 a8 8 0 0 1 -8 12" fill="none" stroke="var(--warning)" strokeWidth="4" />
-            <rect x="55" y="72" width="10" height="12" fill="var(--warning)" />
-            <rect x="44" y="84" width="32" height="8" rx="2" fill="var(--warning)" />
+            <rect x="55" y="72" width="10" height="12" fill="url(#trophy-gold)" />
+            <rect x="44" y="84" width="32" height="8" rx="2" fill="url(#trophy-gold)" />
           </g>
           <rect x="20" y="94" width="80" height="6" rx="2" fill="var(--muted)" />
         </svg>
@@ -59,8 +67,8 @@ export function Celebration({ kind = "fx-confetti" }: { kind?: string }) {
   }
   return (
     <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-6 h-0 overflow-visible">
-      {Array.from({ length: 24 }, (_, i) => (
-        <span key={i} className="confetti absolute top-0 block h-3 w-2 rounded-sm" style={{ left: `${(i * 37) % 100}%`, background: COLORS[i % 4], animationDelay: `${(i % 6) * 60}ms`, ["--dx" as string]: `${((i * 53) % 80) - 40}px` }} />
+      {Array.from({ length: 32 }, (_, i) => (
+        <span key={i} className={`confetti absolute top-0 block ${i % 3 === 0 ? "size-2.5 rounded-full" : i % 3 === 1 ? "h-3 w-2 rounded-sm" : "h-1.5 w-4 rounded-sm"}`} style={{ left: `${(i * 37) % 100}%`, background: COLORS[i % 4], animationDelay: `${(i % 6) * 60}ms`, ["--dx" as string]: `${((i * 53) % 80) - 40}px` }} />
       ))}
     </div>
   );
