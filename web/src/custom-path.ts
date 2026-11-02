@@ -38,6 +38,26 @@ export function assignProject(projectId: string): CustomPath | null {
   return { title: p.title, brief: p.summary, lessonIds: projectPath(projectId), requirements: [], project: projectId };
 }
 
+/** Built-in projects that were folded into a newer one (old project id → current project id). */
+const REPLACED_PROJECTS: Record<string, string> = {
+  // Puzzle Cube, Nov 2026: the old Print Plan, Fit and the Box and Playtest projects became days of the 18-mission course.
+  "puzzle-print-plan": "puzzle-ship-it",
+  "puzzle-fit-box": "puzzle-ship-it",
+  "puzzle-playtest": "puzzle-ship-it",
+};
+
+/**
+ * A class that was assigned a built-in project keeps a copy of that project's lessons. When the project has since
+ * changed (or been replaced), this returns the current version so the teacher can switch with one click; else null.
+ */
+export function projectUpdate(custom: CustomPath | null | undefined): CustomPath | null {
+  if (!custom?.project) return null;
+  const id = REPLACED_PROJECTS[custom.project] ?? custom.project;
+  const fresh = assignProject(id);
+  if (!fresh) return null;
+  return id === custom.project && fresh.lessonIds.join("|") === custom.lessonIds.join("|") ? null : fresh;
+}
+
 /** True when the class's path ends with a built-in project mission (so there is no "Your project" mission after it). */
 const endsWithProject = (c: CustomPath) => !!c.project && c.lessonIds[c.lessonIds.length - 1] === c.project;
 

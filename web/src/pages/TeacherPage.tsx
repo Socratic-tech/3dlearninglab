@@ -15,7 +15,7 @@ import { currentToken } from "../auth";
 import { fetchClass, savedClass, type Snapshot } from "../class-cache";
 import type { ClassInfo, Me } from "../content";
 import { competencies, competencyTitle, heatmapGroups, lessonById, lessons as allLessons } from "../content";
-import { classLessons } from "../custom-path";
+import { classLessons, projectUpdate } from "../custom-path";
 import { CustomPathBuilder } from "./CustomPathBuilder";
 import { markSetupStep, SetupCheckPanel, SetupChecklist } from "./SetupHelp";
 import { offlineChallenges } from "./HandoutPage";
@@ -144,6 +144,7 @@ function ClassView({ classId, teacher, apiUrl, clientId, onChange }: { classId: 
     <div>
       {/* a refresh that fails (Google slow, sign-in timed out) keeps the last numbers on screen */}
       {err && currentToken() && <div className="mb-4"><FriendlyError {...err} integration onRetry={() => void load()} /></div>}
+      <ProjectUpdateNotice cls={data.cls} apiUrl={apiUrl} onSaved={() => { onChange(); void load(); }} />
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <h1 className="font-display text-2xl font-bold">{data.cls.name}{data.cls.section && <span className="text-muted"> · {data.cls.section}</span>}</h1>
         <Pill tone="primary">{courseLabel(data.cls)}</Pill>
@@ -173,6 +174,32 @@ function ClassView({ classId, teacher, apiUrl, clientId, onChange }: { classId: 
       {tab === "Roster" && <Roster data={data} apiUrl={apiUrl} onSaved={load} onClassesChanged={onChange} />}
       {tab === "Classes" && <Classes data={data} apiUrl={apiUrl} onChange={() => { onChange(); void load(); }} />}
       </>)}
+    </div>
+  );
+}
+
+/** Shown when the class follows an older copy of a built-in project: one click (after a confirm) switches to the current one. */
+function ProjectUpdateNotice({ cls, apiUrl, onSaved }: { cls: ClassInfo; apiUrl: string; onSaved: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const fresh = cls.pathId === "custom" ? projectUpdate(cls.custom) : null;
+  if (!fresh) return null;
+  return (
+    <div className="mb-4">
+      <Alert tone="warning" title={`A newer version of “${fresh.title}” is available`}>
+        <p>{cls.name} is following an older copy of this project ({cls.custom?.lessonIds.length ?? 0} missions). The current version has {fresh.lessonIds.length} missions in a new order. Student work is kept: finished missions still count. If you changed this class&apos;s path on purpose, you can leave it as it is.</p>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <Button size="sm" disabled={busy} onClick={async () => {
+            if (!confirm(`Switch ${cls.name} to the current “${fresh.title}” (${fresh.lessonIds.length} missions)? Student work is kept.`)) return;
+            setBusy(true);
+            const r = await call(apiUrl, "updateClass", { classId: cls.id, pathId: "custom", custom: fresh });
+            setBusy(false);
+            if (r.ok) onSaved(); else setErr(r.error);
+          }}>{busy ? "Updating…" : "Use the latest version"}</Button>
+          <a href={`#/lesson/${fresh.project}`} className="text-sm font-semibold text-primary underline">Preview it</a>
+        </div>
+        {err && <p role="alert" className="mt-2 text-danger">{err}</p>}
+      </Alert>
     </div>
   );
 }
