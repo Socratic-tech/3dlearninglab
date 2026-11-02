@@ -142,13 +142,75 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students complete the in-place build and verify it systematically (size, layer-by-layer with Hide, counts). Building in place guarantees fit; the checks catch errors before pieces are grouped.",
+    purpose: "Students complete the in-place build and verify it systematically (size, layer-by-layer with Hide, counts). Building in place guarantees fit; the checks catch errors before pieces are grouped. The day is really about *verification*: using several independent checks, each of which catches a different kind of mistake, rather than trusting how a model looks. The one cube nobody can see from outside (the very centre) is a good test of whether students are checking or just looking.",
+    bigIdea: "Building the puzzle already solved, then checking it layer by layer with numbers, guarantees the pieces fit and catches mistakes before they turn into pieces.",
+    successCriteria: [
+      "I can build the middle and top layers at the right heights from my layer map.",
+      "I can use Hide and Show all to look inside my cube one layer at a time.",
+      "I can check my cube with numbers: its overall size, 27 cubes in all and each colour's count.",
+      "I can find and fix a gap, a doubled cube or a wrong colour.",
+    ],
+    background: [
+      { title: "Build in place: the assembly comes first", body: "Because every piece is made from cubes that sit in the 27 slots of one big cube, the pieces fit together by design: there is nothing to measure or line up later. Professional CAD users call this *top-down design*, designing parts inside the finished assembly. One honest caveat for later: printed plastic comes out very slightly bigger than the model, so a tight fit between real pieces is checked on day 14 (first print) and the box fit on day 15. Today's job is to make the digital cube perfect." },
+      { title: "Three checks, three kinds of mistake", body: "Engineers call checking a design against its specification **verification**. Today uses three checks, and each catches something the others miss. The **overall size** (select everything and read it) catches cubes that stick out, float or sit off the grid. The **count** (9 per layer, 27 in all) catches missing cubes and doubled cubes. The **colour count** (each colour's cubes compared with the piece sizes on the layer map) catches cubes given to the wrong piece. Students who can say which check catches which mistake are reasoning, not just following steps." },
+      { title: "What the size box can and can't tell you", body: "When several shapes are selected, Tinkercad shows the size of the smallest box that contains them all (a *bounding box*). It tells you how far the model reaches in each direction. It can't tell you whether the inside is full: a missing cube in the middle doesn't change the size, and two cubes in the same spot don't either. So a correct size is necessary but not enough, the same reasoning students met with volume on day 4. That's why the size check always goes with a count." },
+      { title: "Hide, Show all and seeing inside", body: "Select shapes and click the light bulb in the shape panel to **Hide** them; the light bulb in the top toolbar (**Show all**) brings everything back. Hiding the top layer reveals the middle; hiding the middle as well reveals the bottom. The centre of a 3 × 3 × 3 cube is the one cube that touches no outside face, so it is invisible from every angle and the easiest to forget or double. Hiding is also the easiest way to select a cube buried inside the stack: hide what's in front, then click it." },
+      { title: "Why the usual mistakes happen", body: "Most errors come from a few moves. A cube dragged up with the cone handle and released at the wrong height floats or sits a layer too high. Ctrl + D pressed with no move afterwards leaves an invisible doubled cube. A cube dragged with the snap grid off lands slightly off position, which shows up as an untidy size reading. A layer built turned round compared with the map gives the right size and count but wrong colours in places. Knowing the cause helps you give a hint ('what did you do just before this cube?') rather than a fix." },
+      { title: "Keep the design light, and why this matters tomorrow", body: "27 cubes are easy for any device, including Chromebooks. Hold off on decoration (text, extra shapes) until the pieces are grouped on day 9, because tomorrow students select cubes by colour and extra shapes get in the way. A thoroughly checked cube today means day 9 is quick and satisfying; an unchecked one means pieces with stray or missing cubes that are much harder to diagnose once grouped." },
+    ],
+    studentQuestions: [
+      { q: "How can I check the middle when I can't see it?", a: "Select the top layer and hide it with the light bulb. Now the middle is on top. Show all brings everything back." },
+      { q: "I count 28 cubes. Where's the extra one?", a: "Two cubes are probably in the same spot. Click a suspicious cube and drag it aside: if another one is underneath, delete one and undo the drag." },
+      { q: "Why build it all together instead of making each piece separately?", a: "Because every piece is built where it sits in the finished cube, they're guaranteed to fit. Building them separately, you'd have to measure and hope." },
+      { q: "I keep selecting the cube in front instead of the one I want.", a: "Hide the cubes in front of it, select the one you need, then Show all when you're done." },
+    ],
+    connections: [
+      "Car and aircraft engineers design parts inside a digital model of the whole machine so every part fits before anything is made.",
+      "Building designers use digital 'clash detection' to find pipes running through beams in a 3D model, long before construction starts.",
+      "Quality inspectors in factories check products against specifications with measurements and counts, not just by looking.",
+    ],
+    exitTicket: [
+      "Name two different checks you used today and one kind of mistake each one can catch.",
+      "Why can't the overall size on its own prove your cube has no missing cubes?",
+      "Which layer was hardest to check, and what did you do about it?",
+    ],
+    runPlan: [
+      { minutes: 5, title: "Hook", teacher: "Show the exploded sample: 'You're building it already solved. Why might that guarantee a fit?' Take two or three ideas.", students: "Explain in pairs why building in place helps.", devices: "away" },
+      { minutes: 7, title: "Model the checks", teacher: "On the projector: select all and read the size, hide the top layer, compare with the map, Show all. Name the three checks and what each catches.", students: "Watch; note the three checks on the layer map.", devices: "away" },
+      { minutes: 5, title: "Spot the problem", teacher: "Run the size question and the matching. Ask students to explain their choice before you reveal.", students: "Answer the two checks.", devices: "open" },
+      { minutes: 25, title: "Build and check layers 2 and 3", teacher: "Circulate. Ask 'How do you know the centre cube is there?' and 'What does your count say?' Leave fixes to the student.", students: "Build the middle and top layers from the map, then check size, counts and colours with Hide.", devices: "open" },
+      { minutes: 8, title: "Prove it", teacher: "Check both screenshots: whole cube with size, and top layer hidden.", students: "Upload both screenshots.", devices: "open" },
+      { minutes: 5, title: "Reflect and preview", teacher: "Share one mistake a check caught. Preview day 9: grouping colours into pieces (bring layer maps).", students: "Reflect on what the check caught.", devices: "open" },
+    ],
+    lookFors: [
+      "Students reading the size and counting cubes, not just saying 'it looks right'.",
+      "Hide used to inspect the middle and bottom layers, including the centre cube.",
+      "Each colour's count compared with the piece sizes on the layer map.",
+      "Students tracing a mistake back to its cause (a missed move, a doubled copy) before fixing it.",
+    ],
+    differentiation: {
+      support: [
+        "Give a checklist card: size, 9 per layer, 27 total, colour counts, centre cube.",
+        "Build and check one layer at a time, hiding finished layers to reduce visual clutter.",
+        "Pair with a 'checker' partner who reads the layer map aloud while the builder checks each square.",
+      ],
+      extend: [
+        "Plant one deliberate mistake in a copy of your cube and challenge a partner to find it using only the checks.",
+        "Write a short checking guide that would catch every kind of mistake from the matching activity.",
+        "Find a second way to see inside the cube without hiding anything, and explain whether it is as reliable.",
+      ],
+    },
     preparation: ["Show Hide and Show all on the projector."],
     equipment: ["Student devices with Tinkercad", "Layer maps"],
     misconceptions: [
       { id: "size-is-close", text: "A size close to 45 is fine.", response: "45 × 45 × 45 should read exactly. Anything else means a cube is out of place." },
+      { id: "size-means-full", text: "If the size reads exactly right, the cube must be complete.", response: "Delete the centre cube on the projector and read the size again: it doesn't change. Size checks the outside; counting checks the inside." },
+      { id: "looks-right", text: "If it looks right from outside, it is right.", response: "Ask how many of the 27 cubes they can see from any one view. The centre cube can never be seen, so only Hide and counting can check it." },
     ],
-    discussionQuestions: ["Why build the puzzle assembled rather than building each piece on its own?"],
+    discussionQuestions: [
+      "Why build the puzzle assembled rather than building each piece on its own?",
+      "Which check catches a doubled cube? Which catches a floating one? Why do we need more than one check?",
+    ],
     troubleshooting: [
       "Can't select one cube inside the stack: hide the cubes in front of it first.",
       "Slow Chromebooks: 27 cubes is fine, but avoid extra decoration until pieces are grouped.",

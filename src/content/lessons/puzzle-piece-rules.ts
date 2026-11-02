@@ -167,7 +167,39 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Turns 'make cool pieces' into checkable constraints. Each rule has a physical reason students can test with math cubes: strength (face joins), variety (no copies), challenge (3D pieces), handling (3–7 cubes) and printing (a side to lie on).",
+    purpose: "Turns 'make cool pieces' into checkable constraints. Each rule has a physical reason students can test with math cubes: strength (face joins), variety (no copies), challenge (3D pieces), handling (3–7 cubes) and printing (a side to lie on). This is students' first experience of a design *specification*: rules that anyone can check the same way, so feedback is about the rule, not about whether a piece is 'good'. The 'same shape' rule also opens the door to one of the richest ideas in the project: some 3D pieces have mirror twins that can never be turned to match.",
+    bigIdea: "Good designs follow rules you can check, and each piece rule has a real reason behind it: strength, variety, challenge, handling or printing.",
+    successCriteria: [
+      "I can check a piece against all five rules and name the rule it breaks.",
+      "I can test whether two pieces are the same shape by turning one to match the other.",
+      "I can explain why cubes must share a whole face, not just an edge or a corner.",
+      "I can fix a piece that breaks a rule while keeping my idea.",
+    ],
+    background: [
+      { title: "Face, edge, corner: what really joins a piece", body: "Two cubes can touch in three ways: sharing a whole **face** (a square of contact), an **edge** (a line) or a **corner** (a point). A line or a point has no area, so no plastic connects the cubes. In Tinkercad, shapes that meet only along an edge are still separate solids, and when printed they come off the bed as separate bits or snap at the slightest touch. Math cubes enforce the rule physically: they only snap face to face. Mathematically, this is exactly what makes a shape a *polycube*." },
+      { title: "Same shape: turning versus mirroring", body: "Rule 3 says two pieces are the same if you can **turn** one to match the other. Any flat piece can be picked up and turned over, so a flat piece and its mirror image always count as the same piece. Some 3D pieces are different: like your left and right hands, they are mirror twins that can never be turned to match. Mathematicians call such shapes **chiral**. Among 4-cube pieces there are 8 shapes if you may only turn them: 5 flat ones, a 'corner' (three cubes meeting at one cube, like a tripod) and two 'twist' pieces that are mirror images of each other. Allow mirrors to count as the same and there are 7. Under this lesson's rule a mirror pair counts as two different pieces, so a student may use both. That is allowed, and it makes a harder puzzle, because solvers mix them up." },
+      { title: "The Soma cube: a famous precedent", body: "The best-known puzzle of this kind is the **Soma cube**, invented by the Danish designer and poet Piet Hein (the usual story is that he thought of it during a lecture on quantum physics in the 1930s). It has **7 pieces**, one of 3 cubes and six of 4 cubes, which together make a 3 × 3 × 3 cube. Hein used every piece of 3 or 4 cubes that is not a straight line or a flat 2 × 2 square, so the set includes a mirror pair, the two twist pieces. It has **240 distinct solutions** (not counting turned or mirrored copies of a whole solution), which is one reason most people can solve it: there are many ways to win. Students' puzzles use fewer, bigger pieces (3 to 7 cubes), which usually means far fewer solutions and a different kind of challenge." },
+      { title: "Rule 5 and printing without supports", body: "A school 3D printer builds a piece one layer at a time, each layer laid on top of the one below. A cube whose underside hangs over air has nothing to be laid on, so the plastic sags or falls unless the slicer adds *supports*: scaffolding that must be snapped off afterwards and leaves a rough surface. Rule 5 asks for one side the piece can lie on where every cube touches the table or sits on another cube; printed that way up, it needs no supports. Week 3 builds on this: day 11 chooses each piece's print orientation and day 12 teaches a 45° chamfer, because printers can manage a slope of about 45° from vertical without support. That is why one hanging cube can sometimes be rescued." },
+      { title: "Why 3 to 7 cubes, and why two 3D pieces", body: "Tiny pieces (1 or 2 cubes) are trivial to place and fiddly to hold and print; very big pieces leave too few pieces to make a puzzle. Splitting 27 cubes into 5 or 6 pieces naturally lands around 4 or 5 cubes each. The 3D rule is about challenge. If every piece is flat, the cube tends to come apart into flat slabs that can be solved one at a time, which is much easier. A piece that bends into 3D ties layers together and forces the solver to think in three dimensions." },
+      { title: "Constraints in real design", body: "Engineers call a list like this a *specification* or *requirements*: statements anyone can check and get the same answer. Today is a good day to model checking feedback against the rule ('Rule 2: this cube only meets on an edge') rather than judging the idea. Constraints also tend to spark creativity: when a favourite piece fails, the challenge is to keep the idea and change one cube, not to throw it away." },
+    ],
+    studentQuestions: [
+      { q: "Is a mirror-image piece the same as the original?", a: "Try it: if you can turn one to match the other, it's the same. Flat pieces always can, because you can flip them over. Some 3D pieces can't, like left and right hands. Those count as different pieces in our rules." },
+      { q: "Why can't my piece have 8 or 9 cubes?", a: "Big pieces leave only a few pieces in the cube, which makes the puzzle easy. They also take longer to print. 3 to 7 keeps it a real puzzle." },
+      { q: "My favourite piece breaks rule 5. Do I have to drop it?", a: "Not yet. Mark it, and keep it in mind: on day 12 you'll learn a trick that can rescue a piece with one hanging cube." },
+      { q: "What if the cubes touch on an edge but I glue them?", a: "In the computer there's no glue: an edge has no thickness, so no plastic joins them. Move the cube so it shares a whole face." },
+    ],
+    connections: [
+      "Engineers write design specifications: checkable requirements a product must meet before it can be made, such as size limits, strength and safety rules.",
+      "Chemists care about mirror-image shapes: some molecules come in left- and right-handed versions that behave differently. One version of the molecule carvone smells of spearmint and its mirror twin smells of caraway.",
+      "Manufacturing engineers use 'design for manufacturing' rules (like rule 5) so parts can actually be made cheaply and reliably.",
+      "Puzzle and toy designers have sold polycube puzzles like the Soma cube for decades, choosing pieces to make a puzzle easier or harder.",
+    ],
+    exitTicket: [
+      "Choose one piece from your bank. Which rule was hardest for it to pass, and how do you know it passes now?",
+      "Explain why two cubes that touch only along an edge won't stay together after printing.",
+      "How would you prove to a classmate that two pieces are, or are not, the same shape?",
+    ],
     runPlan: [
       { minutes: 5, title: "Hook", teacher: "Why rules? Strength, variety, challenge, handling, printing.", students: "Listen; predict which rule matters most.", devices: "away" },
       { minutes: 10, title: "Break the rules on purpose", teacher: "Show rule-breaking pieces; tables decide and justify.", students: "Judge each piece against the rules.", devices: "away" },
@@ -183,8 +215,14 @@ export const lesson: LessonInput = {
     misconceptions: [
       { id: "edge-is-enough", text: "Cubes that touch on an edge or corner are joined.", response: "Try snapping two math cubes together edge to edge: they won't connect. Nothing holds them in the print either." },
       { id: "turned-is-new", text: "A piece turned a different way is a new piece.", response: "Build both and turn one in your hand until it matches. Same pieces make a puzzle easier, not harder." },
+      { id: "mirror-always-same", text: "A mirror image of a piece is always the same piece.", response: "True for flat pieces, because you can flip them over. Build a 3D 'twist' piece and its mirror image and try to turn one to match: you can't, just like a left and right glove." },
+      { id: "rules-are-arbitrary", text: "The rules are just the teacher's preferences.", response: "Ask the class to find the reason behind each rule and test it with math cubes or a quick look at how a printer works. Every rule protects strength, variety, challenge, handling or printing." },
     ],
-    discussionQuestions: ["Which rule is about strength? Which is about the solver? Which is about the printer?"],
+    discussionQuestions: [
+      "Which rule is about strength? Which is about the solver? Which is about the printer?",
+      "Your left and right hands are mirror images. Can you turn one to match the other? What does that tell you about some 3D pieces?",
+      "If you could add a sixth rule to make puzzles better, what would it be, and how would someone check it?",
+    ],
     troubleshooting: [
       "Rule 5 check: set the piece on a table; it passes if every cube touches the table or sits on another cube.",
       "If a student's favourite piece fails rule 5, keep it marked: day 12 teaches a chamfer that can fix one hanging cube.",

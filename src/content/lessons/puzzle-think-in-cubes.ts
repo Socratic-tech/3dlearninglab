@@ -239,7 +239,41 @@ export const lesson: LessonInput = {
     },
   ],
   teacher: {
-    purpose: "Students select from their piece bank using the constraints (F4), connect the plan to volume (27 unit cubes) and record it as a layer map they'll build from in Tinkercad next week. The layer map is introduced one layer at a time, and the sample cube is built one piece at a time to model a planning strategy.",
+    purpose: "Students select from their piece bank using the constraints (F4), connect the plan to volume (27 unit cubes) and record it as a layer map they'll build from in Tinkercad next week. The layer map is introduced one layer at a time, and the sample cube is built one piece at a time to model a planning strategy. It is also the day the project gets a user: each student names who the puzzle is for and a target solve time, which week 4's playtests (days 16 and 17) are measured against. The layer map is the single most important document of the project; every Tinkercad build in week 2 is read straight from it.",
+    bigIdea: "A layer map turns a solid cube into three flat grids so I can check every cube, even hidden ones, and my pieces must fill exactly 27 spaces with no gaps and no overlaps.",
+    successCriteria: [
+      "I can record a 3 × 3 × 3 cube as a layer map, with the back row at the top of every grid.",
+      "I can use volume to check that my piece sizes add to 27.",
+      "I can explain why adding to 27 is necessary but not enough.",
+      "I can use a strategy, such as placing big and awkward pieces first, to fit my pieces into a cube.",
+      "I can name who my puzzle is for and set a target solve time.",
+    ],
+    background: [
+      { title: "Volume as counting", body: "For a box shape, volume = length × width × height, and with unit cubes that is literally a count: 3 × 3 × 3 = 27. This connects directly to upper-elementary and Grade 6 volume work (packing a prism with unit cubes). Adding piece sizes is a **necessary** check: if the total isn't 27 the cube can't work. It is not **sufficient**: the pieces can add to 27 and still not fit, exactly like the I, O, T, S puzzle on day 1. Students who say 'necessary but not enough' in their own words have understood something that matters well beyond this project." },
+      { title: "Layer maps are slices", body: "A layer map is a set of **cross-sections**: the solid cut into flat slices, each drawn as a grid. The same idea runs through a lot of technology. CT and MRI scanners show the body as a stack of slices, architects draw one floor plan per storey, and a 3D printer's slicer (day 13) cuts every piece into thin layers and prints them one at a time. In week 2, students build their cube in Tinkercad straight from this map, one layer at a time, each layer lifted one cube height above the last." },
+      { title: "Why the orientation rule matters", body: "Every grid must use the same convention: looking down from above, **back row at the top** of the grid, front row at the bottom, left and right as seen from the front. If one layer is written front-to-back the wrong way, the map no longer describes the cube that was built: pieces that crossed layers become disconnected or change shape, and sometimes a piece silently turns into its mirror image. Agree the rule as a class, put 'back' and 'front' on the template, and check it whenever a map and a model disagree." },
+      { title: "Reading a layer map against the piece rules", body: "Two squares with the same letter are joined face to face if they are side by side (not diagonal) in the same grid, or in the same position in neighbouring grids (one directly above the other). Letters that touch only diagonally, or that appear in the bottom and top grids with nothing between, are not joined: that is the edge rule from day 3 broken on paper. A quick scan for each letter, 'can I walk from every square to every other through shared sides or straight up and down?', catches most problems before any building." },
+      { title: "Strategy: most awkward first", body: "The sample build models a strategy that computer puzzle-solvers also use: place the **most constrained** pieces first. Big, awkward 3D pieces have few places they can go, so put them in while there's room; corners help because they hold a piece on two or three sides. A running count of empty spaces tells you how big the remaining pieces must be. The last piece is whatever space is left, so it is the one most likely to break a rule: always check it. If a plan won't close, trading one cube between neighbouring pieces keeps the total at 27 and often fixes it." },
+      { title: "What makes a cube puzzle easy or hard", body: "A non-symmetrical piece can be placed in a cube in up to 24 different orientations (the number of ways to turn a cube), so pieces with little symmetry give solvers many more options to try. Puzzles get harder when they have only one or a few solutions, when pieces look alike (a mirror pair is the extreme case), and when more pieces are 3D. They get easier with many solutions (the Soma cube has 240, which is part of why most people can solve it), with flat pieces, and with fewer, bigger pieces. Students don't need to calculate any of this, but it helps you ask good questions when a student wants their puzzle to be harder or easier for their target solver." },
+    ],
+    studentQuestions: [
+      { q: "Does it matter which way round I draw each grid?", a: "Yes. Use the same rule every time: back row at the top. If one layer is drawn the other way, your map describes a different cube." },
+      { q: "My pieces add to 27 but they won't fit. What now?", a: "That happens: the count is right but the shapes aren't. Move one cube from a piece to its neighbour, check both still follow the rules, and try again." },
+      { q: "Can one piece be in all three layers?", a: "Yes. That's what makes a piece 3D: its letter appears in more than one grid." },
+      { q: "Can my puzzle have more than one solution?", a: "Yes. Puzzles with many solutions are usually easier. If you find a second one, that's useful information about how hard your puzzle is." },
+      { q: "Can I use the sample plan?", a: "You can start from it and trade a few cubes between pieces, checking the rules after each trade, until it becomes your own." },
+    ],
+    connections: [
+      "Radiologists read CT and MRI scans as stacks of slices, building a 3D picture of the body in their head, just like reading a layer map.",
+      "Architects draw one floor plan per storey; builders read them together to understand the whole building.",
+      "Packing engineers and logistics software fit goods into containers using volume as a first check, then test the real shapes.",
+      "3D printers slice every model into layers before printing it, which you'll see on day 13.",
+    ],
+    exitTicket: [
+      "Describe (or draw) your bottom layer. Which piece letters appear in more than one layer?",
+      "Explain why piece sizes that add to 27 might still not make a cube.",
+      "Who is your puzzle for, and what is your target solve time?",
+    ],
     runPlan: [
       { minutes: 5, title: "Hook", teacher: "The goal today: 27 spaces, 5 or 6 pieces, no gaps.", students: "Listen; get cubes.", devices: "away" },
       { minutes: 20, title: "Fill the cube", teacher: "Confer; biggest awkward piece in a corner first.", students: "Fit pieces into a 3 × 3 × 3 with math cubes.", devices: "away" },
@@ -255,6 +289,8 @@ export const lesson: LessonInput = {
     misconceptions: [
       { id: "count-skipped", text: "Any set of piece sizes will work.", response: "Add the sizes out loud. The total must be exactly 27, the cube's volume." },
       { id: "flipped-rows", text: "Writing the front row at the top of the grid (or mixing it up between layers).", response: "Agree one rule for the class: back row at the top of every grid, as if looking down with the front of the cube nearest you." },
+      { id: "diagonal-joined", text: "Squares with the same letter that touch diagonally on the layer map are joined.", response: "Diagonal squares meet only at an edge, which breaks the face rule. Build those two cubes from math cubes: they won't snap together." },
+      { id: "hidden-centre", text: "The cube's centre doesn't need a piece because no one can see it.", response: "Point to the middle square of the middle grid. Every one of the 27 spaces needs a letter, or the puzzle has a hole inside and the pieces will rattle." },
     ],
     discussionQuestions: [
       "Why place the biggest, most awkward piece first?",
