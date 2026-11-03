@@ -22,6 +22,7 @@ const eslintConfig = defineConfig([
     "web/dist/**",
     "apps-script/dist/**",
     "web/src/generated/**",
+    "web/public/makespace/**",
   ]),
 ]);
 
