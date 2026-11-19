@@ -10,6 +10,10 @@
  *  3. Copy the web app URL (ends in /exec) into apps-script/build.config.json → "usageUrl", then commit and push.
  * The Copies tab shows the latest numbers per copy; Daily keeps one line per copy per day for trends.
  * Only OWNER, signed in on the website's Tools page, can read the totals.
+ *
+ * Feedback (feature ideas and bug reports from the teacher dashboards) also arrives here and is emailed to OWNER.
+ * After updating this file: Deploy → Manage deployments → pencil → New version → Deploy, and click Allow when Google
+ * asks to let the script send email (needed once). The address stays the same.
  */
 const OWNER = "john.phillips@berrienresa.org";
 const CLIENT_ID = "101963930275-47ppq2h1b2ad1lipviqjrjrfhd67sjvp.apps.googleusercontent.com";
@@ -21,6 +25,7 @@ function doPost(e) {
   try { req = JSON.parse(e.postData.contents); } catch (err) { return out_({ ok: false, error: "Bad request." }); }
   if (req && req.action === "report") return out_(report_(req.data));
   if (req && req.action === "summary") return out_(summary_(req.token));
+  if (req && req.action === "feedback") return out_(feedback_(req.data));
   return out_({ ok: false, error: "Unknown request." });
 }
 function doGet() { return out_({ ok: true, service: "3DA usage receiver" }); }
@@ -59,6 +64,47 @@ function report_(d) {
   } finally {
     lock.releaseLock();
   }
+}
+
+const FEEDBACK_COLS = ["at", "kind", "name", "email", "message", "details", "mailed"];
+const FEEDBACK_PER_SENDER = 5;   // per teacher per 6 hours
+const FEEDBACK_PER_DAY = 100;    // everyone together, per 6 hours (the longest Google lets a cached count live)
+
+/** Saves every message in the Feedback tab (a backup if email fails) and emails OWNER. Returns { ok: true } once saved. */
+function feedback_(d) {
+  if (!d || (d.kind !== "bug" && d.kind !== "feature")) return { ok: false, error: "Bad request." };
+  const message = String(d.message || "").trim().slice(0, 3000);
+  const email = String(d.email || "").trim().toLowerCase().slice(0, 120);
+  const name = String(d.name || "").replace(/[\r\n]+/g, " ").slice(0, 80);
+  if (message.length < 5 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: "Bad request." };
+  const cache = CacheService.getScriptCache();
+  const day = new Date().toISOString().slice(0, 10);
+  const dayCount = Number(cache.get("fbday_" + day) || 0);
+  const mine = Number(cache.get("fb_" + email) || 0);
+  if (dayCount >= FEEDBACK_PER_DAY || mine >= FEEDBACK_PER_SENDER) return { ok: false, error: "Too many messages. Try again later." };
+  cache.put("fbday_" + day, String(dayCount + 1), 21600);
+  cache.put("fb_" + email, String(mine + 1), 21600);
+
+  const details = {};
+  Object.keys(d.details || {}).slice(0, 12).forEach(function (k) { details[String(k).slice(0, 30)] = String(d.details[k]).slice(0, 200); });
+  details.copyId = String(d.copyId || "").slice(0, 40);
+  const kindLabel = d.kind === "bug" ? "Bug report" : "Feature idea";
+  const body = [
+    kindLabel + " from " + (name || email) + " <" + email + ">",
+    "",
+    message,
+    "",
+    "---",
+    "Sent from a teacher's Sheet on the dashboard. Reply goes to the teacher.",
+    Object.keys(details).map(function (k) { return k + ": " + details[k]; }).join("\n"),
+  ].join("\n");
+  let mailed = false;
+  try {
+    MailApp.sendEmail({ to: OWNER, replyTo: email, subject: "[3D Design Academy] " + kindLabel + ": " + message.replace(/\s+/g, " ").slice(0, 60), body: body });
+    mailed = true;
+  } catch (err) { mailed = false; }
+  sheet_("Feedback", FEEDBACK_COLS).appendRow([new Date().toISOString(), d.kind, name, email, message, JSON.stringify(details), mailed]);
+  return { ok: true };
 }
 
 function summary_(token) {

@@ -55,6 +55,18 @@ set of progress and skills (it's the same student) and sees each class's own cou
 When the curriculum or application changes: push. Existing Sheets pick it up automatically from the website; their
 deployment URL and student work do not change.
 
+## Feedback and bug reports (owner)
+
+Teachers see a **Feedback** button on every teacher page. A message goes from the teacher's Sheet to your usage receiver
+(the same `usageUrl` address; no new Google permission for teachers), which emails it to `OWNER` in `Receiver.gs` with
+the teacher as the reply-to, and also saves it in the receiver Sheet's **Feedback** tab as a backup. Each teacher can send
+5 per 6 hours and everyone together 100 per 6 hours. Messages carry the teacher's name and email, the page, browser, and
+app version; no student data.
+
+**One-time step after updating `apps-script/usage/Receiver.gs`:** paste the new file over the receiver's Code.gs, then
+**Deploy → Manage deployments → pencil → New version → Deploy**, and click **Allow** when Google asks to let it send email.
+The web app address stays the same. Until you do this, the form says "Couldn't send that just now."
+
 ## Notes and limits
 
 - “Who has access: Anyone” is required because the site calls the script from another origin; access is still
