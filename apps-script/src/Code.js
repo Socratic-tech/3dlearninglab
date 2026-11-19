@@ -1414,6 +1414,7 @@ function liveView_(progressRows) {
 // ───────────────────────── Print queue ─────────────────────────
 
 const PRINT_OPEN_LIMIT_ = 5;
+const FEEDBACK_LIMIT_ = 5;
 const PRINT_STATUSES = ["queued", "redo", "printing", "printed", "failed", "cancelled"];
 const PRINT_TRANSITIONS = {
   queued: ["redo", "printing", "cancelled"],
@@ -1753,6 +1754,43 @@ const ACTIONS = {
         table_("Prints").append(row);
         return printOut_(row);
       });
+    },
+  },
+
+  /**
+   * A teacher's feature idea or bug report. It goes to the program owner's receiver (the same address as usage counts, so
+   * no new Google permission is needed) which emails it. Sent with the teacher's name and email so they can be answered.
+   */
+  sendFeedback: {
+    role: "teacher",
+    run: function (user, a) {
+      const kind = a.kind === "bug" ? "bug" : a.kind === "feature" ? "feature" : "";
+      if (!kind) throw userError_("Choose feature idea or bug report.");
+      const message = String(a.message || "").trim();
+      if (message.length < 5) throw userError_("Tell me a little more so I can understand.");
+      const url = String(PropertiesService.getScriptProperties().getProperty("USAGE_URL") || BUILD.usageUrl || "");
+      if (!/^https:\/\//.test(url)) throw userError_("Feedback isn't set up on this site yet.");
+      // a handful per few hours per teacher keeps a stuck button from flooding anyone's inbox
+      const cache = CacheService.getScriptCache();
+      const key = "fb_" + user.email;
+      const sent = Number(cache.get(key) || 0);
+      if (sent >= FEEDBACK_LIMIT_) throw userError_("You've sent a few messages already. Please try again in a few hours.");
+      const details = {};
+      const d = a.details && typeof a.details === "object" ? a.details : {};
+      ["page", "browser", "screen", "language"].forEach(function (k) { if (d[k] !== undefined) details[k] = String(d[k]).slice(0, 200); });
+      const props = PropertiesService.getScriptProperties();
+      let copyId = props.getProperty("COPY_ID");
+      if (!copyId) { copyId = Utilities.getUuid(); props.setProperty("COPY_ID", copyId); }
+      details.appVersion = BUILD.version;
+      const res = UrlFetchApp.fetch(url, {
+        method: "post", contentType: "text/plain", muteHttpExceptions: true, followRedirects: true,
+        payload: JSON.stringify({ action: "feedback", data: { kind: kind, message: message.slice(0, 3000), name: String(user.name || "").slice(0, 80), email: user.email, copyId: copyId, details: details } }),
+      });
+      let ok = false;
+      try { ok = res.getResponseCode() === 200 && JSON.parse(res.getContentText()).ok === true; } catch (e) { ok = false; }
+      if (!ok) throw userError_("Couldn't send that just now. Please try again in a minute.");
+      cache.put(key, String(sent + 1), 21600);
+      return { sent: true };
     },
   },
 

@@ -29,6 +29,7 @@ import { HandoutPage } from "./pages/HandoutPage";
 import { TryItBar, TryItStart } from "./pages/TryItPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { QueuePage } from "./pages/QueuePage";
+import { FeedbackButton } from "./pages/Feedback";
 
 function useHash() {
   const [hash, setHash] = useState(() => location.hash || "#/");
@@ -197,6 +198,7 @@ function Frame({ children, me, onSignOut, onSwitch, onReset, expired, tryIt }: {
           <div className="ml-auto flex shrink-0 items-center gap-1">
             {me?.user.role === "teacher" && !studentView && <a href="#/teacher" aria-label={tr("Teacher")} title={tr("Teacher")} className="flex items-center rounded-lg p-2 text-sm font-semibold hover:bg-surface-2 sm:px-3"><LayoutDashboard className="size-5 sm:hidden" aria-hidden /><span className="hidden sm:inline">{tr("Teacher")}</span></a>}
             {me?.user.role === "teacher" && !studentView && <a href="#/projects" aria-label={tr("Projects")} title={tr("Projects")} className="flex items-center rounded-lg p-2 text-sm font-semibold hover:bg-surface-2 sm:px-3"><FolderKanban className="size-5 sm:hidden" aria-hidden /><span className="hidden sm:inline">{tr("Projects")}</span></a>}
+            {!studentView && <FeedbackButton me={me} />}
             {me && <a href="#/student" className="rounded-lg px-2 py-2 text-sm font-semibold hover:bg-surface-2 sm:px-3">{tr("Missions")}</a>}
             {me && <SyncPill />}
             <DisplayMenu allLooks={!!me && isStaff(me)} />

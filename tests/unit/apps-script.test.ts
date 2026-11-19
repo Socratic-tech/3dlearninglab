@@ -781,6 +781,32 @@ describe("XP store and class rewards", () => {
     expect(e.call("maya@school.org", "me", { classId }).data.progress).toEqual(mayaBefore.progress); // real work untouched
   });
 
+  it("feedback: a teacher's idea or bug report goes to the owner's receiver with their address; nothing else gets through", () => {
+    const { e, classId } = setupClass();
+    e.props.set("USAGE_URL", "https://script.google.com/macros/s/usage-receiver/exec");
+    const sent = () => e.usageReports.filter((r) => r.action === "feedback");
+    const ok = e.call("teacher@school.org", "sendFeedback", { kind: "bug", message: "The Prints tab is empty", details: { page: "#/teacher", browser: "Chrome", evil: "x" } });
+    expect(ok.data).toEqual({ sent: true });
+    expect(sent()).toHaveLength(1);
+    expect(sent()[0].data).toMatchObject({ kind: "bug", email: "teacher@school.org", message: "The Prints tab is empty" });
+    const details = sent()[0].data.details as Record<string, string>;
+    expect(details).toMatchObject({ page: "#/teacher", browser: "Chrome", appVersion: expect.any(String) });
+    expect(details.evil).toBeUndefined(); // only the known fields travel
+    expect(e.call("teacher@school.org", "sendFeedback", { kind: "wish", message: "hello there" }).ok).toBe(false);
+    expect(e.call("teacher@school.org", "sendFeedback", { kind: "feature", message: "hi" }).error).toMatch(/more/);
+    e.call("teacher@school.org", "addStudents", { classId, students: [{ email: "maya@school.org" }] });
+    expect(e.call("maya@school.org", "sendFeedback", { kind: "feature", message: "let me skip lessons" }).ok).toBe(false); // students can't
+    for (let i = 0; i < 4; i++) expect(e.call("teacher@school.org", "sendFeedback", { kind: "feature", message: "idea number " + i }).ok).toBe(true);
+    expect(e.call("teacher@school.org", "sendFeedback", { kind: "feature", message: "one more idea" }).error).toMatch(/few hours/); // the 6th in a few hours
+    expect(sent()).toHaveLength(5);
+  });
+
+  it("feedback says so plainly when this site has no receiver", () => {
+    const { e } = setupClass();
+    e.props.set("USAGE_URL", "http://insecure.example/exec");
+    expect(e.call("teacher@school.org", "sendFeedback", { kind: "bug", message: "something broke" }).error).toMatch(/isn't set up/);
+  });
+
   it("usage counts: numbers only, once a day, test students left out, and USAGE_REPORTS=FALSE turns it off", () => {
     const { e, classId } = setupClass();
     e.call("teacher@school.org", "loadSeed", { from: 1, count: 2 });

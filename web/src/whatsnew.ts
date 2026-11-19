@@ -23,6 +23,15 @@ export const RELEASES: Release[] = [
     ],
     action: { label: "Open the print queue", href: "#/queue/manage" },
   },
+  {
+    // "19b": sorts after "19-" so teachers who already dismissed the print queue release still see this one
+    id: "2026-11-19b-feedback",
+    title: "Tell us what you'd like, or what's broken",
+    items: [
+      "New Feedback button at the top of every teacher page. Send a feature idea or report a bug in a minute; you can type or dictate it.",
+      "It goes straight to the person who runs 3D Design Academy, with your email so you can get a reply. Please leave out student names.",
+    ],
+  },
 ];
 
 const NEW_TEACHER_FLAGS = ["academy.setupStepsDone.teacher", "academy.setupStepsDone.queue"];
