@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { Check, ExternalLink, GraduationCap, HardDrive, Presentation, Users } from "lucide-react";
+import { Check, ExternalLink, GraduationCap, HardDrive, Presentation, Printer, Users } from "lucide-react";
 import { Alert, Card } from "@/components/ui/card";
 import { Button, buttonClass } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
@@ -8,7 +8,7 @@ import { enterTryIt, normalizeApiUrl, setApiUrl, setClientId } from "../config";
 
 const TEMPLATE = import.meta.env.VITE_TEMPLATE_URL as string;
 
-type Who = "teacher" | "student" | "staff";
+type Who = "teacher" | "queue" | "student" | "staff";
 
 /**
  * The page anyone sees when this browser doesn't know a class yet.
@@ -16,12 +16,12 @@ type Who = "teacher" | "student" | "staff";
  */
 export function SetupPage({ cfg, onSaved }: { cfg: { apiUrl: string | null; clientId: string | null }; onSaved: () => void }) {
   // "#/setup/teacher" (from the Get started page) opens straight to the teacher steps
-  const [who, setWho] = useState<Who | null>(() => (location.hash.startsWith("#/setup/teacher") ? "teacher" : null));
+  const [who, setWho] = useState<Who | null>(() => (location.hash.startsWith("#/setup/queue") ? "queue" : location.hash.startsWith("#/setup/teacher") ? "teacher" : null));
   return (
     <div className="mx-auto max-w-2xl space-y-8 py-8">
       <header className="text-center">
         <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Welcome to 3D Design Academy</h1>
-        <p className="mt-2 text-lg text-muted">Who are you?</p>
+        <p className="mt-2 text-lg text-muted">What would you like to do?</p>
         <p className="mt-1 text-sm"><a href="#/start" className="text-primary underline">New here? See what it is and what your school needs</a></p>
       </header>
 
@@ -34,19 +34,20 @@ export function SetupPage({ cfg, onSaved }: { cfg: { apiUrl: string | null; clie
         <Button size="lg" variant="accent" onClick={() => { enterTryIt(); onSaved(); }}>Try it now</Button>
       </Card>
 
-      <p className="text-center text-sm font-semibold uppercase tracking-wide text-muted">Or set up live class tracking with Google</p>
+      <p className="text-center text-sm font-semibold uppercase tracking-wide text-muted">Or set up with Google (about 5 minutes)</p>
 
-      <div className="grid gap-3 sm:grid-cols-3" role="radiogroup" aria-label="Who are you?">
-        <Choice active={who === "teacher"} onClick={() => setWho("teacher")} icon={<Presentation className="size-7" aria-hidden />} title="A teacher" sub="Set up my class" />
-        <Choice active={who === "student"} onClick={() => setWho("student")} icon={<GraduationCap className="size-7" aria-hidden />} title="A student" sub="Find my class" />
-        <Choice active={who === "staff"} onClick={() => setWho("staff")} icon={<Users className="size-7" aria-hidden />} title="Co-teacher or admin" sub="Join someone's class" />
+      <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="What would you like to do?">
+        <Choice active={who === "queue"} onClick={() => setWho("queue")} icon={<Printer className="size-7" aria-hidden />} title="Run a 3D print queue" sub="Let anyone at school send prints. No class needed." />
+        <Choice active={who === "teacher"} onClick={() => setWho("teacher")} icon={<Presentation className="size-7" aria-hidden />} title="Teach the course" sub="Set up my class (a print queue is included)" />
+        <Choice active={who === "student"} onClick={() => setWho("student")} icon={<GraduationCap className="size-7" aria-hidden />} title="I'm a student" sub="Find my class or send a print" />
+        <Choice active={who === "staff"} onClick={() => setWho("staff")} icon={<Users className="size-7" aria-hidden />} title="Co-teacher or admin" sub="Join someone's class or queue" />
       </div>
 
       {who === "student" && (
         <Card className="space-y-2 text-center">
           <p className="font-display text-xl font-semibold">You need your class link</p>
           <p className="text-lg">Open <b>Google Classroom</b> and click the 3D Design Academy link your teacher posted. Or scan the QR code on the board.</p>
-          <p className="text-muted">No link? Ask your teacher. If your class uses <b>Try-It mode</b>, click <b>Try it now</b> above.</p>
+          <p className="text-muted">No link? Ask your teacher. If your class uses <b>Try-It mode</b>, click <b>Try it now</b> above. To send something to the 3D printer, open the <b>print queue link</b> from your school&apos;s printer person.</p>
         </Card>
       )}
 
@@ -58,9 +59,9 @@ export function SetupPage({ cfg, onSaved }: { cfg: { apiUrl: string | null; clie
         </Card>
       )}
 
-      {who === "teacher" && <TeacherSteps />}
+      {(who === "teacher" || who === "queue") && <TeacherSteps goal={who} />}
 
-      {who === "teacher" && <AlreadySetUp cfg={cfg} onSaved={onSaved} />}
+      {(who === "teacher" || who === "queue") && <AlreadySetUp cfg={cfg} onSaved={onSaved} />}
     </div>
   );
 }
@@ -85,25 +86,26 @@ function Choice({ active, onClick, icon, title, sub }: { active: boolean; onClic
 }
 
 const STEPS_KEY = "academy.setupStepsDone";
-function loadDone(): number[] {
-  try { const v = JSON.parse(localStorage.getItem(STEPS_KEY) ?? "[]"); return Array.isArray(v) ? v.filter((n) => typeof n === "number") : []; } catch { return []; }
+function loadDone(goal: string): number[] {
+  try { const v = JSON.parse(localStorage.getItem(`${STEPS_KEY}.${goal}`) ?? "[]"); return Array.isArray(v) ? v.filter((n) => typeof n === "number") : []; } catch { return []; }
 }
-function saveDone(v: number[]) { try { localStorage.setItem(STEPS_KEY, JSON.stringify(v)); } catch { /* memory-only if storage is blocked */ } }
+function saveDone(goal: string, v: number[]) { try { localStorage.setItem(`${STEPS_KEY}.${goal}`, JSON.stringify(v)); } catch { /* memory-only if storage is blocked */ } }
 
 const TOTAL_STEPS = 3;
 
-function TeacherSteps() {
-  const [done, setDone] = useState<number[]>(loadDone);
+function TeacherSteps({ goal }: { goal: "teacher" | "queue" }) {
+  const [done, setDone] = useState<number[]>(() => loadDone(goal));
   if (!TEMPLATE) {
     return <Alert tone="warning" title="This site isn't finished setting up">Ask the person who shared it for the template Sheet link.</Alert>;
   }
-  const toggle = (n: number) => setDone((d) => { const next = d.includes(n) ? d.filter((x) => x !== n) : [...d, n]; saveDone(next); return next; });
+  const toggle = (n: number) => setDone((d) => { const next = d.includes(n) ? d.filter((x) => x !== n) : [...d, n]; saveDone(goal, next); return next; });
   const count = done.filter((n) => n >= 1 && n <= TOTAL_STEPS).length;
   return (
     <section aria-labelledby="steps-title" className="space-y-4">
       <div>
-        <h2 id="steps-title" className="font-display text-2xl font-bold">Set up in 3 steps</h2>
-        <p className="text-muted">About 5 minutes, one time only. You never need to touch any code. Your students&apos; work is saved in a Google Sheet in <b>your</b> Drive.</p>
+        <h2 id="steps-title" className="font-display text-2xl font-bold">{goal === "queue" ? "Set up your print queue in 3 steps" : "Set up in 3 steps"}</h2>
+        <p className="text-muted">About 5 minutes, one time only. You never need to touch any code. {goal === "queue" ? "Print requests and files are saved in a Google Sheet and Drive folder that belong to you." : <>Your students&apos; work is saved in a Google Sheet in <b>your</b> Drive.</>}</p>
+        {goal === "queue" && <p className="mt-1 text-sm text-muted">Everyone who sends a print signs in with their school Google account, so each request has a name on it. You don&apos;t need a class or a student list.</p>}
         <p className="mt-2 text-sm font-semibold" role="status">{count} of {TOTAL_STEPS} steps done</p>
         <div className="mt-1 h-2 rounded-full bg-surface-2" aria-hidden><div className="h-2 rounded-full bg-primary transition-all" style={{ width: `${(count / TOTAL_STEPS) * 100}%` }} /></div>
       </div>
@@ -123,14 +125,25 @@ function TeacherSteps() {
           <p>The side panel prepares your Sheet by itself, then shows a picture of each screen. In short: click <b>Open the script editor</b>, then <b>Deploy → New deployment</b>, pick <b>Web app</b>, set <b>Who has access</b> to <b>Anyone</b>, and click <b>Deploy</b>.</p>
           <p className="text-sm text-muted">Google requires you to do this click yourself, one time. The panel moves on by itself when it&apos;s done.</p>
         </Step>
-        <Step n={3} title="Make a class and share the link" done={done.includes(3)} onToggle={() => toggle(3)} picture={<PicPanel />} last>
-          <ul className="list-disc space-y-1 pl-5">
-            <li>Type a class name and click <b>Create class</b>.</li>
-            <li>Click <b>Copy student link</b> and post it in Google Classroom, or <b>Show QR code</b> for the board.</li>
-            <li>Click <b>Open my dashboard</b> to see your class. Bookmark that page.</li>
-          </ul>
-          <p className="text-sm text-muted">The app and lessons update from the website automatically. Your Sheet keeps a cached backup for outages.</p>
-        </Step>
+        {goal === "queue" ? (
+          <Step n={3} title="Share your print queue link" done={done.includes(3)} onToggle={() => toggle(3)} picture={<PicQueue />} last>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>In the panel, find <b>School print queue</b> and click <b>Open the print queue</b>. Bookmark that page: it is where you run the queue.</li>
+              <li>At the top of that page, copy the link or print the <b>QR code</b> for the wall, the library page or an email.</li>
+              <li>Check your school email domain under <b>Settings</b> in the panel. Only accounts on those domains can send prints.</li>
+            </ul>
+            <p className="text-sm text-muted">Later, you can add a class to the same Sheet if you want the course too.</p>
+          </Step>
+        ) : (
+          <Step n={3} title="Make a class and share the link" done={done.includes(3)} onToggle={() => toggle(3)} picture={<PicPanel />} last>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>Type a class name and click <b>Create class</b>.</li>
+              <li>Click <b>Copy student link</b> and post it in Google Classroom, or <b>Show QR code</b> for the board.</li>
+              <li>Click <b>Open my dashboard</b> to see your class. Bookmark that page.</li>
+            </ul>
+            <p className="text-sm text-muted">The app and lessons update from the website automatically. Your Sheet keeps a cached backup for outages. Your print queue link is in the panel too.</p>
+          </Step>
+        )}
       </ol>
       <Help />
     </section>
@@ -280,6 +293,22 @@ function PicDeploy() {
       <rect x="50" y="97" width="180" height="20" rx="5" fill="none" className="stroke-accent" strokeWidth="3" />
       <rect x="186" y="120" width="62" height="18" rx="9" className={blue} />
       <text x="217" y="133" textAnchor="middle" fontSize="11" fontWeight="700" className="fill-primary-fg">Deploy</text>
+    </svg>
+  );
+}
+
+function PicQueue() {
+  return (
+    <svg viewBox="0 0 400 150" className={W}>
+      {[0, 1, 2, 3, 4, 5].map((r) => <rect key={r} x="14" y={18 + r * 20} width="210" height="10" rx="3" className="fill-border" />)}
+      <rect x="240" y="8" width="152" height="134" rx="8" className={box} strokeWidth="1.5" />
+      <text x="252" y="30" className={ink} fontSize="12" fontWeight="700">School print queue</text>
+      <rect x="252" y="42" width="128" height="20" rx="10" className="fill-surface stroke-primary" strokeWidth="1.5" />
+      <text x="316" y="56" textAnchor="middle" fontSize="10.5" fontWeight="700" className="fill-primary">Copy print queue link</text>
+      <rect x="252" y="70" width="128" height="22" rx="11" className={blue} />
+      <text x="316" y="85" textAnchor="middle" fontSize="10.5" fontWeight="700" className="fill-primary-fg">Open the print queue ↗</text>
+      <rect x="246" y="64" width="140" height="34" rx="14" fill="none" className="stroke-accent" strokeWidth="3" />
+      <text x="252" y="118" className={soft} fontSize="10">Bookmark that page</text>
     </svg>
   );
 }

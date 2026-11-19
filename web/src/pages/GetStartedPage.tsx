@@ -30,6 +30,7 @@ export function GetStartedPage({ onTry }: { onTry: () => void }) {
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Button size="lg" variant="accent" onClick={onTry}>Try it now</Button>
           <a href="#/setup/teacher" className="inline-flex h-12 items-center rounded-xl bg-primary px-6 font-semibold text-primary-fg hover:brightness-110">Set up my class</a>
+          <a href="#/setup/queue" className="inline-flex h-12 items-center rounded-xl border border-border bg-surface px-6 font-semibold hover:bg-surface-2">Just a print queue</a>
         </div>
         <p className="mt-3 text-sm text-muted">Try it needs no account. Setup is 3 steps and about 5 minutes, one time.</p>
       </section>
