@@ -8,8 +8,9 @@ sign-in is their identity, so every request shows a name and email. Nobody can s
 outside your domains are turned away. No roster, class or Tinkercad account is needed.
 
 ## Set it up (teacher or printer person, about 5 minutes, once)
-Use the same 3 steps as the course: [teacher-quickstart.md](teacher-quickstart.md) (make your copy and allow it, turn on
-your app). You don't need a class to use the print queue, and the **School print queue** card with its link appears in the side panel as soon as step 2 is done.
+On the welcome page, choose **Run a 3D print queue** (or open `#/setup/queue` on the site). It walks you through 3 steps
+with pictures: make your copy and allow it, turn on your app, share your link. The first two match
+[teacher-quickstart.md](teacher-quickstart.md). You don't need a class to use the print queue, and the **School print queue** card with its link appears in the side panel as soon as step 2 is done.
 
 Then, in the Sheet's side panel:
 1. Under **Settings**, check the school email domain(s) are right (for example `district.org, students.district.org`).
