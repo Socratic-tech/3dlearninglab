@@ -127,7 +127,7 @@ export function SetupChecklist({ cls, students, apiUrl, goTab }: { cls: ClassInf
   );
 }
 
-function Qr({ text, size = 280 }: { text: string; size?: number }) {
+export function Qr({ text, size = 280, label = "QR code for the class link" }: { text: string; size?: number; label?: string }) {
   const svg = useMemo(() => {
     const q = qrcode(0, "M");
     q.addData(text);
@@ -138,7 +138,7 @@ function Qr({ text, size = 280 }: { text: string; size?: number }) {
     return { n, d };
   }, [text]);
   return (
-    <svg role="img" aria-label="QR code for the class link" width={size} height={size} viewBox={`-2 -2 ${svg.n + 4} ${svg.n + 4}`} shapeRendering="crispEdges">
+    <svg role="img" aria-label={label} width={size} height={size} viewBox={`-2 -2 ${svg.n + 4} ${svg.n + 4}`} shapeRendering="crispEdges">
       <rect x={-2} y={-2} width={svg.n + 4} height={svg.n + 4} fill="#fff" />
       <path d={svg.d} fill="#000" />
     </svg>

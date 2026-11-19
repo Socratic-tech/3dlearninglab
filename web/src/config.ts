@@ -115,6 +115,14 @@ export function setCurrentClassId(id: string) {
   safeSet(KEY_CLASS, id);
 }
 
+/** The school print queue link (anyone at school signs in and sends a print). Same Sheet, no class in it. */
+export function queueLink(apiUrl: string, clientId: string | null | undefined) {
+  const u = new URL(location.origin + location.pathname);
+  u.searchParams.set("api", apiUrl);
+  if (clientId && !import.meta.env.VITE_GOOGLE_CLIENT_ID) u.searchParams.set("cid", clientId);
+  return u.toString() + "#/queue";
+}
+
 /** Link for co-teachers and administrators: opens this Sheet's teacher dashboard (they sign in with their own Google account). */
 export function staffLink(apiUrl: string, clientId: string | null | undefined) {
   const u = new URL(location.origin + location.pathname);

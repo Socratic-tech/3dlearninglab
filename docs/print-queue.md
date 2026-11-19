@@ -14,7 +14,9 @@ your app). You don't need a class to use the print queue, and the **School print
 Then, in the Sheet's side panel:
 1. Under **Settings**, check the school email domain(s) are right (for example `district.org, students.district.org`).
    The queue refuses everyone if no domain is set.
-2. Click **Copy print queue link** (under **School print queue**) and share it: staff email, the library page, a poster.
+2. Share the link: staff email, the library page, a poster. You can get it from the side panel (**Copy print queue link**)
+   or, any time, from the **Share the print queue** card at the top of the print queue page, which also has a
+   **QR code** and a **Print this for the wall** button. You never have to go back to the Sheet for it.
 
 ## Sending a print (everyone)
 Open the link and sign in with your school Google account, then:

@@ -270,6 +270,16 @@ describe("lost replies", () => {
 });
 
 describe("Setup sidebar", () => {
+  it("\"Check for updates\" sees a newly published version at once instead of waiting out the remembered answer", () => {
+    const latest = { version: "1.0.0-old" };
+    const e = makeEnv("teacher@school.org", { latest });
+    expect(e.run("sidebarState().latest.version")).toBe("1.0.0-old");
+    latest.version = "1.0.0-new"; // the website publishes a new version
+    expect(e.run("sidebarState().latest.version")).toBe("1.0.0-old"); // remembered for up to 30 minutes
+    expect(e.run("sidebarState({ updates: true }).latest.version")).toBe("1.0.0-new");
+    expect(e.run("sidebarState().latest.version")).toBe("1.0.0-new");
+  });
+
   it("before deploying: no links yet; after: Workspace URL normalized into class links", () => {
     const pre = makeEnv("teacher@school.org");
     expect(pre.run("sidebarState()")).toMatchObject({ ready: true, url: null, teacherLink: null });

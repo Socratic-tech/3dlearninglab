@@ -2473,6 +2473,7 @@ function latestVersion_() {
 /** Everything the setup sidebar shows. `opts.recheck` (the "Check again" button) asks Google again instead of using remembered checks. */
 function sidebarState(opts) {
   MEMO_ = {};
+  if (opts && opts.updates) { try { CacheService.getScriptCache().remove("latest_version"); } catch (e) { /* ignore */ } } // "Check for updates" asks the website again
   installNewestInFreshCopy_();
   const ready = !!ss_().getSheetByName("Config") && !!ss_().getSheetByName("Classes");
   const cfg = ready ? config_() : {};

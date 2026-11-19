@@ -1,1 +1,1 @@
-New: add your own note to any mission for a class (open the mission and click 'Add a note'). Students see it at the top of that mission. Use it for what to grab first, how you'll run the day, or a link to your own video.
+New: a school print queue. Anyone at your school can send a file or design link to your print queue by signing in with their school Google account, and you manage it from one page (no class needed). Find the link and the Open the print queue button in the side panel. Setup is now 3 steps, and the side panel has a Check for updates button.
