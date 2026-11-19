@@ -45,6 +45,8 @@ export type PlayerProps = {
   journalPrompts: { id: string; title: string; prompt: string }[];
   journals: Record<string, Record<string, string>>;
   tinkercadClassUrl: string | null;
+  /** Opt-in design tool for this class; Tinkercad unless the teacher chose SimpCAD X. */
+  cadTool?: "tinkercad" | "simpcadx";
   startedAt: string | null;
   completed: boolean;
   nextLessonTitle?: string | null;
@@ -191,9 +193,9 @@ export function LessonPlayer(p: PlayerProps) {
       case "video": return <S.VideoBlock b={b} />;
       case "showMe": return <S.ShowMeBlock b={b} onViewed={() => markDirectionsViewed(b.id)} />;
       case "modelViewer": return <S.ModelViewerBlock b={b} assets={p.assets} />;
-      case "tinkercadLaunch": return <S.TinkercadBlock b={b} classUrl={p.tinkercadClassUrl} />;
+      case "tinkercadLaunch": return <S.TinkercadBlock b={b} classUrl={p.tinkercadClassUrl} classTool={p.cadTool ?? "tinkercad"} teacherView={p.teacherView} />;
       case "modelDownload": return <S.ModelDownloadBlock b={b} assets={p.assets} />;
-      case "challenge": return <S.ChallengeBlock b={b} assets={p.assets} startedAt={p.startedAt} skillTitle={(id) => p.competencyTitles[id] ?? id} classUrl={p.tinkercadClassUrl} client={flavor?.clients?.[b.id]} themes={flavor?.themes?.[b.id]} pickId={`${p.lesson.id}.${b.id}`} />;
+      case "challenge": return <S.ChallengeBlock b={b} assets={p.assets} startedAt={p.startedAt} skillTitle={(id) => p.competencyTitles[id] ?? id} classUrl={p.tinkercadClassUrl} classTool={p.cadTool ?? "tinkercad"} client={flavor?.clients?.[b.id]} themes={flavor?.themes?.[b.id]} pickId={`${p.lesson.id}.${b.id}`} />;
       case "teacherCheck": return <S.TeacherCheckBlock b={b} done={doneIds.has(b.id)} />;
       case "observe": return <S.ObserveBlock b={b} />;
       case "failGallery": return <S.FailGalleryBlock b={b} />;

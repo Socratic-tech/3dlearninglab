@@ -544,5 +544,10 @@
   "Empty — tap to choose": "Vacío: toca para elegir",
   "Answers to place": "Respuestas para colocar",
   "Every answer is placed. Check it when you are ready.": "Todas las respuestas están colocadas. Compruébalas cuando estés listo.",
-  "Holding: {text}. Tap a slot to place it.": "Tienes: {text}. Toca un espacio para colocarla."
+  "Holding: {text}. Tap a slot to place it.": "Tienes: {text}. Toca un espacio para colocarla.",
+  "Open SimpCAD X": "Abrir SimpCAD X",
+  "Do this in SimpCAD X (beta)": "Haz esto en SimpCAD X (beta)",
+  "SimpCAD X is a beta tool and does not need an account. Save or export your project file before you close the tab so you can come back to it. Don't use its Share links for class work: anyone with a link can download the design.": "SimpCAD X es una herramienta beta y no necesita cuenta. Guarda o exporta tu archivo de proyecto antes de cerrar la pestaña para poder volver a él. No uses sus enlaces para compartir en el trabajo de clase: cualquier persona con el enlace puede descargar el diseño.",
+  "These steps use Tinkercad's words and buttons. Look for the same idea in SimpCAD X, or ask your teacher.": "Estos pasos usan las palabras y los botones de Tinkercad. Busca la misma idea en SimpCAD X o pregunta a tu docente.",
+  "Teacher preview: steps for a class using SimpCAD X": "Vista previa para docentes: pasos para una clase que usa SimpCAD X"
 }

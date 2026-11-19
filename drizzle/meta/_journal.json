@@ -8,6 +8,13 @@
       "when": 1790950348715,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1795094267261,
+      "tag": "0001_cad_tool",
+      "breakpoints": true
     }
   ]
 }

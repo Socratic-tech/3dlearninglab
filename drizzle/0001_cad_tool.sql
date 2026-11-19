@@ -1,0 +1,1 @@
+ALTER TABLE "courses" ADD COLUMN "cad_tool" text DEFAULT 'tinkercad' NOT NULL;

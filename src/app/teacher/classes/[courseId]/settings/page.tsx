@@ -33,6 +33,12 @@ export default async function ClassSettings(props: PageProps<"/teacher/classes/[
             <Field label="Tinkercad Classroom link" htmlFor="t" className="sm:col-span-2" hint="Shows an “Open our Tinkercad Classroom” button in every lesson. Use your school-approved Tinkercad Classroom (with Safe Mode).">
               <Input id="t" name="tinkercadClassUrl" type="url" defaultValue={course.tinkercadClassUrl ?? ""} placeholder="https://www.tinkercad.com/joinclass/…" />
             </Field>
+            <Field label="Design tool" htmlFor="ct" className="sm:col-span-2" hint="Tinkercad is the default. SimpCAD X is an opt-in beta for this class: students open it from the lessons and no account is needed. Missions with SimpCAD X steps show them; the rest keep Tinkercad wording with a note. Tell students not to use SimpCAD X share links for class work, because anyone with a link can download the design.">
+              <Select id="ct" name="cadTool" defaultValue={course.cadTool}>
+                <option value="tinkercad">Tinkercad (default)</option>
+                <option value="simpcadx">SimpCAD X (beta, opt-in)</option>
+              </Select>
+            </Field>
             <Field label="Printers" htmlFor="pc"><Input id="pc" name="printerCount" type="number" min={0} defaultValue={eq.printerCount} /></Field>
             <Field label="Printer models" htmlFor="pm"><Input id="pm" name="printerModels" defaultValue={eq.printerModels} /></Field>
             <Field label="Material" htmlFor="m"><Input id="m" name="material" defaultValue={eq.material} /></Field>

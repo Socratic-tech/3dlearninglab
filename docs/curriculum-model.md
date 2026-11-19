@@ -16,3 +16,7 @@
 - **Standards** (`src/content/standards.ts`): structured records + a separate lesson↔standard mapping.
 - The DB stores only stable string ids, so curriculum releases never require data migrations. `npm run content:export`
   dumps everything to JSON for a future CMS.
+
+## Design tool per class
+
+`courses.cad_tool` is `tinkercad` (default) or `simpcadx` (opt-in, set under Class settings → Design tool). It swaps only Tinkercad work: `tinkercadLaunch` buttons and steps (`stepsByTool.simpcadx`) and the "Do this in…" tag on challenges. Pro CAD missions keep the tool the lesson names (`onshape` or `fusion`). Lesson text, diagrams and vocabulary are still Tinkercad-worded until a lesson is adapted, and a SimpCAD X class sees a note on such steps. `navigating-tinkercad` is the pilot. The Pages (Apps Script) edition is Tinkercad-only for now.

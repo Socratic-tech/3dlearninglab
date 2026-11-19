@@ -33,6 +33,8 @@ export async function updateCourseAction(courseId: string, _p: unknown, fd: Form
       section: str(fd, "section", 60) || null,
       pathId: path.parse(str(fd, "pathId")),
       tinkercadClassUrl: str(fd, "tinkercadClassUrl", 300) || null,
+      // Opt-in: only an explicit "simpcadx" turns it on; anything else keeps the Tinkercad default.
+      cadTool: str(fd, "cadTool") === "simpcadx" ? "simpcadx" : "tinkercad",
       equipment: {
         printerCount: z.coerce.number().int().min(0).max(200).parse(str(fd, "printerCount") || 0),
         printerModels: str(fd, "printerModels", 200),

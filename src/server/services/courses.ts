@@ -12,6 +12,7 @@ import {
   type EquipmentConfig,
 } from "../db/schema";
 import { lessonsInPath, getLesson, type Lesson, type PrintLevel } from "@/content";
+import { classCadTool } from "@/content/schema";
 import { lessonStates, type LessonState } from "@/lib/progression";
 import { assertTeacherOfCourse, type Actor } from "../policy";
 import { joinCode } from "../crypto";
@@ -177,9 +178,10 @@ export async function updateCourseSettings(
   db: DB,
   actor: Actor,
   courseId: string,
-  input: Partial<{ name: string; section: string | null; pathId: string; tinkercadClassUrl: string | null; equipment: EquipmentConfig; startDate: Date | null }>,
+  input: Partial<{ name: string; section: string | null; pathId: string; tinkercadClassUrl: string | null; cadTool: "tinkercad" | "simpcadx"; equipment: EquipmentConfig; startDate: Date | null }>,
 ) {
   await assertTeacherOfCourse(db, actor, courseId);
+  if (input.cadTool !== undefined && !classCadTool.safeParse(input.cadTool).success) throw new AppError("Choose Tinkercad or SimpCAD X.");
   if (input.tinkercadClassUrl) {
     let u: URL;
     try {

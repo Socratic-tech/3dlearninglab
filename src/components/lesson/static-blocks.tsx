@@ -4,7 +4,7 @@ import { tr } from "@/lib/i18n";
 import { createContext, Fragment, useContext, useEffect, useState, type ReactNode } from "react";
 import { BookOpen, Download, ExternalLink, Eye, Globe2, Lightbulb, MessageCircle, Monitor, PencilRuler, PlayCircle, ShieldAlert, Swords, Timer, TriangleAlert, Users } from "lucide-react";
 import type { Client, Hook, Theme } from "@/content/flavor";
-import type { BlockOf, ModelAsset } from "@/content/schema";
+import type { BlockOf, CadTool, ClassCadTool, ModelAsset } from "@/content/schema";
 import { Diagram } from "@/components/diagrams";
 import LazyModelViewer from "@/components/viewer/LazyModelViewer";
 import { buttonClass } from "@/components/ui/button";
@@ -300,13 +300,41 @@ export function ProCadButtons({ tool }: { tool: keyof typeof PRO_CAD }) {
   );
 }
 
+const SIMPCADX_URL = "https://simpcadx.com/app/";
+
+/** SimpCAD X is an opt-in, per-class choice. It needs no account, and it is a beta. */
+function SimpcadxButtons() {
+  return (
+    <div>
+      <a href={SIMPCADX_URL} target="_blank" rel="noopener noreferrer" className={buttonClass("primary", "lg")}>
+        {tr("Open SimpCAD X")} <ExternalLink className="size-4" aria-hidden /><span className="sr-only"> {tr("(opens in a new tab)")}</span>
+      </a>
+      <p className="mt-2 text-xs text-muted">
+        {tr("SimpCAD X is a beta tool and does not need an account. Save or export your project file before you close the tab so you can come back to it. Don't use its Share links for class work: anyone with a link can download the design.")}{" "}
+        {tr("Opens in a new tab. Come back to this tab when you're done.")}
+      </p>
+    </div>
+  );
+}
+
+/**
+ * Which tool a class works in. A teacher opts a class in to SimpCAD X; everything else stays on Tinkercad.
+ * Pro CAD (Onshape, Fusion) is chosen by the lesson, not the class.
+ */
+export function effectiveTool(declared: CadTool, classTool: ClassCadTool): CadTool {
+  return declared === "tinkercad" && classTool === "simpcadx" ? "simpcadx" : declared;
+}
+
 /** The right launch buttons for wherever the work happens. */
-function CadButtons({ tool, classUrl }: { tool: "tinkercad" | "onshape" | "fusion"; classUrl: string | null }) {
-  return tool === "tinkercad" ? <TinkercadButtons classUrl={classUrl} /> : <ProCadButtons tool={tool} />;
+function CadButtons({ tool, classUrl }: { tool: CadTool; classUrl: string | null }) {
+  if (tool === "tinkercad") return <TinkercadButtons classUrl={classUrl} />;
+  if (tool === "simpcadx") return <SimpcadxButtons />;
+  return <ProCadButtons tool={tool} />;
 }
 
 const WHERE = {
   tinkercad: { icon: Monitor, text: "Do this in Tinkercad", cls: "bg-primary-soft text-primary border-primary/40" },
+  simpcadx: { icon: Monitor, text: "Do this in SimpCAD X (beta)", cls: "bg-primary-soft text-primary border-primary/40" },
   onshape: { icon: Monitor, text: "Do this in Onshape", cls: "bg-primary-soft text-primary border-primary/40" },
   fusion: { icon: Monitor, text: "Do this in Fusion (ages 13+)", cls: "bg-primary-soft text-primary border-primary/40" },
   offline: { icon: PencilRuler, text: "Do this offline — paper, tools or real objects", cls: "bg-warning-soft text-warning border-warning/50" },
@@ -326,18 +354,37 @@ export function WhereTag({ where }: { where: keyof typeof WHERE }) {
   );
 }
 
-export function TinkercadBlock({ b, classUrl }: { b: BlockOf<"tinkercadLaunch">; classUrl: string | null }) {
-  const tool = b.tool ?? "tinkercad";
-  const name = tool === "tinkercad" ? "Tinkercad" : PRO_CAD[tool].name;
+export function TinkercadBlock({ b, classUrl, classTool = "tinkercad", teacherView = false }: { b: BlockOf<"tinkercadLaunch">; classUrl: string | null; classTool?: ClassCadTool; teacherView?: boolean }) {
+  const tool = effectiveTool(b.tool ?? "tinkercad", classTool);
+  const name = tool === "tinkercad" ? "Tinkercad" : tool === "simpcadx" ? "SimpCAD X" : PRO_CAD[tool].name;
+  const simpcadxSteps = b.stepsByTool?.simpcadx;
+  const steps = tool === "simpcadx" && simpcadxSteps ? simpcadxSteps : b.steps;
+  // In a SimpCAD X class, steps that were only written for Tinkercad say so instead of quietly misleading anyone.
+  const tinkercadWording = tool === "simpcadx" && !simpcadxSteps;
   return (
     <BlockFrame label={tr("Try it in {tool}", { tool: name })}>
       <WhereTag where={tool} />
       <h3 className="font-display text-lg font-semibold">{b.title}</h3>
+      {tinkercadWording && (
+        <p className="mt-2 rounded-xl bg-warning-soft px-3 py-2 text-sm text-warning">
+          {tr("These steps use Tinkercad's words and buttons. Look for the same idea in SimpCAD X, or ask your teacher.")}
+        </p>
+      )}
       <ol className="mt-2 list-decimal space-y-1 pl-5">
-        {b.steps.map((s, i) => (
+        {steps.map((s, i) => (
           <li key={i}>{s}</li>
         ))}
       </ol>
+      {teacherView && simpcadxSteps && classTool !== "simpcadx" && (
+        <details className="mt-3 text-sm">
+          <summary className="cursor-pointer font-semibold">{tr("Teacher preview: steps for a class using SimpCAD X")}</summary>
+          <ol className="mt-2 list-decimal space-y-1 pl-5">
+            {simpcadxSteps.map((s, i) => (
+              <li key={i}>{s}</li>
+            ))}
+          </ol>
+        </details>
+      )}
       <div className="mt-4">
         <CadButtons tool={tool} classUrl={classUrl} />
       </div>
@@ -528,7 +575,7 @@ function ThemePicker({ id, themes }: { id: string; themes: Theme[] }) {
   );
 }
 
-export function ChallengeBlock({ b, assets, skillTitle, classUrl = null, client, themes, pickId }: { b: BlockOf<"challenge">; assets: Record<string, ModelAsset>; startedAt?: string | null; skillTitle: (id: string) => string; classUrl?: string | null; client?: Client; themes?: Theme[]; pickId?: string }) {
+export function ChallengeBlock({ b, assets, skillTitle, classUrl = null, classTool = "tinkercad", client, themes, pickId }: { b: BlockOf<"challenge">; assets: Record<string, ModelAsset>; startedAt?: string | null; skillTitle: (id: string) => string; classUrl?: string | null; classTool?: ClassCadTool; client?: Client; themes?: Theme[]; pickId?: string }) {
   const [ticks, setTicks] = useState<boolean[]>(() => b.requirements.map(() => false));
   const briefing = b.kind !== "micro";
   const boss = b.kind === "boss";
@@ -544,7 +591,7 @@ export function ChallengeBlock({ b, assets, skillTitle, classUrl = null, client,
       </div>
       <div className="p-5 sm:p-6">
         {client && <ClientMessage c={client} />}
-        <WhereTag where={b.where ?? "tinkercad"} />
+        <WhereTag where={b.where === "tinkercad" || b.where === "simpcadx" || b.where === undefined ? effectiveTool("tinkercad", classTool) as "tinkercad" | "simpcadx" : b.where} />
         <h3 className="mt-3 font-display text-2xl font-bold sm:text-3xl">{b.title}</h3>
         <Md text={b.prompt} className={cn("mt-2 text-lg", briefing && "opacity-90")} />
         {b.visual && <div className="mt-3 rounded-xl bg-surface p-2"><Visual {...b.visual} assets={assets} /></div>}
@@ -585,7 +632,7 @@ export function ChallengeBlock({ b, assets, skillTitle, classUrl = null, client,
         </p>
         {(b.where ?? "tinkercad") !== "offline" && (
           <div className="mt-5 rounded-2xl bg-surface p-4 text-fg">
-            <CadButtons tool={b.where === "onshape" || b.where === "fusion" ? b.where : "tinkercad"} classUrl={classUrl} />
+            <CadButtons tool={b.where === "onshape" || b.where === "fusion" ? b.where : effectiveTool("tinkercad", classTool)} classUrl={classUrl} />
           </div>
         )}
         {b.showTimer && <p className="mt-3 text-xs opacity-75">{tr("The timer is just for you — speed doesn't change your grade.")}</p>}

@@ -103,6 +103,7 @@ export default async function LessonPage(props: PageProps<"/student/lessons/[les
         journalPrompts={journalPrompts}
         journals={journals}
         tinkercadClassUrl={ctx.course.tinkercadClassUrl}
+        cadTool={ctx.course.cadTool}
         startedAt={progress?.startedAt?.toISOString() ?? null}
         completed={data.status === "completed"}
       />

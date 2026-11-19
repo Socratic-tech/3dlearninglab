@@ -165,7 +165,7 @@ function blockSlides(b: LessonBlock, guide: Partial<TeacherGuide> | undefined, s
     case "hotspot":
       return [{ kind: "think", eyebrow: "Find it", title: plain(b.prompt), notes: joinNotes("Students click the model in their lesson; on the projector, open the lesson and ask volunteers to point.", b.hint && `Hint: ${plain(b.hint)}`) }];
     case "tinkercadLaunch": {
-      const tool = { tinkercad: "Tinkercad", onshape: "Onshape", fusion: "Fusion" }[b.tool ?? "tinkercad"];
+      const tool = { tinkercad: "Tinkercad", simpcadx: "SimpCAD X", onshape: "Onshape", fusion: "Fusion" }[b.tool ?? "tinkercad"];
       return [{ kind: "content", eyebrow: `In ${tool}`, title: b.title, bullets: b.steps.map(plain), listStyle: "number", chip: "On devices", notes: "Leave this slide up while students work so the steps stay visible. Circulate and ask questions rather than taking the mouse." }];
     }
     case "challenge":

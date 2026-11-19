@@ -221,9 +221,16 @@ export const sliderBlock = z.object({
   check: z.enum(["practice", "skill"]).default("practice"),
 });
 /** CAD tools a lesson can send students to. */
-export const CAD_TOOLS = ["tinkercad", "onshape", "fusion"] as const;
+export const CAD_TOOLS = ["tinkercad", "simpcadx", "onshape", "fusion"] as const;
 export const cadTool = z.enum(CAD_TOOLS);
 export type CadTool = z.infer<typeof cadTool>;
+/**
+ * The design tool a class uses for its everyday building work. Tinkercad is the default; SimpCAD X is an opt-in a
+ * teacher turns on per class. Pro CAD (Onshape, Fusion) stays a per-lesson choice and is not a class setting.
+ */
+export const CLASS_CAD_TOOLS = ["tinkercad", "simpcadx"] as const;
+export const classCadTool = z.enum(CLASS_CAD_TOOLS);
+export type ClassCadTool = z.infer<typeof classCadTool>;
 
 export const tinkercadLaunchBlock = z.object({
   ...base,
@@ -232,6 +239,11 @@ export const tinkercadLaunchBlock = z.object({
   steps: z.array(z.string()).min(1),
   /** Which CAD tool the steps are for. Pro CAD missions use Onshape (any age, school-authorized accounts) or Fusion (13+). */
   tool: cadTool.default("tinkercad"),
+  /**
+   * Steps written for a class that opted in to SimpCAD X. Without them, a SimpCAD X class sees `steps` plus a note
+   * that the wording is for Tinkercad. Only write steps for controls you have checked in the app.
+   */
+  stepsByTool: z.object({ simpcadx: z.array(z.string()).min(1).optional() }).optional(),
 });
 export const modelDownloadBlock = z.object({
   ...base,
@@ -276,7 +288,7 @@ export const challengeBlock = z.object({
   visual,
   showTimer: z.boolean().default(false),
   /** Where the work happens: in Tinkercad, offline (paper, tools, real objects, people), both, or in a pro CAD tool. */
-  where: z.enum(["tinkercad", "offline", "both", "onshape", "fusion"]).default("tinkercad"),
+  where: z.enum(["tinkercad", "simpcadx", "offline", "both", "onshape", "fusion"]).default("tinkercad"),
 });
 /** Fail gallery: swipe through famous print fails, guess, then reveal what went wrong. Not scored. */
 export const failGalleryBlock = z.object({

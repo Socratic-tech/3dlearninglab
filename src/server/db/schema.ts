@@ -157,6 +157,8 @@ export const courses = pgTable(
     pathId: text("path_id").notNull().default("18-week"),
     startDate: timestamp("start_date", { withTimezone: true }),
     tinkercadClassUrl: text("tinkercad_class_url"),
+    /** Opt-in design tool for the class: "tinkercad" (default) or "simpcadx". */
+    cadTool: text("cad_tool").$type<"tinkercad" | "simpcadx">().notNull().default("tinkercad"),
     equipment: jsonb("equipment").$type<EquipmentConfig>().notNull(),
     joinCode: text("join_code").notNull(),
     archivedAt: timestamp("archived_at", { withTimezone: true }),

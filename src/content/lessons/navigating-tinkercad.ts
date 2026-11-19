@@ -83,6 +83,15 @@ export const lesson: LessonInput = {
             "Zoom in on the cube. Orbit to a side view to check whether it touches the workplane.",
             "Press F to fit everything, then click Home to reset.",
           ],
+          stepsByTool: {
+            simpcadx: [
+              "Open SimpCAD X. Choose Import in the top bar, or drag misplaced-shapes.stl (download it on this screen) onto the page.",
+              "Orbit (right-drag on empty space; one finger on a touch screen) to a low side view. Which shape sits higher than all the others?",
+              "Orbit until you are looking up from under the workplane.",
+              "Scroll to zoom toward the cube. Orbit to a side view to check whether it touches the workplane.",
+              "Press Shift + F to fit the whole workplane, then press the Home key or the house button to reset the view.",
+            ],
+          },
         },
         { id: "files", type: "modelDownload", modelIds: ["misplaced-shapes"], showImportSteps: true },
         {

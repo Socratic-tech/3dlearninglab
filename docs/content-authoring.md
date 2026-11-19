@@ -40,7 +40,7 @@ A typical lesson: hook (`hero`) → very short explanation (`text`) → demonstr
 | `hotspot` | click a region of a 3D model; positions in model mm, Z-up (see model manifest anchors) | yes |
 | `measurement` | numeric answer ± tolerance | yes |
 | `slider` | drag a slider, watch a live scene (`overhang`, `clearance`, `scale`, `layers`, `infill`), answer ± tolerance | yes |
-| `tinkercadLaunch` | Open Tinkercad (and the class's Tinkercad Classroom link) + steps | — |
+| `tinkercadLaunch` | Open the class's design tool (Tinkercad by default, or SimpCAD X if the teacher opted in) + steps. Optional `stepsByTool.simpcadx` holds steps for SimpCAD X classes; without them those classes see `steps` with a note that the wording is for Tinkercad. Only write SimpCAD X steps for controls you have checked in the app (see `navigating-tinkercad` for the pilot). | — |
 | `modelDownload` | file cards with 3D preview, download, source and license | — |
 | `uploadEvidence` | screenshot / STL / OBJ / share URL for teacher review | teacher |
 | `reflection` | autosaved written reflection; becomes written evidence | teacher |
