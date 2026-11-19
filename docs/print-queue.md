@@ -9,7 +9,7 @@ outside your domains are turned away. No roster, class or Tinkercad account is n
 
 ## Set it up (teacher or printer person, about 5 minutes, once)
 Use the same 3 steps as the course: [teacher-quickstart.md](teacher-quickstart.md) (make your copy and allow it, turn on
-your app). You don't need to create a class to use the print queue.
+your app). You don't need a class to use the print queue, and the **School print queue** card with its link appears in the side panel as soon as step 2 is done.
 
 Then, in the Sheet's side panel:
 1. Under **Settings**, check the school email domain(s) are right (for example `district.org, students.district.org`).

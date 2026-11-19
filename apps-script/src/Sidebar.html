@@ -91,7 +91,7 @@ function render() {
   } else if (!S.url) {
     h = progress(1) + turnOnApp();
   } else if (!S.classes.length) {
-    h = progress(2) + '<div class="card good"><h2><span class="tick">✓</span> You’re set up!</h2><p>Now make your first class.</p></div>' + classForm("Create your first class");
+    h = progress(2) + '<div class="card good"><h2><span class="tick">✓</span> You’re set up!</h2><p>Now make your first class.</p></div>' + classForm("Create your first class") + queueCard();
   } else {
     h = home();
   }
@@ -99,6 +99,11 @@ function render() {
   if (S) S.classes.forEach(function (c, i) { if (openQr[i] && c.link && window.QRCode) new QRCode($("qr" + i), { text: c.link, width: 150, height: 150 }); });
   bindChoices();
   poll();
+}
+
+function queueCard() {
+  if (!S.queueLink || !S.printSubmit) return "";
+  return '<div class="card"><h2>School print queue</h2><p class="muted">Anyone at your school can send a file to your print queue, class or not. They sign in with their school Google account, so every request has a name on it. Prints show up on your dashboard under Prints.</p><button class="small" onclick="copyText(S.queueLink, this)">Copy print queue link</button></div>';
 }
 
 function home() {
@@ -120,7 +125,7 @@ function home() {
   });
   h += showAdd ? "" : '<p><button class="link" onclick="showAdd=true; render()">+ Add another class</button></p>';
   h += "</div>";
-  if (S.queueLink && S.printSubmit) h += '<div class="card"><h2>School print queue</h2><p class="muted">Anyone at your school can send a file to your print queue, class or not. They sign in with their school Google account, so every request has a name on it. Prints show up on your dashboard under Prints.</p><button class="small" onclick="copyText(S.queueLink, this)">Copy print queue link</button></div>';
+  h += queueCard();
   if (showAdd) h += classForm("Add another class");
 
   h += "<details><summary>Settings</summary>" +
