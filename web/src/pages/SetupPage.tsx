@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { ExternalLink, GraduationCap, HardDrive, Presentation, Users } from "lucide-react";
+import { Check, ExternalLink, GraduationCap, HardDrive, Presentation, Users } from "lucide-react";
 import { Alert, Card } from "@/components/ui/card";
 import { Button, buttonClass } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
@@ -84,39 +84,49 @@ function Choice({ active, onClick, icon, title, sub }: { active: boolean; onClic
   );
 }
 
+const STEPS_KEY = "academy.setupStepsDone";
+function loadDone(): number[] {
+  try { const v = JSON.parse(localStorage.getItem(STEPS_KEY) ?? "[]"); return Array.isArray(v) ? v.filter((n) => typeof n === "number") : []; } catch { return []; }
+}
+function saveDone(v: number[]) { try { localStorage.setItem(STEPS_KEY, JSON.stringify(v)); } catch { /* memory-only if storage is blocked */ } }
+
+const TOTAL_STEPS = 3;
+
 function TeacherSteps() {
+  const [done, setDone] = useState<number[]>(loadDone);
   if (!TEMPLATE) {
     return <Alert tone="warning" title="This site isn't finished setting up">Ask the person who shared it for the template Sheet link.</Alert>;
   }
+  const toggle = (n: number) => setDone((d) => { const next = d.includes(n) ? d.filter((x) => x !== n) : [...d, n]; saveDone(next); return next; });
+  const count = done.filter((n) => n >= 1 && n <= TOTAL_STEPS).length;
   return (
     <section aria-labelledby="steps-title" className="space-y-4">
       <div>
-        <h2 id="steps-title" className="font-display text-2xl font-bold">Set up in 5 steps</h2>
+        <h2 id="steps-title" className="font-display text-2xl font-bold">Set up in 3 steps</h2>
         <p className="text-muted">About 5 minutes, one time only. You never need to touch any code. Your students&apos; work is saved in a Google Sheet in <b>your</b> Drive.</p>
+        <p className="mt-2 text-sm font-semibold" role="status">{count} of {TOTAL_STEPS} steps done</p>
+        <div className="mt-1 h-2 rounded-full bg-surface-2" aria-hidden><div className="h-2 rounded-full bg-primary transition-all" style={{ width: `${(count / TOTAL_STEPS) * 100}%` }} /></div>
       </div>
       <ol className="space-y-4">
-        <Step n={1} title="Make your copy" picture={<PicCopy />}>
+        <Step n={1} title="Make your copy, then allow it" done={done.includes(1)} onToggle={() => toggle(1)} picture={<><PicCopy /><PicMenu /><PicAllow /></>}>
           <a href={TEMPLATE} target="_blank" rel="noopener noreferrer" className={cn(buttonClass("primary", "lg"), "w-full justify-center sm:w-auto")}>
             Make my copy <ExternalLink className="size-4" aria-hidden /><span className="sr-only"> (opens Google Sheets in a new tab)</span>
           </a>
-          <p>Google opens a box. Click the blue <b>Make a copy</b> button.</p>
+          <ol className="list-decimal space-y-1 pl-5">
+            <li>Click the blue <b>Make a copy</b> button in the box Google shows.</li>
+            <li>In your new Sheet, click <b>3D Design Academy</b> at the top, then <b>Set up &amp; class links</b>. Don&apos;t see it? Wait 10 seconds or refresh.</li>
+            <li>Pick your school account. If you see <b>&ldquo;Google hasn&apos;t verified this app&rdquo;</b>, that&apos;s normal (it&apos;s your own copy). Click <b>Advanced → Go to 3D Design Academy → Allow</b>.</li>
+            <li className="font-semibold">Click the menu one more time: <b>3D Design Academy → Set up &amp; class links</b>. The first click only asks for permission.</li>
+          </ol>
         </Step>
-        <Step n={2} title="Open the menu" picture={<PicMenu />}>
-          <p>In your new Sheet, click <b>3D Design Academy</b> at the top, then <b>Set up &amp; class links</b>.</p>
-          <p className="text-sm text-muted">Don&apos;t see it? Wait 10 seconds, or refresh the page.</p>
-        </Step>
-        <Step n={3} title="Click Allow" picture={<PicAllow />}>
-          <p>Google asks for permission. Pick your school account. If you see <b>&ldquo;Google hasn&apos;t verified this app&rdquo;</b>, that&apos;s normal (it&apos;s your own copy). Click <b>Advanced</b>, then <b>Go to 3D Design Academy</b>, then <b>Allow</b>.</p>
-          <p className="font-semibold">Then click the menu again: <b>3D Design Academy → Set up &amp; class links</b>.</p>
-        </Step>
-        <Step n={4} title="Turn on your app" picture={<PicDeploy />}>
-          <p>The panel on the right shows you how, with a picture of each screen. In short: click <b>Open the script editor</b>, then <b>Deploy → New deployment</b>, pick <b>Web app</b>, set <b>Who has access</b> to <b>Anyone</b>, and click <b>Deploy</b>.</p>
+        <Step n={2} title="Turn on your app" done={done.includes(2)} onToggle={() => toggle(2)} picture={<PicDeploy />}>
+          <p>The side panel prepares your Sheet by itself, then shows a picture of each screen. In short: click <b>Open the script editor</b>, then <b>Deploy → New deployment</b>, pick <b>Web app</b>, set <b>Who has access</b> to <b>Anyone</b>, and click <b>Deploy</b>.</p>
           <p className="text-sm text-muted">Google requires you to do this click yourself, one time. The panel moves on by itself when it&apos;s done.</p>
         </Step>
-        <Step n={5} title="Make a class and share the link" picture={<PicPanel />} last>
+        <Step n={3} title="Make a class and share the link" done={done.includes(3)} onToggle={() => toggle(3)} picture={<PicPanel />} last>
           <ul className="list-disc space-y-1 pl-5">
             <li>Type a class name and click <b>Create class</b>.</li>
-            <li>Click <b>Copy student link</b> and post it in Google Classroom.</li>
+            <li>Click <b>Copy student link</b> and post it in Google Classroom, or <b>Show QR code</b> for the board.</li>
             <li>Click <b>Open my dashboard</b> to see your class. Bookmark that page.</li>
           </ul>
           <p className="text-sm text-muted">The app and lessons update from the website automatically. Your Sheet keeps a cached backup for outages.</p>
@@ -127,17 +137,21 @@ function TeacherSteps() {
   );
 }
 
-function Step({ n, title, picture, children, last }: { n: number; title: string; picture: ReactNode; children: ReactNode; last?: boolean }) {
+function Step({ n, title, picture, children, last, done, onToggle }: { n: number; title: string; picture: ReactNode; children: ReactNode; last?: boolean; done: boolean; onToggle: () => void }) {
   return (
     <li className="relative flex gap-4">
       <div className="flex flex-col items-center">
-        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary font-display text-lg font-bold text-primary-fg" aria-hidden>{n}</span>
+        <span className={cn("grid size-10 shrink-0 place-items-center rounded-full font-display text-lg font-bold", done ? "bg-success text-white" : "bg-primary text-primary-fg")} aria-hidden>{done ? <Check className="size-5" /> : n}</span>
         {!last && <span className="mt-1 w-0.5 flex-1 bg-border" aria-hidden />}
       </div>
       <Card className="mb-1 flex-1 space-y-3">
         <h3 className="font-display text-xl font-semibold"><span className="sr-only">Step {n}: </span>{title}</h3>
         <div className="space-y-2 text-base">{children}</div>
-        <div className="overflow-hidden rounded-xl border border-border bg-surface-2" aria-hidden>{picture}</div>
+        <div className="space-y-px overflow-hidden rounded-xl border border-border bg-surface-2" aria-hidden>{picture}</div>
+        <label className="flex min-h-11 cursor-pointer items-center gap-3 font-semibold">
+          <input type="checkbox" className="size-5 accent-[var(--color-primary)]" checked={done} onChange={onToggle} />
+          I finished this step
+        </label>
       </Card>
     </li>
   );

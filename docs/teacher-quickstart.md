@@ -1,26 +1,23 @@
 # 3D Design Academy — teacher quick start
 
-About 5 minutes. You need a school Google account. Your students' work is saved in **your own Google Sheet and Drive**.
+Three steps, about 5 minutes. You need a school Google account. Your students' work is saved in **your own Google Sheet and Drive**.
 
-## 1. Make your copy
-Open the website and click **Make my copy**, then **Make a copy** in Google Sheets.
-This puts a Sheet named “Copy of 3D Design Academy” in your Drive. You can rename it.
+**Just want a look first?** Open the website and click **Try it now**. No account, nothing to set up.
 
-## 2. Open the setup panel
-In your new Sheet, use the menu **3D Design Academy → Set up & class links**.
-(If the menu isn't there yet, wait a few seconds or reload the page.)
+## Step 1. Make your copy and allow it
+1. Open the website and click **Make my copy**, then **Make a copy** in Google Sheets.
+2. In your new Sheet, click the menu **3D Design Academy → Set up & class links**. (No menu? Wait a few seconds or reload.)
+3. Google asks for permission. You'll see **“Google hasn't verified this app.”** That's expected: it's *your* copy, not a
+   third-party app. Click **Advanced → Go to 3D Design Academy (unsafe) → Allow**.
+4. **Click the menu again.** The first click only asks for permission.
 
-Google asks you to approve permissions the first time. You'll see **“Google hasn't verified this app.”**
-That's expected: it's *your* copy, not a third-party app. Click **Advanced → Go to 3D Design Academy (unsafe) → Allow**.
-**Then click the menu again** — the first click only asks for permission.
-
-## 3. Turn on your app (one time, 2 minutes)
-The panel prepares your Sheet by itself, then shows a picture of each screen for this step:
+## Step 2. Turn on your app (one time, 2 minutes)
+The panel prepares your Sheet by itself, then shows a picture of each screen:
 **Open the script editor → Deploy → New deployment → ⚙ Web app → Execute as: Me, Who has access: Anyone → Deploy**
 (click **Authorize access → Allow** if asked). The panel moves on by itself when it's done.
 Google requires the teacher to make this click; nothing can do it for you.
 
-## 4. Make a class and share the link
+## Step 3. Make a class and share the link
 Type a class name, pick **18 weeks** or **9 weeks**, and click **Create class**.
 Click **Copy student link** and post it in Google Classroom, or **Show QR code** for the board.
 

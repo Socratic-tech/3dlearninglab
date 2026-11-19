@@ -33,7 +33,7 @@ const TABLES = {
   Gallery: ["id", "classId", "evidenceId", "email", "lessonId", "caption", "createdAt"],
   Rewards: ["id", "classId", "name", "description", "price", "active", "createdAt", "updatedAt"],
   Redemptions: ["id", "email", "classId", "rewardId", "rewardName", "price", "status", "teacherNote", "createdAt", "updatedAt"],
-  Prints: ["id", "email", "classId", "lessonId", "evidenceId", "fileId", "fileName", "status", "note", "teacherNote", "createdAt", "updatedAt"],
+  Prints: ["id", "email", "classId", "lessonId", "evidenceId", "fileId", "fileName", "status", "note", "teacherNote", "createdAt", "updatedAt", "submitterName", "link", "copies"],
 };
 
 const DEFAULT_CONFIG = [
@@ -42,6 +42,7 @@ const DEFAULT_CONFIG = [
   ["TEACHER_EMAILS", "", "Comma-separated teacher emails (the script owner is always a teacher)."],
   ["ADMIN_EMAILS", "", "Administrators (principal, district or RESA staff): open every lesson and every class dashboard. Comma-separated."],
   ["AUTO_ENROLL", "FALSE", "TRUE = an allowed-domain student who opens a class link joins that class on first sign-in. FALSE = only students on a class roster."],
+  ["PRINT_SUBMIT", "TRUE", "TRUE = anyone who signs in with an ALLOWED_DOMAINS account can send a file to the print queue (#/print), even if they are in no class. FALSE = only class students."],
   ["MAX_UPLOAD_MB", "10", "Largest screenshot/STL a student may upload."],
   ["USAGE_REPORTS", "TRUE", "TRUE = once a day, send Berrien RESA counts only (classes, students, active this week, missions done). Never names, emails or work. FALSE = send nothing."],
 ];
@@ -136,7 +137,8 @@ function handle_(req) {
     const action = ACTIONS[req && req.action];
     if (!action) throw userError_("Unknown request.");
     ensureClasses_();
-    let user = authenticate_(req.token, (req.args || {}).classId);
+    let user = authenticate_(req.token, (req.args || {}).classId, !!action.open);
+    if (user.role === "submitter" && !action.open) throw userError_("You don't have access to that.");
     // Student view: a teacher works as their own test student (a real student record, see previewStudent_).
     const staff = user.role === "teacher";
     // Classroom stress test: a teacher acts as one of the seeded test students ("loadtest-NNN+student@…").
@@ -169,7 +171,7 @@ function handle_(req) {
 // ───────────────────────── Auth ─────────────────────────
 
 /** Verifies a Google ID token (from Sign in with Google on the Pages site) and resolves the user. */
-function authenticate_(token, classId) {
+function authenticate_(token, classId, allowOpen) {
   if (!token || typeof token !== "string") throw userError_("Please sign in.");
   const cfg = config_();
   const cache = CacheService.getScriptCache();
@@ -200,6 +202,15 @@ function authenticate_(token, classId) {
   const users = table_("Users");
   let row = users.find(function (r) { return r.email === email; });
   const enrolled = row ? activeEnrollments_(email) : [];
+  // School-wide actions (the print queue): anyone with a verified account on an allowed school domain may use them,
+  // class or no class. The email comes from Google's verified ID token, so a request can't pretend to be someone else.
+  if (allowOpen) {
+    if (row && row.status === "archived") throw userError_("Your account is no longer active in these classes.");
+    if (enrolled.length) return { email: email, name: (row && row.name) || claims.name || email, role: "student", sub: claims.sub };
+    if (String(cfg.PRINT_SUBMIT || "TRUE").trim().toUpperCase() === "FALSE") throw userError_("The print queue isn't open to everyone at this school yet.");
+    if (!allowed.length || allowed.indexOf(domain) < 0) throw userError_("Please sign in with your school Google account.");
+    return { email: email, name: claims.name || email, role: "submitter", sub: claims.sub };
+  }
   const linkClass = classId ? classById_(classId) : null;
   const autoEnroll = String(cfg.AUTO_ENROLL).toUpperCase() === "TRUE";
   const inLinkClass = linkClass && enrolled.some(function (e) { return e.classId === linkClass.classId; });
@@ -472,7 +483,7 @@ function sheet_(name) {
     sh = book.insertSheet(name);
     sh.getRange(1, 1, 1, TABLES[name].length).setValues([TABLES[name]]).setFontWeight("bold");
     sh.setFrozenRows(1);
-  } else if ((name === "Summary" || name === "Classes") && !headersChecked_(name)) {
+  } else if ((name === "Summary" || name === "Classes" || name === "Prints") && !headersChecked_(name)) {
     // Older class Sheets have fewer columns (Summary: store columns; Classes: custom project paths, mission notes). Add the new
     // headers in place; existing rows and student work stay untouched.
     const headers = TABLES[name];
@@ -1402,6 +1413,7 @@ function liveView_(progressRows) {
 
 // ───────────────────────── Print queue ─────────────────────────
 
+const PRINT_OPEN_LIMIT_ = 5;
 const PRINT_STATUSES = ["queued", "redo", "printing", "printed", "failed", "cancelled"];
 const PRINT_TRANSITIONS = {
   queued: ["redo", "printing", "cancelled"],
@@ -1423,6 +1435,7 @@ function printOut_(r) {
     id: r.id, email: r.email, classId: r.classId, lessonId: r.lessonId, evidenceId: r.evidenceId, fileName: r.fileName || null,
     fileUrl: r.fileId ? "https://drive.google.com/file/d/" + r.fileId + "/view" : null,
     status: printStatus_(r.status), note: r.note || "", teacherNote: r.teacherNote || "", createdAt: r.createdAt, updatedAt: r.updatedAt,
+    submitterName: r.submitterName || "", link: r.link || null, copies: Number(r.copies) || 1,
   };
 }
 
@@ -1674,7 +1687,7 @@ const ACTIONS = {
       try { reportUsage_(); } catch (e) { console.warn("usage report: " + e); }
       return {
         live: live,
-        prints: table_("Prints").rows.filter(function (r) { return r.classId === cls.classId; }).map(printOut_),
+        prints: table_("Prints").rows.filter(function (r) { return r.classId === cls.classId || !r.classId; }).map(printOut_),
         cls: classOut_(cls),
         classes: activeClasses_().map(classOut_),
         students: students,
@@ -1713,6 +1726,64 @@ const ACTIONS = {
       const ev = table_("Evidence").find(function (r) { return r.id === a.evidenceId && r.email === user.email; });
       if (!ev || ev.type !== "stl" || !ev.fileId) throw userError_("Choose one of your uploaded STL files.");
       return newPrint_(user, a.classId, ev, a.note);
+    },
+  },
+
+  /**
+   * The school-wide print queue: anyone signed in with an allowed school account (class or no class) sends an STL/OBJ/3MF
+   * file or a design link. Their verified email identifies them; a few open requests at a time keeps the queue fair.
+   */
+  submitPrint: {
+    open: true,
+    run: function (user, a) {
+      const link = String(a.url || "").trim();
+      if (link && !/^https:\/\/\S+$/.test(link)) throw userError_("Paste the whole link, starting with https://");
+      if (!link && !a.file) throw userError_("Choose a file or paste a link to your design.");
+      const copies = Math.max(1, Math.min(10, Math.floor(Number(a.copies)) || 1));
+      return withStudentLock_(user.email, function () {
+        const t = rawTable_("Prints", true);
+        const open = t.filter(function (r) { return r.email === user.email && ["queued", "redo", "printing"].indexOf(printStatus_(r.status)) >= 0; });
+        if (open.length >= PRINT_OPEN_LIMIT_) throw userError_("You already have " + PRINT_OPEN_LIMIT_ + " prints waiting. Wait for one to finish or cancel one.");
+        const file = a.file ? saveUpload_(user, "print", a.file) : null;
+        const row = {
+          id: "p" + Utilities.getUuid().slice(0, 8), email: user.email, classId: "", lessonId: "", evidenceId: "",
+          fileId: file ? file.id : "", fileName: file ? file.name : "", status: "queued", note: String(a.note || "").slice(0, 500),
+          teacherNote: "", createdAt: now_(), updatedAt: now_(), submitterName: String(user.name || "").slice(0, 80), link: link, copies: copies,
+        };
+        table_("Prints").append(row);
+        return printOut_(row);
+      });
+    },
+  },
+
+  /** The printer person's whole queue (school-wide and class requests), with no class needed. */
+  printQueue: {
+    role: "teacher",
+    run: function () {
+      return { prints: rawTable_("Prints", true).rows.map(printOut_) };
+    },
+  },
+
+  /** Everyone's own print requests (works for class students and school-wide submitters alike). */
+  myPrints: {
+    open: true,
+    run: function (user) {
+      return { prints: table_("Prints").filter(function (r) { return r.email === user.email; }).map(printOut_), role: user.role, name: user.name };
+    },
+  },
+
+  /** A person can take back a print that hasn't started. */
+  cancelMyPrint: {
+    open: true,
+    run: function (user, a) {
+      return withStudentLock_(user.email, function () {
+        const t = table_("Prints");
+        const row = t.find(function (r) { return r.id === a.printId && r.email === user.email; });
+        if (!row) throw userError_("That print request no longer exists.");
+        const from = printStatus_(row.status);
+        if (from !== "queued" && from !== "redo") throw userError_("That print can't be cancelled now.");
+        return printOut_(t.upsert(function (r) { return r.id === a.printId; }, { status: "cancelled", updatedAt: now_() }));
+      });
     },
   },
 
@@ -2152,7 +2223,7 @@ function saveUpload_(user, kind, file) {
   const name = String(file.name || "upload").replace(/[^a-zA-Z0-9._-]+/g, "-").slice(-80);
   const ext = (name.split(".").pop() || "").toLowerCase();
   const images = ["png", "jpg", "jpeg", "webp", "gif", "heic", "heif"];
-  const okExt = { screenshot: images, physical_test: images, written: images, stl: ["stl"], obj: ["obj"] }[kind] || [];
+  const okExt = { screenshot: images, physical_test: images, written: images, stl: ["stl"], obj: ["obj"], print: ["stl", "obj", "3mf"] }[kind] || [];
   if (okExt.indexOf(ext) < 0) throw userError_("That file type isn't allowed here. Use " + okExt.join(", ").toUpperCase() + ".");
   const isImg = okExt === images;
   let mime = "application/octet-stream";
@@ -2425,6 +2496,9 @@ function sidebarState(opts) {
     adminEmails: cfg.ADMIN_EMAILS || "",
     autoEnroll: String(cfg.AUTO_ENROLL).toUpperCase() === "TRUE",
     teacherLink: link("#/teacher"),
+    queueLink: link("#/queue"),
+    queueManageLink: link("#/queue/manage"),
+    printSubmit: String(cfg.PRINT_SUBMIT || "TRUE").trim().toUpperCase() !== "FALSE",
     classes: classes.map(function (c) { return { id: c.id, name: c.name + (c.section ? " · " + c.section : ""), link: link("&class=" + encodeURIComponent(c.id)) }; }),
     version: BUILD.version,
     latest: latestVersion_(),
@@ -2457,6 +2531,7 @@ function sidebarSaveSettings(s) {
   setConfig_("TEACHER_EMAILS", clean(s.teacherEmails));
   setConfig_("ADMIN_EMAILS", clean(s.adminEmails));
   setConfig_("AUTO_ENROLL", s.autoEnroll ? "TRUE" : "FALSE");
+  if (s.printSubmit !== undefined) setConfig_("PRINT_SUBMIT", s.printSubmit ? "TRUE" : "FALSE");
   return sidebarState();
 }
 

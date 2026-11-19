@@ -28,6 +28,7 @@ import { SetupPage } from "./pages/SetupPage";
 import { HandoutPage } from "./pages/HandoutPage";
 import { TryItBar, TryItStart } from "./pages/TryItPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
+import { QueuePage } from "./pages/QueuePage";
 
 function useHash() {
   const [hash, setHash] = useState(() => location.hash || "#/");
@@ -145,8 +146,11 @@ export function App() {
   if (hash.startsWith("#/start")) return <Frame><GetStartedPage onTry={() => { enterTryIt(); setCfg(readConfig()); location.hash = "#/"; }} /></Frame>;
   if (!cfg.apiUrl || (!cfg.clientId && !local) || hash.startsWith("#/setup")) return <Frame><SetupPage cfg={cfg} onSaved={() => { setCfg(readConfig()); location.hash = "#/"; }} /></Frame>;
   if (!token && local) return <Frame><TryItStart onStarted={(t) => { setMe(null); hasMe.current = false; setToken(t); location.hash = "#/"; }} /></Frame>;
-  if (!token || (!cfg.clientId && !local)) return <Frame><SignIn key={locale} clientId={cfg.clientId ?? ""} onToken={setToken} /></Frame>;
+  const queueRoute = hash.startsWith("#/queue");
+  if (!token || (!cfg.clientId && !local)) return <Frame><SignIn key={locale} clientId={cfg.clientId ?? ""} onToken={setToken} queue={queueRoute} /></Frame>;
   const clientId = cfg.clientId ?? "";
+  // School-wide print queue: open to any signed-in school account, so it never waits for (or fails on) a class roster
+  if (queueRoute) return <Frame me={me ?? undefined} onSignOut={() => { clearCachedData(tokenEmail()); signOut(); setToken(null); setMe(null); }}><QueuePage apiUrl={cfg.apiUrl} /></Frame>;
   if (error) return <Frame onSignOut={() => { clearCachedData(tokenEmail()); signOut(); setToken(null); setMe(null); }}><div className="mx-auto max-w-lg py-10"><Alert tone="danger" title={tr("We couldn't open your class")}>{error}</Alert><div className="mt-4 flex flex-wrap gap-2"><Button onClick={() => void load()}>{tr("Try again")}</Button>{studentView && <Button variant="secondary" onClick={() => { setError(null); setStudentView(false); location.hash = "#/teacher"; }}>{tr("Back to teacher view")}</Button>}<Button variant="secondary" onClick={() => { signOut(); resetDevice(); location.replace(location.pathname); }}>{tr("Start over on this device")}</Button></div><p className="mt-2 text-sm text-muted">{tr("Start over forgets the class link and Google account on this computer. Then open the right link again.")}</p><details className="mt-6"><summary className="cursor-pointer text-sm font-semibold">{tr("Teacher? Check your setup")}</summary><div className="mt-3"><SetupCheckPanel apiUrl={cfg.apiUrl} autoRun /></div></details></div></Frame>;
   if (!me || !localeContentReady(locale)) return <Frame><p className="py-20 text-center text-muted" role="status">{tr("Loading your class…")}</p></Frame>;
 
@@ -238,16 +242,16 @@ function SignInBar({ clientId, onToken }: { clientId: string; onToken: (t: strin
   );
 }
 
-function SignIn({ clientId, onToken }: { clientId: string; onToken: (t: string) => void }) {
+function SignIn({ clientId, onToken, queue }: { clientId: string; onToken: (t: string) => void; queue?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => { if (ref.current) void renderSignIn(ref.current, clientId, onToken); }, [clientId, onToken]);
   return (
     <div className="bg-blueprint mx-auto mt-10 max-w-md rounded-3xl border border-border bg-surface p-8 text-center">
       <LogoMark size={48} />
-      <h1 className="mt-3 font-display text-3xl font-bold">{tr("Learn to design things that work.")}</h1>
-      <p className="mt-2 text-muted">{tr("Sign in with your school Google account to open your missions.")}</p>
+      <h1 className="mt-3 font-display text-3xl font-bold">{queue ? tr("Send something to the 3D printer") : tr("Learn to design things that work.")}</h1>
+      <p className="mt-2 text-muted">{queue ? tr("Sign in with your school Google account. That is how the printer person knows who sent it.") : tr("Sign in with your school Google account to open your missions.")}</p>
       <div ref={ref} className="mt-6 flex justify-center" />
-      <p className="mt-6 text-xs text-muted">{tr("Your work is saved to your class's Google Sheet, which only your teacher can open.")}</p>
+      <p className="mt-6 text-xs text-muted">{queue ? tr("Your request is saved in the printer person's Google Sheet, which only they can open.") : tr("Your work is saved to your class's Google Sheet, which only your teacher can open.")}</p>
     </div>
   );
 }

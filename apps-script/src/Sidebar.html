@@ -91,7 +91,7 @@ function render() {
   } else if (!S.url) {
     h = progress(1) + turnOnApp();
   } else if (!S.classes.length) {
-    h = progress(2) + '<div class="card good"><h2><span class="tick">✓</span> You’re set up!</h2><p>Now make your first class.</p></div>' + classForm("Create your first class");
+    h = progress(2) + '<div class="card good"><h2><span class="tick">✓</span> You’re set up!</h2><p>Now make your first class.</p></div>' + classForm("Create your first class") + queueCard();
   } else {
     h = home();
   }
@@ -99,6 +99,12 @@ function render() {
   if (S) S.classes.forEach(function (c, i) { if (openQr[i] && c.link && window.QRCode) new QRCode($("qr" + i), { text: c.link, width: 150, height: 150 }); });
   bindChoices();
   poll();
+}
+
+function queueCard() {
+  if (!S.queueLink || !S.printSubmit) return "";
+  return '<div class="card"><h2>School print queue</h2><p class="muted">Anyone at your school can send a file to your print queue, class or not. They sign in with their school Google account, so every request has a name on it. Prints show up on your dashboard under Prints.</p><button class="small" onclick="copyText(S.queueLink, this)">Copy print queue link</button>' +
+    (S.queueManageLink ? '<p style="margin-top:10px"><a class="btn" target="_blank" href="' + esc(S.queueManageLink) + '">Open the print queue ↗</a></p><p class="muted">See every request, start prints and mark them done. No class needed. Bookmark that page.</p>' : "") + "</div>";
 }
 
 function home() {
@@ -120,6 +126,7 @@ function home() {
   });
   h += showAdd ? "" : '<p><button class="link" onclick="showAdd=true; render()">+ Add another class</button></p>';
   h += "</div>";
+  h += queueCard();
   if (showAdd) h += classForm("Add another class");
 
   h += "<details><summary>Settings</summary>" +
@@ -129,6 +136,8 @@ function home() {
     '<p class="muted">Off: only students on your roster get in.</p>' +
     '<label>Co-teachers (emails)<input type="text" id="tch" value="' + esc(S.teacherEmails) + '" placeholder="optional"></label>' +
     '<label>Administrators (emails)<input type="text" id="adm" value="' + esc(S.adminEmails) + '" placeholder="principal, district or RESA staff"></label>' +
+    '<label style="font-weight:400"><input type="checkbox" id="psub"' + (S.printSubmit ? " checked" : "") + "> Anyone at school can send prints (school print queue)</label>" +
+    '<p class="muted">They must sign in with an allowed email domain above. Off: only your class students can send prints.</p>' +
     '<button class="secondary" onclick="save(this)">Save settings</button>' +
     (S.teacherLink ? '<p style="margin-top:14px"><b>Staff link</b>: send this to the co-teachers and admins above (not to students).</p><button class="small secondary" onclick="copyText(S.teacherLink, this)">Copy staff link</button>' : "") +
     '<p style="margin-top:14px"><b>App address</b> (only if the website asks for it):</p><div class="link">' + esc(S.url) + "</div>" +
@@ -242,7 +251,7 @@ function createClass(btn) {
   run("sidebarCreateClass", { name: n, section: "", pathId: len ? len.value : "18-week" }, btn, "Creating…");
 }
 function save(btn) {
-  run("sidebarSaveSettings", { domains: $("dom").value, teacherEmails: $("tch").value, adminEmails: $("adm").value, autoEnroll: $("auto").checked }, btn, "Saving…");
+  run("sidebarSaveSettings", { domains: $("dom").value, teacherEmails: $("tch").value, adminEmails: $("adm").value, autoEnroll: $("auto").checked, printSubmit: $("psub") ? $("psub").checked : undefined }, btn, "Saving…");
 }
 function update(btn) {
   busy(btn, "Checking…");

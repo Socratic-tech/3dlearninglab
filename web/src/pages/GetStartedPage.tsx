@@ -31,7 +31,7 @@ export function GetStartedPage({ onTry }: { onTry: () => void }) {
           <Button size="lg" variant="accent" onClick={onTry}>Try it now</Button>
           <a href="#/setup/teacher" className="inline-flex h-12 items-center rounded-xl bg-primary px-6 font-semibold text-primary-fg hover:brightness-110">Set up my class</a>
         </div>
-        <p className="mt-3 text-sm text-muted">Try it needs no account. Setup takes about 10 minutes, one time.</p>
+        <p className="mt-3 text-sm text-muted">Try it needs no account. Setup is 3 steps and about 5 minutes, one time.</p>
       </section>
 
       {/* Courses */}
@@ -63,10 +63,9 @@ export function GetStartedPage({ onTry }: { onTry: () => void }) {
       {/* How setup works */}
       <section aria-labelledby="how-h" className="space-y-4">
         <h2 id="how-h" className="font-display text-2xl font-bold">How setup works</h2>
-        <ol className="grid gap-3 sm:grid-cols-4">
+        <ol className="grid gap-3 sm:grid-cols-3">
           {[
-            ["Make your copy", "One click copies the class Sheet into your Google Drive."],
-            ["Click Allow", "Google asks permission for your own copy. That’s normal."],
+            ["Make your copy and allow it", "One click copies the class Sheet into your Google Drive. Google asks permission for your own copy, which is normal."],
             ["Turn on your app", "The Sheet’s side panel walks you through one Google screen."],
             ["Create a class", "Share the class link in Google Classroom or print the QR poster."],
           ].map(([t, d], i) => (
