@@ -144,6 +144,7 @@ function home() {
     (S.safeUpdates ? '<p class="muted" style="margin-top:14px">Version ' + esc(S.version) + '. Lessons update by themselves; app updates install when you click Update now.</p>' +
       (S.previousVersion ? '<button class="small secondary" onclick="undo(this)">Undo last update (back to ' + esc(S.previousVersion) + ')</button>' : "") + '<div id="undo"></div>' : "") +
     "</details>";
+  h += '<p class="muted" style="margin-top:14px">Version ' + esc(S.version) + ' · <button class="link" onclick="checkUpdates(this)">Check for updates</button> <span id="updmsg" aria-live="polite"></span></p>';
   return h;
 }
 
@@ -204,6 +205,20 @@ function poll() {
     google.script.run.withSuccessHandler(function (s) { if (s.url) { S = s; clearInterval(POLL); POLL = null; render(); } }).sidebarState();
   }, 10000);
   if (!waiting && POLL) { clearInterval(POLL); POLL = null; }
+}
+
+// "Check for updates": forgets the remembered newest version and asks the website again.
+function checkUpdates(btn) {
+  busy(btn, "Checking…");
+  google.script.run
+    .withSuccessHandler(function (s) {
+      S = s;
+      var newer = S.latest && S.latest.version && S.latest.version !== S.version;
+      render();
+      if (!newer && $("updmsg")) $("updmsg").textContent = "You have the newest version.";
+    })
+    .withFailureHandler(function (e) { btn.disabled = false; btn.textContent = btn.dataset.t; $("updmsg").textContent = "Couldn’t check: " + (e.message || e); })
+    .sidebarState({ updates: true });
 }
 
 // "Check again now": asks Google afresh (no remembered results).

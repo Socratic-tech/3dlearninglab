@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { call, fileToBase64 } from "../api";
 import { tokenEmail } from "../auth";
+import { queueLink } from "../config";
+import { Qr } from "./SetupHelp";
 import { Prints, type PrintJob } from "./TeacherPage";
 
 const STATUS: Record<string, { label: string; help: string; tone: "neutral" | "primary" | "accent" | "success" | "danger" }> = {
@@ -23,13 +25,13 @@ const MAX_MB = 10;
  * School-wide print queue (#/queue). Anyone who signs in with an allowed school Google account can send a file or a
  * design link, class or no class. The person is identified by their verified Google sign-in, shown at the top.
  */
-export function QueuePage({ apiUrl }: { apiUrl: string }) {
-  if (location.hash.startsWith("#/queue/manage")) return <ManageQueue apiUrl={apiUrl} />;
+export function QueuePage({ apiUrl, clientId }: { apiUrl: string; clientId?: string | null }) {
+  if (location.hash.startsWith("#/queue/manage")) return <ManageQueue apiUrl={apiUrl} clientId={clientId} />;
   return <SendPage apiUrl={apiUrl} />;
 }
 
 /** The printer person's view of the whole queue. Works with no class; only teachers and admins get an answer. */
-function ManageQueue({ apiUrl }: { apiUrl: string }) {
+function ManageQueue({ apiUrl, clientId }: { apiUrl: string; clientId?: string | null }) {
   const [prints, setPrints] = useState<PrintJob[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const load = useCallback(async () => {
@@ -42,9 +44,29 @@ function ManageQueue({ apiUrl }: { apiUrl: string }) {
       <h1 className="flex items-center gap-2 font-display text-3xl font-bold tracking-tight"><Printer className="size-8 text-primary" aria-hidden /> {tr("Print queue")}</h1>
       {error && <Alert tone="danger" title={tr("We couldn't open the queue")}>{error} {tr("Only the Sheet's owner, co-teachers and admins can manage the queue.")}</Alert>}
       {!prints && !error && <p className="text-muted" role="status">{tr("Loading the queue…")}</p>}
+      {prints && <ShareQueue link={queueLink(apiUrl, clientId)} />}
       {prints && <Prints jobs={prints} name={(e) => e} apiUrl={apiUrl} onSaved={() => void load()} />}
       <p className="text-sm text-muted"><a className="text-primary underline" href="#/queue">{tr("Send a print yourself")}</a></p>
     </div>
+  );
+}
+
+/** The link and QR code for the school print queue, so the printer person never has to go back to the Sheet. */
+function ShareQueue({ link }: { link: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <Card className="flex flex-col gap-4 sm:flex-row sm:items-center print:border-0 print:shadow-none">
+      <div className="shrink-0 self-center"><Qr text={link} size={160} label={tr("QR code for the school print queue")} /></div>
+      <div className="min-w-0 flex-1 space-y-2">
+        <h2 className="font-display text-xl font-semibold">{tr("Share the print queue")}</h2>
+        <p className="text-muted">{tr("Anyone at school can scan this or open the link, sign in with their school Google account, and send a print.")}</p>
+        <p className="break-all rounded-lg bg-surface-2 p-2 text-sm">{link}</p>
+        <div className="flex flex-wrap gap-2 print:hidden">
+          <Button size="sm" onClick={() => { void navigator.clipboard?.writeText(link).then(() => setCopied(true), () => setCopied(false)); }}>{copied ? tr("Copied") : tr("Copy link")}</Button>
+          <Button size="sm" variant="secondary" onClick={() => window.print()}>{tr("Print this for the wall")}</Button>
+        </div>
+      </div>
+    </Card>
   );
 }
 

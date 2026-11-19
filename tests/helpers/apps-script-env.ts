@@ -69,7 +69,7 @@ export const okScriptApi: ScriptApiFake = ({ method, path }) => {
  */
 type WebAppFake = "self" | "other" | 404 | "signin" | "page" | 503 | "throws";
 
-export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string; scriptId?: string; scriptApi?: ScriptApiFake; feed?: { body: string | null; fetches: number }; site?: { up: boolean; fetches: number; body?: string }; webApps?: Record<string, WebAppFake> } = {}) {
+export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string; scriptId?: string; scriptApi?: ScriptApiFake; feed?: { body: string | null; fetches: number }; site?: { up: boolean; fetches: number; body?: string }; latest?: { version: string; notes?: string }; webApps?: Record<string, WebAppFake> } = {}) {
   const scriptApiCalls: ScriptApiCall[] = [];
   const webAppFetches: string[] = [];
   const sheets = new Map<string, ReturnType<typeof fakeSheet>>();
@@ -165,6 +165,10 @@ export function makeEnv(owner = "teacher@school.org", opts: { webAppUrl?: string
         if (url.includes("usage-receiver")) {
           usageReports.push(JSON.parse(String(o.payload)));
           return { getResponseCode: () => 200, getContentText: () => '{"ok":true}' };
+        }
+        if (url.includes("apps-script/version.json")) {
+          const v = opts.latest ?? { version: "0.0.0-test" };
+          return { getResponseCode: () => 200, getContentText: () => JSON.stringify(v) };
         }
         if (url.includes("apps-script/bundle.js")) {
           const site = opts.site ?? { up: true, fetches: 0 };
