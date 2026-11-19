@@ -181,6 +181,54 @@ describe("lost replies", () => {
     expect(env.call("maya@school.org", "me").data.prints[0]).toMatchObject({ status: "printed", teacherNote: "Bin 3" });
   });
 
+  describe("school-wide print queue", () => {
+    const stl = Buffer.from("solid x\nendsolid x").toString("base64");
+
+    it("lets a verified school account with no class send a print, and the teacher sees who it is from", () => {
+      expect(env.call("kid@gmail.com", "submitPrint", { url: "https://www.tinkercad.com/things/x" }).error).toMatch(/school Google account/); // wrong domain
+      expect(env.call("pat@school.org", "me").ok).toBe(false); // still not in any class
+      const sent = env.call("pat@school.org", "submitPrint", { file: { name: "gear.stl", base64: stl }, copies: 3, note: "blue please" });
+      expect(sent.ok).toBe(true);
+      expect(sent.data).toMatchObject({ status: "queued", email: "pat@school.org", fileName: "gear.stl", copies: 3, classId: "" });
+      expect(env.call("pat@school.org", "submitPrint", { url: "https://example.org/x.stl" }).ok).toBe(true);
+      const jobs = env.call("teacher@school.org", "classData", { classId }).data.prints;
+      expect(jobs.map((j: { email: string }) => j.email)).toEqual(["pat@school.org", "pat@school.org"]);
+      env.call("teacher@school.org", "updatePrint", { printId: jobs[0].id, status: "printing" });
+      env.call("teacher@school.org", "updatePrint", { printId: jobs[0].id, status: "printed", teacherNote: "Front desk" });
+      const mine = env.call("pat@school.org", "myPrints").data.prints;
+      expect(mine).toHaveLength(2);
+      expect(mine.find((p: { id: string }) => p.id === jobs[0].id)).toMatchObject({ status: "printed", teacherNote: "Front desk" });
+    });
+
+    it("keeps school-wide users out of everything else and out of other people's prints", () => {
+      env.call("pat@school.org", "submitPrint", { url: "https://example.org/a.stl" });
+      expect(env.call("pat@school.org", "classData").ok).toBe(false);
+      expect(env.call("pat@school.org", "updatePrint", { printId: "x", status: "printing" }).ok).toBe(false);
+      expect(env.call("pat@school.org", "completeLesson", { lessonId: "holes" }).ok).toBe(false);
+      expect(env.call("sam@school.org", "myPrints").data.prints).toEqual([]);
+      const id = env.call("pat@school.org", "myPrints").data.prints[0].id;
+      expect(env.call("sam@school.org", "cancelMyPrint", { printId: id }).ok).toBe(false);
+      expect(env.call("pat@school.org", "cancelMyPrint", { printId: id }).data.status).toBe("cancelled");
+    });
+
+    it("checks the file or link and limits open requests", () => {
+      expect(env.call("pat@school.org", "submitPrint", {}).error).toMatch(/file or paste a link/);
+      expect(env.call("pat@school.org", "submitPrint", { url: "javascript:alert(1)" }).ok).toBe(false);
+      expect(env.call("pat@school.org", "submitPrint", { file: { name: "evil.exe", base64: stl } }).error).toMatch(/isn't allowed/);
+      for (let i = 0; i < 5; i++) expect(env.call("pat@school.org", "submitPrint", { url: "https://example.org/" + i }).ok).toBe(true);
+      expect(env.call("pat@school.org", "submitPrint", { url: "https://example.org/6" }).error).toMatch(/waiting/);
+    });
+
+    it("can be turned off, and class students can still use it", () => {
+      env.call("teacher@school.org", "addStudents", { classId, students: [{ email: "maya@school.org" }] });
+      expect(env.call("maya@school.org", "submitPrint", { url: "https://example.org/m" }).ok).toBe(true);
+      expect(env.call("maya@school.org", "me").data.prints).toHaveLength(1);
+      env.sheets.get("Config")!.data.forEach((r) => { if (r[0] === "PRINT_SUBMIT") r[1] = "FALSE"; });
+      expect(env.call("pat@school.org", "submitPrint", { url: "https://example.org/p" }).error).toMatch(/isn't open/);
+      expect(env.call("maya@school.org", "submitPrint", { url: "https://example.org/m2" }).ok).toBe(true);
+    });
+  });
+
   it("routes a print to redo and replaces it when the student submits a corrected STL", () => {
     env.call("teacher@school.org", "addStudents", { classId, students: [{ email: "maya@school.org" }] });
     const stl = Buffer.from("solid x\nendsolid x").toString("base64");

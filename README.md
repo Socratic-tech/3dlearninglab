@@ -8,6 +8,7 @@ Tinkercad is the CAD workspace; Google Classroom is an optional integration.
 ## Two editions
 
 - **Pages + Google edition** (`web/` + `apps-script/`): static site on GitHub Pages, student data in each teacher's Google Sheet/Drive. Setup: [docs/pages-edition.md](docs/pages-edition.md) · send teachers [docs/teacher-quickstart.md](docs/teacher-quickstart.md).
+- **School print queue** (Pages edition, no course needed): anyone at a school signs in with their school Google account and sends a file or link to one shared queue. See [docs/print-queue.md](docs/print-queue.md).
 - **Full edition** (Next.js, below): Postgres-backed, all teacher tools (print queue, rubrics, Classroom grade sync).
 
 - **Try-It mode** (in the Pages edition): **Try it now** on the welcome page. No Google account or Sheet; the same

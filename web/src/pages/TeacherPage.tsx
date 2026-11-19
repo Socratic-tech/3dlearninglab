@@ -43,7 +43,7 @@ type Live = {
   activeToday: number;
   at: string;
 };
-export type PrintJob = { id: string; email: string; lessonId: string; fileName: string | null; fileUrl: string | null; status: string; note: string; teacherNote: string; createdAt: string; updatedAt: string };
+export type PrintJob = { id: string; email: string; lessonId: string; fileName: string | null; fileUrl: string | null; status: string; note: string; teacherNote: string; createdAt: string; updatedAt: string; classId?: string; submitterName?: string; link?: string | null; copies?: number };
 
 const TABS = ["Overview", "Lessons", "Heatmap", "Review", "Prints", "Rewards", "Roster", "Classes"] as const;
 type Tab = (typeof TABS)[number];
@@ -773,7 +773,7 @@ function Prints({ jobs, name, apiUrl, onSaved }: { jobs: PrintJob[]; name: (e: s
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <p className="text-sm text-muted">Student STL files enter the queue. Send one to redo with clear feedback, start the print, then mark it printed. Oldest first.</p>
+        <p className="text-sm text-muted">STL files from class missions and from anyone at school (the school print queue link) enter the queue. Send one to redo with clear feedback, start the print, then mark it printed. Oldest first.</p>
         <div className="ml-auto flex gap-1" role="group" aria-label="Show">
           {(["open", "all"] as const).map((f) => <Button key={f} size="sm" variant={filter === f ? "primary" : "secondary"} onClick={() => setFilter(f)}>{f === "open" ? "To do" : "All"}</Button>)}
         </div>
@@ -785,10 +785,11 @@ function Prints({ jobs, name, apiUrl, onSaved }: { jobs: PrintJob[]; name: (e: s
           <li key={j.id}>
             <Card className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
-                <strong>{name(j.email)}</strong>
-                <span className="text-sm text-muted">{lessonById.get(j.lessonId)?.title} · {new Date(j.createdAt).toLocaleDateString()}</span>
+                <strong>{j.submitterName || name(j.email)}</strong>
+                <span className="text-sm text-muted">{j.lessonId ? lessonById.get(j.lessonId)?.title : "School print queue"}{(j.copies ?? 1) > 1 ? ` · ${j.copies} copies` : ""} · {j.email} · {new Date(j.createdAt).toLocaleDateString()}</span>
                 <Pill tone={j.status === "printed" ? "success" : j.status === "failed" || j.status === "redo" ? "danger" : j.status === "printing" ? "accent" : "neutral"}>{PRINT_LABELS[j.status] ?? j.status}</Pill>
                 {j.fileUrl && <a href={j.fileUrl} target="_blank" rel="noopener noreferrer" className="ml-auto text-sm font-semibold text-primary underline">{j.fileName ?? "Open file"} ↗</a>}
+                {j.link && <a href={j.link} target="_blank" rel="noopener noreferrer" className="ml-auto text-sm font-semibold text-primary underline">Open design link ↗</a>}
               </div>
               {j.note && <p className="rounded-lg bg-surface-2 p-2 text-sm">Student: {j.note}</p>}
               <div className="flex flex-wrap gap-1" role="group" aria-label="Next print step">
