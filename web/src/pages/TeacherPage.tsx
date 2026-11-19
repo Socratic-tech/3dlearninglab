@@ -21,6 +21,7 @@ import { markSetupStep, SetupCheckPanel, SetupChecklist } from "./SetupHelp";
 import { offlineChallenges } from "./HandoutPage";
 import { CourseSlides } from "./TeacherGuidePage";
 import { UpdateBanner } from "./UpdateBanner";
+import { WhatsNew } from "./WhatsNew";
 import { classCompletion, ClassHero, classStudents, ClassTrail, FocusCard, SectionHeading, TodaysWins, whereTheClassIs, winsToday } from "./TeacherWarmth";
 
 type Ev = { id: string; email: string; lessonId: string; type: string; url: string | null; fileName: string | null; text: string | null; status: string; rating: number | null; comment: string | null; createdAt: string; competencyIds: string[] };
@@ -62,6 +63,7 @@ export function TeacherPage(p: { me: Me; apiUrl: string; clientId: string; onCha
   return (
     <>
       <UpdateBanner me={p.me} apiUrl={p.apiUrl} onUpdated={p.onChange} />
+      <WhatsNew me={p.me} apiUrl={p.apiUrl} />
       <TeacherMain {...p} />
     </>
   );
