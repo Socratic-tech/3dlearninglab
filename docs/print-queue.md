@@ -24,7 +24,9 @@ Open the link and sign in with your school Google account, then:
    until printing starts. Up to 5 open requests per person keeps the line fair.
 
 ## Running the queue (teacher or printer person)
-Open **My dashboard → Prints**. Requests from classes and from the school link are in one list, oldest first, with
+Click **Open the print queue** on the side panel's **School print queue** card (no class needed; bookmark it). It lists
+requests from the school link and from any classes, oldest first, and refreshes every minute. A class dashboard's
+**Prints** tab shows the same list. Each request has
 name, email, copies, the file or link, and the student's note. Move each along: **printing → printed**, or **redo**
 with a note saying what to change. Notes (like "pick up at the front desk") show on the sender's page.
 

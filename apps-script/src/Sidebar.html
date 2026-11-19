@@ -103,7 +103,8 @@ function render() {
 
 function queueCard() {
   if (!S.queueLink || !S.printSubmit) return "";
-  return '<div class="card"><h2>School print queue</h2><p class="muted">Anyone at your school can send a file to your print queue, class or not. They sign in with their school Google account, so every request has a name on it. Prints show up on your dashboard under Prints.</p><button class="small" onclick="copyText(S.queueLink, this)">Copy print queue link</button></div>';
+  return '<div class="card"><h2>School print queue</h2><p class="muted">Anyone at your school can send a file to your print queue, class or not. They sign in with their school Google account, so every request has a name on it. Prints show up on your dashboard under Prints.</p><button class="small" onclick="copyText(S.queueLink, this)">Copy print queue link</button>' +
+    (S.queueManageLink ? '<p style="margin-top:10px"><a class="btn" target="_blank" href="' + esc(S.queueManageLink) + '">Open the print queue ↗</a></p><p class="muted">See every request, start prints and mark them done. No class needed. Bookmark that page.</p>' : "") + "</div>";
 }
 
 function home() {

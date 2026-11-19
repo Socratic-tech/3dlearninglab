@@ -759,7 +759,7 @@ function Rewards({ apiUrl }: { apiUrl: string }) {
   );
 }
 
-function Prints({ jobs, name, apiUrl, onSaved }: { jobs: PrintJob[]; name: (e: string) => string; apiUrl: string; onSaved: () => void }) {
+export function Prints({ jobs, name, apiUrl, onSaved }: { jobs: PrintJob[]; name: (e: string) => string; apiUrl: string; onSaved: () => void }) {
   const [filter, setFilter] = useState<"open" | "all">("open");
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<{ error: string } | null>(null);

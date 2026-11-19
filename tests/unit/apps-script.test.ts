@@ -219,6 +219,17 @@ describe("lost replies", () => {
       expect(env.call("pat@school.org", "submitPrint", { url: "https://example.org/6" }).error).toMatch(/waiting/);
     });
 
+    it("gives the printer person the whole queue with no class at all", () => {
+      const solo = makeEnv(); // a Sheet where nobody has made a class yet
+      expect(solo.call("pat@school.org", "submitPrint", { url: "https://example.org/a.stl" }).ok).toBe(true);
+      expect(solo.call("pat@school.org", "printQueue").ok).toBe(false); // senders can't see everyone's requests
+      const q = solo.call("teacher@school.org", "printQueue");
+      expect(q.ok).toBe(true);
+      expect(q.data.prints).toHaveLength(1);
+      expect(solo.call("teacher@school.org", "updatePrint", { printId: q.data.prints[0].id, status: "printing" }).data.status).toBe("printing");
+      expect(solo.call("pat@school.org", "myPrints").data.prints[0].status).toBe("printing");
+    });
+
     it("can be turned off, and class students can still use it", () => {
       env.call("teacher@school.org", "addStudents", { classId, students: [{ email: "maya@school.org" }] });
       expect(env.call("maya@school.org", "submitPrint", { url: "https://example.org/m" }).ok).toBe(true);

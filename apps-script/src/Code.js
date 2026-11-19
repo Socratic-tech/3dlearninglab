@@ -1756,6 +1756,14 @@ const ACTIONS = {
     },
   },
 
+  /** The printer person's whole queue (school-wide and class requests), with no class needed. */
+  printQueue: {
+    role: "teacher",
+    run: function () {
+      return { prints: rawTable_("Prints", true).rows.map(printOut_) };
+    },
+  },
+
   /** Everyone's own print requests (works for class students and school-wide submitters alike). */
   myPrints: {
     open: true,
@@ -2489,6 +2497,7 @@ function sidebarState(opts) {
     autoEnroll: String(cfg.AUTO_ENROLL).toUpperCase() === "TRUE",
     teacherLink: link("#/teacher"),
     queueLink: link("#/queue"),
+    queueManageLink: link("#/queue/manage"),
     printSubmit: String(cfg.PRINT_SUBMIT || "TRUE").trim().toUpperCase() !== "FALSE",
     classes: classes.map(function (c) { return { id: c.id, name: c.name + (c.section ? " · " + c.section : ""), link: link("&class=" + encodeURIComponent(c.id)) }; }),
     version: BUILD.version,

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { call, fileToBase64 } from "../api";
 import { tokenEmail } from "../auth";
-import type { PrintJob } from "./TeacherPage";
+import { Prints, type PrintJob } from "./TeacherPage";
 
 const STATUS: Record<string, { label: string; help: string; tone: "neutral" | "primary" | "accent" | "success" | "danger" }> = {
   queued: { label: "In the print queue", help: "Waiting for its turn. Oldest requests print first.", tone: "primary" },
@@ -24,6 +24,31 @@ const MAX_MB = 10;
  * design link, class or no class. The person is identified by their verified Google sign-in, shown at the top.
  */
 export function QueuePage({ apiUrl }: { apiUrl: string }) {
+  if (location.hash.startsWith("#/queue/manage")) return <ManageQueue apiUrl={apiUrl} />;
+  return <SendPage apiUrl={apiUrl} />;
+}
+
+/** The printer person's view of the whole queue. Works with no class; only teachers and admins get an answer. */
+function ManageQueue({ apiUrl }: { apiUrl: string }) {
+  const [prints, setPrints] = useState<PrintJob[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const load = useCallback(async () => {
+    const r = await call<{ prints: PrintJob[] }>(apiUrl, "printQueue");
+    if (r.ok) { setPrints(r.data.prints); setError(null); } else setError(r.error);
+  }, [apiUrl]);
+  useEffect(() => { void load(); const t = setInterval(() => void load(), 60_000); return () => clearInterval(t); }, [load]);
+  return (
+    <div className="mx-auto max-w-3xl space-y-4 py-4">
+      <h1 className="flex items-center gap-2 font-display text-3xl font-bold tracking-tight"><Printer className="size-8 text-primary" aria-hidden /> {tr("Print queue")}</h1>
+      {error && <Alert tone="danger" title={tr("We couldn't open the queue")}>{error} {tr("Only the Sheet's owner, co-teachers and admins can manage the queue.")}</Alert>}
+      {!prints && !error && <p className="text-muted" role="status">{tr("Loading the queue…")}</p>}
+      {prints && <Prints jobs={prints} name={(e) => e} apiUrl={apiUrl} onSaved={() => void load()} />}
+      <p className="text-sm text-muted"><a className="text-primary underline" href="#/queue">{tr("Send a print yourself")}</a></p>
+    </div>
+  );
+}
+
+function SendPage({ apiUrl }: { apiUrl: string }) {
   const email = tokenEmail();
   const [prints, setPrints] = useState<PrintJob[] | null>(null);
   const [error, setError] = useState<string | null>(null);
