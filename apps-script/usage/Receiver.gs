@@ -66,6 +66,16 @@ function report_(d) {
   }
 }
 
+/**
+ * Run this ONCE from the editor (pick "authorizeMail" in the function list at the top, click Run, click Allow).
+ * Google only lets a web app send email after its owner has approved that permission here; deploying alone isn't enough.
+ * It sends you one test email. Afterwards: Deploy → Manage deployments → pencil → New version → Deploy.
+ */
+function authorizeMail() {
+  MailApp.sendEmail(OWNER, "3D Design Academy feedback email works", "If you can read this, feedback from teachers will reach you by email.");
+  Logger.log("Test email sent to " + OWNER + ". Now deploy a New version.");
+}
+
 const FEEDBACK_COLS = ["at", "kind", "name", "email", "message", "details", "mailed"];
 const FEEDBACK_PER_SENDER = 5;   // per teacher per 6 hours
 const FEEDBACK_PER_DAY = 100;    // everyone together, per 6 hours (the longest Google lets a cached count live)
@@ -98,11 +108,10 @@ function feedback_(d) {
     "Sent from a teacher's Sheet on the dashboard. Reply goes to the teacher.",
     Object.keys(details).map(function (k) { return k + ": " + details[k]; }).join("\n"),
   ].join("\n");
-  let mailed = false;
+  let mailed = true; // stays true, or becomes the reason the email failed, so the Feedback tab says why
   try {
     MailApp.sendEmail({ to: OWNER, replyTo: email, subject: "[3D Design Academy] " + kindLabel + ": " + message.replace(/\s+/g, " ").slice(0, 60), body: body });
-    mailed = true;
-  } catch (err) { mailed = false; }
+  } catch (err) { mailed = "NOT SENT: " + String((err && err.message) || err).slice(0, 200); }
   sheet_("Feedback", FEEDBACK_COLS).appendRow([new Date().toISOString(), d.kind, name, email, message, JSON.stringify(details), mailed]);
   return { ok: true };
 }

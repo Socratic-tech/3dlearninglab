@@ -64,8 +64,10 @@ the teacher as the reply-to, and also saves it in the receiver Sheet's **Feedbac
 app version; no student data.
 
 **One-time step after updating `apps-script/usage/Receiver.gs`:** paste the new file over the receiver's Code.gs, then
-**Deploy → Manage deployments → pencil → New version → Deploy**, and click **Allow** when Google asks to let it send email.
-The web app address stays the same. Until you do this, the form says "Couldn't send that just now."
+**Deploy → Manage deployments → pencil → New version → Deploy**. The web app address stays the same.
+Then, once, in the editor: pick the function **authorizeMail** at the top, click **Run**, and click **Allow** when Google asks
+to let the script send email (deploying alone doesn't ask). You get one test email. Run it before the New version deploy.
+If a message is saved in the Feedback tab but not emailed, its last column says `NOT SENT:` and why.
 
 ## Notes and limits
 
